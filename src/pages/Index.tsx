@@ -12,6 +12,7 @@ import {
 import useAppStore from '@/stores/main'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { cn } from '@/lib/utils'
 
 export default function Index() {
   const { employees, alerts, onboarding } = useAppStore()

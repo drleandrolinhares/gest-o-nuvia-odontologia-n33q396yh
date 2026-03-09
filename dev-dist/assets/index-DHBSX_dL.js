@@ -18654,7 +18654,7 @@ var getDefaultConfig = () => {
 	};
 };
 var twMerge = /* @__PURE__ */ createTailwindMerge(getDefaultConfig);
-function cn$1(...inputs) {
+function cn(...inputs) {
 	return twMerge(clsx(inputs));
 }
 /**
@@ -19526,7 +19526,7 @@ var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespa
 });
 var Button = import_react.forwardRef(({ className, variant, size, asChild = false, ...props }, ref) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(asChild ? Slot$1 : "button", {
-		className: cn$1(buttonVariants({
+		className: cn(buttonVariants({
 			variant,
 			size,
 			className
@@ -19539,7 +19539,7 @@ Button.displayName = "Button";
 var Input = import_react.forwardRef(({ className, type, ...props }, ref) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
 		type,
-		className: cn$1("flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", className),
+		className: cn("flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", className),
 		ref,
 		...props
 	});
@@ -21298,7 +21298,7 @@ var Sheet = Root$2;
 var SheetTrigger = Trigger$1;
 var SheetPortal = Portal$1;
 var SheetOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
-	className: cn$1("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+	className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
 	...props,
 	ref
 }));
@@ -21314,7 +21314,7 @@ var sheetVariants = cva("fixed z-50 gap-4 bg-background p-6 shadow-lg transition
 });
 var SheetContent = import_react.forwardRef(({ side = "right", className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SheetPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
 	ref,
-	className: cn$1(sheetVariants({ side }), className),
+	className: cn(sheetVariants({ side }), className),
 	...props,
 	children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Close, {
 		className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary",
@@ -21326,24 +21326,24 @@ var SheetContent = import_react.forwardRef(({ side = "right", className, childre
 })] }));
 SheetContent.displayName = Content$1.displayName;
 var SheetHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn$1("flex flex-col space-y-2 text-center sm:text-left", className),
+	className: cn("flex flex-col space-y-2 text-center sm:text-left", className),
 	...props
 });
 SheetHeader.displayName = "SheetHeader";
 var SheetFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn$1("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
 	...props
 });
 SheetFooter.displayName = "SheetFooter";
 var SheetTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
 	ref,
-	className: cn$1("text-lg font-semibold text-foreground", className),
+	className: cn("text-lg font-semibold text-foreground", className),
 	...props
 }));
 SheetTitle.displayName = Title.displayName;
 var SheetDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
 	ref,
-	className: cn$1("text-sm text-muted-foreground", className),
+	className: cn("text-sm text-muted-foreground", className),
 	...props
 }));
 SheetDescription.displayName = Description.displayName;
@@ -21383,14 +21383,14 @@ var navItems = [
 function SidebarNav({ className }) {
 	const location = useLocation();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
-		className: cn$1("flex flex-col gap-2 p-4", className),
+		className: cn("flex flex-col gap-2 p-4", className),
 		children: navItems.map((item) => {
 			const isActive = location.pathname === item.href;
 			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
 				to: item.href,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 					variant: isActive ? "secondary" : "ghost",
-					className: cn$1("w-full justify-start", isActive ? "bg-primary/10 text-primary hover:bg-primary/20" : ""),
+					className: cn("w-full justify-start", isActive ? "bg-primary/10 text-primary hover:bg-primary/20" : ""),
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, { className: "mr-2 h-4 w-4" }), item.label]
 				})
 			}, item.href);
@@ -21504,37 +21504,37 @@ function Layout() {
 }
 var Card = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
-	className: cn$1("rounded-lg border bg-card text-card-foreground shadow-sm", className),
+	className: cn("rounded-lg border bg-card text-card-foreground shadow-sm", className),
 	...props
 }));
 Card.displayName = "Card";
 var CardHeader = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
-	className: cn$1("flex flex-col space-y-1.5 p-6", className),
+	className: cn("flex flex-col space-y-1.5 p-6", className),
 	...props
 }));
 CardHeader.displayName = "CardHeader";
 var CardTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
-	className: cn$1("text-2xl font-semibold leading-none tracking-tight", className),
+	className: cn("text-2xl font-semibold leading-none tracking-tight", className),
 	...props
 }));
 CardTitle.displayName = "CardTitle";
 var CardDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
-	className: cn$1("text-sm text-muted-foreground", className),
+	className: cn("text-sm text-muted-foreground", className),
 	...props
 }));
 CardDescription.displayName = "CardDescription";
 var CardContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
-	className: cn$1("p-6 pt-0", className),
+	className: cn("p-6 pt-0", className),
 	...props
 }));
 CardContent.displayName = "CardContent";
 var CardFooter = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
-	className: cn$1("flex items-center p-6 pt-0", className),
+	className: cn("flex items-center p-6 pt-0", className),
 	...props
 }));
 CardFooter.displayName = "CardFooter";
@@ -21666,19 +21666,19 @@ var alertVariants = cva("relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&
 var Alert = import_react.forwardRef(({ className, variant, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
 	role: "alert",
-	className: cn$1(alertVariants({ variant }), className),
+	className: cn(alertVariants({ variant }), className),
 	...props
 }));
 Alert.displayName = "Alert";
 var AlertTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", {
 	ref,
-	className: cn$1("mb-1 font-medium leading-none tracking-tight", className),
+	className: cn("mb-1 font-medium leading-none tracking-tight", className),
 	...props
 }));
 AlertTitle.displayName = "AlertTitle";
 var AlertDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
-	className: cn$1("text-sm [&_p]:leading-relaxed", className),
+	className: cn("text-sm [&_p]:leading-relaxed", className),
 	...props
 }));
 AlertDescription.displayName = "AlertDescription";
@@ -22192,19 +22192,19 @@ var Content = TabsContent$1;
 var Tabs = Root2;
 var TabsList = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(List, {
 	ref,
-	className: cn$1("inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground", className),
+	className: cn("inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground", className),
 	...props
 }));
 TabsList.displayName = List.displayName;
 var TabsTrigger = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger, {
 	ref,
-	className: cn$1("inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm", className),
+	className: cn("inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm", className),
 	...props
 }));
 TabsTrigger.displayName = Trigger.displayName;
 var TabsContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content, {
 	ref,
-	className: cn$1("mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", className),
+	className: cn("mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", className),
 	...props
 }));
 TabsContent.displayName = Content.displayName;
@@ -22212,50 +22212,50 @@ var Table = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE
 	className: "relative w-full overflow-auto",
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("table", {
 		ref,
-		className: cn$1("w-full caption-bottom text-sm", className),
+		className: cn("w-full caption-bottom text-sm", className),
 		...props
 	})
 }));
 Table.displayName = "Table";
 var TableHeader = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", {
 	ref,
-	className: cn$1("[&_tr]:border-b", className),
+	className: cn("[&_tr]:border-b", className),
 	...props
 }));
 TableHeader.displayName = "TableHeader";
 var TableBody = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
 	ref,
-	className: cn$1("[&_tr:last-child]:border-0", className),
+	className: cn("[&_tr:last-child]:border-0", className),
 	...props
 }));
 TableBody.displayName = "TableBody";
 var TableFooter = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tfoot", {
 	ref,
-	className: cn$1("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
+	className: cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
 	...props
 }));
 TableFooter.displayName = "TableFooter";
 var TableRow = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", {
 	ref,
-	className: cn$1("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
+	className: cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
 	...props
 }));
 TableRow.displayName = "TableRow";
 var TableHead = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
 	ref,
-	className: cn$1("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
+	className: cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
 	...props
 }));
 TableHead.displayName = "TableHead";
 var TableCell = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
 	ref,
-	className: cn$1("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
+	className: cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
 	...props
 }));
 TableCell.displayName = "TableCell";
 var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("caption", {
 	ref,
-	className: cn$1("mt-4 text-sm text-muted-foreground", className),
+	className: cn("mt-4 text-sm text-muted-foreground", className),
 	...props
 }));
 TableCaption.displayName = "TableCaption";
@@ -22270,7 +22270,7 @@ var badgeVariants = cva("inline-flex items-center rounded-full border px-2.5 py-
 });
 function Badge({ className, variant, ...props }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: cn$1(badgeVariants({ variant }), className),
+		className: cn(badgeVariants({ variant }), className),
 		...props
 	});
 }
@@ -22278,13 +22278,13 @@ var Dialog = Root$2;
 var DialogPortal = Portal$1;
 var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
 	ref,
-	className: cn$1("fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+	className: cn("fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
 	...props
 }));
 DialogOverlay.displayName = Overlay.displayName;
 var DialogContent = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
 	ref,
-	className: cn$1("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-y-auto max-h-screen", className),
+	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-y-auto max-h-screen", className),
 	...props,
 	children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Close, {
 		className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
@@ -22296,24 +22296,24 @@ var DialogContent = import_react.forwardRef(({ className, children, ...props }, 
 })] }));
 DialogContent.displayName = Content$1.displayName;
 var DialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn$1("flex flex-col space-y-1.5 text-center sm:text-left", className),
+	className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
 	...props
 });
 DialogHeader.displayName = "DialogHeader";
 var DialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn$1("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
 	...props
 });
 DialogFooter.displayName = "DialogFooter";
 var DialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
 	ref,
-	className: cn$1("text-lg font-semibold leading-none tracking-tight", className),
+	className: cn("text-lg font-semibold leading-none tracking-tight", className),
 	...props
 }));
 DialogTitle.displayName = Title.displayName;
 var DialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
 	ref,
-	className: cn$1("text-sm text-muted-foreground", className),
+	className: cn("text-sm text-muted-foreground", className),
 	...props
 }));
 DialogDescription.displayName = Description.displayName;
@@ -22489,7 +22489,7 @@ var Root = Progress$1;
 var Indicator = ProgressIndicator;
 var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
 	ref,
-	className: cn$1("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
+	className: cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
 	...props,
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Indicator, {
 		className: "h-full w-full flex-1 bg-primary transition-all",
@@ -22536,7 +22536,7 @@ function EmployeeTable({ employees }) {
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
 					className: "text-right",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-						className: cn$1("text-white", getStatusColor(emp.status)),
+						className: cn("text-white", getStatusColor(emp.status)),
 						children: emp.status
 					})
 				})
@@ -22577,7 +22577,7 @@ function EmployeeTable({ employees }) {
 							className: "text-muted-foreground block mb-1",
 							children: "Status Atual"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-							className: cn$1("text-white mt-1", getStatusColor(selectedEmp.status)),
+							className: cn("text-white mt-1", getStatusColor(selectedEmp.status)),
 							children: selectedEmp.status
 						})] })
 					]
@@ -22986,10 +22986,10 @@ function getState(checked) {
 }
 var Checkbox = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Checkbox$1, {
 	ref,
-	className: cn$1("peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground", className),
+	className: cn("peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground", className),
 	...props,
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CheckboxIndicator, {
-		className: cn$1("flex items-center justify-center text-current"),
+		className: cn("flex items-center justify-center text-current"),
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { className: "h-4 w-4" })
 	})
 }));
@@ -23126,4 +23126,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index--J_szpAk.js.map
+//# sourceMappingURL=index-DHBSX_dL.js.map
