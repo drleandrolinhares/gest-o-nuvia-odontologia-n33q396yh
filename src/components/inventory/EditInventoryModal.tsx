@@ -19,22 +19,22 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import useAppStore, { type InventoryItem } from '@/stores/main'
 import { formatCurrency } from '@/lib/utils'
-import { Package, Calculator, History } from 'lucide-react'
+import { Package, Calculator, History, ShoppingCart } from 'lucide-react'
 
 export function EditInventoryModal({
   item,
   open,
   onOpenChange,
+  onNewPurchase,
 }: {
   item: InventoryItem | null
   open: boolean
   onOpenChange: (val: boolean) => void
+  onNewPurchase: () => void
 }) {
-  const { updateInventoryQuantity, addPurchaseHistory, isAdmin } = useAppStore()
+  const { updateInventoryQuantity, isAdmin, suppliers } = useAppStore()
 
   const [manualQty, setManualQty] = useState(item?.quantity || 0)
-  const [newQty, setNewQty] = useState('')
-  const [newPrice, setNewPrice] = useState('')
 
   useEffect(() => {
     if (item) setManualQty(item.quantity)
@@ -52,27 +52,31 @@ export function EditInventoryModal({
     updateInventoryQuantity(item.id, manualQty)
   }
 
-  const handleAddPurchase = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newQty && newPrice) {
-      addPurchaseHistory(item.id, {
-        date: new Date().toISOString(),
-        price: Number(newPrice),
-        quantity: Number(newQty),
-      })
-      setNewQty('')
-      setNewPrice('')
-    }
+  const getSupplierName = (id?: string) => {
+    if (!id) return '-'
+    const s = suppliers.find((sup) => sup.id === id)
+    return s ? s.name : '-'
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#D81B84]">{item.name}</DialogTitle>
-          <DialogDescription>
-            {item.brand} • {item.specialty || 'Sem Especialidade'} • {item.packageType}
-          </DialogDescription>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto uppercase">
+        <DialogHeader className="flex flex-row items-start justify-between pr-8">
+          <div>
+            <DialogTitle className="text-2xl font-bold text-[#D81B84]">{item.name}</DialogTitle>
+            <DialogDescription className="uppercase mt-1">
+              {item.brand} • {item.specialty || 'SEM ESPECIALIDADE'} • {item.packageType}
+            </DialogDescription>
+          </div>
+          <Button
+            onClick={() => {
+              onOpenChange(false)
+              setTimeout(onNewPurchase, 300) // Delay to avoid nested dialog visual issues
+            }}
+            className="bg-[#D81B84] hover:bg-[#B71770] text-white tracking-widest font-bold h-10"
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" /> NOVA COMPRA
+          </Button>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
@@ -93,12 +97,12 @@ export function EditInventoryModal({
                       type="number"
                       value={manualQty}
                       onChange={(e) => setManualQty(Number(e.target.value))}
-                      className="font-bold text-lg h-12"
+                      className="font-bold text-lg h-12 uppercase"
                     />
                   </div>
                   <Button
                     onClick={handleManualUpdate}
-                    className="h-12 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold"
                   >
                     SALVAR
                   </Button>
@@ -118,7 +122,7 @@ export function EditInventoryModal({
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-black text-emerald-600">{formatCurrency(avgPrice)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1 font-bold">
                 CUSTO ATUAL REGISTRADO: {formatCurrency(item.packageCost)}
               </p>
             </CardContent>
@@ -126,63 +130,56 @@ export function EditInventoryModal({
         </div>
 
         <div className="mt-6 border-t pt-6 space-y-6">
-          <div className="bg-muted/30 p-5 rounded-xl border border-muted">
-            <h4 className="font-bold text-sm mb-4">REGISTRAR NOVA COMPRA</h4>
-            <form onSubmit={handleAddPurchase} className="flex flex-col sm:flex-row gap-3">
-              <Input
-                type="number"
-                placeholder="QTD COMPRADA"
-                value={newQty}
-                onChange={(e) => setNewQty(e.target.value)}
-                required
-                min={1}
-                className="bg-white"
-              />
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="VALOR TOTAL PAGO (R$)"
-                value={newPrice}
-                onChange={(e) => setNewPrice(e.target.value)}
-                required
-                min={0}
-                className="bg-white"
-              />
-              <Button
-                type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white whitespace-nowrap"
-              >
-                ADICIONAR AO HISTÓRICO
-              </Button>
-            </form>
-          </div>
-
           <div>
-            <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+            <h4 className="font-bold text-sm mb-3 flex items-center gap-2 text-nuvia-navy">
               <History className="h-4 w-4" /> HISTÓRICO DE COMPRAS (ÚLTIMAS 5)
             </h4>
             <div className="border rounded-md overflow-hidden">
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead>DATA DA COMPRA</TableHead>
-                    <TableHead className="text-center">QTD ADICIONADA</TableHead>
-                    <TableHead className="text-right">VALOR UNITÁRIO (R$)</TableHead>
+                    <TableHead className="font-bold">DATA</TableHead>
+                    <TableHead className="font-bold">FORNECEDOR</TableHead>
+                    <TableHead className="font-bold">LOTE / VALIDADE</TableHead>
+                    <TableHead className="text-center font-bold">QTD.</TableHead>
+                    <TableHead className="text-right font-bold">VALOR TOTAL</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recentHistory.map((h) => (
                     <TableRow key={h.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium text-xs">
                         {new Date(h.date).toLocaleDateString('pt-BR')}
                       </TableCell>
-                      <TableCell className="text-center font-bold">{h.quantity}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(h.price)}</TableCell>
+                      <TableCell className="text-xs font-semibold text-muted-foreground">
+                        {getSupplierName(h.supplierId)}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {h.lot ? (
+                          <span className="font-mono bg-muted px-1 py-0.5 rounded">{h.lot}</span>
+                        ) : (
+                          '-'
+                        )}
+                        {h.expirationDate && (
+                          <div className="text-orange-600 mt-1">
+                            VAL: {new Date(h.expirationDate).toLocaleDateString('pt-BR')}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center font-black text-base">
+                        {h.quantity}
+                      </TableCell>
+                      <TableCell className="text-right font-bold">
+                        {formatCurrency(h.price)}
+                      </TableCell>
                     </TableRow>
                   ))}
                   {recentHistory.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-6 text-muted-foreground font-bold"
+                      >
                         NENHUM REGISTRO DE COMPRA ENCONTRADO.
                       </TableCell>
                     </TableRow>

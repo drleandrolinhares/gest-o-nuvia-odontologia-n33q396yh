@@ -8,6 +8,7 @@ import Settings from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
 import Agenda from '@/pages/Agenda'
 import Acessos from '@/pages/Acessos'
+import Suppliers from '@/pages/Suppliers'
 import PublicHome from '@/pages/PublicHome'
 import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -31,6 +32,7 @@ export default function App() {
             <Route index element={<Index />} />
             <Route path="agenda" element={<Agenda />} />
             <Route path="acessos" element={<Acessos />} />
+            <Route path="fornecedor" element={<Suppliers />} />
             <Route path="rh" element={<RH />} />
             <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
             <Route path="estoque" element={<Inventory />} />

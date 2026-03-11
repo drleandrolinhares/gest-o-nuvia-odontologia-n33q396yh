@@ -40,6 +40,7 @@ const schema = z.object({
   expirationDate: z.date().optional(),
   storageLocation: z.string().min(1, 'Obrigatório'),
   minStock: z.coerce.number().min(0),
+  barcode: z.string().optional(),
   lastBrand: z.string().optional(),
   lastValue: z.coerce.number().optional(),
   notes: z.string().optional(),
@@ -66,6 +67,7 @@ export function AddInventoryModal({
       quantity: 0,
       storageLocation: '',
       minStock: 0,
+      barcode: '',
       lastBrand: '',
       lastValue: 0,
       notes: '',
@@ -98,9 +100,11 @@ export function AddInventoryModal({
         if (!val) form.reset()
       }}
     >
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto uppercase">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Novo Produto no Estoque</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-nuvia-navy">
+            NOVO PRODUTO NO ESTOQUE
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 py-4">
@@ -110,11 +114,11 @@ export function AddInventoryModal({
                 name="name"
                 render={({ field }) => (
                   <FormItem className="md:col-span-1">
-                    <FormLabel>Nome do Material</FormLabel>
+                    <FormLabel>NOME DO MATERIAL</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="EX: RESINA A2"
-                        className="border-[#D81B84] focus-visible:ring-[#D81B84]"
+                        className="border-[#D81B84] focus-visible:ring-[#D81B84] uppercase"
                         {...field}
                       />
                     </FormControl>
@@ -127,9 +131,9 @@ export function AddInventoryModal({
                 name="brand"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Marca</FormLabel>
+                    <FormLabel>MARCA</FormLabel>
                     <FormControl>
-                      <Input placeholder="EX: 3M, FGM..." {...field} />
+                      <Input placeholder="EX: 3M, FGM..." className="uppercase" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -140,16 +144,16 @@ export function AddInventoryModal({
                 name="specialty"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Especialidade</FormLabel>
+                    <FormLabel>ESPECIALIDADE</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
+                        <SelectTrigger className="uppercase">
+                          <SelectValue placeholder="SELECIONE" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {specialties.map((spec) => (
-                          <SelectItem key={spec} value={spec}>
+                          <SelectItem key={spec} value={spec} className="uppercase">
                             {spec}
                           </SelectItem>
                         ))}
@@ -166,7 +170,7 @@ export function AddInventoryModal({
                 <Calculator className="w-32 h-32" />
               </div>
               <h4 className="font-semibold text-blue-900 flex items-center gap-2 relative z-10">
-                Informações de Compra e Embalagem
+                INFORMAÇÕES DE COMPRA E EMBALAGEM
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
                 <FormField
@@ -174,9 +178,14 @@ export function AddInventoryModal({
                   name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Qtd. Comprada</FormLabel>
+                      <FormLabel>QTD. COMPRADA</FormLabel>
                       <FormControl>
-                        <Input type="number" className="bg-white" placeholder="EX: 10" {...field} />
+                        <Input
+                          type="number"
+                          className="bg-white uppercase"
+                          placeholder="EX: 10"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -187,9 +196,9 @@ export function AddInventoryModal({
                   name="itemsPerBox"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Itens na Embalagem</FormLabel>
+                      <FormLabel>ITENS NA EMBALAGEM</FormLabel>
                       <FormControl>
-                        <Input type="number" className="bg-white" {...field} />
+                        <Input type="number" className="bg-white uppercase" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -200,9 +209,14 @@ export function AddInventoryModal({
                   name="packageCost"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Emb. Fechada (R$)</FormLabel>
+                      <FormLabel>VALOR EMB. FECHADA (R$)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" className="bg-white" {...field} />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="bg-white uppercase"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -213,16 +227,16 @@ export function AddInventoryModal({
                   name="packageType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo Embalagem</FormLabel>
+                      <FormLabel>TIPO EMBALAGEM</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Selecione" />
+                          <SelectTrigger className="bg-white uppercase">
+                            <SelectValue placeholder="SELECIONE" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {packageTypes.map((pt) => (
-                            <SelectItem key={pt} value={pt}>
+                            <SelectItem key={pt} value={pt} className="uppercase">
                               {pt}
                             </SelectItem>
                           ))}
@@ -234,9 +248,7 @@ export function AddInventoryModal({
                 />
               </div>
               <div className="pt-3 border-t border-blue-200/50 flex justify-between items-center relative z-10">
-                <span className="text-sm font-semibold text-blue-800">
-                  Valor Total da Compra (Automático)
-                </span>
+                <span className="text-sm font-semibold text-blue-800">VALOR TOTAL DA COMPRA</span>
                 <div className="text-2xl font-black text-blue-700">{formatCurrency(totalCost)}</div>
               </div>
             </div>
@@ -247,27 +259,27 @@ export function AddInventoryModal({
                 name="entryDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Data de Entrada</FormLabel>
+                    <FormLabel>DATA DE ENTRADA</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={'outline'}
                             className={cn(
-                              'w-full pl-3 text-left font-normal',
+                              'w-full pl-3 text-left font-normal uppercase',
                               !field.value && 'text-muted-foreground',
                             )}
                           >
                             {field.value ? (
                               format(field.value, 'PPP', { locale: ptBR })
                             ) : (
-                              <span>Selecione a data</span>
+                              <span>SELECIONE A DATA</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 uppercase" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -286,27 +298,27 @@ export function AddInventoryModal({
                 name="expirationDate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Data de Validade</FormLabel>
+                    <FormLabel>DATA DE VALIDADE</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={'outline'}
                             className={cn(
-                              'w-full pl-3 text-left font-normal',
+                              'w-full pl-3 text-left font-normal uppercase',
                               !field.value && 'text-muted-foreground',
                             )}
                           >
                             {field.value ? (
                               format(field.value, 'PPP', { locale: ptBR })
                             ) : (
-                              <span>Selecione a data</span>
+                              <span>SELECIONE A DATA</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 uppercase" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -321,15 +333,19 @@ export function AddInventoryModal({
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
               <FormField
                 control={form.control}
                 name="storageLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Local de Armazenamento</FormLabel>
+                    <FormLabel>LOCAL DE ARMAZENAMENTO</FormLabel>
                     <FormControl>
-                      <Input placeholder="EX: SALA 1 - ARMÁRIO A" {...field} />
+                      <Input
+                        placeholder="EX: SALA 1 - ARMÁRIO A"
+                        className="uppercase"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -340,9 +356,22 @@ export function AddInventoryModal({
                 name="minStock"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estoque Mínimo (Aviso)</FormLabel>
+                    <FormLabel>ESTOQUE MÍNIMO (AVISO)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input type="number" className="uppercase" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="barcode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CÓDIGO DE BARRAS</FormLabel>
+                    <FormControl>
+                      <Input placeholder="BIPAR OU DIGITAR..." className="uppercase" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -352,7 +381,7 @@ export function AddInventoryModal({
 
             <div className="space-y-4 pt-4 border-t">
               <h4 className="font-semibold text-muted-foreground text-sm">
-                Histórico & Notas (Opcional)
+                HISTÓRICO & NOTAS (OPCIONAL)
               </h4>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -360,9 +389,9 @@ export function AddInventoryModal({
                   name="lastBrand"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Marca da última compra</FormLabel>
+                      <FormLabel>MARCA DA ÚLTIMA COMPRA</FormLabel>
                       <FormControl>
-                        <Input placeholder="EX: 3M, IVOCLAR..." {...field} />
+                        <Input placeholder="EX: 3M, IVOCLAR..." className="uppercase" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -373,9 +402,9 @@ export function AddInventoryModal({
                   name="lastValue"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor da última compra (R$)</FormLabel>
+                      <FormLabel>VALOR DA ÚLTIMA COMPRA (R$)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" {...field} />
+                        <Input type="number" step="0.01" className="uppercase" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -387,10 +416,10 @@ export function AddInventoryModal({
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Observações</FormLabel>
+                    <FormLabel>OBSERVAÇÕES</FormLabel>
                     <FormControl>
                       <Textarea
-                        className="min-h-[100px]"
+                        className="min-h-[100px] uppercase"
                         placeholder="ADICIONE NOTAS, LINKS DE FORNECEDORES OU DETALHES..."
                         {...field}
                       />
@@ -402,10 +431,10 @@ export function AddInventoryModal({
             </div>
             <div className="flex justify-end gap-3 mt-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
+                CANCELAR
               </Button>
               <Button type="submit" className="bg-[#D81B84] hover:bg-[#B71770] text-white">
-                Cadastrar Produto
+                CADASTRAR PRODUTO
               </Button>
             </div>
           </form>

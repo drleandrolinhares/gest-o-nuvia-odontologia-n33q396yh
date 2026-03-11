@@ -29,7 +29,15 @@ export type OnboardingCandidate = {
   tasks: OnboardingTask[]
 }
 
-export type PurchaseRecord = { id: string; date: string; price: number; quantity: number }
+export type PurchaseRecord = {
+  id: string
+  date: string
+  price: number
+  quantity: number
+  expirationDate?: string
+  lot?: string
+  supplierId?: string
+}
 
 export type InventoryItem = {
   id: string
@@ -47,6 +55,7 @@ export type InventoryItem = {
   lastBrand?: string
   lastValue?: number
   notes?: string
+  barcode?: string
   purchaseHistory?: PurchaseRecord[]
 }
 
@@ -69,6 +78,15 @@ export type AccessItem = {
   instructions: string
 }
 
+export type Supplier = {
+  id: string
+  name: string
+  contact: string
+  phone: string
+  email: string
+  cnpj: string
+}
+
 interface AppStore {
   isAuthenticated: boolean
   isAdmin: boolean
@@ -83,6 +101,7 @@ interface AppStore {
   documents: DocumentItem[]
   agenda: AgendaItem[]
   acessos: AccessItem[]
+  suppliers: Supplier[]
   login: (email: string, pass: string) => boolean
   logout: () => void
   toggleAdmin: () => void
@@ -108,6 +127,8 @@ interface AppStore {
   removeAgendaItem: (id: string) => void
   addAccess: (item: Omit<AccessItem, 'id'>) => void
   removeAccess: (id: string) => void
+  addSupplier: (item: Omit<Supplier, 'id'>) => void
+  removeSupplier: (id: string) => void
 }
 
 const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção']
@@ -181,7 +202,8 @@ const mockInventory: InventoryItem[] = [
     specialty: 'Clínica Geral',
     brand: '3M',
     entryDate: '2023-10-01T12:00:00.000Z',
-    expirationDate: '2025-10-01T12:00:00.000Z',
+    expirationDate: '2026-10-01T12:00:00.000Z',
+    barcode: '7891234567890',
     purchaseHistory: [
       { id: 'h1', date: '2023-09-15T10:00:00.000Z', price: 80.0, quantity: 5 },
       { id: 'h2', date: '2023-10-01T12:00:00.000Z', price: 85.5, quantity: 7 },
@@ -199,6 +221,8 @@ const mockInventory: InventoryItem[] = [
     specialty: 'Ortodontia',
     brand: 'Morelli',
     entryDate: '2023-11-15T12:00:00.000Z',
+    barcode: '7890987654321',
+    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Expires in 30 days
     purchaseHistory: [{ id: 'h3', date: '2023-11-15T12:00:00.000Z', price: 150.0, quantity: 5 }],
   },
 ]
@@ -232,13 +256,24 @@ const mockAcessos: AccessItem[] = [
     pass: 'Nuvia@2026!',
     instructions: 'Acesso restrito à diretoria.',
   },
+]
+
+const mockSuppliers: Supplier[] = [
+  {
+    id: '1',
+    name: 'DENTAL CREMER',
+    contact: 'MARIA SILVA',
+    phone: '(11) 4000-0000',
+    email: 'VENDAS@DENTALCREMER.COM.BR',
+    cnpj: '11.111.111/0001-11',
+  },
   {
     id: '2',
-    platform: 'Fornecedor Dental Cremer',
-    url: 'https://dentalcremer.com.br',
-    login: 'compras@nuvia.com',
-    pass: 'CremerBuy123',
-    instructions: 'Usar para reposição de resinas e EPIs.',
+    name: 'SURY DENTAL',
+    contact: 'JOÃO SOUZA',
+    phone: '(41) 3000-0000',
+    email: 'CONTATO@SURYDENTAL.COM.BR',
+    cnpj: '22.222.222/0001-22',
   },
 ]
 
@@ -258,6 +293,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments)
   const [agenda, setAgenda] = useState<AgendaItem[]>(mockAgenda)
   const [acessos, setAcessos] = useState<AccessItem[]>(mockAcessos)
+  const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers)
 
   const login = useCallback(
     (email: string, pass: string) => {
@@ -330,6 +366,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               date: new Date().toISOString(),
               price: item.packageCost,
               quantity: item.quantity,
+              expirationDate: item.expirationDate,
             },
           ]
         : []
@@ -353,6 +390,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             purchaseHistory: newHistory,
             quantity: item.quantity + record.quantity,
             packageCost: record.price,
+            expirationDate: record.expirationDate || item.expirationDate,
           }
         }
         return item
@@ -437,6 +475,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (id: string) => setAcessos((prev) => prev.filter((i) => i.id !== id)),
     [],
   )
+  const addSupplier = useCallback(
+    (item: Omit<Supplier, 'id'>) =>
+      setSuppliers((prev) => [...prev, { ...item, id: Math.random().toString(36) }]),
+    [],
+  )
+  const removeSupplier = useCallback(
+    (id: string) => setSuppliers((prev) => prev.filter((i) => i.id !== id)),
+    [],
+  )
 
   const value = useMemo(
     () => ({
@@ -453,6 +500,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       documents,
       agenda,
       acessos,
+      suppliers,
       login,
       logout,
       toggleAdmin,
@@ -478,6 +526,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeAgendaItem,
       addAccess,
       removeAccess,
+      addSupplier,
+      removeSupplier,
     }),
     [
       isAuthenticated,
@@ -493,6 +543,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       documents,
       agenda,
       acessos,
+      suppliers,
       login,
       logout,
       toggleAdmin,
@@ -518,6 +569,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeAgendaItem,
       addAccess,
       removeAccess,
+      addSupplier,
+      removeSupplier,
     ],
   )
 

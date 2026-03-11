@@ -24,6 +24,22 @@ export default function Index() {
   const totalItemsInStock = inventory.reduce((acc, item) => acc + item.quantity, 0)
   const investedCapital = inventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0)
 
+  const now = new Date()
+  const sixtyDays = new Date()
+  sixtyDays.setDate(now.getDate() + 60)
+
+  const expiringItems = inventory.filter((i) => {
+    if (!i.expirationDate || i.quantity <= 0) return false
+    const exp = new Date(i.expirationDate)
+    return exp <= sixtyDays && exp >= now
+  })
+
+  const expiredItems = inventory.filter((i) => {
+    if (!i.expirationDate || i.quantity <= 0) return false
+    const exp = new Date(i.expirationDate)
+    return exp < now
+  })
+
   return (
     <div className="space-y-8 animate-fade-in uppercase">
       <div>
@@ -111,6 +127,31 @@ export default function Index() {
                 <AlertDescription className="uppercase">{alert}</AlertDescription>
               </Alert>
             ))}
+
+            {expiredItems.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>PRODUTOS VENCIDOS</AlertTitle>
+                <AlertDescription>
+                  EXISTEM {expiredItems.length} ITENS VENCIDOS NO ESTOQUE. REALIZE A BAIXA
+                  IMEDIATAMENTE.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {expiringItems.length > 0 && (
+              <Alert
+                variant="destructive"
+                className="border-orange-500 text-orange-700 bg-orange-50"
+              >
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>ATENÇÃO: VENCIMENTO PRÓXIMO</AlertTitle>
+                <AlertDescription>
+                  EXISTEM {expiringItems.length} PRODUTOS QUE VENCERÃO NOS PRÓXIMOS 60 DIAS.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {lowStockItems > 0 && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />

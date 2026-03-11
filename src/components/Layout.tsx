@@ -9,6 +9,7 @@ import {
   Settings as SettingsIcon,
   Calendar,
   Key,
+  Truck,
 } from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,7 @@ const navItems = [
   { href: '/admin', label: 'DASHBOARD', icon: LayoutDashboard },
   { href: '/admin/agenda', label: 'AGENDA', icon: Calendar },
   { href: '/admin/acessos', label: 'ACESSOS', icon: Key },
+  { href: '/admin/fornecedor', label: 'FORNECEDOR', icon: Truck },
   { href: '/admin/rh', label: 'RH', icon: Users },
   { href: '/admin/estoque', label: 'ESTOQUE', icon: Package },
   { href: '/admin/configuracoes', label: 'CONFIGURAÇÕES', icon: SettingsIcon },

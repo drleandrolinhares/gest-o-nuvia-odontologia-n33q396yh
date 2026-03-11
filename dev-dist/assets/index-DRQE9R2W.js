@@ -17395,6 +17395,28 @@ var ArrowRight = createLucideIcon("arrow-right", [["path", {
 	d: "m12 5 7 7-7 7",
 	key: "xquz4c"
 }]]);
+var Barcode = createLucideIcon("barcode", [
+	["path", {
+		d: "M3 5v14",
+		key: "1nt18q"
+	}],
+	["path", {
+		d: "M8 5v14",
+		key: "1ybrkv"
+	}],
+	["path", {
+		d: "M12 5v14",
+		key: "s699le"
+	}],
+	["path", {
+		d: "M17 5v14",
+		key: "ycjyhj"
+	}],
+	["path", {
+		d: "M21 5v14",
+		key: "nzette"
+	}]
+]);
 var Bell = createLucideIcon("bell", [["path", {
 	d: "M10.268 21a2 2 0 0 0 3.464 0",
 	key: "vwvbt9"
@@ -17974,6 +17996,36 @@ var Plus = createLucideIcon("plus", [["path", {
 	d: "M12 5v14",
 	key: "s699le"
 }]]);
+var ScanBarcode = createLucideIcon("scan-barcode", [
+	["path", {
+		d: "M3 7V5a2 2 0 0 1 2-2h2",
+		key: "aa7l1z"
+	}],
+	["path", {
+		d: "M17 3h2a2 2 0 0 1 2 2v2",
+		key: "4qcy5o"
+	}],
+	["path", {
+		d: "M21 17v2a2 2 0 0 1-2 2h-2",
+		key: "6vwrx8"
+	}],
+	["path", {
+		d: "M7 21H5a2 2 0 0 1-2-2v-2",
+		key: "ioqczr"
+	}],
+	["path", {
+		d: "M8 7v10",
+		key: "23sfjj"
+	}],
+	["path", {
+		d: "M12 7v10",
+		key: "jspqdw"
+	}],
+	["path", {
+		d: "M17 7v10",
+		key: "578dap"
+	}]
+]);
 var Search = createLucideIcon("search", [["path", {
 	d: "m21 21-4.34-4.34",
 	key: "14j7rj"
@@ -18010,6 +18062,24 @@ var Shield = createLucideIcon("shield", [["path", {
 	d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
 	key: "oel41y"
 }]]);
+var ShoppingCart = createLucideIcon("shopping-cart", [
+	["circle", {
+		cx: "8",
+		cy: "21",
+		r: "1",
+		key: "jimo8o"
+	}],
+	["circle", {
+		cx: "19",
+		cy: "21",
+		r: "1",
+		key: "13723u"
+	}],
+	["path", {
+		d: "M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12",
+		key: "9zh506"
+	}]
+]);
 var Stethoscope = createLucideIcon("stethoscope", [
 	["path", {
 		d: "M11 2v2",
@@ -18034,16 +18104,6 @@ var Stethoscope = createLucideIcon("stethoscope", [
 		key: "ts1r5v"
 	}]
 ]);
-var Tag = createLucideIcon("tag", [["path", {
-	d: "M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z",
-	key: "vktsd0"
-}], ["circle", {
-	cx: "7.5",
-	cy: "7.5",
-	r: ".5",
-	fill: "currentColor",
-	key: "kqv944"
-}]]);
 var Trash2 = createLucideIcon("trash-2", [
 	["path", {
 		d: "M10 11v6",
@@ -18085,6 +18145,32 @@ var TriangleAlert = createLucideIcon("triangle-alert", [
 	["path", {
 		d: "M12 17h.01",
 		key: "p32p05"
+	}]
+]);
+var Truck = createLucideIcon("truck", [
+	["path", {
+		d: "M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2",
+		key: "wrbu53"
+	}],
+	["path", {
+		d: "M15 18H9",
+		key: "1lyqi6"
+	}],
+	["path", {
+		d: "M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14",
+		key: "lysw3i"
+	}],
+	["circle", {
+		cx: "17",
+		cy: "18",
+		r: "2",
+		key: "332jqn"
+	}],
+	["circle", {
+		cx: "7",
+		cy: "18",
+		r: "2",
+		key: "19iecd"
 	}]
 ]);
 var Upload = createLucideIcon("upload", [
@@ -20020,7 +20106,8 @@ var mockInventory = [{
 	specialty: "Clínica Geral",
 	brand: "3M",
 	entryDate: "2023-10-01T12:00:00.000Z",
-	expirationDate: "2025-10-01T12:00:00.000Z",
+	expirationDate: "2026-10-01T12:00:00.000Z",
+	barcode: "7891234567890",
 	purchaseHistory: [{
 		id: "h1",
 		date: "2023-09-15T10:00:00.000Z",
@@ -20044,6 +20131,8 @@ var mockInventory = [{
 	specialty: "Ortodontia",
 	brand: "Morelli",
 	entryDate: "2023-11-15T12:00:00.000Z",
+	barcode: "7890987654321",
+	expirationDate: new Date(Date.now() + 720 * 60 * 60 * 1e3).toISOString(),
 	purchaseHistory: [{
 		id: "h3",
 		date: "2023-11-15T12:00:00.000Z",
@@ -20078,13 +20167,21 @@ var mockAcessos = [{
 	login: "admin@nuvia.com",
 	pass: "Nuvia@2026!",
 	instructions: "Acesso restrito à diretoria."
+}];
+var mockSuppliers = [{
+	id: "1",
+	name: "DENTAL CREMER",
+	contact: "MARIA SILVA",
+	phone: "(11) 4000-0000",
+	email: "VENDAS@DENTALCREMER.COM.BR",
+	cnpj: "11.111.111/0001-11"
 }, {
 	id: "2",
-	platform: "Fornecedor Dental Cremer",
-	url: "https://dentalcremer.com.br",
-	login: "compras@nuvia.com",
-	pass: "CremerBuy123",
-	instructions: "Usar para reposição de resinas e EPIs."
+	name: "SURY DENTAL",
+	contact: "JOÃO SOUZA",
+	phone: "(41) 3000-0000",
+	email: "CONTATO@SURYDENTAL.COM.BR",
+	cnpj: "22.222.222/0001-22"
 }];
 var StoreContext = (0, import_react.createContext)(void 0);
 function AppProvider({ children }) {
@@ -20101,6 +20198,7 @@ function AppProvider({ children }) {
 	const [documents, setDocuments] = (0, import_react.useState)(mockDocuments);
 	const [agenda, setAgenda] = (0, import_react.useState)(mockAgenda);
 	const [acessos, setAcessos] = (0, import_react.useState)(mockAcessos);
+	const [suppliers, setSuppliers] = (0, import_react.useState)(mockSuppliers);
 	const login = (0, import_react.useCallback)((email$1, pass) => {
 		if (email$1 === "admin@nuvia.com" && pass === "admin123") {
 			setIsAdmin(true);
@@ -20145,7 +20243,8 @@ function AppProvider({ children }) {
 			id: Math.random().toString(36),
 			date: (/* @__PURE__ */ new Date()).toISOString(),
 			price: item.packageCost,
-			quantity: item.quantity
+			quantity: item.quantity,
+			expirationDate: item.expirationDate
 		}] : [];
 		setInventory((prev) => [...prev, {
 			...item,
@@ -20170,7 +20269,8 @@ function AppProvider({ children }) {
 					...item,
 					purchaseHistory: newHistory,
 					quantity: item.quantity + record.quantity,
-					packageCost: record.price
+					packageCost: record.price,
+					expirationDate: record.expirationDate || item.expirationDate
 				};
 			}
 			return item;
@@ -20231,6 +20331,11 @@ function AppProvider({ children }) {
 		id: Math.random().toString(36)
 	}]), []);
 	const removeAccess = (0, import_react.useCallback)((id) => setAcessos((prev) => prev.filter((i$2) => i$2.id !== id)), []);
+	const addSupplier = (0, import_react.useCallback)((item) => setSuppliers((prev) => [...prev, {
+		...item,
+		id: Math.random().toString(36)
+	}]), []);
+	const removeSupplier = (0, import_react.useCallback)((id) => setSuppliers((prev) => prev.filter((i$2) => i$2.id !== id)), []);
 	const value = (0, import_react.useMemo)(() => ({
 		isAuthenticated,
 		isAdmin,
@@ -20245,6 +20350,7 @@ function AppProvider({ children }) {
 		documents,
 		agenda,
 		acessos,
+		suppliers,
 		login,
 		logout,
 		toggleAdmin,
@@ -20269,7 +20375,9 @@ function AppProvider({ children }) {
 		addAgendaItem,
 		removeAgendaItem,
 		addAccess,
-		removeAccess
+		removeAccess,
+		addSupplier,
+		removeSupplier
 	}), [
 		isAuthenticated,
 		isAdmin,
@@ -20284,6 +20392,7 @@ function AppProvider({ children }) {
 		documents,
 		agenda,
 		acessos,
+		suppliers,
 		login,
 		logout,
 		toggleAdmin,
@@ -20308,7 +20417,9 @@ function AppProvider({ children }) {
 		addAgendaItem,
 		removeAgendaItem,
 		addAccess,
-		removeAccess
+		removeAccess,
+		addSupplier,
+		removeSupplier
 	]);
 	return import_react.createElement(StoreContext.Provider, { value }, children);
 }
@@ -25996,6 +26107,11 @@ var navItems = [
 		icon: Key
 	},
 	{
+		href: "/admin/fornecedor",
+		label: "FORNECEDOR",
+		icon: Truck
+	},
+	{
 		href: "/admin/rh",
 		label: "RH",
 		icon: Users
@@ -26208,6 +26324,18 @@ function Index() {
 	const lowStockItems = inventory.filter((i$2) => i$2.quantity <= i$2.minStock).length;
 	const totalItemsInStock = inventory.reduce((acc, item) => acc + item.quantity, 0);
 	const investedCapital = inventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0);
+	const now = /* @__PURE__ */ new Date();
+	const sixtyDays = /* @__PURE__ */ new Date();
+	sixtyDays.setDate(now.getDate() + 60);
+	const expiringItems = inventory.filter((i$2) => {
+		if (!i$2.expirationDate || i$2.quantity <= 0) return false;
+		const exp = new Date(i$2.expirationDate);
+		return exp <= sixtyDays && exp >= now;
+	});
+	const expiredItems = inventory.filter((i$2) => {
+		if (!i$2.expirationDate || i$2.quantity <= 0) return false;
+		return new Date(i$2.expirationDate) < now;
+	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-8 animate-fade-in uppercase",
 		children: [
@@ -26300,29 +26428,57 @@ function Index() {
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-5 w-5 text-destructive" }), " CENTRAL DE ALERTAS OPERACIONAIS"]
 					}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 						className: "space-y-4",
-						children: [alerts.map((alert, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
-							variant: idx === 0 ? "destructive" : "default",
-							className: cn(idx !== 0 && "border-amber-200 bg-amber-50 text-amber-900"),
-							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: idx === 0 ? "URGENTE" : "ATENÇÃO" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDescription, {
-									className: "uppercase",
-									children: alert
-								})
-							]
-						}, idx)), lowStockItems > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
-							variant: "destructive",
-							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "ESTOQUE CRÍTICO" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDescription, { children: [
-									"EXISTEM ",
-									lowStockItems,
-									" ITENS COM ESTOQUE ABAIXO DO LIMITE NO INVENTÁRIO CLÍNICO. REPOSIÇÃO NECESSÁRIA."
-								] })
-							]
-						})]
+						children: [
+							alerts.map((alert, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+								variant: idx === 0 ? "destructive" : "default",
+								className: cn(idx !== 0 && "border-amber-200 bg-amber-50 text-amber-900"),
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: idx === 0 ? "URGENTE" : "ATENÇÃO" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDescription, {
+										className: "uppercase",
+										children: alert
+									})
+								]
+							}, idx)),
+							expiredItems.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+								variant: "destructive",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "PRODUTOS VENCIDOS" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDescription, { children: [
+										"EXISTEM ",
+										expiredItems.length,
+										" ITENS VENCIDOS NO ESTOQUE. REALIZE A BAIXA IMEDIATAMENTE."
+									] })
+								]
+							}),
+							expiringItems.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+								variant: "destructive",
+								className: "border-orange-500 text-orange-700 bg-orange-50",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "ATENÇÃO: VENCIMENTO PRÓXIMO" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDescription, { children: [
+										"EXISTEM ",
+										expiringItems.length,
+										" PRODUTOS QUE VENCERÃO NOS PRÓXIMOS 60 DIAS."
+									] })
+								]
+							}),
+							lowStockItems > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+								variant: "destructive",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "ESTOQUE CRÍTICO" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDescription, { children: [
+										"EXISTEM ",
+										lowStockItems,
+										" ITENS COM ESTOQUE ABAIXO DO LIMITE NO INVENTÁRIO CLÍNICO. REPOSIÇÃO NECESSÁRIA."
+									] })
+								]
+							})
+						]
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 					className: "md:col-span-2",
@@ -37757,6 +37913,7 @@ var schema = object({
 	expirationDate: date().optional(),
 	storageLocation: string().min(1, "Obrigatório"),
 	minStock: number().min(0),
+	barcode: string().optional(),
 	lastBrand: string().optional(),
 	lastValue: number().optional(),
 	notes: string().optional()
@@ -37775,6 +37932,7 @@ function AddInventoryModal({ open, onOpenChange }) {
 			quantity: 0,
 			storageLocation: "",
 			minStock: 0,
+			barcode: "",
 			lastBrand: "",
 			lastValue: 0,
 			notes: ""
@@ -37801,10 +37959,10 @@ function AddInventoryModal({ open, onOpenChange }) {
 			if (!val) form.reset();
 		},
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			className: "max-w-4xl max-h-[90vh] overflow-y-auto",
+			className: "max-w-4xl max-h-[90vh] overflow-y-auto uppercase",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
-				className: "text-2xl font-bold",
-				children: "Novo Produto no Estoque"
+				className: "text-2xl font-bold text-nuvia-navy",
+				children: "NOVO PRODUTO NO ESTOQUE"
 			}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form, {
 				...form,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
@@ -37820,10 +37978,10 @@ function AddInventoryModal({ open, onOpenChange }) {
 									render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, {
 										className: "md:col-span-1",
 										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Nome do Material" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "NOME DO MATERIAL" }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 												placeholder: "EX: RESINA A2",
-												className: "border-[#D81B84] focus-visible:ring-[#D81B84]",
+												className: "border-[#D81B84] focus-visible:ring-[#D81B84] uppercase",
 												...field
 											}) }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
@@ -37834,9 +37992,10 @@ function AddInventoryModal({ open, onOpenChange }) {
 									control: form.control,
 									name: "brand",
 									render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Marca" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "MARCA" }),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 											placeholder: "EX: 3M, FGM...",
+											className: "uppercase",
 											...field
 										}) }),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
@@ -37846,12 +38005,16 @@ function AddInventoryModal({ open, onOpenChange }) {
 									control: form.control,
 									name: "specialty",
 									render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Especialidade" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "ESPECIALIDADE" }),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
 											onValueChange: field.onChange,
 											defaultValue: field.value,
-											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Selecione" }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: specialties.map((spec) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+												className: "uppercase",
+												children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "SELECIONE" })
+											}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: specialties.map((spec) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 												value: spec,
+												className: "uppercase",
 												children: spec
 											}, spec)) })]
 										}),
@@ -37869,7 +38032,7 @@ function AddInventoryModal({ open, onOpenChange }) {
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
 									className: "font-semibold text-blue-900 flex items-center gap-2 relative z-10",
-									children: "Informações de Compra e Embalagem"
+									children: "INFORMAÇÕES DE COMPRA E EMBALAGEM"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 									className: "grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10",
@@ -37878,10 +38041,10 @@ function AddInventoryModal({ open, onOpenChange }) {
 											control: form.control,
 											name: "quantity",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Qtd. Comprada" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "QTD. COMPRADA" }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 													type: "number",
-													className: "bg-white",
+													className: "bg-white uppercase",
 													placeholder: "EX: 10",
 													...field
 												}) }),
@@ -37892,10 +38055,10 @@ function AddInventoryModal({ open, onOpenChange }) {
 											control: form.control,
 											name: "itemsPerBox",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Itens na Embalagem" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "ITENS NA EMBALAGEM" }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 													type: "number",
-													className: "bg-white",
+													className: "bg-white uppercase",
 													...field
 												}) }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
@@ -37905,11 +38068,11 @@ function AddInventoryModal({ open, onOpenChange }) {
 											control: form.control,
 											name: "packageCost",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Valor Emb. Fechada (R$)" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "VALOR EMB. FECHADA (R$)" }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 													type: "number",
 													step: "0.01",
-													className: "bg-white",
+													className: "bg-white uppercase",
 													...field
 												}) }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
@@ -37919,15 +38082,16 @@ function AddInventoryModal({ open, onOpenChange }) {
 											control: form.control,
 											name: "packageType",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Tipo Embalagem" }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "TIPO EMBALAGEM" }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
 													onValueChange: field.onChange,
 													defaultValue: field.value,
 													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-														className: "bg-white",
-														children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Selecione" })
+														className: "bg-white uppercase",
+														children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "SELECIONE" })
 													}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: packageTypes.map((pt) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 														value: pt,
+														className: "uppercase",
 														children: pt
 													}, pt)) })]
 												}),
@@ -37940,7 +38104,7 @@ function AddInventoryModal({ open, onOpenChange }) {
 									className: "pt-3 border-t border-blue-200/50 flex justify-between items-center relative z-10",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 										className: "text-sm font-semibold text-blue-800",
-										children: "Valor Total da Compra (Automático)"
+										children: "VALOR TOTAL DA COMPRA"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 										className: "text-2xl font-black text-blue-700",
 										children: formatCurrency(totalCost)
@@ -37956,16 +38120,16 @@ function AddInventoryModal({ open, onOpenChange }) {
 								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, {
 									className: "flex flex-col",
 									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Data de Entrada" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "DATA DE ENTRADA" }),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Popover, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverTrigger, {
 											asChild: true,
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 												variant: "outline",
-												className: cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground"),
-												children: [field.value ? format(field.value, "PPP", { locale: ptBR }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Selecione a data" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "ml-auto h-4 w-4 opacity-50" })]
+												className: cn("w-full pl-3 text-left font-normal uppercase", !field.value && "text-muted-foreground"),
+												children: [field.value ? format(field.value, "PPP", { locale: ptBR }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "SELECIONE A DATA" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "ml-auto h-4 w-4 opacity-50" })]
 											}) })
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverContent, {
-											className: "w-auto p-0",
+											className: "w-auto p-0 uppercase",
 											align: "start",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar$1, {
 												mode: "single",
@@ -37984,16 +38148,16 @@ function AddInventoryModal({ open, onOpenChange }) {
 								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, {
 									className: "flex flex-col",
 									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Data de Validade" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "DATA DE VALIDADE" }),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Popover, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverTrigger, {
 											asChild: true,
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 												variant: "outline",
-												className: cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground"),
-												children: [field.value ? format(field.value, "PPP", { locale: ptBR }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Selecione a data" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "ml-auto h-4 w-4 opacity-50" })]
+												className: cn("w-full pl-3 text-left font-normal uppercase", !field.value && "text-muted-foreground"),
+												children: [field.value ? format(field.value, "PPP", { locale: ptBR }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "SELECIONE A DATA" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "ml-auto h-4 w-4 opacity-50" })]
 											}) })
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverContent, {
-											className: "w-auto p-0",
+											className: "w-auto p-0 uppercase",
 											align: "start",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar$1, {
 												mode: "single",
@@ -38008,37 +38172,55 @@ function AddInventoryModal({ open, onOpenChange }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
-								control: form.control,
-								name: "storageLocation",
-								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Local de Armazenamento" }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										placeholder: "EX: SALA 1 - ARMÁRIO A",
-										...field
-									}) }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
-								] })
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
-								control: form.control,
-								name: "minStock",
-								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Estoque Mínimo (Aviso)" }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										type: "number",
-										...field
-									}) }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
-								] })
-							})]
+							className: "grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+									control: form.control,
+									name: "storageLocation",
+									render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "LOCAL DE ARMAZENAMENTO" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											placeholder: "EX: SALA 1 - ARMÁRIO A",
+											className: "uppercase",
+											...field
+										}) }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+									] })
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+									control: form.control,
+									name: "minStock",
+									render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "ESTOQUE MÍNIMO (AVISO)" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											type: "number",
+											className: "uppercase",
+											...field
+										}) }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+									] })
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+									control: form.control,
+									name: "barcode",
+									render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "CÓDIGO DE BARRAS" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											placeholder: "BIPAR OU DIGITAR...",
+											className: "uppercase",
+											...field
+										}) }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+									] })
+								})
+							]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "space-y-4 pt-4 border-t",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
 									className: "font-semibold text-muted-foreground text-sm",
-									children: "Histórico & Notas (Opcional)"
+									children: "HISTÓRICO & NOTAS (OPCIONAL)"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 									className: "grid grid-cols-2 gap-4",
@@ -38046,9 +38228,10 @@ function AddInventoryModal({ open, onOpenChange }) {
 										control: form.control,
 										name: "lastBrand",
 										render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Marca da última compra" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "MARCA DA ÚLTIMA COMPRA" }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 												placeholder: "EX: 3M, IVOCLAR...",
+												className: "uppercase",
 												...field
 											}) }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
@@ -38057,10 +38240,11 @@ function AddInventoryModal({ open, onOpenChange }) {
 										control: form.control,
 										name: "lastValue",
 										render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Valor da última compra (R$)" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "VALOR DA ÚLTIMA COMPRA (R$)" }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 												type: "number",
 												step: "0.01",
+												className: "uppercase",
 												...field
 											}) }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
@@ -38071,9 +38255,9 @@ function AddInventoryModal({ open, onOpenChange }) {
 									control: form.control,
 									name: "notes",
 									render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Observações" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "OBSERVAÇÕES" }),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Textarea, {
-											className: "min-h-[100px]",
+											className: "min-h-[100px] uppercase",
 											placeholder: "ADICIONE NOTAS, LINKS DE FORNECEDORES OU DETALHES...",
 											...field
 										}) }),
@@ -38088,11 +38272,11 @@ function AddInventoryModal({ open, onOpenChange }) {
 								type: "button",
 								variant: "outline",
 								onClick: () => onOpenChange(false),
-								children: "Cancelar"
+								children: "CANCELAR"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 								type: "submit",
 								className: "bg-[#D81B84] hover:bg-[#B71770] text-white",
-								children: "Cadastrar Produto"
+								children: "CADASTRAR PRODUTO"
 							})]
 						})
 					]
@@ -38216,11 +38400,9 @@ function DecreaseStockModal({ item, open, onOpenChange }) {
 		})
 	});
 }
-function EditInventoryModal({ item, open, onOpenChange }) {
-	const { updateInventoryQuantity, addPurchaseHistory, isAdmin } = useAppStore();
+function EditInventoryModal({ item, open, onOpenChange, onNewPurchase }) {
+	const { updateInventoryQuantity, isAdmin, suppliers } = useAppStore();
 	const [manualQty, setManualQty] = (0, import_react.useState)(item?.quantity || 0);
-	const [newQty, setNewQty] = (0, import_react.useState)("");
-	const [newPrice, setNewPrice] = (0, import_react.useState)("");
 	(0, import_react.useEffect)(() => {
 		if (item) setManualQty(item.quantity);
 	}, [item]);
@@ -38230,34 +38412,40 @@ function EditInventoryModal({ item, open, onOpenChange }) {
 	const handleManualUpdate = () => {
 		updateInventoryQuantity(item.id, manualQty);
 	};
-	const handleAddPurchase = (e) => {
-		e.preventDefault();
-		if (newQty && newPrice) {
-			addPurchaseHistory(item.id, {
-				date: (/* @__PURE__ */ new Date()).toISOString(),
-				price: Number(newPrice),
-				quantity: Number(newQty)
-			});
-			setNewQty("");
-			setNewPrice("");
-		}
+	const getSupplierName = (id) => {
+		if (!id) return "-";
+		const s$2 = suppliers.find((sup) => sup.id === id);
+		return s$2 ? s$2.name : "-";
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			className: "max-w-3xl max-h-[90vh] overflow-y-auto",
+			className: "max-w-4xl max-h-[90vh] overflow-y-auto uppercase",
 			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
-					className: "text-2xl font-bold text-[#D81B84]",
-					children: item.name
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogDescription, { children: [
-					item.brand,
-					" • ",
-					item.specialty || "Sem Especialidade",
-					" • ",
-					item.packageType
-				] })] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
+					className: "flex flex-row items-start justify-between pr-8",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
+						className: "text-2xl font-bold text-[#D81B84]",
+						children: item.name
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogDescription, {
+						className: "uppercase mt-1",
+						children: [
+							item.brand,
+							" • ",
+							item.specialty || "SEM ESPECIALIDADE",
+							" • ",
+							item.packageType
+						]
+					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						onClick: () => {
+							onOpenChange(false);
+							setTimeout(onNewPurchase, 300);
+						},
+						className: "bg-[#D81B84] hover:bg-[#B71770] text-white tracking-widest font-bold h-10",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShoppingCart, { className: "h-4 w-4 mr-2" }), " NOVA COMPRA"]
+					})]
+				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "grid grid-cols-1 md:grid-cols-2 gap-6 mt-4",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
@@ -38279,11 +38467,11 @@ function EditInventoryModal({ item, open, onOpenChange }) {
 									type: "number",
 									value: manualQty,
 									onChange: (e) => setManualQty(Number(e.target.value)),
-									className: "font-bold text-lg h-12"
+									className: "font-bold text-lg h-12 uppercase"
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 								onClick: handleManualUpdate,
-								className: "h-12 bg-blue-600 hover:bg-blue-700 text-white",
+								className: "h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold",
 								children: "SALVAR"
 							})]
 						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -38302,87 +38490,231 @@ function EditInventoryModal({ item, open, onOpenChange }) {
 							className: "text-3xl font-black text-emerald-600",
 							children: formatCurrency(avgPrice)
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-							className: "text-xs text-muted-foreground mt-1",
+							className: "text-xs text-muted-foreground mt-1 font-bold",
 							children: ["CUSTO ATUAL REGISTRADO: ", formatCurrency(item.packageCost)]
 						})] })]
 					})]
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "mt-6 border-t pt-6 space-y-6",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "bg-muted/30 p-5 rounded-xl border border-muted",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-							className: "font-bold text-sm mb-4",
-							children: "REGISTRAR NOVA COMPRA"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-							onSubmit: handleAddPurchase,
-							className: "flex flex-col sm:flex-row gap-3",
-							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									type: "number",
-									placeholder: "QTD COMPRADA",
-									value: newQty,
-									onChange: (e) => setNewQty(e.target.value),
-									required: true,
-									min: 1,
-									className: "bg-white"
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									type: "number",
-									step: "0.01",
-									placeholder: "VALOR TOTAL PAGO (R$)",
-									value: newPrice,
-									onChange: (e) => setNewPrice(e.target.value),
-									required: true,
-									min: 0,
-									className: "bg-white"
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-									type: "submit",
-									className: "bg-emerald-600 hover:bg-emerald-700 text-white whitespace-nowrap",
-									children: "ADICIONAR AO HISTÓRICO"
-								})
-							]
-						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
-						className: "font-bold text-sm mb-3 flex items-center gap-2",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h4", {
+						className: "font-bold text-sm mb-3 flex items-center gap-2 text-nuvia-navy",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(History, { className: "h-4 w-4" }), " HISTÓRICO DE COMPRAS (ÚLTIMAS 5)"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "border rounded-md overflow-hidden",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
 							className: "bg-muted/50",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "DATA DA COMPRA" }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									className: "text-center",
-									children: "QTD ADICIONADA"
+									className: "font-bold",
+									children: "DATA"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									className: "text-right",
-									children: "VALOR UNITÁRIO (R$)"
+									className: "font-bold",
+									children: "FORNECEDOR"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									className: "font-bold",
+									children: "LOTE / VALIDADE"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									className: "text-center font-bold",
+									children: "QTD."
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									className: "text-right font-bold",
+									children: "VALOR TOTAL"
 								})
 							] })
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [recentHistory.map((h) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-								className: "font-medium",
+								className: "font-medium text-xs",
 								children: new Date(h.date).toLocaleDateString("pt-BR")
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-								className: "text-center font-bold",
+								className: "text-xs font-semibold text-muted-foreground",
+								children: getSupplierName(h.supplierId)
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+								className: "text-xs",
+								children: [h.lot ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "font-mono bg-muted px-1 py-0.5 rounded",
+									children: h.lot
+								}) : "-", h.expirationDate && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "text-orange-600 mt-1",
+									children: ["VAL: ", new Date(h.expirationDate).toLocaleDateString("pt-BR")]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								className: "text-center font-black text-base",
 								children: h.quantity
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-								className: "text-right",
+								className: "text-right font-bold",
 								children: formatCurrency(h.price)
 							})
 						] }, h.id)), recentHistory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							colSpan: 3,
-							className: "text-center py-6 text-muted-foreground",
+							colSpan: 5,
+							className: "text-center py-6 text-muted-foreground font-bold",
 							children: "NENHUM REGISTRO DE COMPRA ENCONTRADO."
 						}) })] })] })
-					})] })]
+					})] })
 				})
 			]
+		})
+	});
+}
+function NewPurchaseModal({ item, open, onOpenChange }) {
+	const { addPurchaseHistory, suppliers } = useAppStore();
+	const form = useForm({
+		resolver: a(object({
+			quantity: number().min(1, "OBRIGATÓRIO MAIOR QUE 0"),
+			price: number().min(0, "OBRIGATÓRIO"),
+			supplierId: string().optional(),
+			lot: string().optional(),
+			expirationDate: string().optional()
+		})),
+		defaultValues: {
+			quantity: 1,
+			price: 0,
+			supplierId: "",
+			lot: "",
+			expirationDate: ""
+		}
+	});
+	const onSubmit = (v) => {
+		if (!item) return;
+		addPurchaseHistory(item.id, {
+			date: (/* @__PURE__ */ new Date()).toISOString(),
+			price: v.price,
+			quantity: v.quantity,
+			lot: v.lot?.toUpperCase() || void 0,
+			supplierId: v.supplierId || void 0,
+			expirationDate: v.expirationDate ? new Date(v.expirationDate).toISOString() : void 0
+		});
+		form.reset();
+		onOpenChange(false);
+	};
+	if (!item) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
+		open,
+		onOpenChange: (val) => {
+			onOpenChange(val);
+			if (!val) form.reset();
+		},
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+			className: "max-w-md uppercase",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
+				className: "flex items-center gap-2 text-[#D81B84]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShoppingCart, { className: "h-5 w-5" }), " REGISTRAR NOVA COMPRA"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogDescription, {
+				className: "uppercase mt-1 text-xs",
+				children: [
+					"LANÇAMENTO INDEPENDENTE PARA O ITEM ",
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: item.name }),
+					"."
+				]
+			})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form, {
+				...form,
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: form.handleSubmit(onSubmit),
+					className: "space-y-4 pt-2",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "grid grid-cols-2 gap-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "quantity",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "QUANTIDADE" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										type: "number",
+										min: 1,
+										className: "uppercase",
+										...field
+									}) }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+								] })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "price",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "VALOR TOTAL (R$)" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										type: "number",
+										step: "0.01",
+										min: 0,
+										className: "uppercase",
+										...field
+									}) }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+								] })
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+							control: form.control,
+							name: "supplierId",
+							render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "FORNECEDOR" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+									onValueChange: field.onChange,
+									defaultValue: field.value,
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+										className: "uppercase",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "SELECIONAR..." })
+									}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: suppliers.map((s$2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+										value: s$2.id,
+										className: "uppercase",
+										children: s$2.name
+									}, s$2.id)) })]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+							] })
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "grid grid-cols-2 gap-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "lot",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "LOTE" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										placeholder: "EX: LT123",
+										className: "uppercase",
+										...field
+									}) }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+								] })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "expirationDate",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "VALIDADE DO LOTE" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										type: "date",
+										className: "uppercase",
+										...field
+									}) }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+								] })
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex justify-end gap-3 pt-4 border-t",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								type: "button",
+								variant: "outline",
+								onClick: () => onOpenChange(false),
+								children: "CANCELAR"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								type: "submit",
+								className: "bg-[#D81B84] hover:bg-[#B71770] text-white",
+								children: "SALVAR COMPRA"
+							})]
+						})
+					]
+				})
+			})]
 		})
 	});
 }
@@ -38391,24 +38723,31 @@ function Inventory() {
 	const [isAdding, setIsAdding] = (0, import_react.useState)(false);
 	const [selectedSpecialty, setSelectedSpecialty] = (0, import_react.useState)("all");
 	const [searchQuery, setSearchQuery] = (0, import_react.useState)("");
+	const [barcodeQuery, setBarcodeQuery] = (0, import_react.useState)("");
 	const [showLowStock, setShowLowStock] = (0, import_react.useState)(false);
 	const [itemToDecrease, setItemToDecrease] = (0, import_react.useState)(null);
 	const [itemToEdit, setItemToEdit] = (0, import_react.useState)(null);
+	const [itemToPurchase, setItemToPurchase] = (0, import_react.useState)(null);
 	const isCriticalStock = (item) => {
 		return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock;
 	};
+	const now = /* @__PURE__ */ new Date();
+	const sixtyDays = /* @__PURE__ */ new Date();
+	sixtyDays.setDate(now.getDate() + 60);
 	const filteredInventory = (0, import_react.useMemo)(() => {
 		return inventory.filter((item) => {
 			const matchSpecialty = selectedSpecialty === "all" || item.specialty === selectedSpecialty;
 			const searchLower = searchQuery.toLowerCase();
 			const matchSearch = item.name.toLowerCase().includes(searchLower) || !!item.brand?.toLowerCase().includes(searchLower);
+			const matchBarcode = !barcodeQuery || item.barcode && item.barcode.includes(barcodeQuery);
 			const matchLowStock = showLowStock ? isCriticalStock(item) : true;
-			return matchSpecialty && matchSearch && matchLowStock;
+			return matchSpecialty && matchSearch && matchLowStock && matchBarcode;
 		}).sort((a$1, b) => a$1.name.localeCompare(b.name));
 	}, [
 		inventory,
 		selectedSpecialty,
 		searchQuery,
+		barcodeQuery,
 		showLowStock
 	]);
 	const totalCapital = filteredInventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0);
@@ -38445,7 +38784,7 @@ function Inventory() {
 						children: "ESTOQUE"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-muted-foreground mt-1",
-						children: "GERENCIE EMBALAGENS E CUSTOS DETALHADOS."
+						children: "GERENCIE EMBALAGENS, CÓDIGOS E LOTES."
 					})] })]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "flex items-center gap-3 w-full sm:w-auto",
@@ -38457,41 +38796,57 @@ function Inventory() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/30 p-4 rounded-xl border border-muted",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "flex-1 w-full flex flex-col sm:flex-row gap-3",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "relative flex-1 max-w-sm",
+				className: "grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-muted/30 p-4 rounded-xl border border-muted",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "relative col-span-1 lg:col-span-3",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScanBarcode, { className: "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D81B84]" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							placeholder: "CÓDIGO DE BARRAS...",
+							value: barcodeQuery,
+							onChange: (e) => setBarcodeQuery(e.target.value),
+							className: "pl-9 bg-white border-[#D81B84]/40 focus-visible:ring-[#D81B84] text-sm font-bold tracking-wider"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "relative col-span-1 lg:col-span-4",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { className: "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-							placeholder: "BUSCAR PRODUTO OU MARCA...",
+							placeholder: "BUSCAR NOME OU MARCA...",
 							value: searchQuery,
 							onChange: (e) => setSearchQuery(e.target.value),
 							className: "pl-9 bg-white"
 						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-						value: selectedSpecialty,
-						onValueChange: setSelectedSpecialty,
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-							className: "w-[180px] bg-white",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "TODAS ESPECIALIDADES" })
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-							value: "all",
-							children: "TODAS ESPECIALIDADES"
-						}), specialties.map((s$2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-							value: s$2,
-							children: s$2
-						}, s$2))] })]
-					})]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					variant: showLowStock ? "destructive" : "outline",
-					onClick: () => setShowLowStock(!showLowStock),
-					className: cn("w-full sm:w-auto h-10 transition-all duration-200", showLowStock ? "bg-red-600 hover:bg-red-700 text-white font-bold shadow-md" : "text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 font-semibold bg-white shadow-sm"),
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: cn("w-4 h-4 mr-2", showLowStock ? "text-white" : "text-red-500") }),
-						" ",
-						"FILTRAR ESTOQUE CRÍTICO"
-					]
-				})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "col-span-1 lg:col-span-2",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+							value: selectedSpecialty,
+							onValueChange: setSelectedSpecialty,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+								className: "w-full bg-white",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "ESPECIALIDADES" })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+								value: "all",
+								children: "TODAS"
+							}), specialties.map((s$2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+								value: s$2,
+								children: s$2
+							}, s$2))] })]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "col-span-1 lg:col-span-3 flex justify-end",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+							variant: showLowStock ? "destructive" : "outline",
+							onClick: () => setShowLowStock(!showLowStock),
+							className: cn("w-full h-10 transition-all duration-200", showLowStock ? "bg-red-600 hover:bg-red-700 text-white font-bold shadow-md" : "text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 font-semibold bg-white shadow-sm"),
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: cn("w-4 h-4 mr-2", showLowStock ? "text-white" : "text-red-500") }),
+								" ",
+								"ESTOQUE CRÍTICO"
+							]
+						})
+					})
+				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "grid gap-4 md:grid-cols-2 lg:grid-cols-4",
@@ -38536,7 +38891,7 @@ function Inventory() {
 							className: "p-6",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 								className: "text-xs font-bold text-muted-foreground tracking-wider mb-2",
-								children: "ESPECIALIDADE COM MAIOR CAPITAL"
+								children: "ESPECIALIDADE (MAIOR CAPITAL)"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex flex-col",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
@@ -38555,7 +38910,7 @@ function Inventory() {
 							className: "p-6",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 								className: "text-xs font-bold text-muted-foreground tracking-wider mb-2",
-								children: "ESPECIALIDADE COM MAIS ITENS"
+								children: "ESPECIALIDADE (MAIOR VOLUME)"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex flex-col",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
@@ -38596,113 +38951,112 @@ function Inventory() {
 							children: "QTD."
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "font-semibold text-muted-foreground",
-							children: "CAPITAL"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 							className: "font-semibold text-muted-foreground text-center",
 							children: "AÇÕES"
 						})
 					]
-				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [filteredInventory.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-					className: "hover:bg-muted/10 cursor-pointer transition-colors",
-					onClick: () => setItemToEdit(item),
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-							className: "align-top py-4",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-start flex-col gap-1.5 mb-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "font-bold text-[#D81B84] text-base leading-none uppercase",
-									children: item.name
-								}), isCriticalStock(item) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "bg-red-600 text-white text-[10px] px-2 py-0.5 mt-0.5 rounded font-extrabold tracking-wider uppercase shadow-sm flex items-center w-fit animate-pulse",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: "w-3 h-3 mr-1" }), " ESTOQUE CRÍTICO"]
-								})]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex flex-col gap-1 mt-2",
-								children: [item.specialty && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-xs text-muted-foreground flex items-center gap-1.5 uppercase",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Stethoscope, { className: "h-3.5 w-3.5" }),
-										" ",
-										item.specialty
-									]
-								}), item.brand && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-xs text-muted-foreground flex items-center gap-1.5 uppercase",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Tag, { className: "h-3.5 w-3.5" }),
-										" MARCA: ",
-										item.brand
-									]
-								})]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-							className: "align-top py-4",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "inline-block px-2.5 py-0.5 border border-muted-foreground/20 rounded-full text-[10px] font-semibold mb-1.5 uppercase",
-								children: item.packageType
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "text-xs text-muted-foreground mb-0.5 uppercase",
-								children: [item.itemsPerBox, " ITEM(S) / EMB."]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "align-top py-4",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex flex-col gap-1.5 uppercase",
-								children: [item.expirationDate ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 w-fit px-1.5 py-0.5 rounded",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { className: "h-3.5 w-3.5" }),
-										" VAL:",
-										" ",
-										format(new Date(item.expirationDate), "dd/MM/yyyy", { locale: ptBR })
-									]
-								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-xs text-muted-foreground flex items-center gap-1.5",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { className: "h-3.5 w-3.5" }), " VAL: N/I"]
+				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [filteredInventory.map((item) => {
+					const expDate = item.expirationDate ? new Date(item.expirationDate) : null;
+					const isExpired = expDate && expDate < now;
+					const isExpiringSoon = expDate && expDate >= now && expDate <= sixtyDays;
+					return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+						className: "hover:bg-muted/10 cursor-pointer transition-colors",
+						onClick: () => setItemToEdit(item),
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+								className: "align-top py-4",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "flex items-start flex-col gap-1.5 mb-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "font-bold text-[#D81B84] text-base leading-none uppercase",
+										children: item.name
+									}), isCriticalStock(item) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "bg-red-600 text-white text-[10px] px-2 py-0.5 mt-0.5 rounded font-extrabold tracking-wider uppercase shadow-sm flex items-center w-fit animate-pulse",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: "w-3 h-3 mr-1" }), " ESTOQUE CRÍTICO"]
+									})]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-xs text-muted-foreground flex items-center gap-1.5 mt-1",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "h-3.5 w-3.5" }),
-										" ",
-										item.storageLocation
-									]
+									className: "flex flex-col gap-1 mt-2",
+									children: [item.barcode && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Barcode, { className: "h-3.5 w-3.5" }),
+											" CÓD: ",
+											item.barcode
+										]
+									}), item.specialty && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "text-xs text-muted-foreground flex items-center gap-1.5 uppercase mt-1",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Stethoscope, { className: "h-3.5 w-3.5" }),
+											" ",
+											item.specialty
+										]
+									})]
 								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+								className: "align-top py-4",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "inline-block px-2.5 py-0.5 border border-muted-foreground/20 rounded-full text-[10px] font-semibold mb-1.5 uppercase",
+									children: item.packageType
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "text-xs text-muted-foreground mb-0.5 uppercase",
+									children: [item.itemsPerBox, " ITEM(S) / EMB."]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								className: "align-top py-4",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "flex flex-col gap-1.5 uppercase",
+									children: [item.expirationDate ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: cn("text-xs font-bold flex items-center gap-1.5 w-fit px-2 py-0.5 rounded", isExpired ? "bg-red-100 text-red-700" : isExpiringSoon ? "bg-orange-100 text-orange-700" : "bg-emerald-50 text-emerald-700"),
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { className: "h-3.5 w-3.5" }),
+											" VAL:",
+											" ",
+											format(new Date(item.expirationDate), "dd/MM/yyyy", { locale: ptBR }),
+											isExpired && " (VENCIDO)",
+											isExpiringSoon && " (ATENÇÃO)"
+										]
+									}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "text-xs text-muted-foreground flex items-center gap-1.5",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { className: "h-3.5 w-3.5" }), " VAL: N/I"]
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "text-xs text-muted-foreground flex items-center gap-1.5 mt-1",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "h-3.5 w-3.5" }),
+											" ",
+											item.storageLocation
+										]
+									})]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								className: "align-middle py-4 font-medium text-muted-foreground uppercase",
+								children: formatCurrency(item.packageCost)
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								className: "align-middle py-4 text-center",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: cn("inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm uppercase", isCriticalStock(item) ? "bg-red-100 text-red-700" : "bg-muted text-foreground"),
+									children: item.quantity
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								className: "align-middle py-4 text-center",
+								onClick: (e) => e.stopPropagation(),
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+									variant: "outline",
+									size: "sm",
+									className: "h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold",
+									onClick: () => setItemToDecrease(item),
+									disabled: item.quantity === 0,
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleMinus, { className: "w-3.5 h-3.5 mr-1.5" }), " BAIXAR"]
+								})
 							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "align-middle py-4 font-medium text-muted-foreground uppercase",
-							children: formatCurrency(item.packageCost)
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "align-middle py-4 text-center",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: cn("inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm uppercase", isCriticalStock(item) ? "bg-red-100 text-red-700" : "bg-muted text-foreground"),
-								children: item.quantity
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "align-middle py-4 font-bold text-muted-foreground uppercase",
-							children: formatCurrency(item.quantity * item.packageCost)
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "align-middle py-4 text-center",
-							onClick: (e) => e.stopPropagation(),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-								variant: "outline",
-								size: "sm",
-								className: "h-8 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase",
-								onClick: () => setItemToDecrease(item),
-								disabled: item.quantity === 0,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleMinus, { className: "w-3.5 h-3.5 mr-1" }), " BAIXAR"]
-							})
-						})
-					]
-				}, item.id)), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-					colSpan: 7,
+						]
+					}, item.id);
+				}), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+					colSpan: 6,
 					className: "text-center py-10 text-muted-foreground uppercase",
 					children: "NENHUM PRODUTO ENCONTRADO."
 				}) })] })] })
@@ -38723,6 +39077,14 @@ function Inventory() {
 				open: !!itemToEdit,
 				onOpenChange: (val) => {
 					if (!val) setItemToEdit(null);
+				},
+				onNewPurchase: () => setItemToPurchase(itemToEdit)
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(NewPurchaseModal, {
+				item: itemToPurchase,
+				open: !!itemToPurchase,
+				onOpenChange: (val) => {
+					if (!val) setItemToPurchase(null);
 				}
 			})
 		]
@@ -39379,6 +39741,212 @@ function Acessos() {
 		]
 	});
 }
+function Suppliers() {
+	const { suppliers, addSupplier, removeSupplier, isAdmin } = useAppStore();
+	const [open, setOpen] = (0, import_react.useState)(false);
+	const [name, setName] = (0, import_react.useState)("");
+	const [cnpj, setCnpj] = (0, import_react.useState)("");
+	const [contact, setContact] = (0, import_react.useState)("");
+	const [phone, setPhone] = (0, import_react.useState)("");
+	const [email$1, setEmail] = (0, import_react.useState)("");
+	const sortedSuppliers = [...suppliers].sort((a$1, b) => a$1.name.localeCompare(b.name));
+	const handleAdd = (e) => {
+		e.preventDefault();
+		if (name && contact) {
+			addSupplier({
+				name: name.toUpperCase(),
+				cnpj: cnpj.toUpperCase(),
+				contact: contact.toUpperCase(),
+				phone: phone.toUpperCase(),
+				email: email$1.toUpperCase()
+			});
+			setOpen(false);
+			setName("");
+			setCnpj("");
+			setContact("");
+			setPhone("");
+			setEmail("");
+		}
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-6 animate-fade-in-up uppercase",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+					className: "text-3xl font-bold tracking-tight text-nuvia-navy",
+					children: "FORNECEDORES"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-muted-foreground mt-1",
+					children: "GESTÃO DE FORNECEDORES DE MATERIAIS CLÍNICOS E SERVIÇOS."
+				})] }), isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					onClick: () => setOpen(true),
+					className: "bg-primary text-primary-foreground",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " NOVO FORNECEDOR"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+				className: "shadow-sm border-muted overflow-hidden",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+					className: "bg-muted/30",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "NOME / RAZÃO SOCIAL"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "CNPJ"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "CONTATO"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "E-MAIL"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground text-right",
+							children: "AÇÕES"
+						})
+					]
+				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [sortedSuppliers.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+					className: "hover:bg-muted/10",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "font-bold text-primary",
+							children: item.name
+						}) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "font-medium text-muted-foreground",
+							children: item.cnpj || "NÃO INFORMADO"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "font-semibold",
+							children: item.contact
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "text-xs text-muted-foreground",
+							children: item.phone
+						})] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "text-sm font-medium",
+							children: item.email || "-"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "text-right whitespace-nowrap",
+							children: isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								variant: "ghost",
+								size: "icon",
+								onClick: () => removeSupplier(item.id),
+								className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+								title: "REMOVER",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+							})
+						})
+					]
+				}, item.id)), sortedSuppliers.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+					colSpan: 5,
+					className: "text-center py-10 text-muted-foreground",
+					children: "NENHUM FORNECEDOR CADASTRADO."
+				}) })] })] })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
+				open,
+				onOpenChange: setOpen,
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+					className: "max-w-md uppercase",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
+						className: "flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Truck, { className: "h-5 w-5 text-primary" }), " ADICIONAR FORNECEDOR"]
+					}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+						onSubmit: handleAdd,
+						className: "space-y-4 mt-2",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "text-xs font-semibold text-muted-foreground",
+									children: "NOME / RAZÃO SOCIAL"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									value: name,
+									onChange: (e) => setName(e.target.value),
+									required: true,
+									placeholder: "EX: DENTAL CREMER",
+									className: "uppercase"
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "text-xs font-semibold text-muted-foreground",
+									children: "CNPJ"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									value: cnpj,
+									onChange: (e) => setCnpj(e.target.value),
+									placeholder: "00.000.000/0000-00",
+									className: "uppercase"
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "grid grid-cols-2 gap-4",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "space-y-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+										className: "text-xs font-semibold text-muted-foreground",
+										children: "CONTATO (NOME)"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										value: contact,
+										onChange: (e) => setContact(e.target.value),
+										required: true,
+										placeholder: "EX: MARIA",
+										className: "uppercase"
+									})]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "space-y-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+										className: "text-xs font-semibold text-muted-foreground",
+										children: "TELEFONE"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										value: phone,
+										onChange: (e) => setPhone(e.target.value),
+										required: true,
+										placeholder: "(00) 0000-0000",
+										className: "uppercase"
+									})]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									className: "text-xs font-semibold text-muted-foreground",
+									children: "E-MAIL"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									value: email$1,
+									onChange: (e) => setEmail(e.target.value),
+									placeholder: "CONTATO@FORNECEDOR.COM",
+									className: "uppercase"
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex justify-end gap-3 pt-4",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+									type: "button",
+									variant: "outline",
+									onClick: () => setOpen(false),
+									children: "CANCELAR"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+									type: "submit",
+									children: "SALVAR FORNECEDOR"
+								})]
+							})
+						]
+					})]
+				})
+			})
+		]
+	});
+}
 function PublicHome() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "min-h-screen bg-background flex flex-col uppercase font-sans",
@@ -39747,6 +40315,10 @@ function App() {
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Acessos, {})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+					path: "fornecedor",
+					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Suppliers, {})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 					path: "rh",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RH, {})
 				}),
@@ -39776,4 +40348,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-Bnl49bFd.js.map
+//# sourceMappingURL=index-DRQE9R2W.js.map
