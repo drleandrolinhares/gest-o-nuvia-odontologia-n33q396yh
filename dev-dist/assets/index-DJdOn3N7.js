@@ -17362,6 +17362,20 @@ var Bell = createLucideIcon("bell", [["path", {
 	d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
 	key: "11g9vi"
 }]]);
+var Box = createLucideIcon("box", [
+	["path", {
+		d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z",
+		key: "hh9hay"
+	}],
+	["path", {
+		d: "m3.3 7 8.7 5 8.7-5",
+		key: "g66t2b"
+	}],
+	["path", {
+		d: "M12 22V12",
+		key: "d0xqtd"
+	}]
+]);
 var Briefcase = createLucideIcon("briefcase", [["path", {
 	d: "M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16",
 	key: "jecpp"
@@ -17632,24 +17646,6 @@ var Mail = createLucideIcon("mail", [["path", {
 	rx: "2",
 	key: "izxlao"
 }]]);
-var PackageOpen = createLucideIcon("package-open", [
-	["path", {
-		d: "M12 22v-9",
-		key: "x3hkom"
-	}],
-	["path", {
-		d: "M15.17 2.21a1.67 1.67 0 0 1 1.63 0L21 4.57a1.93 1.93 0 0 1 0 3.36L8.82 14.79a1.655 1.655 0 0 1-1.64 0L3 12.43a1.93 1.93 0 0 1 0-3.36z",
-		key: "2ntwy6"
-	}],
-	["path", {
-		d: "M20 13v3.87a2.06 2.06 0 0 1-1.11 1.83l-6 3.08a1.93 1.93 0 0 1-1.78 0l-6-3.08A2.06 2.06 0 0 1 4 16.87V13",
-		key: "1pmm1c"
-	}],
-	["path", {
-		d: "M21 12.43a1.93 1.93 0 0 0 0-3.36L8.83 2.2a1.64 1.64 0 0 0-1.63 0L3 4.57a1.93 1.93 0 0 0 0 3.36l12.18 6.86a1.636 1.636 0 0 0 1.63 0z",
-		key: "12ttoo"
-	}]
-]);
 var Package = createLucideIcon("package", [
 	["path", {
 		d: "M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z",
@@ -19557,6 +19553,12 @@ var twMerge = /* @__PURE__ */ createTailwindMerge(getDefaultConfig);
 function cn(...inputs) {
 	return twMerge(clsx(inputs));
 }
+function formatCurrency(value) {
+	return new Intl.NumberFormat("pt-BR", {
+		style: "currency",
+		currency: "BRL"
+	}).format(value || 0);
+}
 var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0", {
 	variants: {
 		variant: {
@@ -19650,20 +19652,26 @@ var mockOnboarding = [{
 }];
 var mockInventory = [{
 	id: "1",
-	name: "Resina Composta",
-	category: "Materiais Clínicos",
-	quantity: 15,
-	unit: "Seringas",
-	threshold: 10,
-	lastRestocked: "2026-02-20"
+	name: "resina",
+	packageCost: 10,
+	storageLocation: "SALA 1 - ARMÁRIO A",
+	packageType: "Caixa",
+	itemsPerBox: 1,
+	productionYield: 1,
+	minStock: 0,
+	unitCost: 10,
+	quantity: 1
 }, {
 	id: "2",
-	name: "Luvas de Procedimento (M)",
-	category: "EPIs",
-	quantity: 5,
-	unit: "Caixas",
-	threshold: 20,
-	lastRestocked: "2026-03-01"
+	name: "teste",
+	packageCost: 100,
+	storageLocation: "asdasd",
+	packageType: "Caixa",
+	itemsPerBox: 1,
+	productionYield: 10,
+	minStock: 0,
+	unitCost: 10,
+	quantity: 0
 }];
 var mockDocuments = [{
 	id: "1",
@@ -27202,215 +27210,375 @@ var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* 
 	...props
 }));
 TableCaption.displayName = "TableCaption";
-function Inventory() {
-	const { inventory, updateInventoryQuantity, addInventoryItem } = useAppStore();
-	const [search, setSearch] = (0, import_react.useState)("");
-	const [isAdding, setIsAdding] = (0, import_react.useState)(false);
-	const [newItem, setNewItem] = (0, import_react.useState)({
-		name: "",
-		category: "",
-		quantity: 0,
-		unit: "",
-		threshold: 0
+var Textarea = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
+		className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", className),
+		ref,
+		...props
 	});
-	const handleAdd = (e) => {
-		e.preventDefault();
+});
+Textarea.displayName = "Textarea";
+function AddInventoryModal({ open, onOpenChange }) {
+	const { addInventoryItem } = useAppStore();
+	const [f, setF] = (0, import_react.useState)({
+		name: "",
+		packageCost: 0,
+		storageLocation: "",
+		packageType: "Caixa",
+		itemsPerBox: 1,
+		productionYield: 1,
+		minStock: 0,
+		quantity: 0,
+		lastBrand: "",
+		lastValue: 0,
+		notes: ""
+	});
+	const unitCost = f.packageCost / (f.itemsPerBox * f.productionYield || 1);
+	const totalCost = f.quantity * f.packageCost;
+	const handleSubmit = () => {
 		addInventoryItem({
-			...newItem,
-			lastRestocked: (/* @__PURE__ */ new Date()).toISOString().split("T")[0]
+			...f,
+			unitCost
 		});
-		setIsAdding(false);
-		setNewItem({
+		setF({
 			name: "",
-			category: "",
+			packageCost: 0,
+			storageLocation: "",
+			packageType: "Caixa",
+			itemsPerBox: 1,
+			productionYield: 1,
+			minStock: 0,
 			quantity: 0,
-			unit: "",
-			threshold: 0
+			lastBrand: "",
+			lastValue: 0,
+			notes: ""
 		});
+		onOpenChange(false);
 	};
-	const filteredInventory = inventory.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()) || item.category.toLowerCase().includes(search.toLowerCase()));
-	const lowStockItems = inventory.filter((i) => i.quantity <= i.threshold);
+	const handleChange = (key, value) => setF((prev) => ({
+		...prev,
+		[key]: value
+	}));
+	const Field = ({ label, children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "grid gap-1.5",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+			className: "text-sm font-semibold",
+			children: label
+		}), children]
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
+		open,
+		onOpenChange,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+			className: "max-w-3xl max-h-[90vh] overflow-y-auto",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
+					className: "text-2xl font-bold",
+					children: "Novo Produto no Estoque"
+				}) }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "grid gap-6 py-4",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Nome do Material",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								value: f.name,
+								onChange: (e) => handleChange("name", e.target.value),
+								placeholder: "EX: RESINA A2",
+								className: "border-[#D81B84] focus-visible:ring-[#D81B84]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "grid grid-cols-2 gap-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Custo da Embalagem Fechada (R$)",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									type: "number",
+									step: "0.01",
+									value: f.packageCost || "",
+									onChange: (e) => handleChange("packageCost", Number(e.target.value))
+								})
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Local de Armazenamento",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									value: f.storageLocation,
+									onChange: (e) => handleChange("storageLocation", e.target.value),
+									placeholder: "EX: SALA 1 - ARMÁRIO A"
+								})
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "p-5 bg-slate-50 rounded-xl border grid gap-5",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Tipos de Embalagem",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "flex flex-col gap-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+										variant: "outline",
+										className: "w-fit bg-white",
+										children: "NOVA EMBALAGEM"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+										className: "text-xs text-muted-foreground",
+										children: "Preencha o último campo para adicionar um novo tipo automaticamente."
+									})]
+								})
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "grid grid-cols-2 gap-5",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "Quantidade de Itens na Caixa",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											type: "number",
+											value: f.itemsPerBox || "",
+											onChange: (e) => handleChange("itemsPerBox", Number(e.target.value))
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "Rendimento de Produção",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											type: "number",
+											value: f.productionYield || "",
+											onChange: (e) => handleChange("productionYield", Number(e.target.value))
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "Estoque Mínimo (Aviso)",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											type: "number",
+											value: f.minStock || "",
+											onChange: (e) => handleChange("minStock", Number(e.target.value))
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "Custo Unitário de Produção",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "h-10 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-md font-bold border border-emerald-100 flex items-center",
+											children: formatCurrency(unitCost)
+										})
+									})
+								]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "grid grid-cols-2 gap-4 pt-4 border-t",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Qtd. Comprada (Inicial em Caixas)",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									type: "number",
+									value: f.quantity || "",
+									onChange: (e) => handleChange("quantity", Number(e.target.value)),
+									placeholder: "EX: 10",
+									className: "border-blue-200"
+								})
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Custo Total da Compra Atual",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "h-10 px-3 py-2 bg-muted/40 rounded-md font-bold flex items-center",
+									children: formatCurrency(totalCost)
+								})
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-4 pt-4 border-t",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+									className: "font-semibold text-muted-foreground text-sm",
+									children: "Detalhes da Compra & Histórico (Opcional)"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "grid grid-cols-2 gap-4",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "Marca da última compra",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											value: f.lastBrand,
+											onChange: (e) => handleChange("lastBrand", e.target.value),
+											placeholder: "EX: 3M, IVOCLAR..."
+										})
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "Valor da última compra (R$)",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											type: "number",
+											step: "0.01",
+											value: f.lastValue || "",
+											onChange: (e) => handleChange("lastValue", Number(e.target.value))
+										})
+									})]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+									label: "Observações",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Textarea, {
+										value: f.notes,
+										onChange: (e) => handleChange("notes", e.target.value),
+										placeholder: "ADICIONE NOTAS, LINKS DE FORNECEDORES OU DETALHES...",
+										className: "min-h-[100px]"
+									})
+								})
+							]
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex justify-end gap-3 mt-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						variant: "outline",
+						onClick: () => onOpenChange(false),
+						children: "Cancelar"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						className: "bg-[#D81B84] hover:bg-[#B71770] text-white",
+						onClick: handleSubmit,
+						children: "Cadastrar Produto"
+					})]
+				})
+			]
+		})
+	});
+}
+function Inventory() {
+	const { inventory } = useAppStore();
+	const [isAdding, setIsAdding] = (0, import_react.useState)(false);
+	const totalCapital = inventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-6 animate-fade-in-up",
+		className: "space-y-8 animate-fade-in-up pb-10",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-					className: "text-3xl font-bold tracking-tight text-nuvia-navy",
-					children: "Estoque Clínico"
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					className: "text-muted-foreground mt-1",
-					children: "Gestão de materiais, níveis e reposição."
-				})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, {
-					open: isAdding,
-					onOpenChange: setIsAdding,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
-						asChild: true,
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "mr-2 h-4 w-4" }), " Novo Item"] })
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Adicionar Item ao Estoque" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-						onSubmit: handleAdd,
-						className: "space-y-4 pt-4",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Nome do Produto" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									required: true,
-									value: newItem.name,
-									onChange: (e) => setNewItem({
-										...newItem,
-										name: e.target.value
-									})
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Categoria" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									required: true,
-									value: newItem.category,
-									onChange: (e) => setNewItem({
-										...newItem,
-										category: e.target.value
-									})
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid grid-cols-2 gap-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "grid gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Quantidade Inicial" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										type: "number",
-										required: true,
-										min: "0",
-										value: newItem.quantity,
-										onChange: (e) => setNewItem({
-											...newItem,
-											quantity: parseInt(e.target.value)
-										})
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "grid gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Unidade (ex: Caixas)" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										required: true,
-										value: newItem.unit,
-										onChange: (e) => setNewItem({
-											...newItem,
-											unit: e.target.value
-										})
-									})]
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Alerta de Estoque Baixo (Qtd)" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									type: "number",
-									required: true,
-									min: "0",
-									value: newItem.threshold,
-									onChange: (e) => setNewItem({
-										...newItem,
-										threshold: parseInt(e.target.value)
-									})
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								type: "submit",
-								className: "w-full",
-								children: "Salvar Item"
-							})
-						]
-					})] })]
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "grid gap-4 md:grid-cols-3",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-					className: "flex flex-row items-center justify-between pb-2",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-						className: "text-sm font-medium",
-						children: "Total de Itens Cadastrados"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PackageOpen, { className: "h-4 w-4 text-muted-foreground" })]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "text-2xl font-bold",
-					children: inventory.length
-				}) })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-					className: lowStockItems.length > 0 ? "border-destructive/50 bg-destructive/5" : "",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-						className: "flex flex-row items-center justify-between pb-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-							className: "text-sm font-medium",
-							children: "Estoque Crítico"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingDown, { className: lowStockItems.length > 0 ? "h-4 w-4 text-destructive" : "h-4 w-4 text-muted-foreground" })]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "text-2xl font-bold text-destructive",
-						children: lowStockItems.length
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "w-14 h-14 bg-blue-100/80 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box, { className: "h-7 w-7" })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+						className: "text-3xl font-bold tracking-tight text-[#D81B84]",
+						children: "Controle de Estoque"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: "text-xs text-muted-foreground mt-1",
-						children: "Abaixo do limite de segurança"
+						className: "text-muted-foreground mt-1",
+						children: "Gerencie embalagens, custos e rendimentos detalhados."
 					})] })]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					className: "bg-[#D81B84] hover:bg-[#B71770] text-white",
+					onClick: () => setIsAdding(true),
+					children: "+ Novo Produto"
 				})]
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Inventário Consolidado" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-					placeholder: "Buscar itens...",
-					className: "max-w-xs",
-					value: search,
-					onChange: (e) => setSearch(e.target.value)
-				})]
-			}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Produto" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Categoria" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Estoque Atual" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Status" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-					className: "text-right",
-					children: "Ações Rápidas"
-				})
-			] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [filteredInventory.map((item) => {
-				const isLow = item.quantity <= item.threshold;
-				return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-						className: "font-medium",
-						children: item.name
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: item.category }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [
-						item.quantity,
-						" ",
-						item.unit
-					] }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: isLow ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
-						variant: "destructive",
-						className: "gap-1",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-3 w-3" }), " Repor"]
-					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-						variant: "secondary",
-						className: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20",
-						children: "Adequado"
-					}) }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-						className: "text-right",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center justify-end gap-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								variant: "outline",
-								size: "sm",
-								onClick: () => updateInventoryQuantity(item.id, Math.max(0, item.quantity - 1)),
-								children: "-"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								variant: "outline",
-								size: "sm",
-								onClick: () => updateInventoryQuantity(item.id, item.quantity + 1),
-								children: "+"
-							})]
-						})
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "grid gap-4 md:grid-cols-3",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+					className: "border-l-4 border-l-blue-600 shadow-sm rounded-xl",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+						className: "p-6",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2",
+							children: "Capital Investido (Ocioso)"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "text-4xl font-extrabold text-blue-600",
+							children: formatCurrency(totalCapital)
+						})]
 					})
-				] }, item.id);
-			}), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-				colSpan: 5,
-				className: "text-center py-8 text-muted-foreground",
-				children: "Nenhum item de estoque encontrado."
-			}) })] })] }) })] })
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+				className: "shadow-sm border-muted rounded-xl overflow-hidden",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+					className: "bg-muted/30",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "Produto / Local"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "Embalagem & Itens"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "Custo Emb. Fechada"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "Custo Unit. Prod."
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground text-center",
+							children: "Qtd. Atual"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "Capital Retido"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground text-right",
+							children: "Ações Rápidas"
+						})
+					]
+				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [inventory.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+					className: "hover:bg-muted/10",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+							className: "align-top py-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "font-bold text-[#D81B84] mb-1 text-base",
+								children: item.name
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "text-xs text-muted-foreground flex items-center gap-1.5",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "h-3.5 w-3.5" }),
+									" ",
+									item.storageLocation
+								]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+							className: "align-top py-4",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "inline-block px-2.5 py-0.5 border border-muted-foreground/20 rounded-full text-[10px] font-semibold mb-1.5",
+									children: item.packageType
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "text-xs text-muted-foreground mb-0.5",
+									children: [item.itemsPerBox, " item(s) / caixa"]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "text-xs text-muted-foreground",
+									children: [
+										"Rende: ",
+										item.productionYield,
+										" un"
+									]
+								})
+							]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "align-middle py-4 font-medium text-muted-foreground",
+							children: formatCurrency(item.packageCost)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "align-middle py-4 font-bold text-emerald-600",
+							children: formatCurrency(item.unitCost)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "align-middle py-4 text-center",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full bg-muted font-bold text-sm",
+								children: item.quantity
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "align-middle py-4 font-bold text-muted-foreground",
+							children: formatCurrency(item.quantity * item.packageCost)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { className: "align-middle py-4 text-right" })
+					]
+				}, item.id)), inventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+					colSpan: 7,
+					className: "text-center py-8 text-muted-foreground",
+					children: "Nenhum produto cadastrado."
+				}) })] })] })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddInventoryModal, {
+				open: isAdding,
+				onOpenChange: setIsAdding
+			})
 		]
 	});
 }
@@ -27553,4 +27721,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-tROiViem.js.map
+//# sourceMappingURL=index-DJdOn3N7.js.map

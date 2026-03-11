@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import useAppStore from '@/stores/main'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -9,230 +9,126 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { AlertCircle, Plus, PackageOpen, TrendingDown } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
+import { Package, Box } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils'
+import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
 
 export default function Inventory() {
-  const { inventory, updateInventoryQuantity, addInventoryItem } = useAppStore()
-  const [search, setSearch] = useState('')
+  const { inventory } = useAppStore()
   const [isAdding, setIsAdding] = useState(false)
-  const [newItem, setNewItem] = useState({
-    name: '',
-    category: '',
-    quantity: 0,
-    unit: '',
-    threshold: 0,
-  })
 
-  const handleAdd = (e: React.FormEvent) => {
-    e.preventDefault()
-    addInventoryItem({
-      ...newItem,
-      lastRestocked: new Date().toISOString().split('T')[0],
-    })
-    setIsAdding(false)
-    setNewItem({ name: '', category: '', quantity: 0, unit: '', threshold: 0 })
-  }
-
-  const filteredInventory = inventory.filter(
-    (item) =>
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.category.toLowerCase().includes(search.toLowerCase()),
-  )
-
-  const lowStockItems = inventory.filter((i) => i.quantity <= i.threshold)
+  const totalCapital = inventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0)
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">Estoque Clínico</h1>
-          <p className="text-muted-foreground mt-1">Gestão de materiais, níveis e reposição.</p>
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-blue-100/80 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
+            <Box className="h-7 w-7" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#D81B84]">
+              Controle de Estoque
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Gerencie embalagens, custos e rendimentos detalhados.
+            </p>
+          </div>
         </div>
-        <Dialog open={isAdding} onOpenChange={setIsAdding}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Novo Item
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Item ao Estoque</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleAdd} className="space-y-4 pt-4">
-              <div className="grid gap-2">
-                <Label>Nome do Produto</Label>
-                <Input
-                  required
-                  value={newItem.name}
-                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Categoria</Label>
-                <Input
-                  required
-                  value={newItem.category}
-                  onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Quantidade Inicial</Label>
-                  <Input
-                    type="number"
-                    required
-                    min="0"
-                    value={newItem.quantity}
-                    onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Unidade (ex: Caixas)</Label>
-                  <Input
-                    required
-                    value={newItem.unit}
-                    onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Alerta de Estoque Baixo (Qtd)</Label>
-                <Input
-                  type="number"
-                  required
-                  min="0"
-                  value={newItem.threshold}
-                  onChange={(e) => setNewItem({ ...newItem, threshold: parseInt(e.target.value) })}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Salvar Item
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button
+          className="bg-[#D81B84] hover:bg-[#B71770] text-white"
+          onClick={() => setIsAdding(true)}
+        >
+          + Novo Produto
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total de Itens Cadastrados</CardTitle>
-            <PackageOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inventory.length}</div>
-          </CardContent>
-        </Card>
-        <Card className={lowStockItems.length > 0 ? 'border-destructive/50 bg-destructive/5' : ''}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Estoque Crítico</CardTitle>
-            <TrendingDown
-              className={
-                lowStockItems.length > 0
-                  ? 'h-4 w-4 text-destructive'
-                  : 'h-4 w-4 text-muted-foreground'
-              }
-            />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{lowStockItems.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Abaixo do limite de segurança</p>
+        <Card className="border-l-4 border-l-blue-600 shadow-sm rounded-xl">
+          <CardContent className="p-6">
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              Capital Investido (Ocioso)
+            </p>
+            <div className="text-4xl font-extrabold text-blue-600">
+              {formatCurrency(totalCapital)}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <CardTitle>Inventário Consolidado</CardTitle>
-            <Input
-              placeholder="Buscar itens..."
-              className="max-w-xs"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produto</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Estoque Atual</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações Rápidas</TableHead>
+      <Card className="shadow-sm border-muted rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/30">
+              <TableHead className="font-semibold text-muted-foreground">Produto / Local</TableHead>
+              <TableHead className="font-semibold text-muted-foreground">
+                Embalagem & Itens
+              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground">
+                Custo Emb. Fechada
+              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground">
+                Custo Unit. Prod.
+              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground text-center">
+                Qtd. Atual
+              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground">Capital Retido</TableHead>
+              <TableHead className="font-semibold text-muted-foreground text-right">
+                Ações Rápidas
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {inventory.map((item) => (
+              <TableRow key={item.id} className="hover:bg-muted/10">
+                <TableCell className="align-top py-4">
+                  <div className="font-bold text-[#D81B84] mb-1 text-base">{item.name}</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Package className="h-3.5 w-3.5" /> {item.storageLocation}
+                  </div>
+                </TableCell>
+                <TableCell className="align-top py-4">
+                  <span className="inline-block px-2.5 py-0.5 border border-muted-foreground/20 rounded-full text-[10px] font-semibold mb-1.5">
+                    {item.packageType}
+                  </span>
+                  <div className="text-xs text-muted-foreground mb-0.5">
+                    {item.itemsPerBox} item(s) / caixa
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Rende: {item.productionYield} un
+                  </div>
+                </TableCell>
+                <TableCell className="align-middle py-4 font-medium text-muted-foreground">
+                  {formatCurrency(item.packageCost)}
+                </TableCell>
+                <TableCell className="align-middle py-4 font-bold text-emerald-600">
+                  {formatCurrency(item.unitCost)}
+                </TableCell>
+                <TableCell className="align-middle py-4 text-center">
+                  <span className="inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full bg-muted font-bold text-sm">
+                    {item.quantity}
+                  </span>
+                </TableCell>
+                <TableCell className="align-middle py-4 font-bold text-muted-foreground">
+                  {formatCurrency(item.quantity * item.packageCost)}
+                </TableCell>
+                <TableCell className="align-middle py-4 text-right"></TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInventory.map((item) => {
-                const isLow = item.quantity <= item.threshold
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.category}</TableCell>
-                    <TableCell>
-                      {item.quantity} {item.unit}
-                    </TableCell>
-                    <TableCell>
-                      {isLow ? (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertCircle className="h-3 w-3" /> Repor
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="secondary"
-                          className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
-                        >
-                          Adequado
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            updateInventoryQuantity(item.id, Math.max(0, item.quantity - 1))
-                          }
-                        >
-                          -
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateInventoryQuantity(item.id, item.quantity + 1)}
-                        >
-                          +
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-              {filteredInventory.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Nenhum item de estoque encontrado.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
+            ))}
+            {inventory.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  Nenhum produto cadastrado.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </Card>
+
+      <AddInventoryModal open={isAdding} onOpenChange={setIsAdding} />
     </div>
   )
 }

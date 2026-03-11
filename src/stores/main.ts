@@ -32,11 +32,17 @@ export type OnboardingCandidate = {
 export type InventoryItem = {
   id: string
   name: string
-  category: string
+  packageCost: number
+  storageLocation: string
+  packageType: string
+  itemsPerBox: number
+  productionYield: number
+  minStock: number
+  unitCost: number
   quantity: number
-  unit: string
-  threshold: number
-  lastRestocked: string
+  lastBrand?: string
+  lastValue?: number
+  notes?: string
 }
 
 export type DocumentItem = {
@@ -116,21 +122,27 @@ const mockOnboarding: OnboardingCandidate[] = [
 const mockInventory: InventoryItem[] = [
   {
     id: '1',
-    name: 'Resina Composta',
-    category: 'Materiais Clínicos',
-    quantity: 15,
-    unit: 'Seringas',
-    threshold: 10,
-    lastRestocked: '2026-02-20',
+    name: 'resina',
+    packageCost: 10,
+    storageLocation: 'SALA 1 - ARMÁRIO A',
+    packageType: 'Caixa',
+    itemsPerBox: 1,
+    productionYield: 1,
+    minStock: 0,
+    unitCost: 10,
+    quantity: 1,
   },
   {
     id: '2',
-    name: 'Luvas de Procedimento (M)',
-    category: 'EPIs',
-    quantity: 5,
-    unit: 'Caixas',
-    threshold: 20,
-    lastRestocked: '2026-03-01',
+    name: 'teste',
+    packageCost: 100,
+    storageLocation: 'asdasd',
+    packageType: 'Caixa',
+    itemsPerBox: 1,
+    productionYield: 10,
+    minStock: 0,
+    unitCost: 10,
+    quantity: 0,
   },
 ]
 
@@ -185,7 +197,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const id = Math.random().toString(36).substr(2, 9)
     setEmployees((prev) => [...prev, { ...emp, id }])
 
-    // Auto-create onboarding process
     setOnboarding((prev) => [
       ...prev,
       {
