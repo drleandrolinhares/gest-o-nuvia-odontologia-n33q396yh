@@ -12,14 +12,16 @@ import {
   Briefcase,
   Trash2,
   CalendarDays,
+  UserX,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { employees, isAdmin, deleteEmployee } = useAppStore()
+  const { employees, isAdmin, deleteEmployee, updateEmployeeStatus } = useAppStore()
   const employee = employees.find((e) => e.id === id)
 
   if (!employee) {
@@ -44,6 +46,16 @@ export default function EmployeeProfile() {
     }
   }
 
+  const handleInactivate = () => {
+    if (
+      window.confirm(
+        `TEM CERTEZA QUE DESEJA MARCAR O COLABORADOR ${employee.name.toUpperCase()} COMO DESLIGADO?`,
+      )
+    ) {
+      updateEmployeeStatus(employee.id, 'Desligado')
+    }
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -54,16 +66,34 @@ export default function EmployeeProfile() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">{employee.name}</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy flex items-center gap-3">
+              {employee.name}
+              {employee.status === 'Desligado' && (
+                <Badge variant="secondary" className="bg-stone-500 text-white hover:bg-stone-600">
+                  DESLIGADO DA EMPRESA
+                </Badge>
+              )}
+            </h1>
             <p className="text-muted-foreground flex items-center gap-2 mt-1">
               <Briefcase className="h-4 w-4" /> {employee.role} • {employee.department}
             </p>
           </div>
         </div>
         {isAdmin && (
-          <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="h-4 w-4 mr-2" /> REMOVER COLABORADOR
-          </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {employee.status !== 'Desligado' && (
+              <Button
+                variant="outline"
+                className="text-stone-700 border-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                onClick={handleInactivate}
+              >
+                <UserX className="h-4 w-4 mr-2" /> DESLIGADO DA EMPRESA
+              </Button>
+            )}
+            <Button variant="destructive" onClick={handleDelete}>
+              <Trash2 className="h-4 w-4 mr-2" /> REMOVER COLABORADOR
+            </Button>
+          </div>
         )}
       </div>
 
@@ -135,7 +165,7 @@ export default function EmployeeProfile() {
               />
             </div>
 
-            {isVacationNear && (
+            {isVacationNear && employee.status !== 'Desligado' && (
               <Alert variant="destructive" className="bg-destructive/5">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>ALERTA RH</AlertTitle>

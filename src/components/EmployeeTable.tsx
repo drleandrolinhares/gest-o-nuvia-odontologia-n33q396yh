@@ -10,7 +10,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Employee } from '@/stores/main'
-import { formatCurrency } from '@/lib/utils'
 import { User, Phone, Mail, Briefcase, Calendar as CalIcon, Building2 } from 'lucide-react'
 
 export function EmployeeTable({ employees }: { employees: Employee[] }) {
@@ -24,6 +23,8 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
         return 'bg-amber-500 hover:bg-amber-600 text-white'
       case 'Aviso Prévio':
         return 'bg-rose-500 hover:bg-rose-600 text-white'
+      case 'Desligado':
+        return 'bg-stone-500 hover:bg-stone-600 text-white'
       default:
         return 'bg-slate-500 hover:bg-slate-600 text-white'
     }
@@ -180,7 +181,9 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                     PERÍODO AQUISITIVO VENCE EM:
                   </p>
                   <p className="text-sm font-medium text-destructive mt-1">
-                    {new Date(selectedEmp.vacationDueDate).toLocaleDateString('pt-BR')}
+                    {selectedEmp.vacationDueDate
+                      ? new Date(selectedEmp.vacationDueDate).toLocaleDateString('pt-BR')
+                      : 'NÃO CADASTRADO'}
                   </p>
                 </div>
               </div>

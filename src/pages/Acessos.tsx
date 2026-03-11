@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import useAppStore, { AccessItem } from '@/stores/main'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -13,7 +13,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Eye, EyeOff, Copy, Check, Plus, Trash2, Shield, Edit2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 export default function Acessos() {
   const { acessos, addAccess, updateAccess, removeAccess, isAdmin } = useAppStore()
@@ -27,6 +35,7 @@ export default function Acessos() {
   const [login, setLogin] = useState('')
   const [pass, setPass] = useState('')
   const [instructions, setInstructions] = useState('')
+  const [accessLevel, setAccessLevel] = useState<'OPERACIONAL' | 'ADMINISTRATIVO'>('OPERACIONAL')
 
   const sortedAcessos = [...acessos].sort((a, b) => a.platform.localeCompare(b.platform))
 
@@ -43,7 +52,8 @@ export default function Acessos() {
       setUrl(item.url)
       setLogin(item.login)
       setPass(item.pass)
-      setInstructions(item.instructions)
+      setInstructions(item.instructions || '')
+      setAccessLevel((item.accessLevel as 'OPERACIONAL' | 'ADMINISTRATIVO') || 'OPERACIONAL')
     } else {
       setEditingId(null)
       setPlatform('')
@@ -51,6 +61,7 @@ export default function Acessos() {
       setLogin('')
       setPass('')
       setInstructions('')
+      setAccessLevel('OPERACIONAL')
     }
     setOpen(true)
   }
@@ -59,9 +70,9 @@ export default function Acessos() {
     e.preventDefault()
     if (platform && login && pass) {
       if (editingId) {
-        updateAccess(editingId, { platform, url, login, pass, instructions })
+        updateAccess(editingId, { platform, url, login, pass, instructions, accessLevel })
       } else {
-        addAccess({ platform, url, login, pass, instructions })
+        addAccess({ platform, url, login, pass, instructions, accessLevel })
       }
       setOpen(false)
     }
@@ -92,6 +103,7 @@ export default function Acessos() {
               <TableHead className="font-semibold text-muted-foreground">
                 PLATAFORMA / URL
               </TableHead>
+              <TableHead className="font-semibold text-muted-foreground">NÍVEL DE ACESSO</TableHead>
               <TableHead className="font-semibold text-muted-foreground">LOGIN</TableHead>
               <TableHead className="font-semibold text-muted-foreground">SENHA</TableHead>
               <TableHead className="font-semibold text-muted-foreground">INSTRUÇÕES</TableHead>
@@ -106,6 +118,11 @@ export default function Acessos() {
                 <TableCell>
                   <div className="font-bold text-primary">{item.platform}</div>
                   <div className="text-xs text-muted-foreground lowercase">{item.url}</div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="uppercase">
+                    {item.accessLevel || 'OPERACIONAL'}
+                  </Badge>
                 </TableCell>
                 <TableCell className="font-medium">{item.login}</TableCell>
                 <TableCell className="font-mono text-sm tracking-widest bg-muted/50 rounded px-2 py-1 inline-block mt-2 lowercase">
@@ -171,7 +188,7 @@ export default function Acessos() {
             ))}
             {sortedAcessos.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                   NENHUM ACESSO CADASTRADO.
                 </TableCell>
               </TableRow>
@@ -189,30 +206,44 @@ export default function Acessos() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4 mt-2">
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">
-                PLATAFORMA / SERVIÇO
-              </label>
-              <Input
-                value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
-                required
-                placeholder="EX: FORNECEDOR DENTAL"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">URL DE ACESSO</label>
-              <Input
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="HTTPS://..."
-                className="lowercase"
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2 col-span-2">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  PLATAFORMA / SERVIÇO *
+                </label>
+                <Input
+                  value={platform}
+                  onChange={(e) => setPlatform(e.target.value)}
+                  required
+                  placeholder="EX: FORNECEDOR DENTAL"
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  NÍVEL DE ACESSO DA CREDENCIAL *
+                </label>
+                <Select value={accessLevel} onValueChange={(v: any) => setAccessLevel(v)} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="SELECIONE..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="OPERACIONAL">OPERACIONAL</SelectItem>
+                    <SelectItem value="ADMINISTRATIVO">ADMINISTRATIVO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <label className="text-xs font-semibold text-muted-foreground">URL DE ACESSO</label>
+                <Input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="HTTPS://..."
+                  className="lowercase"
+                />
+              </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-muted-foreground">
-                  USUÁRIO / LOGIN
+                  USUÁRIO / LOGIN *
                 </label>
                 <Input
                   value={login}
@@ -222,7 +253,7 @@ export default function Acessos() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-muted-foreground">SENHA</label>
+                <label className="text-xs font-semibold text-muted-foreground">SENHA *</label>
                 <Input
                   value={pass}
                   onChange={(e) => setPass(e.target.value)}
@@ -231,16 +262,16 @@ export default function Acessos() {
                   className="lowercase"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">
-                INSTRUÇÕES DE USO (OPCIONAL)
-              </label>
-              <Textarea
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                placeholder="DETALHES IMPORTANTES..."
-              />
+              <div className="space-y-2 col-span-2">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  INSTRUÇÕES DE USO (OPCIONAL)
+                </label>
+                <Textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  placeholder="DETALHES IMPORTANTES..."
+                />
+              </div>
             </div>
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>

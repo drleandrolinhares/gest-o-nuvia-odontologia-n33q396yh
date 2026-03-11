@@ -7,7 +7,7 @@ export type Employee = {
   name: string
   role: string
   department: string
-  status: 'Ativo' | 'Férias' | 'Aviso Prévio'
+  status: 'Ativo' | 'Férias' | 'Aviso Prévio' | 'Desligado'
   hireDate: string
   salary: string
   vacationDaysTaken: number
@@ -18,6 +18,7 @@ export type Employee = {
   agendaAccess: AgendaAccess
   password?: string
   permissions?: string[]
+  accessLevel?: 'OPERACIONAL' | 'ADMINISTRATIVO'
 }
 
 export type OnboardingTask = { id: string; title: string; completed: boolean }
@@ -82,6 +83,7 @@ export type AccessItem = {
   login: string
   pass: string
   instructions: string
+  accessLevel?: 'OPERACIONAL' | 'ADMINISTRATIVO'
 }
 
 export type Supplier = {
@@ -112,6 +114,7 @@ interface AppStore {
   agenda: AgendaItem[]
   acessos: AccessItem[]
   suppliers: Supplier[]
+  levelPermissions: Record<string, string[]>
   login: (email: string, pass: string) => boolean
   logout: () => void
   toggleAdmin: () => void
@@ -130,8 +133,11 @@ interface AppStore {
   addPurchaseHistory: (itemId: string, record: Omit<PurchaseRecord, 'id'>) => void
   addEmployee: (emp: Omit<Employee, 'id'>) => void
   deleteEmployee: (id: string) => void
+  updateEmployeeStatus: (id: string, status: Employee['status']) => void
+  updateEmployeeLevel: (id: string, level: Employee['accessLevel']) => void
   updateEmployeeAgendaAccess: (id: string, access: AgendaAccess) => void
   updateEmployeePermissions: (id: string, permissions: string[]) => void
+  updateLevelPermissions: (level: string, perms: string[]) => void
   addOnboardingTask: (candidateId: string, title: string) => void
   removeOnboardingTask: (candidateId: string, taskId: string) => void
   addDocument: (name: string) => void
@@ -157,55 +163,9 @@ const mockSpecialties = [
 ]
 const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria']
 
-const mockEmployees: Employee[] = [
-  {
-    id: '1',
-    name: 'Ana Silva',
-    role: 'Dentista Clínica',
-    department: 'Odontologia',
-    status: 'Ativo',
-    hireDate: '2023-01-15',
-    salary: 'R$ 8.500',
-    vacationDaysTaken: 10,
-    vacationDaysTotal: 30,
-    vacationDueDate: '2024-01-15',
-    email: 'ana.silva@nuvia.com',
-    phone: '(11) 98765-4321',
-    agendaAccess: 'ADD_EDIT',
-    password: 'password123',
-    permissions: ['dashboard', 'agenda', 'acessos', 'rh', 'estoque', 'configuracoes'],
-  },
-  {
-    id: '2',
-    name: 'Carlos Santos',
-    role: 'Ortodontista',
-    department: 'Odontologia',
-    status: 'Férias',
-    hireDate: '2022-06-10',
-    salary: 'R$ 12.000',
-    vacationDaysTaken: 30,
-    vacationDaysTotal: 30,
-    vacationDueDate: '2023-06-10',
-    email: 'carlos.santos@nuvia.com',
-    phone: '(11) 99999-8888',
-    agendaAccess: 'VIEW_ONLY',
-    password: 'password123',
-    permissions: ['dashboard', 'agenda'],
-  },
-]
-
-const mockOnboarding: OnboardingCandidate[] = [
-  {
-    id: 'o1',
-    name: 'Fernanda Lima',
-    role: 'Auxiliar de Saúde Bucal',
-    department: 'Operacional',
-    tasks: [
-      { id: 't1', title: 'Assinatura de Contrato', completed: true },
-      { id: 't2', title: 'Entrega de EPIs', completed: false },
-    ],
-  },
-]
+const mockEmployees: Employee[] = []
+const mockOnboarding: OnboardingCandidate[] = []
+const mockAgenda: AgendaItem[] = []
 
 const mockInventory: InventoryItem[] = [
   {
@@ -233,30 +193,6 @@ const mockDocuments: DocumentItem[] = [
   { id: '1', name: 'POP - Onboarding e Admissão v2.pdf', date: '10/01/2026' },
 ]
 
-const mockAgenda: AgendaItem[] = [
-  {
-    id: '1',
-    title: 'Reunião de Alinhamento Semanal',
-    date: new Date().toISOString(),
-    time: '14:00',
-    location: 'Sala de Reuniões',
-    type: 'Reunião',
-    assignedTo: '1',
-    involvesThirdParty: false,
-  },
-  {
-    id: '2',
-    title: 'Auditoria Odontológica',
-    date: new Date(Date.now() + 86400000).toISOString(),
-    time: '09:00',
-    location: 'Clínica Nuvia',
-    type: 'Consulta',
-    assignedTo: '2',
-    involvesThirdParty: true,
-    thirdPartyDetails: 'Auditor Externo: João Pereira',
-  },
-]
-
 const mockAcessos: AccessItem[] = [
   {
     id: '1',
@@ -265,6 +201,7 @@ const mockAcessos: AccessItem[] = [
     login: 'admin@nuvia.com',
     pass: 'Nuvia@2026!',
     instructions: 'Acesso restrito à diretoria.',
+    accessLevel: 'ADMINISTRATIVO',
   },
 ]
 
@@ -293,13 +230,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [specialties, setSpecialties] = useState<string[]>(mockSpecialties)
   const [agendaTypes, setAgendaTypes] = useState<string[]>(mockAgendaTypes)
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
-  const [alerts] = useState<string[]>(['Carlos Santos: Retorna de férias em 2 dias.'])
+  const [alerts] = useState<string[]>([])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
   const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory)
   const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments)
   const [agenda, setAgenda] = useState<AgendaItem[]>(mockAgenda)
   const [acessos, setAcessos] = useState<AccessItem[]>(mockAcessos)
   const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers)
+
+  const [levelPermissions, setLevelPermissions] = useState<Record<string, string[]>>({
+    OPERACIONAL: ['dashboard', 'agenda'],
+    ADMINISTRATIVO: ['dashboard', 'agenda', 'acessos', 'rh', 'estoque', 'configuracoes'],
+  })
 
   const login = useCallback(
     (email: string, pass: string) => {
@@ -411,7 +353,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addEmployee = useCallback((emp: Omit<Employee, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 11)
-    setEmployees((prev) => [...prev, { ...emp, id, permissions: ['dashboard'] }])
+    setEmployees((prev) => [
+      ...prev,
+      { ...emp, id, permissions: ['dashboard'], accessLevel: 'OPERACIONAL' },
+    ])
     setOnboarding((prev) => [
       ...prev,
       {
@@ -430,6 +375,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (id: string) => setEmployees((prev) => prev.filter((e) => e.id !== id)),
     [],
   )
+
+  const updateEmployeeStatus = useCallback(
+    (id: string, status: Employee['status']) =>
+      setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, status } : e))),
+    [],
+  )
+
+  const updateEmployeeLevel = useCallback(
+    (id: string, level: Employee['accessLevel']) =>
+      setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, accessLevel: level } : e))),
+    [],
+  )
+
   const updateEmployeeAgendaAccess = useCallback(
     (id: string, access: AgendaAccess) =>
       setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, agendaAccess: access } : e))),
@@ -438,6 +396,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateEmployeePermissions = useCallback(
     (id: string, permissions: string[]) =>
       setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, permissions } : e))),
+    [],
+  )
+
+  const updateLevelPermissions = useCallback(
+    (level: string, perms: string[]) =>
+      setLevelPermissions((prev) => ({ ...prev, [level]: perms })),
     [],
   )
 
@@ -528,6 +492,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       agenda,
       acessos,
       suppliers,
+      levelPermissions,
       login,
       logout,
       toggleAdmin,
@@ -546,8 +511,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPurchaseHistory,
       addEmployee,
       deleteEmployee,
+      updateEmployeeStatus,
+      updateEmployeeLevel,
       updateEmployeeAgendaAccess,
       updateEmployeePermissions,
+      updateLevelPermissions,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,
@@ -577,6 +545,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       agenda,
       acessos,
       suppliers,
+      levelPermissions,
       login,
       logout,
       toggleAdmin,
@@ -595,8 +564,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPurchaseHistory,
       addEmployee,
       deleteEmployee,
+      updateEmployeeStatus,
+      updateEmployeeLevel,
       updateEmployeeAgendaAccess,
       updateEmployeePermissions,
+      updateLevelPermissions,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,

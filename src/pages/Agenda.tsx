@@ -27,7 +27,7 @@ import {
   User,
   CalendarDays,
 } from 'lucide-react'
-import { isSameDay, isSameWeek, isSameMonth, parseISO, startOfWeek, endOfWeek } from 'date-fns'
+import { isSameDay, isSameWeek, isSameMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function Agenda() {
@@ -37,6 +37,7 @@ export default function Agenda() {
     removeAgendaItem,
     currentUserId,
     employees,
+    departments,
     agendaTypes,
     isAdmin,
   } = useAppStore()
@@ -56,9 +57,14 @@ export default function Agenda() {
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
 
+  const [agendaFilterType, setAgendaFilterType] = useState<'TODOS' | 'COLABORADOR' | 'SETOR'>(
+    'TODOS',
+  )
+  const [agendaFilterValue, setAgendaFilterValue] = useState<string>('all')
+
   const currentUser = employees.find((e) => e.id === currentUserId)
   const canEdit = isAdmin || currentUser?.agendaAccess === 'ADD_EDIT'
-  const activeEmployees = employees.filter((e) => e.status === 'Ativo')
+  const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,7 +78,7 @@ export default function Agenda() {
         assignedTo,
         involvesThirdParty,
         thirdPartyDetails: involvesThirdParty ? thirdPartyDetails.toUpperCase() : '',
-        createdBy: currentUser?.name || 'Admin',
+        createdBy: currentUser?.name || 'ADMIN',
       })
       setOpenAdd(false)
       resetForm()
@@ -106,6 +112,15 @@ export default function Agenda() {
       if (filterView === 'DIA') return isSameDay(itemDate, selectedDate)
       if (filterView === 'SEMANA') return isSameWeek(itemDate, selectedDate, { weekStartsOn: 0 })
       if (filterView === 'MES') return isSameMonth(itemDate, selectedDate)
+      return true
+    })
+    .filter((item) => {
+      if (agendaFilterType === 'TODOS' || agendaFilterValue === 'all') return true
+      if (agendaFilterType === 'COLABORADOR') return item.assignedTo === agendaFilterValue
+      if (agendaFilterType === 'SETOR') {
+        const emp = employees.find((e) => e.id === item.assignedTo)
+        return emp?.department === agendaFilterValue
+      }
       return true
     })
     .sort(
@@ -149,27 +164,79 @@ export default function Agenda() {
 
         {/* List View */}
         <div className="lg:col-span-8 space-y-4 order-1 lg:order-2">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-muted/30 p-2 rounded-lg border">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-muted/30 p-2 rounded-lg border">
             <Tabs
               value={filterView}
               onValueChange={(v) => setFilterView(v as any)}
-              className="w-full sm:w-auto"
+              className="w-full xl:w-auto"
             >
-              <TabsList className="grid grid-cols-3 w-full sm:w-[300px]">
+              <TabsList className="grid grid-cols-3 w-full xl:w-[250px]">
                 <TabsTrigger value="DIA">DIA</TabsTrigger>
                 <TabsTrigger value="SEMANA">SEMANA</TabsTrigger>
                 <TabsTrigger value="MES">MÊS</TabsTrigger>
               </TabsList>
             </Tabs>
-            <div className="text-sm font-bold text-primary px-4 py-2 bg-background border rounded-md">
-              {selectedDate?.toLocaleDateString('pt-BR', { dateStyle: 'full' })}
+
+            <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto flex-1 justify-end">
+              <Select
+                value={agendaFilterType}
+                onValueChange={(v: any) => {
+                  setAgendaFilterType(v)
+                  setAgendaFilterValue('all')
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-[220px]">
+                  <SelectValue placeholder="FILTRAR POR" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="TODOS">TODOS OS COMPROMISSOS</SelectItem>
+                  <SelectItem value="COLABORADOR">FILTRAR POR COLABORADOR</SelectItem>
+                  <SelectItem value="SETOR">FILTRAR POR SETOR</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {agendaFilterType === 'COLABORADOR' && (
+                <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="SELECIONE..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">TODOS</SelectItem>
+                    {activeEmployees.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {agendaFilterType === 'SETOR' && (
+                <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="SELECIONE..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">TODOS</SelectItem>
+                    {departments.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div className="text-sm font-bold text-primary px-4 py-2 bg-background border rounded-md whitespace-nowrap hidden xl:block">
+              {selectedDate?.toLocaleDateString('pt-BR', { dateStyle: 'short' })}
             </div>
           </div>
 
           <div className="grid gap-3">
             {filteredAgenda.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50">
-                NENHUM COMPROMISSO AGENDADO PARA ESTE PERÍODO.
+              <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50 uppercase">
+                NENHUM COMPROMISSO ENCONTRADO PARA OS FILTROS SELECIONADOS.
               </div>
             ) : (
               filteredAgenda.map((item) => (
@@ -184,7 +251,9 @@ export default function Agenda() {
                         {getIcon(item.type)}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-lg">{item.title}</h3>
+                        <h3 className="font-semibold text-foreground text-lg uppercase">
+                          {item.title}
+                        </h3>
                         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
                           <span className="flex items-center gap-1 font-medium text-primary">
                             <Clock className="h-3 w-3" /> {item.time}
@@ -195,13 +264,13 @@ export default function Agenda() {
                             {new Date(item.date).toLocaleDateString('pt-BR')}
                           </span>
                           <span>•</span>
-                          <span className="bg-muted px-2 py-0.5 rounded text-xs font-bold">
+                          <span className="bg-muted px-2 py-0.5 rounded text-xs font-bold uppercase">
                             {item.type}
                           </span>
-                          {item.assignedTo && (
+                          {item.assignedTo && item.assignedTo !== 'none' && (
                             <>
                               <span>•</span>
-                              <span className="flex items-center gap-1 text-indigo-600">
+                              <span className="flex items-center gap-1 text-indigo-600 uppercase">
                                 <User className="h-3 w-3" />
                                 {employees.find((e) => e.id === item.assignedTo)?.name ||
                                   'DESCONHECIDO'}
