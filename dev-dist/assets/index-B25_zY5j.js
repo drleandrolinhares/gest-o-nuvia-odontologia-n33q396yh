@@ -17658,6 +17658,15 @@ var CircleAlert = createLucideIcon("circle-alert", [
 		key: "4dfq90"
 	}]
 ]);
+var CircleMinus = createLucideIcon("circle-minus", [["circle", {
+	cx: "12",
+	cy: "12",
+	r: "10",
+	key: "1mglay"
+}], ["path", {
+	d: "M8 12h8",
+	key: "1wcyev"
+}]]);
 var CircleUser = createLucideIcon("circle-user", [
 	["circle", {
 		cx: "12",
@@ -17928,6 +17937,20 @@ var TrendingDown = createLucideIcon("trending-down", [["path", {
 	d: "m22 17-8.5-8.5-5 5L2 7",
 	key: "x473p"
 }]]);
+var TriangleAlert = createLucideIcon("triangle-alert", [
+	["path", {
+		d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3",
+		key: "wmoenq"
+	}],
+	["path", {
+		d: "M12 9v4",
+		key: "juzpu7"
+	}],
+	["path", {
+		d: "M12 17h.01",
+		key: "p32p05"
+	}]
+]);
 var Upload = createLucideIcon("upload", [
 	["path", {
 		d: "M12 3v12",
@@ -20122,15 +20145,15 @@ Separator$2.displayName = NAME$3;
 function isValidOrientation(orientation) {
 	return ORIENTATIONS.includes(orientation);
 }
-var Root$7 = Separator$2;
-var Separator$1 = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$7, {
+var Root$8 = Separator$2;
+var Separator$1 = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$8, {
 	ref,
 	decorative,
 	orientation,
 	className: cn("shrink-0 bg-border", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
 	...props
 }));
-Separator$1.displayName = Root$7.displayName;
+Separator$1.displayName = Root$8.displayName;
 typeof window !== "undefined" && window.document && window.document.createElement;
 function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
 	return function handleEvent(event) {
@@ -21651,7 +21674,7 @@ var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		"aria-haspopup": "dialog",
 		"aria-expanded": context.open,
 		"aria-controls": context.contentId,
-		"data-state": getState$2(context.open),
+		"data-state": getState$3(context.open),
 		...triggerProps,
 		ref: composedTriggerRef,
 		onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
@@ -21700,7 +21723,7 @@ var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 		allowPinchZoom: true,
 		shards: [context.contentRef],
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
-			"data-state": getState$2(context.open),
+			"data-state": getState$3(context.open),
 			...overlayProps,
 			ref: forwardedRef,
 			style: {
@@ -21799,7 +21822,7 @@ var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 			id: context.contentId,
 			"aria-describedby": context.descriptionId,
 			"aria-labelledby": context.titleId,
-			"data-state": getState$2(context.open),
+			"data-state": getState$3(context.open),
 			...contentProps,
 			ref: composedRefs,
 			onDismiss: () => context.onOpenChange(false)
@@ -21843,7 +21866,7 @@ var DialogClose$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 DialogClose$1.displayName = CLOSE_NAME$1;
-function getState$2(open) {
+function getState$3(open) {
 	return open ? "open" : "closed";
 }
 var TITLE_WARNING_NAME = "DialogTitleWarning";
@@ -21881,7 +21904,7 @@ var DescriptionWarning = ({ contentRef, descriptionId }) => {
 	]);
 	return null;
 };
-var Root$6 = Dialog$1;
+var Root$7 = Dialog$1;
 var Trigger$4 = DialogTrigger$1;
 var Portal$3 = DialogPortal$1;
 var Overlay = DialogOverlay$1;
@@ -21889,7 +21912,7 @@ var Content$2 = DialogContent$1;
 var Title = DialogTitle$1;
 var Description = DialogDescription$1;
 var Close = DialogClose$1;
-var Sheet = Root$6;
+var Sheet = Root$7;
 var SheetPortal = Portal$3;
 var SheetOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
 	className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
@@ -23458,7 +23481,7 @@ var Arrow$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 Arrow$1.displayName = NAME$2;
-var Root$5 = Arrow$1;
+var Root$6 = Arrow$1;
 function useSize(element) {
 	const [size$3, setSize] = import_react.useState(void 0);
 	useLayoutEffect2(() => {
@@ -23675,7 +23698,7 @@ var PopperArrow = import_react.forwardRef(function PopperArrow2(props, forwarded
 			}[contentContext.placedSide],
 			visibility: contentContext.shouldHideArrow ? "hidden" : void 0
 		},
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
 			...arrowProps,
 			ref: forwardedRef,
 			style: {
@@ -23758,7 +23781,7 @@ var VisuallyHidden = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 VisuallyHidden.displayName = NAME$1;
-var Root$4 = VisuallyHidden;
+var Root$5 = VisuallyHidden;
 var [createTooltipContext, createTooltipScope] = createContextScope("Tooltip", [createPopperScope]);
 var usePopperScope$2 = createPopperScope();
 var PROVIDER_NAME = "TooltipProvider";
@@ -24082,7 +24105,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
 				scope: __scopeTooltip,
 				isInside: true,
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$4, {
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
 					id: context.contentId,
 					role: "tooltip",
 					children: ariaLabel || children
@@ -25200,7 +25223,7 @@ function focusFirst(candidates, preventScroll = false) {
 function wrapArray$1(array$1, startIndex) {
 	return array$1.map((_, index$1) => array$1[(startIndex + index$1) % array$1.length]);
 }
-var Root$3 = RovingFocusGroup;
+var Root$4 = RovingFocusGroup;
 var Item$1 = RovingFocusGroupItem;
 var TABS_NAME = "Tabs";
 var [createTabsContext, createTabsScope] = createContextScope(TABS_NAME, [createRovingFocusGroupScope]);
@@ -25237,7 +25260,7 @@ var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTabs, loop = true, ...listProps } = props;
 	const context = useTabsContext(TAB_LIST_NAME, __scopeTabs);
 	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$4, {
 		asChild: true,
 		...rovingFocusGroupScope,
 		orientation: context.orientation,
@@ -30877,7 +30900,7 @@ function a(o$1, a$1, u) {
 	};
 	throw new Error("Invalid input: not a Zod schema");
 }
-var Dialog = Root$6;
+var Dialog = Root$7;
 var DialogTrigger = Trigger$4;
 var DialogPortal = Portal$3;
 var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
@@ -31806,7 +31829,7 @@ var SelectArrow = import_react.forwardRef((props, forwardedRef) => {
 	}) : null;
 });
 SelectArrow.displayName = ARROW_NAME$1;
-var BUBBLE_INPUT_NAME$1 = "SelectBubbleInput";
+var BUBBLE_INPUT_NAME$2 = "SelectBubbleInput";
 var SelectBubbleInput = import_react.forwardRef(({ __scopeSelect, value, ...props }, forwardedRef) => {
 	const ref = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, ref);
@@ -31832,7 +31855,7 @@ var SelectBubbleInput = import_react.forwardRef(({ __scopeSelect, value, ...prop
 		defaultValue: value
 	});
 });
-SelectBubbleInput.displayName = BUBBLE_INPUT_NAME$1;
+SelectBubbleInput.displayName = BUBBLE_INPUT_NAME$2;
 function shouldShowPlaceholder(value) {
 	return value === "" || value === void 0;
 }
@@ -31963,14 +31986,14 @@ var Label$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 Label$1.displayName = NAME;
-var Root$2 = Label$1;
+var Root$3 = Label$1;
 var labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
-var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
+var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
 	ref,
 	className: cn(labelVariants(), className),
 	...props
 }));
-Label.displayName = Root$2.displayName;
+Label.displayName = Root$3.displayName;
 var Form = FormProvider;
 var FormFieldContext = import_react.createContext({});
 var FormField = ({ ...props }) => {
@@ -32440,9 +32463,9 @@ function getInvalidValueError(propValue, componentName) {
 
 Defaulting to \`null\`.`;
 }
-var Root$1 = Progress$1;
+var Root$2 = Progress$1;
 var Indicator = ProgressIndicator;
-var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
 	ref,
 	className: cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
 	...props,
@@ -32451,7 +32474,7 @@ var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => 
 		style: { transform: `translateX(-${100 - (value || 0)}%)` }
 	})
 }));
-Progress.displayName = Root$1.displayName;
+Progress.displayName = Root$2.displayName;
 var CHECKBOX_NAME = "Checkbox";
 var [createCheckboxContext, createCheckboxScope] = createContextScope(CHECKBOX_NAME);
 var [CheckboxProviderImpl, useCheckboxContext] = createCheckboxContext(CHECKBOX_NAME);
@@ -32507,7 +32530,7 @@ var CheckboxTrigger = import_react.forwardRef(({ __scopeCheckbox, onKeyDown, onC
 		role: "checkbox",
 		"aria-checked": isIndeterminate(checked) ? "mixed" : checked,
 		"aria-required": required$1,
-		"data-state": getState$1(checked),
+		"data-state": getState$2(checked),
 		"data-disabled": disabled ? "" : void 0,
 		disabled,
 		value,
@@ -32553,7 +32576,7 @@ var CheckboxIndicator = import_react.forwardRef((props, forwardedRef) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || isIndeterminate(context.checked) || context.checked === true,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.span, {
-			"data-state": getState$1(context.checked),
+			"data-state": getState$2(context.checked),
 			"data-disabled": context.disabled ? "" : void 0,
 			...indicatorProps,
 			ref: forwardedRef,
@@ -32565,9 +32588,9 @@ var CheckboxIndicator = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 CheckboxIndicator.displayName = INDICATOR_NAME;
-var BUBBLE_INPUT_NAME = "CheckboxBubbleInput";
+var BUBBLE_INPUT_NAME$1 = "CheckboxBubbleInput";
 var CheckboxBubbleInput = import_react.forwardRef(({ __scopeCheckbox, ...props }, forwardedRef) => {
-	const { control, hasConsumerStoppedPropagationRef, checked, defaultChecked, required: required$1, disabled, name, value, form, bubbleInput, setBubbleInput } = useCheckboxContext(BUBBLE_INPUT_NAME, __scopeCheckbox);
+	const { control, hasConsumerStoppedPropagationRef, checked, defaultChecked, required: required$1, disabled, name, value, form, bubbleInput, setBubbleInput } = useCheckboxContext(BUBBLE_INPUT_NAME$1, __scopeCheckbox);
 	const composedRefs = useComposedRefs(forwardedRef, setBubbleInput);
 	const prevChecked = usePrevious(checked);
 	const controlSize = useSize(control);
@@ -32613,14 +32636,14 @@ var CheckboxBubbleInput = import_react.forwardRef(({ __scopeCheckbox, ...props }
 		}
 	});
 });
-CheckboxBubbleInput.displayName = BUBBLE_INPUT_NAME;
+CheckboxBubbleInput.displayName = BUBBLE_INPUT_NAME$1;
 function isFunction(value) {
 	return typeof value === "function";
 }
 function isIndeterminate(checked) {
 	return checked === "indeterminate";
 }
-function getState$1(checked) {
+function getState$2(checked) {
 	return isIndeterminate(checked) ? "indeterminate" : checked ? "checked" : "unchecked";
 }
 var Checkbox = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Checkbox$1, {
@@ -32996,6 +33019,120 @@ var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* 
 	...props
 }));
 TableCaption.displayName = "TableCaption";
+var SWITCH_NAME = "Switch";
+var [createSwitchContext, createSwitchScope] = createContextScope(SWITCH_NAME);
+var [SwitchProvider, useSwitchContext] = createSwitchContext(SWITCH_NAME);
+var Switch$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeSwitch, name, checked: checkedProp, defaultChecked, required: required$1, disabled, value = "on", onCheckedChange, form, ...switchProps } = props;
+	const [button, setButton] = import_react.useState(null);
+	const composedRefs = useComposedRefs(forwardedRef, (node) => setButton(node));
+	const hasConsumerStoppedPropagationRef = import_react.useRef(false);
+	const isFormControl = button ? form || !!button.closest("form") : true;
+	const [checked, setChecked] = useControllableState({
+		prop: checkedProp,
+		defaultProp: defaultChecked ?? false,
+		onChange: onCheckedChange,
+		caller: SWITCH_NAME
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SwitchProvider, {
+		scope: __scopeSwitch,
+		checked,
+		disabled,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
+			type: "button",
+			role: "switch",
+			"aria-checked": checked,
+			"aria-required": required$1,
+			"data-state": getState$1(checked),
+			"data-disabled": disabled ? "" : void 0,
+			disabled,
+			value,
+			...switchProps,
+			ref: composedRefs,
+			onClick: composeEventHandlers(props.onClick, (event) => {
+				setChecked((prevChecked) => !prevChecked);
+				if (isFormControl) {
+					hasConsumerStoppedPropagationRef.current = event.isPropagationStopped();
+					if (!hasConsumerStoppedPropagationRef.current) event.stopPropagation();
+				}
+			})
+		}), isFormControl && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SwitchBubbleInput, {
+			control: button,
+			bubbles: !hasConsumerStoppedPropagationRef.current,
+			name,
+			value,
+			checked,
+			required: required$1,
+			disabled,
+			form,
+			style: { transform: "translateX(-100%)" }
+		})]
+	});
+});
+Switch$1.displayName = SWITCH_NAME;
+var THUMB_NAME = "SwitchThumb";
+var SwitchThumb = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeSwitch, ...thumbProps } = props;
+	const context = useSwitchContext(THUMB_NAME, __scopeSwitch);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.span, {
+		"data-state": getState$1(context.checked),
+		"data-disabled": context.disabled ? "" : void 0,
+		...thumbProps,
+		ref: forwardedRef
+	});
+});
+SwitchThumb.displayName = THUMB_NAME;
+var BUBBLE_INPUT_NAME = "SwitchBubbleInput";
+var SwitchBubbleInput = import_react.forwardRef(({ __scopeSwitch, control, checked, bubbles = true, ...props }, forwardedRef) => {
+	const ref = import_react.useRef(null);
+	const composedRefs = useComposedRefs(ref, forwardedRef);
+	const prevChecked = usePrevious(checked);
+	const controlSize = useSize(control);
+	import_react.useEffect(() => {
+		const input = ref.current;
+		if (!input) return;
+		const inputProto = window.HTMLInputElement.prototype;
+		const setChecked = Object.getOwnPropertyDescriptor(inputProto, "checked").set;
+		if (prevChecked !== checked && setChecked) {
+			const event = new Event("click", { bubbles });
+			setChecked.call(input, checked);
+			input.dispatchEvent(event);
+		}
+	}, [
+		prevChecked,
+		checked,
+		bubbles
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+		type: "checkbox",
+		"aria-hidden": true,
+		defaultChecked: checked,
+		...props,
+		tabIndex: -1,
+		ref: composedRefs,
+		style: {
+			...props.style,
+			...controlSize,
+			position: "absolute",
+			pointerEvents: "none",
+			opacity: 0,
+			margin: 0
+		}
+	});
+});
+SwitchBubbleInput.displayName = BUBBLE_INPUT_NAME;
+function getState$1(checked) {
+	return checked ? "checked" : "unchecked";
+}
+var Root$1 = Switch$1;
+var Thumb = SwitchThumb;
+var Switch = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+	className: cn("peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input", className),
+	...props,
+	ref,
+	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Thumb, { className: cn("pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0") })
+}));
+Switch.displayName = Root$1.displayName;
 var Textarea = import_react.forwardRef(({ className, ...props }, ref) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
 		className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", className),
@@ -37778,14 +37915,142 @@ function AddInventoryModal({ open, onOpenChange }) {
 		})
 	});
 }
+function DecreaseStockModal({ item, open, onOpenChange }) {
+	const { updateInventoryQuantity } = useAppStore();
+	const [outflowType, setOutflowType] = (0, import_react.useState)("partial");
+	const form = useForm({
+		resolver: a(object({ quantity: number().min(1, "A quantidade deve ser maior que 0") })),
+		defaultValues: { quantity: 1 }
+	});
+	(0, import_react.useEffect)(() => {
+		if (open) {
+			setOutflowType("partial");
+			form.reset({ quantity: 1 });
+		}
+	}, [open, form]);
+	(0, import_react.useEffect)(() => {
+		if (outflowType === "total" && item) form.setValue("quantity", item.quantity);
+		else if (outflowType === "partial" && item) form.setValue("quantity", 1);
+	}, [
+		outflowType,
+		item,
+		form
+	]);
+	const onSubmit = (v) => {
+		if (!item) return;
+		const qtyToRemove = outflowType === "total" ? item.quantity : v.quantity;
+		if (qtyToRemove > item.quantity) {
+			form.setError("quantity", { message: "Quantidade excede o estoque atual" });
+			return;
+		}
+		const newQty = item.quantity - qtyToRemove;
+		updateInventoryQuantity(item.id, newQty);
+		onOpenChange(false);
+	};
+	if (!item) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
+		open,
+		onOpenChange,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+			className: "max-w-md",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Registrar Saída de Estoque" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, { children: "Registre a retirada ou uso de produtos do estoque." })] }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "bg-muted/50 p-4 rounded-lg flex flex-col gap-1 mb-2 border border-border/50",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+						className: "font-semibold text-sm text-foreground",
+						children: item.name
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "text-xs text-muted-foreground",
+						children: ["Estoque Atual: ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-bold text-foreground",
+							children: item.quantity
+						})]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form, {
+					...form,
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+						onSubmit: form.handleSubmit(onSubmit),
+						className: "space-y-6",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "space-y-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Tipo de Saída" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "grid grid-cols-2 gap-3",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+										type: "button",
+										variant: outflowType === "partial" ? "default" : "outline",
+										onClick: () => setOutflowType("partial"),
+										className: cn(outflowType === "partial" ? "bg-blue-600 hover:bg-blue-700" : ""),
+										children: "Saída Parcial"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+										type: "button",
+										variant: outflowType === "total" ? "default" : "outline",
+										onClick: () => setOutflowType("total"),
+										className: cn(outflowType === "total" ? "bg-blue-600 hover:bg-blue-700" : ""),
+										children: "Saída Total (Zerar)"
+									})]
+								})]
+							}),
+							outflowType === "partial" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "quantity",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, {
+									className: "animate-fade-in",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Quantidade a remover" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											type: "number",
+											...field,
+											max: item.quantity,
+											min: 1
+										}) }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+									]
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex justify-end gap-3 pt-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+									type: "button",
+									variant: "outline",
+									onClick: () => onOpenChange(false),
+									children: "Cancelar"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+									type: "submit",
+									variant: "destructive",
+									children: "Confirmar Saída"
+								})]
+							})
+						]
+					})
+				})
+			]
+		})
+	});
+}
 function Inventory() {
 	const { inventory, specialties } = useAppStore();
 	const [isAdding, setIsAdding] = (0, import_react.useState)(false);
 	const [selectedSpecialty, setSelectedSpecialty] = (0, import_react.useState)("all");
+	const [searchQuery, setSearchQuery] = (0, import_react.useState)("");
+	const [showLowStock, setShowLowStock] = (0, import_react.useState)(false);
+	const [itemToDecrease, setItemToDecrease] = (0, import_react.useState)(null);
 	const filteredInventory = (0, import_react.useMemo)(() => {
-		if (selectedSpecialty === "all") return inventory;
-		return inventory.filter((item) => item.specialty === selectedSpecialty);
-	}, [inventory, selectedSpecialty]);
+		return inventory.filter((item) => {
+			const matchSpecialty = selectedSpecialty === "all" || item.specialty === selectedSpecialty;
+			const searchLower = searchQuery.toLowerCase();
+			const matchSearch = item.name.toLowerCase().includes(searchLower) || !!item.brand?.toLowerCase().includes(searchLower);
+			const matchLowStock = showLowStock ? item.quantity <= item.minStock : true;
+			return matchSpecialty && matchSearch && matchLowStock;
+		});
+	}, [
+		inventory,
+		selectedSpecialty,
+		searchQuery,
+		showLowStock
+	]);
 	const totalCapital = filteredInventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0);
 	const totalItems = filteredInventory.reduce((acc, item) => acc + item.quantity, 0);
 	const topStats = (0, import_react.useMemo)(() => {
@@ -37806,7 +38071,7 @@ function Inventory() {
 		};
 	}, [inventory]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-8 animate-fade-in-up pb-10",
+		className: "space-y-6 animate-fade-in-up pb-10",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
@@ -37822,14 +38087,33 @@ function Inventory() {
 						className: "text-muted-foreground mt-1",
 						children: "Gerencie embalagens e custos detalhados."
 					})] })]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "flex items-center gap-3 w-full sm:w-auto",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						className: "bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap",
+						onClick: () => setIsAdding(true),
+						children: "+ Novo Produto"
+					})
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/30 p-4 rounded-xl border border-muted",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex-1 w-full flex flex-col sm:flex-row gap-3",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "relative flex-1 max-w-sm",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { className: "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							placeholder: "Buscar produto ou marca...",
+							value: searchQuery,
+							onChange: (e) => setSearchQuery(e.target.value),
+							className: "pl-9 bg-white"
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
 						value: selectedSpecialty,
 						onValueChange: setSelectedSpecialty,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
 							className: "w-[180px] bg-white",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Filtrar" })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Todas Especialidades" })
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 							value: "all",
 							children: "Todas Especialidades"
@@ -37837,10 +38121,17 @@ function Inventory() {
 							value: s$2,
 							children: s$2
 						}, s$2))] })]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						className: "bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap",
-						onClick: () => setIsAdding(true),
-						children: "+ Novo Produto"
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-2 h-10 px-3 bg-white rounded-md border shadow-sm w-full sm:w-auto shrink-0",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
+						id: "low-stock",
+						checked: showLowStock,
+						onCheckedChange: setShowLowStock
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label, {
+						htmlFor: "low-stock",
+						className: "text-sm font-medium cursor-pointer flex items-center gap-1.5 whitespace-nowrap",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: "w-4 h-4 text-red-500" }), "Estoque Baixo"]
 					})]
 				})]
 			}),
@@ -37949,6 +38240,10 @@ function Inventory() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 							className: "font-semibold text-muted-foreground",
 							children: "Capital"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground text-center",
+							children: "Ações"
 						})
 					]
 				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [filteredInventory.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
@@ -37956,9 +38251,16 @@ function Inventory() {
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
 							className: "align-top py-4",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "font-bold text-[#D81B84] mb-1.5 text-base",
-								children: item.name
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-start flex-col gap-1.5 mb-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "font-bold text-[#D81B84] text-base leading-none",
+									children: item.name
+								}), item.quantity <= item.minStock && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
+									variant: "destructive",
+									className: "text-[10px] px-1.5 py-0 h-4 rounded-sm font-bold tracking-wide",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: "w-2.5 h-2.5 mr-1" }), "Estoque Baixo"]
+								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex flex-col gap-1",
 								children: [item.specialty && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -38027,10 +38329,21 @@ function Inventory() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
 							className: "align-middle py-4 font-bold text-muted-foreground",
 							children: formatCurrency(item.quantity * item.packageCost)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "align-middle py-4 text-center",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+								variant: "outline",
+								size: "sm",
+								className: "h-8 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors",
+								onClick: () => setItemToDecrease(item),
+								disabled: item.quantity === 0,
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleMinus, { className: "w-3.5 h-3.5 mr-1" }), "Baixar"]
+							})
 						})
 					]
 				}, item.id)), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-					colSpan: 6,
+					colSpan: 7,
 					className: "text-center py-10 text-muted-foreground",
 					children: "Nenhum produto encontrado."
 				}) })] })] })
@@ -38038,6 +38351,13 @@ function Inventory() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddInventoryModal, {
 				open: isAdding,
 				onOpenChange: setIsAdding
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DecreaseStockModal, {
+				item: itemToDecrease,
+				open: !!itemToDecrease,
+				onOpenChange: (val) => {
+					if (!val) setItemToDecrease(null);
+				}
 			})
 		]
 	});
@@ -38276,4 +38596,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-Ci2IpUBu.js.map
+//# sourceMappingURL=index-B25_zY5j.js.map

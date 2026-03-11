@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import useAppStore from '@/stores/main'
+import useAppStore, { type InventoryItem } from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
@@ -17,9 +17,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Package, Box, Stethoscope, Tag, CalendarClock } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import {
+  Package,
+  Box,
+  Stethoscope,
+  Tag,
+  CalendarClock,
+  Search,
+  AlertTriangle,
+  MinusCircle,
+} from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
+import { DecreaseStockModal } from '@/components/inventory/DecreaseStockModal'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
@@ -27,11 +41,22 @@ export default function Inventory() {
   const { inventory, specialties } = useAppStore()
   const [isAdding, setIsAdding] = useState(false)
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showLowStock, setShowLowStock] = useState(false)
+  const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
 
   const filteredInventory = useMemo(() => {
-    if (selectedSpecialty === 'all') return inventory
-    return inventory.filter((item) => item.specialty === selectedSpecialty)
-  }, [inventory, selectedSpecialty])
+    return inventory.filter((item) => {
+      const matchSpecialty = selectedSpecialty === 'all' || item.specialty === selectedSpecialty
+      const searchLower = searchQuery.toLowerCase()
+      const matchSearch =
+        item.name.toLowerCase().includes(searchLower) ||
+        !!item.brand?.toLowerCase().includes(searchLower)
+      const matchLowStock = showLowStock ? item.quantity <= item.minStock : true
+
+      return matchSpecialty && matchSearch && matchLowStock
+    })
+  }, [inventory, selectedSpecialty, searchQuery, showLowStock])
 
   const totalCapital = filteredInventory.reduce(
     (acc, item) => acc + item.quantity * item.packageCost,
@@ -56,7 +81,7 @@ export default function Inventory() {
   }, [inventory])
 
   return (
-    <div className="space-y-8 animate-fade-in-up pb-10">
+    <div className="space-y-6 animate-fade-in-up pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-blue-100/80 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
@@ -68,9 +93,29 @@ export default function Inventory() {
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button
+            className="bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap"
+            onClick={() => setIsAdding(true)}
+          >
+            + Novo Produto
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-muted/30 p-4 rounded-xl border border-muted">
+        <div className="flex-1 w-full flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar produto ou marca..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-white"
+            />
+          </div>
           <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
             <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="Filtrar" />
+              <SelectValue placeholder="Todas Especialidades" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Especialidades</SelectItem>
@@ -81,12 +126,16 @@ export default function Inventory() {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            className="bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap"
-            onClick={() => setIsAdding(true)}
+        </div>
+        <div className="flex items-center gap-2 h-10 px-3 bg-white rounded-md border shadow-sm w-full sm:w-auto shrink-0">
+          <Switch id="low-stock" checked={showLowStock} onCheckedChange={setShowLowStock} />
+          <Label
+            htmlFor="low-stock"
+            className="text-sm font-medium cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
           >
-            + Novo Produto
-          </Button>
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+            Estoque Baixo
+          </Label>
         </div>
       </div>
 
@@ -159,13 +208,29 @@ export default function Inventory() {
                 Qtd.
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">Capital</TableHead>
+              <TableHead className="font-semibold text-muted-foreground text-center">
+                Ações
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredInventory.map((item) => (
               <TableRow key={item.id} className="hover:bg-muted/10">
                 <TableCell className="align-top py-4">
-                  <div className="font-bold text-[#D81B84] mb-1.5 text-base">{item.name}</div>
+                  <div className="flex items-start flex-col gap-1.5 mb-2">
+                    <div className="font-bold text-[#D81B84] text-base leading-none">
+                      {item.name}
+                    </div>
+                    {item.quantity <= item.minStock && (
+                      <Badge
+                        variant="destructive"
+                        className="text-[10px] px-1.5 py-0 h-4 rounded-sm font-bold tracking-wide"
+                      >
+                        <AlertTriangle className="w-2.5 h-2.5 mr-1" />
+                        Estoque Baixo
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex flex-col gap-1">
                     {item.specialty && (
                       <div className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -215,11 +280,23 @@ export default function Inventory() {
                 <TableCell className="align-middle py-4 font-bold text-muted-foreground">
                   {formatCurrency(item.quantity * item.packageCost)}
                 </TableCell>
+                <TableCell className="align-middle py-4 text-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors"
+                    onClick={() => setItemToDecrease(item)}
+                    disabled={item.quantity === 0}
+                  >
+                    <MinusCircle className="w-3.5 h-3.5 mr-1" />
+                    Baixar
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {filteredInventory.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                   Nenhum produto encontrado.
                 </TableCell>
               </TableRow>
@@ -229,6 +306,13 @@ export default function Inventory() {
       </Card>
 
       <AddInventoryModal open={isAdding} onOpenChange={setIsAdding} />
+      <DecreaseStockModal
+        item={itemToDecrease}
+        open={!!itemToDecrease}
+        onOpenChange={(val) => {
+          if (!val) setItemToDecrease(null)
+        }}
+      />
     </div>
   )
 }
