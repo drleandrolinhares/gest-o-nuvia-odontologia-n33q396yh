@@ -17696,6 +17696,13 @@ var CircleAlert = createLucideIcon("circle-alert", [
 		key: "4dfq90"
 	}]
 ]);
+var CircleCheckBig = createLucideIcon("circle-check-big", [["path", {
+	d: "M21.801 10A10 10 0 1 1 17 3.335",
+	key: "yps3ct"
+}], ["path", {
+	d: "m9 11 3 3L22 4",
+	key: "1pflzl"
+}]]);
 var CircleMinus = createLucideIcon("circle-minus", [["circle", {
 	cx: "12",
 	cy: "12",
@@ -39532,7 +39539,10 @@ function PublicHome() {
 function Login() {
 	const [email$1, setEmail] = (0, import_react.useState)("");
 	const [password, setPassword] = (0, import_react.useState)("");
+	const [showPassword, setShowPassword] = (0, import_react.useState)(false);
 	const [error, setError] = (0, import_react.useState)("");
+	const [resetEmail, setResetEmail] = (0, import_react.useState)("");
+	const [resetSent, setResetSent] = (0, import_react.useState)(false);
 	const navigate = useNavigate();
 	const { login } = useAppStore();
 	const handleLogin = (e) => {
@@ -39541,9 +39551,24 @@ function Login() {
 		if (login(email$1, password)) navigate("/admin");
 		else setError("CREDENCIAIS INVÁLIDAS. VERIFIQUE SEU EMAIL E SENHA.");
 	};
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "min-h-screen flex items-center justify-center bg-muted/30 p-4 uppercase",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+	const handleResetPassword = (e) => {
+		e.preventDefault();
+		setResetSent(true);
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "min-h-screen flex items-center justify-center bg-muted/30 p-4 uppercase relative",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "absolute top-4 left-4 sm:top-8 sm:left-8",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "ghost",
+				asChild: true,
+				className: "uppercase text-xs font-bold tracking-wider text-muted-foreground hover:text-foreground",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+					to: "/",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowLeft, { className: "mr-2 h-4 w-4" }), "ACESSAR PORTAL"]
+				})
+			})
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 			className: "w-full max-w-md shadow-xl border-primary/10",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
 				className: "space-y-4 items-center text-center",
@@ -39586,15 +39611,79 @@ function Login() {
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						className: "space-y-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-							className: "text-sm font-bold text-muted-foreground",
-							children: "SENHA"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-							type: "password",
-							value: password,
-							onChange: (e) => setPassword(e.target.value),
-							required: true,
-							placeholder: "••••••••"
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center justify-between",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "text-sm font-bold text-muted-foreground",
+								children: "SENHA"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, {
+								onOpenChange: (open) => !open && setResetSent(false),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
+									asChild: true,
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										type: "button",
+										className: "text-xs font-bold text-primary hover:underline",
+										children: "ESQUECI MINHA SENHA"
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+									className: "uppercase",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "RECUPERAR SENHA" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, { children: "INFORME SEU E-MAIL CADASTRADO PARA RECEBER AS INSTRUÇÕES DE REDEFINIÇÃO DE SENHA." })] }), !resetSent ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+										onSubmit: handleResetPassword,
+										className: "space-y-4 pt-4",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "space-y-2",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+												className: "text-sm font-bold text-muted-foreground",
+												children: "E-MAIL"
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+												type: "email",
+												required: true,
+												placeholder: "SEU@EMAIL.COM",
+												value: resetEmail,
+												onChange: (e) => setResetEmail(e.target.value)
+											})]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+											type: "submit",
+											className: "w-full font-bold tracking-widest",
+											children: "ENVIAR INSTRUÇÕES"
+										})]
+									}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "pt-4 space-y-4",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+											className: "bg-green-500/10 text-green-600 border-green-500/20",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheckBig, { className: "h-4 w-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDescription, {
+												className: "font-bold text-xs",
+												children: [
+													"INSTRUÇÕES ENVIADAS PARA ",
+													resetEmail,
+													" COM SUCESSO!"
+												]
+											})]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+											type: "button",
+											className: "w-full font-bold",
+											variant: "outline",
+											onClick: () => setResetSent(false),
+											children: "ENVIAR NOVAMENTE"
+										})]
+									})]
+								})]
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "relative",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								type: showPassword ? "text" : "password",
+								value: password,
+								onChange: (e) => setPassword(e.target.value),
+								required: true,
+								placeholder: "••••••••",
+								className: "pr-10"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+								type: "button",
+								onClick: () => setShowPassword(!showPassword),
+								className: "absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors",
+								children: showPassword ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EyeOff, { className: "h-4 w-4" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-4 w-4" })
+							})]
 						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
@@ -39618,7 +39707,7 @@ function Login() {
 					})
 				]
 			}) })]
-		})
+		})]
 	});
 }
 function ProtectedRoute({ children }) {
@@ -39687,4 +39776,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-G35VfS8C.js.map
+//# sourceMappingURL=index-Bnl49bFd.js.map
