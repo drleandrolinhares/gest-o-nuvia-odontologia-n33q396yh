@@ -13,10 +13,11 @@ import useAppStore from '@/stores/main'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn, formatCurrency } from '@/lib/utils'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function Index() {
   const { employees, alerts, onboarding, inventory } = useAppStore()
+  const navigate = useNavigate()
 
   const activeEmployees = employees.filter((e) => e.status === 'Ativo').length
   const pendingOnboarding = onboarding.length
@@ -117,51 +118,80 @@ export default function Index() {
           </CardHeader>
           <CardContent className="space-y-4">
             {alerts.map((alert, idx) => (
-              <Alert
+              <div
                 key={idx}
-                variant={idx === 0 ? 'destructive' : 'default'}
-                className={cn(idx !== 0 && 'border-amber-200 bg-amber-50 text-amber-900')}
+                onClick={() => navigate('/admin/rh')}
+                className="cursor-pointer transition-transform hover:scale-[1.01]"
               >
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>{idx === 0 ? 'URGENTE' : 'ATENÇÃO'}</AlertTitle>
-                <AlertDescription className="uppercase">{alert}</AlertDescription>
-              </Alert>
+                <Alert
+                  variant={idx === 0 ? 'destructive' : 'default'}
+                  className={cn(idx !== 0 && 'border-amber-200 bg-amber-50 text-amber-900')}
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>{idx === 0 ? 'URGENTE' : 'ATENÇÃO'}</AlertTitle>
+                  <AlertDescription className="uppercase">{alert}</AlertDescription>
+                </Alert>
+              </div>
             ))}
 
             {expiredItems.length > 0 && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>PRODUTOS VENCIDOS</AlertTitle>
-                <AlertDescription>
-                  EXISTEM {expiredItems.length} ITENS VENCIDOS NO ESTOQUE. REALIZE A BAIXA
-                  IMEDIATAMENTE.
-                </AlertDescription>
-              </Alert>
+              <div
+                onClick={() => navigate('/admin/estoque')}
+                className="cursor-pointer transition-transform hover:scale-[1.01]"
+              >
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>PRODUTOS VENCIDOS</AlertTitle>
+                  <AlertDescription>
+                    EXISTEM {expiredItems.length} ITENS VENCIDOS NO ESTOQUE. REALIZE A BAIXA
+                    IMEDIATAMENTE.
+                  </AlertDescription>
+                </Alert>
+              </div>
             )}
 
             {expiringItems.length > 0 && (
-              <Alert
-                variant="destructive"
-                className="border-orange-500 text-orange-700 bg-orange-50"
+              <div
+                onClick={() => navigate('/admin/estoque')}
+                className="cursor-pointer transition-transform hover:scale-[1.01]"
               >
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>ATENÇÃO: VENCIMENTO PRÓXIMO</AlertTitle>
-                <AlertDescription>
-                  EXISTEM {expiringItems.length} PRODUTOS QUE VENCERÃO NOS PRÓXIMOS 60 DIAS.
-                </AlertDescription>
-              </Alert>
+                <Alert
+                  variant="destructive"
+                  className="border-orange-500 text-orange-700 bg-orange-50"
+                >
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>ATENÇÃO: VENCIMENTO PRÓXIMO</AlertTitle>
+                  <AlertDescription>
+                    EXISTEM {expiringItems.length} PRODUTOS QUE VENCERÃO NOS PRÓXIMOS 60 DIAS.
+                  </AlertDescription>
+                </Alert>
+              </div>
             )}
 
             {lowStockItems > 0 && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>ESTOQUE CRÍTICO</AlertTitle>
-                <AlertDescription>
-                  EXISTEM {lowStockItems} ITENS COM ESTOQUE ABAIXO DO LIMITE NO INVENTÁRIO CLÍNICO.
-                  REPOSIÇÃO NECESSÁRIA.
-                </AlertDescription>
-              </Alert>
+              <div
+                onClick={() => navigate('/admin/estoque')}
+                className="cursor-pointer transition-transform hover:scale-[1.01]"
+              >
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>ESTOQUE CRÍTICO</AlertTitle>
+                  <AlertDescription>
+                    EXISTEM {lowStockItems} ITENS COM ESTOQUE ABAIXO DO LIMITE NO INVENTÁRIO
+                    CLÍNICO. REPOSIÇÃO NECESSÁRIA.
+                  </AlertDescription>
+                </Alert>
+              </div>
             )}
+
+            {alerts.length === 0 &&
+              expiredItems.length === 0 &&
+              expiringItems.length === 0 &&
+              lowStockItems === 0 && (
+                <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg bg-card/50">
+                  NENHUM ALERTA NO MOMENTO. TUDO EM ORDEM.
+                </div>
+              )}
           </CardContent>
         </Card>
 

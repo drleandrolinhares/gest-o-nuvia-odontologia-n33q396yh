@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import useAppStore from '@/stores/main'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import useAppStore, { AccessItem } from '@/stores/main'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -13,14 +13,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Eye, EyeOff, Copy, Check, Plus, Trash2, Shield } from 'lucide-react'
+import { Eye, EyeOff, Copy, Check, Plus, Trash2, Shield, Edit2 } from 'lucide-react'
 
 export default function Acessos() {
-  const { acessos, addAccess, removeAccess, isAdmin } = useAppStore()
+  const { acessos, addAccess, updateAccess, removeAccess, isAdmin } = useAppStore()
   const [open, setOpen] = useState(false)
   const [visibleRows, setVisibleRows] = useState<Record<string, boolean>>({})
   const [copied, setCopied] = useState<string | null>(null)
 
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [platform, setPlatform] = useState('')
   const [url, setUrl] = useState('')
   const [login, setLogin] = useState('')
@@ -35,16 +36,34 @@ export default function Acessos() {
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const handleAdd = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (platform && login && pass) {
-      addAccess({ platform, url, login, pass, instructions })
-      setOpen(false)
+  const openForm = (item?: AccessItem) => {
+    if (item) {
+      setEditingId(item.id)
+      setPlatform(item.platform)
+      setUrl(item.url)
+      setLogin(item.login)
+      setPass(item.pass)
+      setInstructions(item.instructions)
+    } else {
+      setEditingId(null)
       setPlatform('')
       setUrl('')
       setLogin('')
       setPass('')
       setInstructions('')
+    }
+    setOpen(true)
+  }
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (platform && login && pass) {
+      if (editingId) {
+        updateAccess(editingId, { platform, url, login, pass, instructions })
+      } else {
+        addAccess({ platform, url, login, pass, instructions })
+      }
+      setOpen(false)
     }
   }
 
@@ -53,14 +72,14 @@ export default function Acessos() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">
-            GERENCIADOR DE ACESSOS
+            GERENCIADOR DE ACESSOS E SENHAS
           </h1>
           <p className="text-muted-foreground mt-1">
-            ARMAZENE E GERENCIE CREDENCIAIS E INSTRUÇÕES DE SISTEMAS PARCEIROS DE FORMA SEGURA.
+            ARMAZENE E GERENCIE CREDENCIAIS DE SISTEMAS PARCEIROS DE FORMA SEGURA.
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={() => setOpen(true)} className="bg-primary text-primary-foreground">
+          <Button onClick={() => openForm()} className="bg-primary text-primary-foreground">
             <Plus className="h-4 w-4 mr-2" /> NOVO ACESSO
           </Button>
         )}
@@ -126,15 +145,26 @@ export default function Acessos() {
                     )}
                   </Button>
                   {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeAccess(item.id)}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      title="REMOVER"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openForm(item)}
+                        className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                        title="EDITAR"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAccess(item.id)}
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        title="REMOVER"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                 </TableCell>
               </TableRow>
@@ -154,10 +184,11 @@ export default function Acessos() {
         <DialogContent className="max-w-md uppercase">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" /> ADICIONAR CREDENCIAL
+              <Shield className="h-5 w-5 text-primary" />{' '}
+              {editingId ? 'EDITAR CREDENCIAL' : 'ADICIONAR CREDENCIAL'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAdd} className="space-y-4 mt-2">
+          <form onSubmit={handleSave} className="space-y-4 mt-2">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">
                 PLATAFORMA / SERVIÇO

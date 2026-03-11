@@ -65,7 +65,12 @@ export type AgendaItem = {
   id: string
   title: string
   date: string
+  time: string
+  location: string
   type: string
+  assignedTo?: string
+  involvesThirdParty?: boolean
+  thirdPartyDetails?: string
   createdBy?: string
 }
 
@@ -85,6 +90,9 @@ export type Supplier = {
   phone: string
   email: string
   cnpj: string
+  website?: string
+  hasSpecialNegotiation?: boolean
+  negotiationNotes?: string
 }
 
 interface AppStore {
@@ -94,6 +102,7 @@ interface AppStore {
   departments: string[]
   packageTypes: string[]
   specialties: string[]
+  agendaTypes: string[]
   employees: Employee[]
   alerts: string[]
   onboarding: OnboardingCandidate[]
@@ -112,6 +121,8 @@ interface AppStore {
   removePackageType: (name: string) => void
   addSpecialty: (name: string) => void
   removeSpecialty: (name: string) => void
+  addAgendaType: (name: string) => void
+  removeAgendaType: (name: string) => void
   toggleTask: (candidateId: string, taskId: string) => void
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, newQuantity: number) => void
@@ -126,8 +137,10 @@ interface AppStore {
   addAgendaItem: (item: Omit<AgendaItem, 'id'>) => void
   removeAgendaItem: (id: string) => void
   addAccess: (item: Omit<AccessItem, 'id'>) => void
+  updateAccess: (id: string, item: Partial<AccessItem>) => void
   removeAccess: (id: string) => void
   addSupplier: (item: Omit<Supplier, 'id'>) => void
+  updateSupplier: (id: string, item: Partial<Supplier>) => void
   removeSupplier: (id: string) => void
 }
 
@@ -140,6 +153,7 @@ const mockSpecialties = [
   'Endodontia',
   'Odontopediatria',
 ]
+const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria']
 
 const mockEmployees: Employee[] = [
   {
@@ -209,27 +223,10 @@ const mockInventory: InventoryItem[] = [
       { id: 'h2', date: '2023-10-01T12:00:00.000Z', price: 85.5, quantity: 7 },
     ],
   },
-  {
-    id: '2',
-    name: 'Braquetes Metálicos Roth',
-    packageCost: 150.0,
-    storageLocation: 'ESTOQUE CENTRAL - PRATELEIRA 3',
-    packageType: 'Caixa',
-    itemsPerBox: 20,
-    minStock: 2,
-    quantity: 5,
-    specialty: 'Ortodontia',
-    brand: 'Morelli',
-    entryDate: '2023-11-15T12:00:00.000Z',
-    barcode: '7890987654321',
-    expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Expires in 30 days
-    purchaseHistory: [{ id: 'h3', date: '2023-11-15T12:00:00.000Z', price: 150.0, quantity: 5 }],
-  },
 ]
 
 const mockDocuments: DocumentItem[] = [
   { id: '1', name: 'POP - Onboarding e Admissão v2.pdf', date: '10/01/2026' },
-  { id: '2', name: 'Manual de Conduta Nuvia.pdf', date: '15/02/2026' },
 ]
 
 const mockAgenda: AgendaItem[] = [
@@ -237,13 +234,22 @@ const mockAgenda: AgendaItem[] = [
     id: '1',
     title: 'Reunião de Alinhamento Semanal',
     date: new Date().toISOString(),
+    time: '14:00',
+    location: 'Sala de Reuniões',
     type: 'Reunião',
+    assignedTo: '1',
+    involvesThirdParty: false,
   },
   {
     id: '2',
     title: 'Auditoria Odontológica',
     date: new Date(Date.now() + 86400000).toISOString(),
+    time: '09:00',
+    location: 'Clínica Nuvia',
     type: 'Consulta',
+    assignedTo: '2',
+    involvesThirdParty: true,
+    thirdPartyDetails: 'Auditor Externo: João Pereira',
   },
 ]
 
@@ -266,14 +272,9 @@ const mockSuppliers: Supplier[] = [
     phone: '(11) 4000-0000',
     email: 'VENDAS@DENTALCREMER.COM.BR',
     cnpj: '11.111.111/0001-11',
-  },
-  {
-    id: '2',
-    name: 'SURY DENTAL',
-    contact: 'JOÃO SOUZA',
-    phone: '(41) 3000-0000',
-    email: 'CONTATO@SURYDENTAL.COM.BR',
-    cnpj: '22.222.222/0001-22',
+    website: 'www.dentalcremer.com.br',
+    hasSpecialNegotiation: true,
+    negotiationNotes: 'Desconto de 15% em compras acima de R$ 1.000,00',
   },
 ]
 
@@ -286,6 +287,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [departments, setDepartments] = useState<string[]>(mockDepartments)
   const [packageTypes, setPackageTypes] = useState<string[]>(mockPackageTypes)
   const [specialties, setSpecialties] = useState<string[]>(mockSpecialties)
+  const [agendaTypes, setAgendaTypes] = useState<string[]>(mockAgendaTypes)
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
   const [alerts] = useState<string[]>(['Carlos Santos: Retorna de férias em 2 dias.'])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
@@ -340,6 +342,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addSpecialty = useCallback((name: string) => setSpecialties((prev) => [...prev, name]), [])
   const removeSpecialty = useCallback(
     (name: string) => setSpecialties((prev) => prev.filter((s) => s !== name)),
+    [],
+  )
+  const addAgendaType = useCallback((name: string) => setAgendaTypes((prev) => [...prev, name]), [])
+  const removeAgendaType = useCallback(
+    (name: string) => setAgendaTypes((prev) => prev.filter((t) => t !== name)),
     [],
   )
 
@@ -471,6 +478,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAcessos((prev) => [...prev, { ...item, id: Math.random().toString(36) }]),
     [],
   )
+  const updateAccess = useCallback(
+    (id: string, item: Partial<AccessItem>) =>
+      setAcessos((prev) => prev.map((a) => (a.id === id ? { ...a, ...item } : a))),
+    [],
+  )
   const removeAccess = useCallback(
     (id: string) => setAcessos((prev) => prev.filter((i) => i.id !== id)),
     [],
@@ -478,6 +490,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addSupplier = useCallback(
     (item: Omit<Supplier, 'id'>) =>
       setSuppliers((prev) => [...prev, { ...item, id: Math.random().toString(36) }]),
+    [],
+  )
+  const updateSupplier = useCallback(
+    (id: string, item: Partial<Supplier>) =>
+      setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...item } : s))),
     [],
   )
   const removeSupplier = useCallback(
@@ -493,6 +510,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       departments,
       packageTypes,
       specialties,
+      agendaTypes,
       employees,
       alerts,
       onboarding,
@@ -511,6 +529,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removePackageType,
       addSpecialty,
       removeSpecialty,
+      addAgendaType,
+      removeAgendaType,
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
@@ -525,8 +545,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addAgendaItem,
       removeAgendaItem,
       addAccess,
+      updateAccess,
       removeAccess,
       addSupplier,
+      updateSupplier,
       removeSupplier,
     }),
     [
@@ -536,6 +558,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       departments,
       packageTypes,
       specialties,
+      agendaTypes,
       employees,
       alerts,
       onboarding,
@@ -554,6 +577,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removePackageType,
       addSpecialty,
       removeSpecialty,
+      addAgendaType,
+      removeAgendaType,
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
@@ -568,8 +593,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addAgendaItem,
       removeAgendaItem,
       addAccess,
+      updateAccess,
       removeAccess,
       addSupplier,
+      updateSupplier,
       removeSupplier,
     ],
   )

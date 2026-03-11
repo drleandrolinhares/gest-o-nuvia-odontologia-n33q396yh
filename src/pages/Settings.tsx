@@ -18,7 +18,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Trash2, Building2, Plus, ShieldAlert, Package, Stethoscope, Users } from 'lucide-react'
+import {
+  Trash2,
+  Building2,
+  Plus,
+  ShieldAlert,
+  Package,
+  Stethoscope,
+  Users,
+  CalendarDays,
+} from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AddEmployeeDialog } from '@/components/rh/AddEmployeeDialog'
@@ -35,6 +44,9 @@ export default function Settings() {
     specialties,
     addSpecialty,
     removeSpecialty,
+    agendaTypes,
+    addAgendaType,
+    removeAgendaType,
     employees,
     updateEmployeeAgendaAccess,
   } = useAppStore()
@@ -42,6 +54,7 @@ export default function Settings() {
   const [newDept, setNewDept] = useState('')
   const [newPkg, setNewPkg] = useState('')
   const [newSpec, setNewSpec] = useState('')
+  const [newAgendaType, setNewAgendaType] = useState('')
 
   const handleAddDept = (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,6 +75,13 @@ export default function Settings() {
     if (newSpec.trim() && !specialties.includes(newSpec.trim())) {
       addSpecialty(newSpec.trim())
       setNewSpec('')
+    }
+  }
+  const handleAddAgendaType = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newAgendaType.trim() && !agendaTypes.includes(newAgendaType.trim())) {
+      addAgendaType(newAgendaType.trim())
+      setNewAgendaType('')
     }
   }
 
@@ -220,6 +240,45 @@ export default function Settings() {
                         size="icon"
                         className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
                         onClick={() => removeSpecialty(spec)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-indigo-500" /> TIPOS DE COMPROMISSO
+                </CardTitle>
+                <CardDescription>CONFIGURE AS CATEGORIAS DISPONÍVEIS NA AGENDA.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form onSubmit={handleAddAgendaType} className="flex gap-2">
+                  <Input
+                    placeholder="NOVO TIPO..."
+                    value={newAgendaType}
+                    onChange={(e) => setNewAgendaType(e.target.value)}
+                  />
+                  <Button type="submit" disabled={!newAgendaType.trim()}>
+                    <Plus className="h-4 w-4 mr-2" /> ADD
+                  </Button>
+                </form>
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+                  {[...agendaTypes].sort().map((type) => (
+                    <div
+                      key={type}
+                      className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+                    >
+                      <span className="font-medium text-sm text-foreground uppercase">{type}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+                        onClick={() => removeAgendaType(type)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
