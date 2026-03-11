@@ -36,9 +36,7 @@ export type InventoryItem = {
   storageLocation: string
   packageType: string
   itemsPerBox: number
-  productionYield: number
   minStock: number
-  unitCost: number
   quantity: number
   lastBrand?: string
   lastValue?: number
@@ -54,6 +52,7 @@ export type DocumentItem = {
 interface AppStore {
   isAdmin: boolean
   departments: string[]
+  packageTypes: string[]
   employees: Employee[]
   alerts: string[]
   onboarding: OnboardingCandidate[]
@@ -62,6 +61,8 @@ interface AppStore {
   toggleAdmin: () => void
   addDepartment: (name: string) => void
   removeDepartment: (name: string) => void
+  addPackageType: (name: string) => void
+  removePackageType: (name: string) => void
   toggleTask: (candidateId: string, taskId: string) => void
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, newQuantity: number) => void
@@ -74,6 +75,8 @@ interface AppStore {
 }
 
 const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção']
+
+const mockPackageTypes = ['Caixa', 'Unidade', 'Frasco', 'Pacote', 'Seringa']
 
 const mockEmployees: Employee[] = [
   {
@@ -127,9 +130,7 @@ const mockInventory: InventoryItem[] = [
     storageLocation: 'SALA 1 - ARMÁRIO A',
     packageType: 'Caixa',
     itemsPerBox: 1,
-    productionYield: 1,
     minStock: 0,
-    unitCost: 10,
     quantity: 1,
   },
   {
@@ -139,9 +140,7 @@ const mockInventory: InventoryItem[] = [
     storageLocation: 'asdasd',
     packageType: 'Caixa',
     itemsPerBox: 1,
-    productionYield: 10,
     minStock: 0,
-    unitCost: 10,
     quantity: 0,
   },
 ]
@@ -156,6 +155,7 @@ const StoreContext = createContext<AppStore | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(true)
   const [departments, setDepartments] = useState<string[]>(mockDepartments)
+  const [packageTypes, setPackageTypes] = useState<string[]>(mockPackageTypes)
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
   const [alerts] = useState<string[]>(['Carlos Santos: Retorna de férias em 2 dias.'])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
@@ -170,6 +170,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const removeDepartment = useCallback((name: string) => {
     setDepartments((prev) => prev.filter((d) => d !== name))
+  }, [])
+
+  const addPackageType = useCallback((name: string) => {
+    setPackageTypes((prev) => [...prev, name])
+  }, [])
+
+  const removePackageType = useCallback((name: string) => {
+    setPackageTypes((prev) => prev.filter((pt) => pt !== name))
   }, [])
 
   const toggleTask = useCallback((candidateId: string, taskId: string) => {
@@ -272,6 +280,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       isAdmin,
       departments,
+      packageTypes,
       employees,
       alerts,
       onboarding,
@@ -280,6 +289,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleAdmin,
       addDepartment,
       removeDepartment,
+      addPackageType,
+      removePackageType,
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
@@ -293,6 +304,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [
       isAdmin,
       departments,
+      packageTypes,
       employees,
       alerts,
       onboarding,
@@ -301,6 +313,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleAdmin,
       addDepartment,
       removeDepartment,
+      addPackageType,
+      removePackageType,
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,

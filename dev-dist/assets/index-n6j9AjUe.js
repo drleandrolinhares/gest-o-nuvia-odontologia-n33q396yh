@@ -19608,6 +19608,13 @@ var mockDepartments = [
 	"Administrativo",
 	"Recepção"
 ];
+var mockPackageTypes = [
+	"Caixa",
+	"Unidade",
+	"Frasco",
+	"Pacote",
+	"Seringa"
+];
 var mockEmployees = [{
 	id: "1",
 	name: "Ana Silva",
@@ -19657,9 +19664,7 @@ var mockInventory = [{
 	storageLocation: "SALA 1 - ARMÁRIO A",
 	packageType: "Caixa",
 	itemsPerBox: 1,
-	productionYield: 1,
 	minStock: 0,
-	unitCost: 10,
 	quantity: 1
 }, {
 	id: "2",
@@ -19668,9 +19673,7 @@ var mockInventory = [{
 	storageLocation: "asdasd",
 	packageType: "Caixa",
 	itemsPerBox: 1,
-	productionYield: 10,
 	minStock: 0,
-	unitCost: 10,
 	quantity: 0
 }];
 var mockDocuments = [{
@@ -19686,6 +19689,7 @@ var StoreContext = (0, import_react.createContext)(void 0);
 function AppProvider({ children }) {
 	const [isAdmin, setIsAdmin] = (0, import_react.useState)(true);
 	const [departments, setDepartments] = (0, import_react.useState)(mockDepartments);
+	const [packageTypes, setPackageTypes] = (0, import_react.useState)(mockPackageTypes);
 	const [employees, setEmployees] = (0, import_react.useState)(mockEmployees);
 	const [alerts] = (0, import_react.useState)(["Carlos Santos: Retorna de férias em 2 dias."]);
 	const [onboarding, setOnboarding] = (0, import_react.useState)(mockOnboarding);
@@ -19697,6 +19701,12 @@ function AppProvider({ children }) {
 	}, []);
 	const removeDepartment = (0, import_react.useCallback)((name) => {
 		setDepartments((prev) => prev.filter((d) => d !== name));
+	}, []);
+	const addPackageType = (0, import_react.useCallback)((name) => {
+		setPackageTypes((prev) => [...prev, name]);
+	}, []);
+	const removePackageType = (0, import_react.useCallback)((name) => {
+		setPackageTypes((prev) => prev.filter((pt) => pt !== name));
 	}, []);
 	const toggleTask = (0, import_react.useCallback)((candidateId, taskId) => {
 		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
@@ -19781,6 +19791,7 @@ function AppProvider({ children }) {
 	const value = (0, import_react.useMemo)(() => ({
 		isAdmin,
 		departments,
+		packageTypes,
 		employees,
 		alerts,
 		onboarding,
@@ -19789,6 +19800,8 @@ function AppProvider({ children }) {
 		toggleAdmin,
 		addDepartment,
 		removeDepartment,
+		addPackageType,
+		removePackageType,
 		toggleTask,
 		addInventoryItem,
 		updateInventoryQuantity,
@@ -19801,6 +19814,7 @@ function AppProvider({ children }) {
 	}), [
 		isAdmin,
 		departments,
+		packageTypes,
 		employees,
 		alerts,
 		onboarding,
@@ -19809,6 +19823,8 @@ function AppProvider({ children }) {
 		toggleAdmin,
 		addDepartment,
 		removeDepartment,
+		addPackageType,
+		removePackageType,
 		toggleTask,
 		addInventoryItem,
 		updateInventoryQuantity,
@@ -32714,9 +32730,8 @@ var schema = object({
 	name: string().min(1, "Obrigatório"),
 	packageCost: number().min(0),
 	storageLocation: string().min(1, "Obrigatório"),
-	packageType: string(),
+	packageType: string().min(1, "Obrigatório"),
 	itemsPerBox: number().min(1),
-	productionYield: number().min(1),
 	minStock: number().min(0),
 	quantity: number().min(0),
 	lastBrand: string().optional(),
@@ -32724,7 +32739,7 @@ var schema = object({
 	notes: string().optional()
 });
 function AddInventoryModal({ open, onOpenChange }) {
-	const { addInventoryItem } = useAppStore();
+	const { addInventoryItem, packageTypes } = useAppStore();
 	const form = useForm({
 		resolver: a(schema),
 		defaultValues: {
@@ -32733,7 +32748,6 @@ function AddInventoryModal({ open, onOpenChange }) {
 			storageLocation: "",
 			packageType: "Caixa",
 			itemsPerBox: 1,
-			productionYield: 1,
 			minStock: 0,
 			quantity: 0,
 			lastBrand: "",
@@ -32742,15 +32756,10 @@ function AddInventoryModal({ open, onOpenChange }) {
 		}
 	});
 	const pCost = form.watch("packageCost") || 0;
-	const iBox = form.watch("itemsPerBox") || 1;
-	const pYield = form.watch("productionYield") || 1;
-	const qty = form.watch("quantity") || 0;
-	const unitCost = pCost / (iBox * pYield || 1);
-	const totalCost = qty * pCost;
+	const totalCost = (form.watch("quantity") || 0) * pCost;
 	const onSubmit = (v) => {
 		addInventoryItem({
 			...v,
-			unitCost,
 			lastBrand: v.lastBrand || "",
 			lastValue: v.lastValue || 0,
 			notes: v.notes || ""
@@ -32815,45 +32824,32 @@ function AddInventoryModal({ open, onOpenChange }) {
 								] })
 							})]
 						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							className: "p-5 bg-slate-50 rounded-xl border grid gap-5",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid gap-1.5",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, {
-									className: "text-sm font-semibold",
-									children: "Tipos de Embalagem"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "flex flex-col gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-										type: "button",
-										variant: "outline",
-										className: "w-fit bg-white",
-										children: "NOVA EMBALAGEM"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-										className: "text-xs text-muted-foreground",
-										children: "Preencha o último campo para adicionar um novo tipo automaticamente."
-									})]
-								})]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "grid grid-cols-2 gap-5",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
 										control: form.control,
-										name: "itemsPerBox",
+										name: "packageType",
 										render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Quantidade de Itens na Caixa" }),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-												type: "number",
-												...field
-											}) }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Tipo de Embalagem" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+												onValueChange: field.onChange,
+												defaultValue: field.value,
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Selecione um tipo" }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: packageTypes.map((pt) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+													value: pt,
+													children: pt
+												}, pt)) })]
+											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
 										] })
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
 										control: form.control,
-										name: "productionYield",
+										name: "itemsPerBox",
 										render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Rendimento de Produção" }),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Quantidade de Itens na Embalagem" }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 												type: "number",
 												...field
@@ -32872,19 +32868,9 @@ function AddInventoryModal({ open, onOpenChange }) {
 											}) }),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
 										] })
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "grid gap-1.5",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, {
-											className: "text-sm font-semibold",
-											children: "Custo Unitário de Produção"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-											className: "h-10 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-md font-bold border border-emerald-100 flex items-center",
-											children: formatCurrency(unitCost)
-										})]
 									})
 								]
-							})]
+							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "grid grid-cols-2 gap-4 pt-4 border-t",
@@ -32892,7 +32878,7 @@ function AddInventoryModal({ open, onOpenChange }) {
 								control: form.control,
 								name: "quantity",
 								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Qtd. Comprada (Inicial em Caixas)" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Qtd. Comprada (Inicial)" }),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 										type: "number",
 										className: "border-blue-200",
@@ -33041,10 +33027,6 @@ function Inventory() {
 							children: "Custo Emb. Fechada"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "font-semibold text-muted-foreground",
-							children: "Custo Unit. Prod."
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 							className: "font-semibold text-muted-foreground text-center",
 							children: "Qtd. Atual"
 						}),
@@ -33076,32 +33058,17 @@ function Inventory() {
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
 							className: "align-top py-4",
-							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "inline-block px-2.5 py-0.5 border border-muted-foreground/20 rounded-full text-[10px] font-semibold mb-1.5",
-									children: item.packageType
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-xs text-muted-foreground mb-0.5",
-									children: [item.itemsPerBox, " item(s) / caixa"]
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "text-xs text-muted-foreground",
-									children: [
-										"Rende: ",
-										item.productionYield,
-										" un"
-									]
-								})
-							]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "inline-block px-2.5 py-0.5 border border-muted-foreground/20 rounded-full text-[10px] font-semibold mb-1.5",
+								children: item.packageType
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "text-xs text-muted-foreground mb-0.5",
+								children: [item.itemsPerBox, " item(s) / emb."]
+							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
 							className: "align-middle py-4 font-medium text-muted-foreground",
 							children: formatCurrency(item.packageCost)
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "align-middle py-4 font-bold text-emerald-600",
-							children: formatCurrency(item.unitCost)
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
 							className: "align-middle py-4 text-center",
@@ -33117,7 +33084,7 @@ function Inventory() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { className: "align-middle py-4 text-right" })
 					]
 				}, item.id)), inventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-					colSpan: 7,
+					colSpan: 6,
 					className: "text-center py-8 text-muted-foreground",
 					children: "Nenhum produto cadastrado."
 				}) })] })] })
@@ -33130,13 +33097,21 @@ function Inventory() {
 	});
 }
 function Settings() {
-	const { isAdmin, departments, addDepartment, removeDepartment } = useAppStore();
+	const { isAdmin, departments, addDepartment, removeDepartment, packageTypes, addPackageType, removePackageType } = useAppStore();
 	const [newDept, setNewDept] = (0, import_react.useState)("");
-	const handleAdd = (e) => {
+	const [newPkg, setNewPkg] = (0, import_react.useState)("");
+	const handleAddDept = (e) => {
 		e.preventDefault();
 		if (newDept.trim() && !departments.includes(newDept.trim())) {
 			addDepartment(newDept.trim());
 			setNewDept("");
+		}
+	};
+	const handleAddPkg = (e) => {
+		e.preventDefault();
+		if (newPkg.trim() && !packageTypes.includes(newPkg.trim())) {
+			addPackageType(newPkg.trim());
+			setNewPkg("");
 		}
 	};
 	if (!isAdmin) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -33165,15 +33140,15 @@ function Settings() {
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 			className: "text-muted-foreground mt-1",
 			children: "Gerencie as parametrizações do sistema."
-		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "grid gap-6 md:grid-cols-2",
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
 				className: "flex items-center gap-2",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, { className: "h-5 w-5 text-primary" }), " Departamentos"]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Gerencie os departamentos disponíveis para alocação de colaboradores." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 				className: "space-y-4",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-					onSubmit: handleAdd,
+					onSubmit: handleAddDept,
 					className: "flex gap-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 						placeholder: "Novo departamento...",
@@ -33204,7 +33179,44 @@ function Settings() {
 						children: "Nenhum departamento cadastrado."
 					})]
 				})]
-			})] })
+			})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+				className: "flex items-center gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "h-5 w-5 text-primary" }), " Tipos de Embalagem"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Gerencie as opções de embalagem para o controle de estoque." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+				className: "space-y-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: handleAddPkg,
+					className: "flex gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+						placeholder: "Novo tipo de embalagem...",
+						value: newPkg,
+						onChange: (e) => setNewPkg(e.target.value)
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						type: "submit",
+						disabled: !newPkg.trim(),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " Adicionar"]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
+					children: [packageTypes.map((pkg) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-medium text-sm text-foreground",
+							children: pkg
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							size: "icon",
+							className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8",
+							onClick: () => removePackageType(pkg),
+							title: `Remover embalagem ${pkg}`,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+						})]
+					}, pkg)), packageTypes.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-sm text-muted-foreground text-center py-6 border border-dashed rounded-md",
+						children: "Nenhum tipo de embalagem cadastrado."
+					})]
+				})]
+			})] })]
 		})]
 	});
 }
@@ -33268,4 +33280,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-CugMmTPq.js.map
+//# sourceMappingURL=index-n6j9AjUe.js.map

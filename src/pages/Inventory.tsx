@@ -68,9 +68,6 @@ export default function Inventory() {
               <TableHead className="font-semibold text-muted-foreground">
                 Custo Emb. Fechada
               </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">
-                Custo Unit. Prod.
-              </TableHead>
               <TableHead className="font-semibold text-muted-foreground text-center">
                 Qtd. Atual
               </TableHead>
@@ -94,17 +91,11 @@ export default function Inventory() {
                     {item.packageType}
                   </span>
                   <div className="text-xs text-muted-foreground mb-0.5">
-                    {item.itemsPerBox} item(s) / caixa
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Rende: {item.productionYield} un
+                    {item.itemsPerBox} item(s) / emb.
                   </div>
                 </TableCell>
                 <TableCell className="align-middle py-4 font-medium text-muted-foreground">
                   {formatCurrency(item.packageCost)}
-                </TableCell>
-                <TableCell className="align-middle py-4 font-bold text-emerald-600">
-                  {formatCurrency(item.unitCost)}
                 </TableCell>
                 <TableCell className="align-middle py-4 text-center">
                   <span className="inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full bg-muted font-bold text-sm">
@@ -119,7 +110,7 @@ export default function Inventory() {
             ))}
             {inventory.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   Nenhum produto cadastrado.
                 </TableCell>
               </TableRow>

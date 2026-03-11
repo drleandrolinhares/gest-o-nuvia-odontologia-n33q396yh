@@ -14,15 +14,21 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { formatCurrency } from '@/lib/utils'
 
 const schema = z.object({
   name: z.string().min(1, 'Obrigatório'),
   packageCost: z.coerce.number().min(0),
   storageLocation: z.string().min(1, 'Obrigatório'),
-  packageType: z.string(),
+  packageType: z.string().min(1, 'Obrigatório'),
   itemsPerBox: z.coerce.number().min(1),
-  productionYield: z.coerce.number().min(1),
   minStock: z.coerce.number().min(0),
   quantity: z.coerce.number().min(0),
   lastBrand: z.string().optional(),
@@ -37,7 +43,7 @@ export function AddInventoryModal({
   open: boolean
   onOpenChange: (val: boolean) => void
 }) {
-  const { addInventoryItem } = useAppStore()
+  const { addInventoryItem, packageTypes } = useAppStore()
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -47,7 +53,6 @@ export function AddInventoryModal({
       storageLocation: '',
       packageType: 'Caixa',
       itemsPerBox: 1,
-      productionYield: 1,
       minStock: 0,
       quantity: 0,
       lastBrand: '',
@@ -57,17 +62,13 @@ export function AddInventoryModal({
   })
 
   const pCost = form.watch('packageCost') || 0
-  const iBox = form.watch('itemsPerBox') || 1
-  const pYield = form.watch('productionYield') || 1
   const qty = form.watch('quantity') || 0
 
-  const unitCost = pCost / (iBox * pYield || 1)
   const totalCost = qty * pCost
 
   const onSubmit = (v: z.infer<typeof schema>) => {
     addInventoryItem({
       ...v,
-      unitCost,
       lastBrand: v.lastBrand || '',
       lastValue: v.lastValue || 0,
       notes: v.notes || '',
@@ -136,37 +137,37 @@ export function AddInventoryModal({
               />
             </div>
             <div className="p-5 bg-slate-50 rounded-xl border grid gap-5">
-              <div className="grid gap-1.5">
-                <FormLabel className="text-sm font-semibold">Tipos de Embalagem</FormLabel>
-                <div className="flex flex-col gap-2">
-                  <Button type="button" variant="outline" className="w-fit bg-white">
-                    NOVA EMBALAGEM
-                  </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Preencha o último campo para adicionar um novo tipo automaticamente.
-                  </p>
-                </div>
-              </div>
               <div className="grid grid-cols-2 gap-5">
                 <FormField
                   control={form.control}
-                  name="itemsPerBox"
+                  name="packageType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Quantidade de Itens na Caixa</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
+                      <FormLabel>Tipo de Embalagem</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {packageTypes.map((pt) => (
+                            <SelectItem key={pt} value={pt}>
+                              {pt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="productionYield"
+                  name="itemsPerBox"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Rendimento de Produção</FormLabel>
+                      <FormLabel>Quantidade de Itens na Embalagem</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} />
                       </FormControl>
@@ -187,14 +188,6 @@ export function AddInventoryModal({
                     </FormItem>
                   )}
                 />
-                <div className="grid gap-1.5">
-                  <FormLabel className="text-sm font-semibold">
-                    Custo Unitário de Produção
-                  </FormLabel>
-                  <div className="h-10 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-md font-bold border border-emerald-100 flex items-center">
-                    {formatCurrency(unitCost)}
-                  </div>
-                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t">
@@ -203,7 +196,7 @@ export function AddInventoryModal({
                 name="quantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Qtd. Comprada (Inicial em Caixas)</FormLabel>
+                    <FormLabel>Qtd. Comprada (Inicial)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

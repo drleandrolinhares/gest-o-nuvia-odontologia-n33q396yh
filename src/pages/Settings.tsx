@@ -2,19 +2,37 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2, Building2, Plus, ShieldAlert } from 'lucide-react'
+import { Trash2, Building2, Plus, ShieldAlert, Package } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function Settings() {
-  const { isAdmin, departments, addDepartment, removeDepartment } = useAppStore()
-  const [newDept, setNewDept] = useState('')
+  const {
+    isAdmin,
+    departments,
+    addDepartment,
+    removeDepartment,
+    packageTypes,
+    addPackageType,
+    removePackageType,
+  } = useAppStore()
 
-  const handleAdd = (e: React.FormEvent) => {
+  const [newDept, setNewDept] = useState('')
+  const [newPkg, setNewPkg] = useState('')
+
+  const handleAddDept = (e: React.FormEvent) => {
     e.preventDefault()
     if (newDept.trim() && !departments.includes(newDept.trim())) {
       addDepartment(newDept.trim())
       setNewDept('')
+    }
+  }
+
+  const handleAddPkg = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPkg.trim() && !packageTypes.includes(newPkg.trim())) {
+      addPackageType(newPkg.trim())
+      setNewPkg('')
     }
   }
 
@@ -54,7 +72,7 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <form onSubmit={handleAdd} className="flex gap-2">
+            <form onSubmit={handleAddDept} className="flex gap-2">
               <Input
                 placeholder="Novo departamento..."
                 value={newDept}
@@ -86,6 +104,54 @@ export default function Settings() {
               {departments.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-md">
                   Nenhum departamento cadastrado.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-primary" /> Tipos de Embalagem
+            </CardTitle>
+            <CardDescription>
+              Gerencie as opções de embalagem para o controle de estoque.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleAddPkg} className="flex gap-2">
+              <Input
+                placeholder="Novo tipo de embalagem..."
+                value={newPkg}
+                onChange={(e) => setNewPkg(e.target.value)}
+              />
+              <Button type="submit" disabled={!newPkg.trim()}>
+                <Plus className="h-4 w-4 mr-2" /> Adicionar
+              </Button>
+            </form>
+
+            <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+              {packageTypes.map((pkg) => (
+                <div
+                  key={pkg}
+                  className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+                >
+                  <span className="font-medium text-sm text-foreground">{pkg}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+                    onClick={() => removePackageType(pkg)}
+                    title={`Remover embalagem ${pkg}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {packageTypes.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-md">
+                  Nenhum tipo de embalagem cadastrado.
                 </p>
               )}
             </div>
