@@ -18,8 +18,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
   Package,
@@ -31,7 +29,7 @@ import {
   AlertTriangle,
   MinusCircle,
 } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
 import { DecreaseStockModal } from '@/components/inventory/DecreaseStockModal'
 import { format } from 'date-fns'
@@ -45,6 +43,11 @@ export default function Inventory() {
   const [showLowStock, setShowLowStock] = useState(false)
   const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
 
+  const isCriticalStock = (item: InventoryItem) => {
+    // If minStock is 0 or undefined, it's considered "not set" for alerting purposes
+    return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock
+  }
+
   const filteredInventory = useMemo(() => {
     return inventory.filter((item) => {
       const matchSpecialty = selectedSpecialty === 'all' || item.specialty === selectedSpecialty
@@ -52,7 +55,7 @@ export default function Inventory() {
       const matchSearch =
         item.name.toLowerCase().includes(searchLower) ||
         !!item.brand?.toLowerCase().includes(searchLower)
-      const matchLowStock = showLowStock ? item.quantity <= item.minStock : true
+      const matchLowStock = showLowStock ? isCriticalStock(item) : true
 
       return matchSpecialty && matchSearch && matchLowStock
     })
@@ -127,16 +130,22 @@ export default function Inventory() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center gap-2 h-10 px-3 bg-white rounded-md border shadow-sm w-full sm:w-auto shrink-0">
-          <Switch id="low-stock" checked={showLowStock} onCheckedChange={setShowLowStock} />
-          <Label
-            htmlFor="low-stock"
-            className="text-sm font-medium cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
-          >
-            <AlertTriangle className="w-4 h-4 text-red-500" />
-            Estoque Baixo
-          </Label>
-        </div>
+
+        <Button
+          variant={showLowStock ? 'destructive' : 'outline'}
+          onClick={() => setShowLowStock(!showLowStock)}
+          className={cn(
+            'w-full sm:w-auto h-10 transition-all duration-200',
+            showLowStock
+              ? 'bg-red-600 hover:bg-red-700 text-white font-bold shadow-md'
+              : 'text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 font-semibold bg-white shadow-sm',
+          )}
+        >
+          <AlertTriangle
+            className={cn('w-4 h-4 mr-2', showLowStock ? 'text-white' : 'text-red-500')}
+          />
+          Filtrar Estoque Crítico
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -221,17 +230,14 @@ export default function Inventory() {
                     <div className="font-bold text-[#D81B84] text-base leading-none">
                       {item.name}
                     </div>
-                    {item.quantity <= item.minStock && (
-                      <Badge
-                        variant="destructive"
-                        className="text-[10px] px-1.5 py-0 h-4 rounded-sm font-bold tracking-wide"
-                      >
-                        <AlertTriangle className="w-2.5 h-2.5 mr-1" />
-                        Estoque Baixo
-                      </Badge>
+                    {isCriticalStock(item) && (
+                      <div className="bg-red-600 text-white text-[10px] px-2 py-0.5 mt-0.5 rounded font-extrabold tracking-wider uppercase shadow-sm flex items-center w-fit animate-pulse">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        Estoque Crítico
+                      </div>
                     )}
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1 mt-2">
                     {item.specialty && (
                       <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <Stethoscope className="h-3.5 w-3.5" /> {item.specialty}
@@ -273,7 +279,14 @@ export default function Inventory() {
                   {formatCurrency(item.packageCost)}
                 </TableCell>
                 <TableCell className="align-middle py-4 text-center">
-                  <span className="inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full bg-muted font-bold text-sm">
+                  <span
+                    className={cn(
+                      'inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm',
+                      isCriticalStock(item)
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-muted text-foreground',
+                    )}
+                  >
                     {item.quantity}
                   </span>
                 </TableCell>
