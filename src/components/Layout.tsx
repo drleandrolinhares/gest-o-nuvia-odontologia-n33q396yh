@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -10,11 +11,13 @@ import {
   Calendar,
   Key,
   Truck,
+  PackageSearch,
 } from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import useAppStore from '@/stores/main'
+import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 import {
   SidebarProvider,
   Sidebar,
@@ -135,6 +138,8 @@ export function AppSidebar() {
 }
 
 export default function Layout() {
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -152,6 +157,15 @@ export default function Layout() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative text-[#D81B84] hover:bg-muted/80 hover:text-[#D81B84]"
+              onClick={() => setIsQuickViewOpen(true)}
+              title="CONSULTA RÁPIDA DE PRODUTOS"
+            >
+              <PackageSearch className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5 text-foreground" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive border-2 border-card" />
@@ -163,6 +177,8 @@ export default function Layout() {
             <Outlet />
           </div>
         </main>
+
+        <QuickProductSearchModal open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen} />
       </SidebarInset>
     </SidebarProvider>
   )
