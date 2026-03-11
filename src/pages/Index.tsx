@@ -1,9 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Users, Package, ListTodo, TrendingDown, AlertCircle, FileText } from 'lucide-react'
+import {
+  Users,
+  Package,
+  ListTodo,
+  TrendingDown,
+  AlertCircle,
+  FileText,
+  DollarSign,
+  Boxes,
+} from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 
 export default function Index() {
@@ -11,7 +20,9 @@ export default function Index() {
 
   const activeEmployees = employees.filter((e) => e.status === 'Ativo').length
   const pendingOnboarding = onboarding.length
-  const lowStockItems = inventory.filter((i) => i.quantity <= i.threshold).length
+  const lowStockItems = inventory.filter((i) => i.quantity <= i.minStock).length
+  const totalItemsInStock = inventory.reduce((acc, item) => acc + item.quantity, 0)
+  const investedCapital = inventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0)
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -22,7 +33,7 @@ export default function Index() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Equipe Ativa</CardTitle>
@@ -59,6 +70,28 @@ export default function Index() {
               {lowStockItems}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Itens precisam de reposição</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Capital Investido</CardTitle>
+            <DollarSign className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(investedCapital)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Valor em estoque clínico</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Itens em Estoque</CardTitle>
+            <Boxes className="h-4 w-4 text-indigo-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalItemsInStock}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total de unidades disponíveis</p>
           </CardContent>
         </Card>
       </div>
