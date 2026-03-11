@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Search, User, PackageSearch } from 'lucide-react'
+import { Bell, Search, User, PackageSearch, LogOut } from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import useAppStore from '@/stores/main'
+import { useAuth } from '@/hooks/use-auth'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 import { navItems } from '@/config/navigation'
 import {
@@ -20,34 +21,18 @@ import {
   SidebarInset,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 export function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAdmin, toggleAdmin, employees, currentUserId, setCurrentUser, logout } = useAppStore()
+  const { isAdmin, employees } = useAppStore()
+  const { user, signOut } = useAuth()
 
-  const currentUser = employees.find((e) => e.id === currentUserId)
+  const currentUser = employees.find((e) => e.user_id === user?.id)
 
-  const handleUserChange = (val: string) => {
-    if (val === 'logout') {
-      logout()
-      navigate('/login')
-      return
-    }
-    if (val === 'admin') {
-      setCurrentUser(null)
-      if (!isAdmin) toggleAdmin()
-    } else {
-      setCurrentUser(val)
-      if (isAdmin) toggleAdmin()
-    }
+  const handleLogout = async () => {
+    await signOut()
+    navigate('/login')
   }
 
   return (
@@ -87,33 +72,27 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t p-4">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-            <User size={16} />
+        <div className="flex items-center justify-between overflow-hidden">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+              <User size={16} />
+            </div>
+            <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden uppercase">
+              <span className="text-sm font-bold truncate">{currentUser?.name || 'SISTEMA'}</span>
+              <span className="text-xs text-muted-foreground truncate">
+                {isAdmin ? 'ADMINISTRADOR' : 'COLABORADOR'}
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden flex-1 uppercase">
-            <Select value={currentUserId || 'admin'} onValueChange={handleUserChange}>
-              <SelectTrigger className="h-auto p-0 border-none bg-transparent shadow-none focus:ring-0 text-sm font-medium w-full text-left justify-between">
-                <SelectValue placeholder="SELECIONAR USUÁRIO" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">DR. SOUZA FILHO (ADMIN)</SelectItem>
-                {[...employees]
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map((e) => (
-                    <SelectItem key={e.id} value={e.id}>
-                      {e.name.toUpperCase()}
-                    </SelectItem>
-                  ))}
-                <SelectItem value="logout" className="text-destructive font-bold">
-                  SAIR DO SISTEMA
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <span className="text-xs text-muted-foreground truncate">
-              {isAdmin ? 'ADMINISTRADOR' : 'COLABORADOR'}
-            </span>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="text-destructive hover:bg-destructive/10 group-data-[collapsible=icon]:hidden"
+            title="SAIR DO SISTEMA"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </SidebarFooter>
       <SidebarRail />

@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import useAppStore, { type InventoryItem } from '@/stores/main'
-import { useToast } from '@/hooks/use-toast'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
@@ -20,16 +19,6 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import {
   Package,
   Box,
   Stethoscope,
@@ -39,7 +28,6 @@ import {
   MinusCircle,
   ScanBarcode,
   Barcode,
-  Trash2,
 } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
@@ -50,8 +38,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function Inventory() {
-  const { inventory, specialties, isAdmin, wipeInventory } = useAppStore()
-  const { toast } = useToast()
+  const { inventory, specialties } = useAppStore()
   const [isAdding, setIsAdding] = useState(false)
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,9 +49,6 @@ export default function Inventory() {
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null)
   const [itemToPurchase, setItemToPurchase] = useState<InventoryItem | null>(null)
 
-  const [isWipeDialogOpen, setIsWipeDialogOpen] = useState(false)
-  const [isWiping, setIsWiping] = useState(false)
-
   const isCriticalStock = (item: InventoryItem) => {
     return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock
   }
@@ -72,34 +56,6 @@ export default function Inventory() {
   const now = new Date()
   const sixtyDays = new Date()
   sixtyDays.setDate(now.getDate() + 60)
-
-  const handleWipeInventory = async () => {
-    setIsWiping(true)
-    try {
-      const success = await wipeInventory()
-      if (success) {
-        toast({
-          title: 'ESTOQUE LIMPO',
-          description: 'TODOS OS PRODUTOS E REGISTROS FORAM REMOVIDOS COM SUCESSO.',
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'ERRO DE VERIFICAÇÃO',
-          description: 'A CONTAGEM DE ESTOQUE NÃO RETORNOU ZERO. AÇÃO CANCELADA.',
-        })
-      }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'ERRO CRÍTICO',
-        description: 'FALHA AO EXECUTAR A LIMPEZA DO ESTOQUE.',
-      })
-    } finally {
-      setIsWiping(false)
-      setIsWipeDialogOpen(false)
-    }
-  }
 
   const filteredInventory = useMemo(() => {
     return inventory
@@ -149,15 +105,6 @@ export default function Inventory() {
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {isAdmin && (
-            <Button
-              variant="destructive"
-              className="whitespace-nowrap shadow-sm font-bold uppercase"
-              onClick={() => setIsWipeDialogOpen(true)}
-            >
-              <Trash2 className="w-4 h-4 mr-2" /> LIMPAR ESTOQUE
-            </Button>
-          )}
           <Button
             className="bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm font-bold"
             onClick={() => setIsAdding(true)}
@@ -442,36 +389,6 @@ export default function Inventory() {
           if (!val) setItemToPurchase(null)
         }}
       />
-
-      <AlertDialog open={isWipeDialogOpen} onOpenChange={setIsWipeDialogOpen}>
-        <AlertDialogContent className="uppercase">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-red-600 font-bold text-xl">
-              APAGAR TODO O ESTOQUE?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm font-semibold">
-              ESTA AÇÃO É IRREVERSÍVEL. TODOS OS PRODUTOS, HISTÓRICOS DE COMPRAS E REGISTROS DE
-              ESTOQUE SERÃO PERMANENTEMENTE REMOVIDOS DO SISTEMA. TEM CERTEZA QUE DESEJA PROSSEGUIR
-              COM A LIMPEZA TOTAL?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isWiping} className="font-bold">
-              CANCELAR
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault()
-                handleWipeInventory()
-              }}
-              disabled={isWiping}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold"
-            >
-              {isWiping ? 'APAGANDO...' : 'SIM, APAGAR TUDO'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

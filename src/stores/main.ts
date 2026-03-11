@@ -8,11 +8,13 @@ import React, {
   useRef,
   useEffect,
 } from 'react'
+import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/use-auth'
 
 export type AgendaAccess = 'VIEW_ONLY' | 'ADD_EDIT'
-
 export type Employee = {
   id: string
+  user_id?: string
   name: string
   role: string
   department: string
@@ -25,13 +27,10 @@ export type Employee = {
   email: string
   phone: string
   agendaAccess: AgendaAccess
-  password?: string
   permissions?: string[]
   accessLevel?: 'OPERACIONAL' | 'ADMINISTRATIVO'
 }
-
 export type OnboardingTask = { id: string; title: string; completed: boolean }
-
 export type OnboardingCandidate = {
   id: string
   name: string
@@ -39,7 +38,6 @@ export type OnboardingCandidate = {
   department: string
   tasks: OnboardingTask[]
 }
-
 export type PurchaseRecord = {
   id: string
   date: string
@@ -49,7 +47,6 @@ export type PurchaseRecord = {
   lot?: string
   supplierId?: string
 }
-
 export type InventoryItem = {
   id: string
   name: string
@@ -69,9 +66,7 @@ export type InventoryItem = {
   barcode?: string
   purchaseHistory?: PurchaseRecord[]
 }
-
 export type DocumentItem = { id: string; name: string; date: string }
-
 export type AgendaItem = {
   id: string
   title: string
@@ -84,7 +79,6 @@ export type AgendaItem = {
   thirdPartyDetails?: string
   createdBy?: string
 }
-
 export type AccessItem = {
   id: string
   platform: string
@@ -94,7 +88,6 @@ export type AccessItem = {
   instructions: string
   accessLevel?: 'OPERACIONAL' | 'ADMINISTRATIVO'
 }
-
 export type Supplier = {
   id: string
   name: string
@@ -106,13 +99,7 @@ export type Supplier = {
   hasSpecialNegotiation?: boolean
   negotiationNotes?: string
 }
-
-export type AuditLog = {
-  id: string
-  userName: string
-  action: string
-  timestamp: string
-}
+export type AuditLog = { id: string; userName: string; action: string; timestamp: string }
 
 interface AppStore {
   isAuthenticated: boolean
@@ -132,42 +119,37 @@ interface AppStore {
   suppliers: Supplier[]
   levelPermissions: Record<string, string[]>
   auditLogs: AuditLog[]
-  login: (email: string, pass: string) => boolean
-  logout: () => void
-  toggleAdmin: () => void
-  setCurrentUser: (id: string | null) => void
-  addDepartment: (name: string) => void
-  removeDepartment: (name: string) => void
-  addPackageType: (name: string) => void
-  removePackageType: (name: string) => void
-  addSpecialty: (name: string) => void
-  removeSpecialty: (name: string) => void
-  addAgendaType: (name: string) => void
-  removeAgendaType: (name: string) => void
-  toggleTask: (candidateId: string, taskId: string) => void
-  addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
-  updateInventoryQuantity: (id: string, newQuantity: number) => void
-  addPurchaseHistory: (itemId: string, record: Omit<PurchaseRecord, 'id'>) => void
-  addEmployee: (emp: Omit<Employee, 'id'>) => void
+  addDepartment: (n: string) => void
+  removeDepartment: (n: string) => void
+  addPackageType: (n: string) => void
+  removePackageType: (n: string) => void
+  addSpecialty: (n: string) => void
+  removeSpecialty: (n: string) => void
+  addAgendaType: (n: string) => void
+  removeAgendaType: (n: string) => void
+  toggleTask: (c: string, t: string) => void
+  addInventoryItem: (i: Omit<InventoryItem, 'id'>) => void
+  updateInventoryQuantity: (id: string, q: number) => void
+  addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
+  addEmployee: (e: Omit<Employee, 'id'>) => void
   deleteEmployee: (id: string) => void
-  updateEmployeeStatus: (id: string, status: Employee['status']) => void
-  updateEmployeeLevel: (id: string, level: Employee['accessLevel']) => void
-  updateEmployeeAgendaAccess: (id: string, access: AgendaAccess) => void
-  updateEmployeePermissions: (id: string, permissions: string[]) => void
-  updateLevelPermissions: (level: string, perms: string[]) => void
-  addOnboardingTask: (candidateId: string, title: string) => void
-  removeOnboardingTask: (candidateId: string, taskId: string) => void
-  addDocument: (name: string) => void
+  updateEmployeeStatus: (id: string, s: Employee['status']) => void
+  updateEmployeeLevel: (id: string, l: Employee['accessLevel']) => void
+  updateEmployeeAgendaAccess: (id: string, a: AgendaAccess) => void
+  updateEmployeePermissions: (id: string, p: string[]) => void
+  updateLevelPermissions: (l: string, p: string[]) => void
+  addOnboardingTask: (c: string, t: string) => void
+  removeOnboardingTask: (c: string, t: string) => void
+  addDocument: (n: string) => void
   removeDocument: (id: string) => void
-  addAgendaItem: (item: Omit<AgendaItem, 'id'>) => void
+  addAgendaItem: (i: Omit<AgendaItem, 'id'>) => void
   removeAgendaItem: (id: string) => void
-  addAccess: (item: Omit<AccessItem, 'id'>) => void
-  updateAccess: (id: string, item: Partial<AccessItem>) => void
+  addAccess: (i: Omit<AccessItem, 'id'>) => void
+  updateAccess: (id: string, i: Partial<AccessItem>) => void
   removeAccess: (id: string) => void
-  addSupplier: (item: Omit<Supplier, 'id'>) => void
-  updateSupplier: (id: string, item: Partial<Supplier>) => void
+  addSupplier: (i: Omit<Supplier, 'id'>) => void
+  updateSupplier: (id: string, i: Partial<Supplier>) => void
   removeSupplier: (id: string) => void
-  wipeInventory: () => Promise<boolean>
 }
 
 const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção']
@@ -181,97 +163,104 @@ const mockSpecialties = [
 ]
 const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria']
 
-const mockEmployees: Employee[] = []
-const mockOnboarding: OnboardingCandidate[] = []
-const mockAgenda: AgendaItem[] = []
-
-const mockInventory: InventoryItem[] = [
-  {
-    id: '1',
-    name: 'Resina Composta A2',
-    packageCost: 85.5,
-    storageLocation: 'SALA 1 - ARMÁRIO A',
-    packageType: 'Seringa',
-    itemsPerBox: 1,
-    minStock: 5,
-    quantity: 12,
-    specialty: 'Clínica Geral',
-    brand: '3M',
-    entryDate: '2023-10-01T12:00:00.000Z',
-    expirationDate: '2026-10-01T12:00:00.000Z',
-    barcode: '7891234567890',
-    purchaseHistory: [
-      { id: 'h1', date: '2023-09-15T10:00:00.000Z', price: 80.0, quantity: 5 },
-      { id: 'h2', date: '2023-10-01T12:00:00.000Z', price: 85.5, quantity: 7 },
-    ],
-  },
-]
-
-const mockDocuments: DocumentItem[] = [
-  { id: '1', name: 'POP - Onboarding e Admissão v2.pdf', date: '10/01/2026' },
-]
-
-const mockAcessos: AccessItem[] = [
-  {
-    id: '1',
-    platform: 'Portal Nuvia Admin',
-    url: 'https://admin.nuvia.com',
-    login: 'admin@nuvia.com',
-    pass: 'Nuvia@2026!',
-    instructions: 'Acesso restrito à diretoria.',
-    accessLevel: 'ADMINISTRATIVO',
-  },
-]
-
-const mockSuppliers: Supplier[] = [
-  {
-    id: '1',
-    name: 'DENTAL CREMER',
-    contact: 'MARIA SILVA',
-    phone: '(11) 4000-0000',
-    email: 'VENDAS@DENTALCREMER.COM.BR',
-    cnpj: '11.111.111/0001-11',
-    website: 'www.dentalcremer.com.br',
-    hasSpecialNegotiation: true,
-    negotiationNotes: 'Desconto de 15% em compras acima de R$ 1.000,00',
-  },
-]
-
-const mockAuditLogs: AuditLog[] = [
-  {
-    id: 'l1',
-    userName: 'DR. SOUZA FILHO (ADMIN)',
-    action: 'CRIOU PRODUTO NO ESTOQUE: RESINA COMPOSTA A2',
-    timestamp: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    id: 'l2',
-    userName: 'DR. SOUZA FILHO (ADMIN)',
-    action: 'CRIOU NÍVEL DE PERMISSÃO OPERACIONAL E ADMINISTRATIVO',
-    timestamp: new Date(Date.now() - 7200000).toISOString(),
-  },
-]
+const mEmp = (d: any): Employee => ({
+  id: d.id,
+  user_id: d.user_id,
+  name: d.name,
+  role: d.role,
+  department: d.department,
+  status: d.status,
+  hireDate: d.hire_date,
+  salary: d.salary,
+  vacationDaysTaken: d.vacation_days_taken,
+  vacationDaysTotal: d.vacation_days_total,
+  vacationDueDate: d.vacation_due_date,
+  email: d.email,
+  phone: d.phone,
+  agendaAccess: d.agenda_access,
+  permissions: d.permissions,
+  accessLevel: d.access_level,
+})
+const mInv = (d: any): InventoryItem => ({
+  id: d.id,
+  name: d.name,
+  packageCost: d.package_cost,
+  storageLocation: d.storage_location,
+  packageType: d.package_type,
+  itemsPerBox: d.items_per_box,
+  minStock: d.min_stock,
+  quantity: d.quantity,
+  specialty: d.specialty,
+  entryDate: d.entry_date,
+  expirationDate: d.expiration_date,
+  brand: d.brand,
+  lastBrand: d.last_brand,
+  lastValue: d.last_value,
+  notes: d.notes,
+  barcode: d.barcode,
+  purchaseHistory: d.purchase_history,
+})
+const mAg = (d: any): AgendaItem => ({
+  id: d.id,
+  title: d.title,
+  date: d.date,
+  time: d.time,
+  location: d.location,
+  type: d.type,
+  assignedTo: d.assigned_to,
+  involvesThirdParty: d.involves_third_party,
+  thirdPartyDetails: d.third_party_details,
+  createdBy: d.created_by,
+})
+const mAcc = (d: any): AccessItem => ({
+  id: d.id,
+  platform: d.platform,
+  url: d.url,
+  login: d.login,
+  pass: d.pass,
+  instructions: d.instructions,
+  accessLevel: d.access_level,
+})
+const mSup = (d: any): Supplier => ({
+  id: d.id,
+  name: d.name,
+  contact: d.contact,
+  phone: d.phone,
+  email: d.email,
+  cnpj: d.cnpj,
+  website: d.website,
+  hasSpecialNegotiation: d.has_special_negotiation,
+  negotiationNotes: d.negotiation_notes,
+})
+const mOnb = (d: any): OnboardingCandidate => ({
+  id: d.id,
+  name: d.name,
+  role: d.role,
+  department: d.department,
+  tasks: d.tasks,
+})
+const mDoc = (d: any): DocumentItem => ({ id: d.id, name: d.name, date: d.date })
 
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-  const [departments, setDepartments] = useState<string[]>(mockDepartments)
-  const [packageTypes, setPackageTypes] = useState<string[]>(mockPackageTypes)
-  const [specialties, setSpecialties] = useState<string[]>(mockSpecialties)
-  const [agendaTypes, setAgendaTypes] = useState<string[]>(mockAgendaTypes)
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
+  const [departments, setDepartments] = useState(mockDepartments)
+  const [packageTypes, setPackageTypes] = useState(mockPackageTypes)
+  const [specialties, setSpecialties] = useState(mockSpecialties)
+  const [agendaTypes, setAgendaTypes] = useState(mockAgendaTypes)
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [inventory, setInventory] = useState<InventoryItem[]>([])
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
+  const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>([])
+  const [documents, setDocuments] = useState<DocumentItem[]>([])
+  const [agenda, setAgenda] = useState<AgendaItem[]>([])
+  const [acessos, setAcessos] = useState<AccessItem[]>([])
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [alerts] = useState<string[]>([])
-  const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
-  const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory)
-  const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments)
-  const [agenda, setAgenda] = useState<AgendaItem[]>(mockAgenda)
-  const [acessos, setAcessos] = useState<AccessItem[]>(mockAcessos)
-  const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers)
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(mockAuditLogs)
-
   const [levelPermissions, setLevelPermissions] = useState<Record<string, string[]>>({
     OPERACIONAL: ['dashboard', 'agenda'],
     ADMINISTRATIVO: [
@@ -285,420 +274,580 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ],
   })
 
-  const storeRef = useRef({
-    currentUserId,
-    employees,
-    isAdmin,
-    inventory,
-    agenda,
-    acessos,
-    suppliers,
-  })
+  const storeRef = useRef({ user, employees })
   useEffect(() => {
-    storeRef.current = { currentUserId, employees, isAdmin, inventory, agenda, acessos, suppliers }
-  }, [currentUserId, employees, isAdmin, inventory, agenda, acessos, suppliers])
+    storeRef.current = { user, employees }
+  }, [user, employees])
+
+  useEffect(() => {
+    if (user) {
+      setIsAuthenticated(true)
+      Promise.all([
+        supabase
+          .from('employees')
+          .select('*')
+          .then((r) => setEmployees((r.data || []).map(mEmp))),
+        supabase
+          .from('inventory')
+          .select('*')
+          .then((r) => setInventory((r.data || []).map(mInv))),
+        supabase
+          .from('agenda')
+          .select('*')
+          .then((r) => setAgenda((r.data || []).map(mAg))),
+        supabase
+          .from('acessos')
+          .select('*')
+          .then((r) => setAcessos((r.data || []).map(mAcc))),
+        supabase
+          .from('suppliers')
+          .select('*')
+          .then((r) => setSuppliers((r.data || []).map(mSup))),
+        supabase
+          .from('onboarding')
+          .select('*')
+          .then((r) => setOnboarding((r.data || []).map(mOnb))),
+        supabase
+          .from('documents')
+          .select('*')
+          .then((r) => setDocuments((r.data || []).map(mDoc))),
+        supabase
+          .from('audit_logs')
+          .select('*, profiles(name)')
+          .order('created_at', { ascending: false })
+          .limit(50)
+          .then((r) =>
+            setAuditLogs(
+              (r.data || []).map((d) => ({
+                id: d.id,
+                userName: d.profiles?.name || 'SISTEMA',
+                action: d.action,
+                timestamp: d.created_at,
+              })),
+            ),
+          ),
+      ])
+    } else {
+      setIsAuthenticated(false)
+      setCurrentUserId(null)
+      setIsAdmin(false)
+      setEmployees([])
+      setInventory([])
+      setAuditLogs([])
+    }
+  }, [user])
+
+  useEffect(() => {
+    const me = employees.find((e) => e.user_id === user?.id)
+    setIsAdmin(me?.accessLevel === 'ADMINISTRATIVO')
+    setCurrentUserId(me?.id || null)
+  }, [employees, user])
 
   const logAction = useCallback((action: string) => {
-    const { currentUserId, employees, isAdmin } = storeRef.current
-    let userName = 'SISTEMA'
-    if (currentUserId) {
-      const emp = employees.find((e) => e.id === currentUserId)
-      userName = emp ? emp.name : 'DESCONHECIDO'
-    } else if (isAdmin) {
-      userName = 'DR. SOUZA FILHO (ADMIN)'
-    }
-
-    setAuditLogs((prev) => [
-      {
-        id: Math.random().toString(36).substring(2, 11),
-        userName: userName.toUpperCase(),
-        action: action.toUpperCase(),
-        timestamp: new Date().toISOString(),
-      },
-      ...prev,
-    ])
+    if (!storeRef.current.user) return
+    const u = storeRef.current.user
+    const n = storeRef.current.employees.find((e) => e.user_id === u.id)?.name || 'SISTEMA'
+    supabase
+      .from('audit_logs')
+      .insert([{ user_id: u.id, action: action.toUpperCase() }])
+      .select()
+      .single()
+      .then(({ data }) => {
+        if (data)
+          setAuditLogs((p) => [
+            { id: data.id, userName: n, action: data.action, timestamp: data.created_at },
+            ...p,
+          ])
+      })
   }, [])
 
-  const login = useCallback(
-    (email: string, pass: string) => {
-      if (email === 'admin@nuvia.com' && pass === 'admin123') {
-        setIsAdmin(true)
-        setCurrentUserId(null)
-        setIsAuthenticated(true)
-        logAction('FEZ LOGIN NO SISTEMA COMO ADMINISTRADOR')
-        return true
-      }
-      const emp = employees.find((e) => e.email === email && e.password === pass)
-      if (emp) {
-        setIsAdmin(false)
-        setCurrentUserId(emp.id)
-        setIsAuthenticated(true)
-        storeRef.current.currentUserId = emp.id
-        logAction('FEZ LOGIN NO SISTEMA')
-        return true
-      }
-      return false
-    },
-    [employees, logAction],
-  )
-
-  const logout = useCallback(() => {
-    logAction('FEZ LOGOUT DO SISTEMA')
-    setIsAuthenticated(false)
-    setCurrentUserId(null)
-    setIsAdmin(false)
-  }, [logAction])
-
-  const toggleAdmin = useCallback(() => setIsAdmin((prev) => !prev), [])
-  const setCurrentUser = useCallback((id: string | null) => setCurrentUserId(id), [])
-
   const addDepartment = useCallback(
-    (name: string) => {
-      setDepartments((prev) => [...prev, name])
-      logAction(`CRIOU DEPARTAMENTO: ${name}`)
+    (n: string) => {
+      setDepartments((p) => [...p, n])
+      logAction(`CRIOU DEPARTAMENTO: ${n}`)
     },
     [logAction],
   )
-
   const removeDepartment = useCallback(
-    (name: string) => {
-      setDepartments((prev) => prev.filter((d) => d !== name))
-      logAction(`REMOVEU DEPARTAMENTO: ${name}`)
+    (n: string) => {
+      setDepartments((p) => p.filter((d) => d !== n))
+      logAction(`REMOVEU DEPARTAMENTO: ${n}`)
     },
     [logAction],
   )
-
   const addPackageType = useCallback(
-    (name: string) => {
-      setPackageTypes((prev) => [...prev, name])
-      logAction(`CRIOU TIPO DE EMBALAGEM: ${name}`)
+    (n: string) => {
+      setPackageTypes((p) => [...p, n])
+      logAction(`CRIOU TIPO DE EMBALAGEM: ${n}`)
     },
     [logAction],
   )
-
   const removePackageType = useCallback(
-    (name: string) => {
-      setPackageTypes((prev) => prev.filter((pt) => pt !== name))
-      logAction(`REMOVEU TIPO DE EMBALAGEM: ${name}`)
+    (n: string) => {
+      setPackageTypes((p) => p.filter((pt) => pt !== n))
+      logAction(`REMOVEU TIPO DE EMBALAGEM: ${n}`)
     },
     [logAction],
   )
-
   const addSpecialty = useCallback(
-    (name: string) => {
-      setSpecialties((prev) => [...prev, name])
-      logAction(`CRIOU ESPECIALIDADE: ${name}`)
+    (n: string) => {
+      setSpecialties((p) => [...p, n])
+      logAction(`CRIOU ESPECIALIDADE: ${n}`)
     },
     [logAction],
   )
-
   const removeSpecialty = useCallback(
-    (name: string) => {
-      setSpecialties((prev) => prev.filter((s) => s !== name))
-      logAction(`REMOVEU ESPECIALIDADE: ${name}`)
+    (n: string) => {
+      setSpecialties((p) => p.filter((s) => s !== n))
+      logAction(`REMOVEU ESPECIALIDADE: ${n}`)
     },
     [logAction],
   )
-
   const addAgendaType = useCallback(
-    (name: string) => {
-      setAgendaTypes((prev) => [...prev, name])
-      logAction(`CRIOU TIPO DE COMPROMISSO: ${name}`)
+    (n: string) => {
+      setAgendaTypes((p) => [...p, n])
+      logAction(`CRIOU TIPO DE COMPROMISSO: ${n}`)
     },
     [logAction],
   )
-
   const removeAgendaType = useCallback(
-    (name: string) => {
-      setAgendaTypes((prev) => prev.filter((t) => t !== name))
-      logAction(`REMOVEU TIPO DE COMPROMISSO: ${name}`)
+    (n: string) => {
+      setAgendaTypes((p) => p.filter((t) => t !== n))
+      logAction(`REMOVEU TIPO DE COMPROMISSO: ${n}`)
     },
     [logAction],
   )
 
   const toggleTask = useCallback(
-    (candidateId: string, taskId: string) => {
-      setOnboarding((prev) =>
-        prev.map((c) =>
-          c.id === candidateId
+    (cId: string, tId: string) => {
+      setOnboarding((p) =>
+        p.map((c) =>
+          c.id === cId
             ? {
                 ...c,
-                tasks: c.tasks.map((t) =>
-                  t.id === taskId ? { ...t, completed: !t.completed } : t,
-                ),
+                tasks: c.tasks.map((t) => (t.id === tId ? { ...t, completed: !t.completed } : t)),
               }
             : c,
         ),
       )
-      logAction(`ALTEROU TAREFA DE ONBOARDING DO CANDIDATO ID: ${candidateId}`)
+      logAction(`ALTEROU TAREFA DE ONBOARDING DO CANDIDATO ID: ${cId}`)
+    },
+    [logAction],
+  )
+  const addOnboardingTask = useCallback(
+    (cId: string, t: string) => {
+      setOnboarding((p) =>
+        p.map((c) =>
+          c.id === cId
+            ? { ...c, tasks: [...c.tasks, { id: crypto.randomUUID(), title: t, completed: false }] }
+            : c,
+        ),
+      )
+      logAction(`CRIOU TAREFA ONBOARDING: ${t}`)
+    },
+    [logAction],
+  )
+  const removeOnboardingTask = useCallback(
+    (cId: string, tId: string) => {
+      setOnboarding((p) =>
+        p.map((c) => (c.id === cId ? { ...c, tasks: c.tasks.filter((t) => t.id !== tId) } : c)),
+      )
+      logAction('REMOVEU TAREFA ONBOARDING')
     },
     [logAction],
   )
 
   const addInventoryItem = useCallback(
-    (item: Omit<InventoryItem, 'id'>) => {
-      const id = Math.random().toString(36).substring(2, 11)
-      const purchaseHistory =
-        item.quantity > 0
+    (i: Omit<InventoryItem, 'id'>) => {
+      const ph =
+        i.quantity > 0
           ? [
               {
-                id: Math.random().toString(36),
+                id: crypto.randomUUID(),
                 date: new Date().toISOString(),
-                price: item.packageCost,
-                quantity: item.quantity,
-                expirationDate: item.expirationDate,
+                price: i.packageCost,
+                quantity: i.quantity,
+                expirationDate: i.expirationDate,
               },
             ]
           : []
-      setInventory((prev) => [...prev, { ...item, id, purchaseHistory }])
-      logAction(`CRIOU PRODUTO NO ESTOQUE: ${item.name}`)
-    },
-    [logAction],
-  )
-
-  const updateInventoryQuantity = useCallback(
-    (id: string, newQuantity: number) => {
-      setInventory((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: newQuantity } : i)))
-      const item = storeRef.current.inventory.find((i) => i.id === id)
-      logAction(`ATUALIZOU ESTOQUE DO PRODUTO: ${item ? item.name : id} PARA ${newQuantity}`)
-    },
-    [logAction],
-  )
-
-  const wipeInventory = useCallback(async () => {
-    if (!storeRef.current.isAdmin) return false
-
-    setInventory([])
-    storeRef.current.inventory = []
-
-    return new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        if (storeRef.current.inventory.length === 0) {
-          logAction('LIMPADO TODO O ESTOQUE DO SISTEMA (RESET DE INVENTÁRIO)')
-          resolve(true)
-        } else {
-          resolve(false)
-        }
-      }, 300)
-    })
-  }, [logAction])
-
-  const addPurchaseHistory = useCallback(
-    (itemId: string, record: Omit<PurchaseRecord, 'id'>) => {
-      setInventory((prev) =>
-        prev.map((item) => {
-          if (item.id === itemId) {
-            const newHistory = [
-              { ...record, id: Math.random().toString(36).substring(2, 11) },
-              ...(item.purchaseHistory || []),
-            ]
-            return {
-              ...item,
-              purchaseHistory: newHistory,
-              quantity: item.quantity + record.quantity,
-              packageCost: record.price,
-              expirationDate: record.expirationDate || item.expirationDate,
-            }
+      supabase
+        .from('inventory')
+        .insert([
+          {
+            name: i.name,
+            package_cost: i.packageCost,
+            storage_location: i.storageLocation,
+            package_type: i.packageType,
+            items_per_box: i.itemsPerBox,
+            min_stock: i.minStock,
+            quantity: i.quantity,
+            specialty: i.specialty,
+            entry_date: i.entryDate,
+            expiration_date: i.expirationDate,
+            brand: i.brand,
+            last_brand: i.lastBrand,
+            last_value: i.lastValue,
+            notes: i.notes,
+            barcode: i.barcode,
+            purchase_history: ph,
+          },
+        ])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setInventory((p) => [...p, mInv(data)])
+            logAction(`CRIOU PRODUTO: ${i.name}`)
           }
-          return item
-        }),
-      )
-      const item = storeRef.current.inventory.find((i) => i.id === itemId)
-      logAction(`REGISTROU NOVA COMPRA PARA O PRODUTO: ${item ? item.name : itemId}`)
+        })
+    },
+    [logAction],
+  )
+  const updateInventoryQuantity = useCallback(
+    (id: string, q: number) => {
+      supabase
+        .from('inventory')
+        .update({ quantity: q })
+        .eq('id', id)
+        .then(({ error }) => {
+          if (!error) {
+            setInventory((p) => p.map((i) => (i.id === id ? { ...i, quantity: q } : i)))
+            logAction(`ATUALIZOU ESTOQUE ID: ${id} PARA ${q}`)
+          }
+        })
+    },
+    [logAction],
+  )
+  const addPurchaseHistory = useCallback(
+    (itemId: string, r: Omit<PurchaseRecord, 'id'>) => {
+      setInventory((prev) => {
+        const item = prev.find((i) => i.id === itemId)
+        if (!item) return prev
+        const nh = [{ ...r, id: crypto.randomUUID() }, ...(item.purchaseHistory || [])]
+        const nq = item.quantity + r.quantity
+        supabase
+          .from('inventory')
+          .update({
+            purchase_history: nh,
+            quantity: nq,
+            package_cost: r.price,
+            expiration_date: r.expirationDate || item.expirationDate,
+          })
+          .eq('id', itemId)
+          .then(() => logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`))
+        return prev.map((i) =>
+          i.id === itemId
+            ? {
+                ...i,
+                purchaseHistory: nh,
+                quantity: nq,
+                packageCost: r.price,
+                expirationDate: r.expirationDate || item.expirationDate,
+              }
+            : i,
+        )
+      })
     },
     [logAction],
   )
 
   const addEmployee = useCallback(
-    (emp: Omit<Employee, 'id'>) => {
-      const id = Math.random().toString(36).substring(2, 11)
-      setEmployees((prev) => [
-        ...prev,
-        { ...emp, id, permissions: ['dashboard'], accessLevel: 'OPERACIONAL' },
-      ])
-      setOnboarding((prev) => [
-        ...prev,
-        {
-          id: `o_${id}`,
-          name: emp.name,
-          role: emp.role,
-          department: emp.department,
-          tasks: [
-            { id: Math.random().toString(36), title: 'Assinatura de Contrato', completed: false },
-          ],
-        },
-      ])
-      logAction(`CRIOU CADASTRO DE COLABORADOR: ${emp.name}`)
+    (e: Omit<Employee, 'id'>) => {
+      supabase
+        .from('employees')
+        .insert([
+          {
+            name: e.name,
+            role: e.role,
+            department: e.department,
+            status: e.status,
+            hire_date: e.hireDate,
+            salary: e.salary,
+            vacation_days_taken: e.vacationDaysTaken,
+            vacation_days_total: e.vacationDaysTotal,
+            vacation_due_date: e.vacationDueDate,
+            email: e.email,
+            phone: e.phone,
+            agenda_access: e.agendaAccess,
+            permissions: e.permissions || ['dashboard'],
+            access_level: e.accessLevel || 'OPERACIONAL',
+          },
+        ])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setEmployees((p) => [...p, mEmp(data)])
+            logAction(`CRIOU COLABORADOR: ${e.name}`)
+          }
+        })
     },
     [logAction],
   )
-
   const deleteEmployee = useCallback(
     (id: string) => {
-      const emp = storeRef.current.employees.find((e) => e.id === id)
-      setEmployees((prev) => prev.filter((e) => e.id !== id))
-      logAction(`REMOVEU COLABORADOR: ${emp ? emp.name : id}`)
+      supabase
+        .from('employees')
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setEmployees((p) => p.filter((e) => e.id !== id))
+          logAction(`REMOVEU COLABORADOR: ${id}`)
+        })
     },
     [logAction],
   )
-
   const updateEmployeeStatus = useCallback(
-    (id: string, status: Employee['status']) => {
-      const emp = storeRef.current.employees.find((e) => e.id === id)
-      setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, status } : e)))
-      logAction(`ALTEROU STATUS DO COLABORADOR: ${emp ? emp.name : id} PARA ${status}`)
+    (id: string, s: string) => {
+      supabase
+        .from('employees')
+        .update({ status: s })
+        .eq('id', id)
+        .then(() => {
+          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, status: s as any } : e)))
+          logAction(`ALTEROU STATUS COLAB ID: ${id}`)
+        })
     },
     [logAction],
   )
-
   const updateEmployeeLevel = useCallback(
-    (id: string, level: Employee['accessLevel']) => {
-      const emp = storeRef.current.employees.find((e) => e.id === id)
-      setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, accessLevel: level } : e)))
-      logAction(`ALTEROU NÍVEL DE ACESSO DO COLABORADOR: ${emp ? emp.name : id} PARA ${level}`)
+    (id: string, l: string) => {
+      supabase
+        .from('employees')
+        .update({ access_level: l })
+        .eq('id', id)
+        .then(() => {
+          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, accessLevel: l as any } : e)))
+          logAction(`ALTEROU NÍVEL COLAB ID: ${id}`)
+        })
     },
     [logAction],
   )
-
   const updateEmployeeAgendaAccess = useCallback(
-    (id: string, access: AgendaAccess) => {
-      const emp = storeRef.current.employees.find((e) => e.id === id)
-      setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, agendaAccess: access } : e)))
-      logAction(`ALTEROU ACESSO DE AGENDA DO COLABORADOR: ${emp ? emp.name : id}`)
+    (id: string, a: string) => {
+      supabase
+        .from('employees')
+        .update({ agenda_access: a })
+        .eq('id', id)
+        .then(() => {
+          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, agendaAccess: a as any } : e)))
+          logAction(`ALTEROU AGENDA COLAB ID: ${id}`)
+        })
     },
     [logAction],
   )
-
   const updateEmployeePermissions = useCallback(
-    (id: string, permissions: string[]) => {
-      const emp = storeRef.current.employees.find((e) => e.id === id)
-      setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, permissions } : e)))
-      logAction(`ATUALIZOU PERMISSÕES DO COLABORADOR: ${emp ? emp.name : id}`)
+    (id: string, perms: string[]) => {
+      supabase
+        .from('employees')
+        .update({ permissions: perms })
+        .eq('id', id)
+        .then(() => {
+          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, permissions: perms } : e)))
+          logAction(`PERMISSÕES COLAB ID: ${id}`)
+        })
     },
     [logAction],
   )
-
   const updateLevelPermissions = useCallback(
-    (level: string, perms: string[]) => {
-      setLevelPermissions((prev) => ({ ...prev, [level]: perms }))
-      logAction(`ATUALIZOU PERMISSÕES PADRÃO DO NÍVEL: ${level}`)
-    },
-    [logAction],
-  )
-
-  const addOnboardingTask = useCallback(
-    (candidateId: string, title: string) => {
-      setOnboarding((prev) =>
-        prev.map((c) =>
-          c.id === candidateId
-            ? {
-                ...c,
-                tasks: [...c.tasks, { id: Math.random().toString(36), title, completed: false }],
-              }
-            : c,
-        ),
-      )
-      logAction(`CRIOU TAREFA DE ONBOARDING: ${title}`)
-    },
-    [logAction],
-  )
-
-  const removeOnboardingTask = useCallback(
-    (candidateId: string, taskId: string) => {
-      setOnboarding((prev) =>
-        prev.map((c) =>
-          c.id === candidateId ? { ...c, tasks: c.tasks.filter((t) => t.id !== taskId) } : c,
-        ),
-      )
-      logAction(`REMOVEU TAREFA DE ONBOARDING`)
+    (l: string, perms: string[]) => {
+      setLevelPermissions((p) => ({ ...p, [l]: perms }))
+      logAction(`PERMISSÕES PADRÃO NÍVEL: ${l}`)
     },
     [logAction],
   )
 
   const addDocument = useCallback(
-    (name: string) => {
-      setDocuments((prev) => [
-        ...prev,
-        { id: Math.random().toString(36), name, date: new Date().toLocaleDateString('pt-BR') },
-      ])
-      logAction(`ADICIONOU DOCUMENTO: ${name}`)
+    (n: string) => {
+      supabase
+        .from('documents')
+        .insert([{ name: n, date: new Date().toLocaleDateString('pt-BR') }])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setDocuments((p) => [...p, mDoc(data)])
+            logAction(`ADICIONOU DOC: ${n}`)
+          }
+        })
     },
     [logAction],
   )
-
   const removeDocument = useCallback(
     (id: string) => {
-      setDocuments((prev) => prev.filter((d) => d.id !== id))
-      logAction(`REMOVEU DOCUMENTO ID: ${id}`)
+      supabase
+        .from('documents')
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setDocuments((p) => p.filter((d) => d.id !== id))
+          logAction(`REMOVEU DOC ID: ${id}`)
+        })
     },
     [logAction],
   )
 
   const addAgendaItem = useCallback(
-    (item: Omit<AgendaItem, 'id'>) => {
-      setAgenda((prev) => [...prev, { ...item, id: Math.random().toString(36) }])
-      logAction(`CRIOU COMPROMISSO NA AGENDA: ${item.title}`)
+    (i: Omit<AgendaItem, 'id'>) => {
+      supabase
+        .from('agenda')
+        .insert([
+          {
+            title: i.title,
+            date: i.date,
+            time: i.time,
+            location: i.location,
+            type: i.type,
+            assigned_to: i.assignedTo,
+            involves_third_party: i.involvesThirdParty,
+            third_party_details: i.thirdPartyDetails,
+            created_by: i.createdBy,
+          },
+        ])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setAgenda((p) => [...p, mAg(data)])
+            logAction(`CRIOU AGENDA: ${i.title}`)
+          }
+        })
     },
     [logAction],
   )
-
   const removeAgendaItem = useCallback(
     (id: string) => {
-      const item = storeRef.current.agenda.find((i) => i.id === id)
-      setAgenda((prev) => prev.filter((i) => i.id !== id))
-      logAction(`REMOVEU COMPROMISSO: ${item ? item.title : id}`)
+      supabase
+        .from('agenda')
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setAgenda((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU AGENDA ID: ${id}`)
+        })
     },
     [logAction],
   )
 
   const addAccess = useCallback(
-    (item: Omit<AccessItem, 'id'>) => {
-      setAcessos((prev) => [...prev, { ...item, id: Math.random().toString(36) }])
-      logAction(`CRIOU CREDENCIAL DE ACESSO: ${item.platform}`)
+    (i: Omit<AccessItem, 'id'>) => {
+      supabase
+        .from('acessos')
+        .insert([
+          {
+            platform: i.platform,
+            url: i.url,
+            login: i.login,
+            pass: i.pass,
+            instructions: i.instructions,
+            access_level: i.accessLevel,
+          },
+        ])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setAcessos((p) => [...p, mAcc(data)])
+            logAction(`CRIOU ACESSO: ${i.platform}`)
+          }
+        })
     },
     [logAction],
   )
-
   const updateAccess = useCallback(
-    (id: string, item: Partial<AccessItem>) => {
-      const acc = storeRef.current.acessos.find((a) => a.id === id)
-      setAcessos((prev) => prev.map((a) => (a.id === id ? { ...a, ...item } : a)))
-      logAction(`ATUALIZOU CREDENCIAL DE ACESSO: ${acc ? acc.platform : id}`)
+    (id: string, i: Partial<AccessItem>) => {
+      supabase
+        .from('acessos')
+        .update({
+          platform: i.platform,
+          url: i.url,
+          login: i.login,
+          pass: i.pass,
+          instructions: i.instructions,
+          access_level: i.accessLevel,
+        })
+        .eq('id', id)
+        .then(() => {
+          setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
+          logAction(`ATUALIZOU ACESSO ID: ${id}`)
+        })
     },
     [logAction],
   )
-
   const removeAccess = useCallback(
     (id: string) => {
-      const acc = storeRef.current.acessos.find((a) => a.id === id)
-      setAcessos((prev) => prev.filter((i) => i.id !== id))
-      logAction(`REMOVEU CREDENCIAL DE ACESSO: ${acc ? acc.platform : id}`)
+      supabase
+        .from('acessos')
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setAcessos((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU ACESSO ID: ${id}`)
+        })
     },
     [logAction],
   )
 
   const addSupplier = useCallback(
-    (item: Omit<Supplier, 'id'>) => {
-      setSuppliers((prev) => [...prev, { ...item, id: Math.random().toString(36) }])
-      logAction(`CRIOU FORNECEDOR: ${item.name}`)
+    (i: Omit<Supplier, 'id'>) => {
+      supabase
+        .from('suppliers')
+        .insert([
+          {
+            name: i.name,
+            contact: i.contact,
+            phone: i.phone,
+            email: i.email,
+            cnpj: i.cnpj,
+            website: i.website,
+            has_special_negotiation: i.hasSpecialNegotiation,
+            negotiation_notes: i.negotiationNotes,
+          },
+        ])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setSuppliers((p) => [...p, mSup(data)])
+            logAction(`CRIOU FORNECEDOR: ${i.name}`)
+          }
+        })
     },
     [logAction],
   )
-
   const updateSupplier = useCallback(
-    (id: string, item: Partial<Supplier>) => {
-      const sup = storeRef.current.suppliers.find((s) => s.id === id)
-      setSuppliers((prev) => prev.map((s) => (s.id === id ? { ...s, ...item } : s)))
-      logAction(`ATUALIZOU FORNECEDOR: ${sup ? sup.name : id}`)
+    (id: string, i: Partial<Supplier>) => {
+      supabase
+        .from('suppliers')
+        .update({
+          name: i.name,
+          contact: i.contact,
+          phone: i.phone,
+          email: i.email,
+          cnpj: i.cnpj,
+          website: i.website,
+          has_special_negotiation: i.hasSpecialNegotiation,
+          negotiation_notes: i.negotiationNotes,
+        })
+        .eq('id', id)
+        .then(() => {
+          setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
+          logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
+        })
     },
     [logAction],
   )
-
   const removeSupplier = useCallback(
     (id: string) => {
-      const sup = storeRef.current.suppliers.find((s) => s.id === id)
-      setSuppliers((prev) => prev.filter((i) => i.id !== id))
-      logAction(`REMOVEU FORNECEDOR: ${sup ? sup.name : id}`)
+      supabase
+        .from('suppliers')
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setSuppliers((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU FORNECEDOR ID: ${id}`)
+        })
     },
     [logAction],
   )
@@ -722,10 +871,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       suppliers,
       levelPermissions,
       auditLogs,
-      login,
-      logout,
-      toggleAdmin,
-      setCurrentUser,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -737,7 +882,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
-      wipeInventory,
       addPurchaseHistory,
       addEmployee,
       deleteEmployee,
@@ -777,10 +921,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       suppliers,
       levelPermissions,
       auditLogs,
-      login,
-      logout,
-      toggleAdmin,
-      setCurrentUser,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -792,7 +932,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
-      wipeInventory,
       addPurchaseHistory,
       addEmployee,
       deleteEmployee,

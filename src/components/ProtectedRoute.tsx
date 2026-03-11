@@ -1,11 +1,19 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import useAppStore from '@/stores/main'
+import { useAuth } from '@/hooks/use-auth'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAppStore()
+  const { user, loading } = useAuth()
   const location = useLocation()
 
-  if (!isAuthenticated) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-muted-foreground font-bold tracking-widest uppercase">
+        CARREGANDO AMBIENTE SEGURO...
+      </div>
+    )
+  }
+
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 

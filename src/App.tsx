@@ -13,35 +13,38 @@ import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import { AppProvider } from '@/stores/main'
+import { AuthProvider } from '@/hooks/use-auth'
 
 export default function App() {
   return (
-    <AppProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<PublicHome />} />
-          <Route path="/login" element={<Login />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Index />} />
-            <Route path="agenda" element={<Agenda />} />
-            <Route path="acessos" element={<Acessos />} />
-            <Route path="rh" element={<RH />} />
-            <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
-            <Route path="estoque" element={<Inventory />} />
-            <Route path="configuracoes" element={<Settings />} />
-            <Route path="auditoria" element={<AuditLog />} />
+    <AuthProvider>
+      <AppProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<PublicHome />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Index />} />
+              <Route path="agenda" element={<Agenda />} />
+              <Route path="acessos" element={<Acessos />} />
+              <Route path="rh" element={<RH />} />
+              <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
+              <Route path="estoque" element={<Inventory />} />
+              <Route path="configuracoes" element={<Settings />} />
+              <Route path="auditoria" element={<AuditLog />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </AppProvider>
+          </Routes>
+        </Router>
+      </AppProvider>
+    </AuthProvider>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import useAppStore from '@/stores/main'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -24,12 +24,13 @@ export default function Login() {
   const [resetEmail, setResetEmail] = useState('')
   const [resetSent, setResetSent] = useState(false)
   const navigate = useNavigate()
-  const { login } = useAppStore()
+  const { signIn } = useAuth()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (login(email, password)) {
+    const { error: signInError } = await signIn(email, password)
+    if (!signInError) {
       navigate('/admin')
     } else {
       setError('CREDENCIAIS INVÁLIDAS. VERIFIQUE SEU EMAIL E SENHA.')
@@ -161,13 +162,6 @@ export default function Login() {
             >
               ENTRAR NO SISTEMA
             </Button>
-            <div className="text-center mt-6">
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                CREDENCIAIS DE DEMONSTRAÇÃO:
-                <br />
-                <span className="font-bold text-foreground">ADMIN@NUVIA.COM / ADMIN123</span>
-              </p>
-            </div>
           </form>
         </CardContent>
       </Card>
