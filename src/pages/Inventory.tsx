@@ -37,8 +37,23 @@ export default function Inventory() {
     (acc, item) => acc + item.quantity * item.packageCost,
     0,
   )
-
   const totalItems = filteredInventory.reduce((acc, item) => acc + item.quantity, 0)
+
+  const topStats = useMemo(() => {
+    const volBySpec: Record<string, number> = {}
+    const valBySpec: Record<string, number> = {}
+
+    inventory.forEach((i) => {
+      if (!i.specialty) return
+      volBySpec[i.specialty] = (volBySpec[i.specialty] || 0) + i.quantity
+      valBySpec[i.specialty] = (valBySpec[i.specialty] || 0) + i.quantity * i.packageCost
+    })
+
+    const topVol = Object.entries(volBySpec).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
+    const topVal = Object.entries(valBySpec).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
+
+    return { maxVolSpec: topVol[0], maxVol: topVol[1], maxValSpec: topVal[0], maxVal: topVal[1] }
+  }, [inventory])
 
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
@@ -48,24 +63,20 @@ export default function Inventory() {
             <Box className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#D81B84]">
-              Controle de Estoque
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie embalagens, custos e rendimentos detalhados.
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-[#D81B84]">Estoque</h1>
+            <p className="text-muted-foreground mt-1">Gerencie embalagens e custos detalhados.</p>
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
             <SelectTrigger className="w-[180px] bg-white">
-              <SelectValue placeholder="Filtrar Especialidade" />
+              <SelectValue placeholder="Filtrar" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas Especialidades</SelectItem>
-              {specialties.map((spec) => (
-                <SelectItem key={spec} value={spec}>
-                  {spec}
+              {specialties.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -79,24 +90,53 @@ export default function Inventory() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-blue-600 shadow-sm rounded-xl">
           <CardContent className="p-6">
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
               Capital Investido ({selectedSpecialty === 'all' ? 'Total' : selectedSpecialty})
             </p>
-            <div className="text-4xl font-extrabold text-blue-600">
+            <div className="text-2xl font-extrabold text-blue-600 truncate">
               {formatCurrency(totalCapital)}
             </div>
           </CardContent>
         </Card>
-
         <Card className="border-l-4 border-l-[#D81B84] shadow-sm rounded-xl">
           <CardContent className="p-6">
-            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
               Itens em Estoque ({selectedSpecialty === 'all' ? 'Total' : selectedSpecialty})
             </p>
-            <div className="text-4xl font-extrabold text-[#D81B84]">{totalItems}</div>
+            <div className="text-2xl font-extrabold text-[#D81B84] truncate">{totalItems}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500 shadow-sm rounded-xl">
+          <CardContent className="p-6">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              Especialidade com maior capital
+            </p>
+            <div className="flex flex-col">
+              <span className="text-xl font-extrabold text-amber-500 truncate">
+                {topStats.maxValSpec}
+              </span>
+              <span className="text-xs font-medium text-muted-foreground mt-1">
+                {formatCurrency(topStats.maxVal)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-emerald-500 shadow-sm rounded-xl">
+          <CardContent className="p-6">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              Especialidade com mais itens
+            </p>
+            <div className="flex flex-col">
+              <span className="text-xl font-extrabold text-emerald-500 truncate">
+                {topStats.maxVolSpec}
+              </span>
+              <span className="text-xs font-medium text-muted-foreground mt-1">
+                {topStats.maxVol} itens
+              </span>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -114,13 +154,11 @@ export default function Inventory() {
               <TableHead className="font-semibold text-muted-foreground">
                 Validade / Local
               </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">
-                Custo Emb. Fechada
-              </TableHead>
+              <TableHead className="font-semibold text-muted-foreground">Custo Emb.</TableHead>
               <TableHead className="font-semibold text-muted-foreground text-center">
-                Qtd. Atual
+                Qtd.
               </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">Capital Retido</TableHead>
+              <TableHead className="font-semibold text-muted-foreground">Capital</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -153,8 +191,8 @@ export default function Inventory() {
                   <div className="flex flex-col gap-1.5">
                     {item.expirationDate ? (
                       <div className="text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 w-fit px-1.5 py-0.5 rounded">
-                        <CalendarClock className="h-3.5 w-3.5" />
-                        Val: {format(new Date(item.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
+                        <CalendarClock className="h-3.5 w-3.5" /> Val:{' '}
+                        {format(new Date(item.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
                       </div>
                     ) : (
                       <div className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -182,8 +220,7 @@ export default function Inventory() {
             {filteredInventory.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                  Nenhum produto encontrado
-                  {selectedSpecialty !== 'all' ? ` para a especialidade ${selectedSpecialty}` : ''}.
+                  Nenhum produto encontrado.
                 </TableCell>
               </TableRow>
             )}

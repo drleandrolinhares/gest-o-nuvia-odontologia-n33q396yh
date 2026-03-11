@@ -37788,6 +37788,23 @@ function Inventory() {
 	}, [inventory, selectedSpecialty]);
 	const totalCapital = filteredInventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0);
 	const totalItems = filteredInventory.reduce((acc, item) => acc + item.quantity, 0);
+	const topStats = (0, import_react.useMemo)(() => {
+		const volBySpec = {};
+		const valBySpec = {};
+		inventory.forEach((i$2) => {
+			if (!i$2.specialty) return;
+			volBySpec[i$2.specialty] = (volBySpec[i$2.specialty] || 0) + i$2.quantity;
+			valBySpec[i$2.specialty] = (valBySpec[i$2.specialty] || 0) + i$2.quantity * i$2.packageCost;
+		});
+		const topVol = Object.entries(volBySpec).sort((a$1, b) => b[1] - a$1[1])[0] || ["N/A", 0];
+		const topVal = Object.entries(valBySpec).sort((a$1, b) => b[1] - a$1[1])[0] || ["N/A", 0];
+		return {
+			maxVolSpec: topVol[0],
+			maxVol: topVol[1],
+			maxValSpec: topVal[0],
+			maxVal: topVal[1]
+		};
+	}, [inventory]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-8 animate-fade-in-up pb-10",
 		children: [
@@ -37800,10 +37817,10 @@ function Inventory() {
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Box, { className: "h-7 w-7" })
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 						className: "text-3xl font-bold tracking-tight text-[#D81B84]",
-						children: "Controle de Estoque"
+						children: "Estoque"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-muted-foreground mt-1",
-						children: "Gerencie embalagens, custos e rendimentos detalhados."
+						children: "Gerencie embalagens e custos detalhados."
 					})] })]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "flex items-center gap-3 w-full sm:w-auto",
@@ -37812,14 +37829,14 @@ function Inventory() {
 						onValueChange: setSelectedSpecialty,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
 							className: "w-[180px] bg-white",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Filtrar Especialidade" })
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Filtrar" })
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 							value: "all",
 							children: "Todas Especialidades"
-						}), specialties.map((spec) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-							value: spec,
-							children: spec
-						}, spec))] })]
+						}), specialties.map((s$2) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+							value: s$2,
+							children: s$2
+						}, s$2))] })]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 						className: "bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap",
 						onClick: () => setIsAdding(true),
@@ -37828,40 +37845,81 @@ function Inventory() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "grid gap-4 md:grid-cols-2 lg:grid-cols-3",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-					className: "border-l-4 border-l-blue-600 shadow-sm rounded-xl",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-						className: "p-6",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-							className: "text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2",
-							children: [
-								"Capital Investido (",
-								selectedSpecialty === "all" ? "Total" : selectedSpecialty,
-								")"
-							]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "text-4xl font-extrabold text-blue-600",
-							children: formatCurrency(totalCapital)
-						})]
+				className: "grid gap-4 md:grid-cols-2 lg:grid-cols-4",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						className: "border-l-4 border-l-blue-600 shadow-sm rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							className: "p-6",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+								className: "text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2",
+								children: [
+									"Capital Investido (",
+									selectedSpecialty === "all" ? "Total" : selectedSpecialty,
+									")"
+								]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "text-2xl font-extrabold text-blue-600 truncate",
+								children: formatCurrency(totalCapital)
+							})]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						className: "border-l-4 border-l-[#D81B84] shadow-sm rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							className: "p-6",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+								className: "text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2",
+								children: [
+									"Itens em Estoque (",
+									selectedSpecialty === "all" ? "Total" : selectedSpecialty,
+									")"
+								]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "text-2xl font-extrabold text-[#D81B84] truncate",
+								children: totalItems
+							})]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						className: "border-l-4 border-l-amber-500 shadow-sm rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							className: "p-6",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2",
+								children: "Especialidade com maior capital"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex flex-col",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-xl font-extrabold text-amber-500 truncate",
+									children: topStats.maxValSpec
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-xs font-medium text-muted-foreground mt-1",
+									children: formatCurrency(topStats.maxVal)
+								})]
+							})]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						className: "border-l-4 border-l-emerald-500 shadow-sm rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							className: "p-6",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2",
+								children: "Especialidade com mais itens"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex flex-col",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-xl font-extrabold text-emerald-500 truncate",
+									children: topStats.maxVolSpec
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									className: "text-xs font-medium text-muted-foreground mt-1",
+									children: [topStats.maxVol, " itens"]
+								})]
+							})]
+						})
 					})
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-					className: "border-l-4 border-l-[#D81B84] shadow-sm rounded-xl",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-						className: "p-6",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-							className: "text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2",
-							children: [
-								"Itens em Estoque (",
-								selectedSpecialty === "all" ? "Total" : selectedSpecialty,
-								")"
-							]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "text-4xl font-extrabold text-[#D81B84]",
-							children: totalItems
-						})]
-					})
-				})]
+				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 				className: "shadow-sm border-muted rounded-xl overflow-hidden",
@@ -37882,15 +37940,15 @@ function Inventory() {
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 							className: "font-semibold text-muted-foreground",
-							children: "Custo Emb. Fechada"
+							children: "Custo Emb."
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 							className: "font-semibold text-muted-foreground text-center",
-							children: "Qtd. Atual"
+							children: "Qtd."
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 							className: "font-semibold text-muted-foreground",
-							children: "Capital Retido"
+							children: "Capital"
 						})
 					]
 				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [filteredInventory.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
@@ -37938,7 +37996,8 @@ function Inventory() {
 									className: "text-xs text-amber-600 font-medium flex items-center gap-1.5 bg-amber-50 w-fit px-1.5 py-0.5 rounded",
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { className: "h-3.5 w-3.5" }),
-										"Val: ",
+										" Val:",
+										" ",
 										format(new Date(item.expirationDate), "dd/MM/yyyy", { locale: ptBR })
 									]
 								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -37970,14 +38029,10 @@ function Inventory() {
 							children: formatCurrency(item.quantity * item.packageCost)
 						})
 					]
-				}, item.id)), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+				}, item.id)), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
 					colSpan: 6,
 					className: "text-center py-10 text-muted-foreground",
-					children: [
-						"Nenhum produto encontrado",
-						selectedSpecialty !== "all" ? ` para a especialidade ${selectedSpecialty}` : "",
-						"."
-					]
+					children: "Nenhum produto encontrado."
 				}) })] })] })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddInventoryModal, {
@@ -38221,4 +38276,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-ChxPJ6Xg.js.map
+//# sourceMappingURL=index-Ci2IpUBu.js.map
