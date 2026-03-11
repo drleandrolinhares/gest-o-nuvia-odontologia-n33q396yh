@@ -38,6 +38,10 @@ export type InventoryItem = {
   itemsPerBox: number
   minStock: number
   quantity: number
+  specialty?: string
+  entryDate?: string
+  expirationDate?: string
+  brand?: string
   lastBrand?: string
   lastValue?: number
   notes?: string
@@ -53,6 +57,7 @@ interface AppStore {
   isAdmin: boolean
   departments: string[]
   packageTypes: string[]
+  specialties: string[]
   employees: Employee[]
   alerts: string[]
   onboarding: OnboardingCandidate[]
@@ -63,6 +68,8 @@ interface AppStore {
   removeDepartment: (name: string) => void
   addPackageType: (name: string) => void
   removePackageType: (name: string) => void
+  addSpecialty: (name: string) => void
+  removeSpecialty: (name: string) => void
   toggleTask: (candidateId: string, taskId: string) => void
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, newQuantity: number) => void
@@ -77,6 +84,14 @@ interface AppStore {
 const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção']
 
 const mockPackageTypes = ['Caixa', 'Unidade', 'Frasco', 'Pacote', 'Seringa']
+
+const mockSpecialties = [
+  'Clínica Geral',
+  'Ortodontia',
+  'Implantodontia',
+  'Endodontia',
+  'Odontopediatria',
+]
 
 const mockEmployees: Employee[] = [
   {
@@ -125,23 +140,30 @@ const mockOnboarding: OnboardingCandidate[] = [
 const mockInventory: InventoryItem[] = [
   {
     id: '1',
-    name: 'resina',
-    packageCost: 10,
+    name: 'Resina Composta A2',
+    packageCost: 85.5,
     storageLocation: 'SALA 1 - ARMÁRIO A',
-    packageType: 'Caixa',
+    packageType: 'Seringa',
     itemsPerBox: 1,
-    minStock: 0,
-    quantity: 1,
+    minStock: 5,
+    quantity: 12,
+    specialty: 'Clínica Geral',
+    brand: '3M',
+    entryDate: '2023-10-01T12:00:00.000Z',
+    expirationDate: '2025-10-01T12:00:00.000Z',
   },
   {
     id: '2',
-    name: 'teste',
-    packageCost: 100,
-    storageLocation: 'asdasd',
+    name: 'Braquetes Metálicos Roth',
+    packageCost: 150.0,
+    storageLocation: 'ESTOQUE CENTRAL - PRATELEIRA 3',
     packageType: 'Caixa',
-    itemsPerBox: 1,
-    minStock: 0,
-    quantity: 0,
+    itemsPerBox: 20,
+    minStock: 2,
+    quantity: 5,
+    specialty: 'Ortodontia',
+    brand: 'Morelli',
+    entryDate: '2023-11-15T12:00:00.000Z',
   },
 ]
 
@@ -156,6 +178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(true)
   const [departments, setDepartments] = useState<string[]>(mockDepartments)
   const [packageTypes, setPackageTypes] = useState<string[]>(mockPackageTypes)
+  const [specialties, setSpecialties] = useState<string[]>(mockSpecialties)
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
   const [alerts] = useState<string[]>(['Carlos Santos: Retorna de férias em 2 dias.'])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
@@ -178,6 +201,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const removePackageType = useCallback((name: string) => {
     setPackageTypes((prev) => prev.filter((pt) => pt !== name))
+  }, [])
+
+  const addSpecialty = useCallback((name: string) => {
+    setSpecialties((prev) => [...prev, name])
+  }, [])
+
+  const removeSpecialty = useCallback((name: string) => {
+    setSpecialties((prev) => prev.filter((s) => s !== name))
   }, [])
 
   const toggleTask = useCallback((candidateId: string, taskId: string) => {
@@ -281,6 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isAdmin,
       departments,
       packageTypes,
+      specialties,
       employees,
       alerts,
       onboarding,
@@ -291,6 +323,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeDepartment,
       addPackageType,
       removePackageType,
+      addSpecialty,
+      removeSpecialty,
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
@@ -305,6 +339,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isAdmin,
       departments,
       packageTypes,
+      specialties,
       employees,
       alerts,
       onboarding,
@@ -315,6 +350,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeDepartment,
       addPackageType,
       removePackageType,
+      addSpecialty,
+      removeSpecialty,
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
