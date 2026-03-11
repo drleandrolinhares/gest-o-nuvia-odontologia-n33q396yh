@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Users,
@@ -36,19 +36,25 @@ import {
 } from '@/components/ui/select'
 
 const navItems = [
-  { href: '/', label: 'DASHBOARD', icon: LayoutDashboard },
-  { href: '/agenda', label: 'AGENDA', icon: Calendar },
-  { href: '/acessos', label: 'ACESSOS', icon: Key },
-  { href: '/rh', label: 'RH', icon: Users },
-  { href: '/estoque', label: 'ESTOQUE', icon: Package },
-  { href: '/configuracoes', label: 'CONFIGURAÇÕES', icon: SettingsIcon },
+  { href: '/admin', label: 'DASHBOARD', icon: LayoutDashboard },
+  { href: '/admin/agenda', label: 'AGENDA', icon: Calendar },
+  { href: '/admin/acessos', label: 'ACESSOS', icon: Key },
+  { href: '/admin/rh', label: 'RH', icon: Users },
+  { href: '/admin/estoque', label: 'ESTOQUE', icon: Package },
+  { href: '/admin/configuracoes', label: 'CONFIGURAÇÕES', icon: SettingsIcon },
 ]
 
 export function AppSidebar() {
   const location = useLocation()
-  const { isAdmin, toggleAdmin, employees, currentUserId, setCurrentUser } = useAppStore()
+  const navigate = useNavigate()
+  const { isAdmin, toggleAdmin, employees, currentUserId, setCurrentUser, logout } = useAppStore()
 
   const handleUserChange = (val: string) => {
+    if (val === 'logout') {
+      logout()
+      navigate('/login')
+      return
+    }
     if (val === 'admin') {
       setCurrentUser(null)
       if (!isAdmin) toggleAdmin()
@@ -76,7 +82,7 @@ export function AppSidebar() {
           {navItems.map((item) => {
             const isActive =
               location.pathname === item.href ||
-              (item.href !== '/' && location.pathname.startsWith(item.href))
+              (item.href !== '/admin' && location.pathname.startsWith(item.href))
             return (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
@@ -96,10 +102,10 @@ export function AppSidebar() {
           <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary">
             <User size={16} />
           </div>
-          <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden flex-1">
+          <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden flex-1 uppercase">
             <Select value={currentUserId || 'admin'} onValueChange={handleUserChange}>
               <SelectTrigger className="h-auto p-0 border-none bg-transparent shadow-none focus:ring-0 text-sm font-medium w-full text-left justify-between">
-                <SelectValue placeholder="Selecionar Usuário" />
+                <SelectValue placeholder="SELECIONAR USUÁRIO" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">DR. SOUZA FILHO (ADMIN)</SelectItem>
@@ -110,6 +116,9 @@ export function AppSidebar() {
                       {e.name.toUpperCase()}
                     </SelectItem>
                   ))}
+                <SelectItem value="logout" className="text-destructive font-bold">
+                  SAIR DO SISTEMA
+                </SelectItem>
               </SelectContent>
             </Select>
             <span className="text-xs text-muted-foreground truncate">
@@ -127,7 +136,7 @@ export default function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="flex flex-col flex-1 overflow-hidden">
+      <SidebarInset className="flex flex-col flex-1 overflow-hidden uppercase">
         <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-card px-4 md:px-6 shadow-sm z-10">
           <SidebarTrigger className="-ml-2" />
           <div className="flex flex-1 items-center gap-4 md:gap-8">
@@ -136,7 +145,7 @@ export default function Layout() {
               <Input
                 type="search"
                 placeholder="BUSCAR NO SISTEMA NUVIA..."
-                className="pl-8 bg-muted/50 w-full"
+                className="pl-8 bg-muted/50 w-full uppercase"
               />
             </div>
           </div>

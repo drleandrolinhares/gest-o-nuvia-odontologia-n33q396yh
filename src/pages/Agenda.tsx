@@ -50,12 +50,12 @@ export default function Agenda() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up uppercase">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">AGENDA</h1>
           <p className="text-muted-foreground mt-1">
-            Gerencie compromissos, reuniões e lembretes da clínica.
+            GERENCIE COMPROMISSOS, REUNIÕES E LEMBRETES DA CLÍNICA.
           </p>
         </div>
         {canEdit && (
@@ -107,7 +107,7 @@ export default function Agenda() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="uppercase">
           <DialogHeader>
             <DialogTitle>ADICIONAR COMPROMISSO</DialogTitle>
           </DialogHeader>

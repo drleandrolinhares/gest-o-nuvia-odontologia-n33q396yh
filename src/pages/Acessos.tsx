@@ -49,14 +49,14 @@ export default function Acessos() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up uppercase">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">
             GERENCIADOR DE ACESSOS
           </h1>
           <p className="text-muted-foreground mt-1">
-            Armazene e gerencie credenciais e instruções de sistemas parceiros de forma segura.
+            ARMAZENE E GERENCIE CREDENCIAIS E INSTRUÇÕES DE SISTEMAS PARCEIROS DE FORMA SEGURA.
           </p>
         </div>
         {isAdmin && (
@@ -89,7 +89,7 @@ export default function Acessos() {
                   <div className="text-xs text-muted-foreground lowercase">{item.url}</div>
                 </TableCell>
                 <TableCell className="font-medium">{item.login}</TableCell>
-                <TableCell className="font-mono text-sm tracking-widest bg-muted/50 rounded px-2 py-1 inline-block mt-2">
+                <TableCell className="font-mono text-sm tracking-widest bg-muted/50 rounded px-2 py-1 inline-block mt-2 lowercase">
                   {visibleRows[item.id] ? item.pass : '••••••••••••'}
                 </TableCell>
                 <TableCell
@@ -105,7 +105,7 @@ export default function Acessos() {
                     onClick={() =>
                       setVisibleRows((prev) => ({ ...prev, [item.id]: !prev[item.id] }))
                     }
-                    title="Ver Senha"
+                    title="VER SENHA"
                   >
                     {visibleRows[item.id] ? (
                       <EyeOff className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function Acessos() {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleCopy(item.id, item.pass)}
-                    title="Copiar Senha"
+                    title="COPIAR SENHA"
                   >
                     {copied === item.id ? (
                       <Check className="h-4 w-4 text-emerald-500" />
@@ -131,7 +131,7 @@ export default function Acessos() {
                       size="icon"
                       onClick={() => removeAccess(item.id)}
                       className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      title="Remover"
+                      title="REMOVER"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -151,7 +151,7 @@ export default function Acessos() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md uppercase">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" /> ADICIONAR CREDENCIAL
@@ -175,6 +175,7 @@ export default function Acessos() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="HTTPS://..."
+                className="lowercase"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -182,7 +183,12 @@ export default function Acessos() {
                 <label className="text-xs font-semibold text-muted-foreground">
                   USUÁRIO / LOGIN
                 </label>
-                <Input value={login} onChange={(e) => setLogin(e.target.value)} required />
+                <Input
+                  value={login}
+                  onChange={(e) => setLogin(e.target.value)}
+                  required
+                  className="lowercase"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-muted-foreground">SENHA</label>
@@ -191,6 +197,7 @@ export default function Acessos() {
                   onChange={(e) => setPass(e.target.value)}
                   required
                   type="text"
+                  className="lowercase"
                 />
               </div>
             </div>

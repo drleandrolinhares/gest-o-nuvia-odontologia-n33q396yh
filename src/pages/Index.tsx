@@ -108,7 +108,7 @@ export default function Index() {
               >
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>{idx === 0 ? 'URGENTE' : 'ATENÇÃO'}</AlertTitle>
-                <AlertDescription>{alert}</AlertDescription>
+                <AlertDescription className="uppercase">{alert}</AlertDescription>
               </Alert>
             ))}
             {lowStockItems > 0 && (
@@ -129,17 +129,17 @@ export default function Index() {
             <CardTitle>AÇÕES RÁPIDAS</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link to="/rh" className="w-full block">
+            <Link to="/admin/rh" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <Users className="mr-2 h-4 w-4" /> GESTÃO DE EQUIPE (RH)
               </Button>
             </Link>
-            <Link to="/estoque" className="w-full block">
+            <Link to="/admin/estoque" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <Package className="mr-2 h-4 w-4" /> ATUALIZAR ESTOQUE
               </Button>
             </Link>
-            <Link to="/rh" className="w-full block">
+            <Link to="/admin/rh" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <FileText className="mr-2 h-4 w-4" /> ROTINAS E MANUAIS
               </Button>

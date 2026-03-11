@@ -24,10 +24,10 @@ export default function EmployeeProfile() {
 
   if (!employee) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-nuvia-navy">Colaborador não encontrado</h2>
-        <Link to="/rh">
-          <Button variant="outline">Voltar para o RH</Button>
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 uppercase">
+        <h2 className="text-2xl font-bold text-nuvia-navy">COLABORADOR NÃO ENCONTRADO</h2>
+        <Link to="/admin/rh">
+          <Button variant="outline">VOLTAR PARA O RH</Button>
         </Link>
       </div>
     )
@@ -36,17 +36,19 @@ export default function EmployeeProfile() {
   const isVacationNear = employee.vacationDaysTotal - employee.vacationDaysTaken < 10
 
   const handleDelete = () => {
-    if (window.confirm(`Tem certeza que deseja remover o colaborador ${employee.name}?`)) {
+    if (
+      window.confirm(`TEM CERTEZA QUE DESEJA REMOVER O COLABORADOR ${employee.name.toUpperCase()}?`)
+    ) {
       deleteEmployee(employee.id)
-      navigate('/rh')
+      navigate('/admin/rh')
     }
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up uppercase">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link to="/rh">
+          <Link to="/admin/rh">
             <Button variant="outline" size="icon" className="shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -60,7 +62,7 @@ export default function EmployeeProfile() {
         </div>
         {isAdmin && (
           <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="h-4 w-4 mr-2" /> Remover Colaborador
+            <Trash2 className="h-4 w-4 mr-2" /> REMOVER COLABORADOR
           </Button>
         )}
       </div>
@@ -68,27 +70,27 @@ export default function EmployeeProfile() {
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle>Dados Cadastrais</CardTitle>
+            <CardTitle>DADOS CADASTRAIS</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-6 sm:grid-cols-2">
             <div className="flex items-center gap-3">
               <Mail className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">Email Profissional</p>
-                <p className="text-sm text-muted-foreground">{employee.email}</p>
+                <p className="text-sm font-medium">EMAIL PROFISSIONAL</p>
+                <p className="text-sm text-muted-foreground lowercase">{employee.email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">Telefone</p>
+                <p className="text-sm font-medium">TELEFONE</p>
                 <p className="text-sm text-muted-foreground">{employee.phone}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Calendar className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">Data de Admissão</p>
+                <p className="text-sm font-medium">DATA DE ADMISSÃO</p>
                 <p className="text-sm text-muted-foreground">
                   {new Date(employee.hireDate).toLocaleDateString('pt-BR')}
                 </p>
@@ -97,18 +99,18 @@ export default function EmployeeProfile() {
             <div className="flex items-center gap-3">
               <DollarSign className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">Salário Base</p>
+                <p className="text-sm font-medium">SALÁRIO BASE</p>
                 <p className="text-sm text-muted-foreground">{employee.salary}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 sm:col-span-2">
               <CalendarDays className="h-8 w-8 text-amber-500/40 bg-amber-500/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">Vencimento de Férias</p>
+                <p className="text-sm font-medium">VENCIMENTO DE FÉRIAS</p>
                 <p className="text-sm text-muted-foreground">
                   {employee.vacationDueDate
                     ? new Date(employee.vacationDueDate).toLocaleDateString('pt-BR')
-                    : 'Não cadastrado'}
+                    : 'NÃO CADASTRADO'}
                 </p>
               </div>
             </div>
@@ -117,14 +119,14 @@ export default function EmployeeProfile() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Controle de Férias</CardTitle>
+            <CardTitle>CONTROLE DE FÉRIAS</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
               <div className="flex justify-between text-sm mb-2 font-medium">
-                <span>Gozados: {employee.vacationDaysTaken} dias</span>
+                <span>GOZADOS: {employee.vacationDaysTaken} DIAS</span>
                 <span className="text-muted-foreground">
-                  Total: {employee.vacationDaysTotal} dias
+                  TOTAL: {employee.vacationDaysTotal} DIAS
                 </span>
               </div>
               <Progress
@@ -136,9 +138,9 @@ export default function EmployeeProfile() {
             {isVacationNear && (
               <Alert variant="destructive" className="bg-destructive/5">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Alerta RH</AlertTitle>
+                <AlertTitle>ALERTA RH</AlertTitle>
                 <AlertDescription>
-                  O período aquisitivo de férias está próximo do vencimento ou do limite.
+                  O PERÍODO AQUISITIVO DE FÉRIAS ESTÁ PRÓXIMO DO VENCIMENTO OU DO LIMITE.
                 </AlertDescription>
               </Alert>
             )}

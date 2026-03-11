@@ -82,7 +82,7 @@ export default function Inventory() {
   }, [inventory])
 
   return (
-    <div className="space-y-6 animate-fade-in-up pb-10">
+    <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-blue-100/80 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
@@ -148,7 +148,7 @@ export default function Inventory() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-blue-600 shadow-sm rounded-xl">
           <CardContent className="p-6">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
               CAPITAL INVESTIDO ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
             </p>
             <div className="text-2xl font-extrabold text-blue-600 truncate">
@@ -158,7 +158,7 @@ export default function Inventory() {
         </Card>
         <Card className="border-l-4 border-l-[#D81B84] shadow-sm rounded-xl">
           <CardContent className="p-6">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
               ITENS EM ESTOQUE ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
             </p>
             <div className="text-2xl font-extrabold text-[#D81B84] truncate">{totalItems}</div>
@@ -166,7 +166,7 @@ export default function Inventory() {
         </Card>
         <Card className="border-l-4 border-l-amber-500 shadow-sm rounded-xl">
           <CardContent className="p-6">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
               ESPECIALIDADE COM MAIOR CAPITAL
             </p>
             <div className="flex flex-col">
@@ -181,7 +181,7 @@ export default function Inventory() {
         </Card>
         <Card className="border-l-4 border-l-emerald-500 shadow-sm rounded-xl">
           <CardContent className="p-6">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
               ESPECIALIDADE COM MAIS ITENS
             </p>
             <div className="flex flex-col">

@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Trash2, Building2, Plus, ShieldAlert, Package, Stethoscope, Users } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AddEmployeeDialog } from '@/components/rh/AddEmployeeDialog'
 
 export default function Settings() {
   const {
@@ -66,7 +67,7 @@ export default function Settings() {
 
   if (!isAdmin) {
     return (
-      <div className="space-y-6 animate-fade-in-up">
+      <div className="space-y-6 animate-fade-in-up uppercase">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">CONFIGURAÇÕES</h1>
           <p className="text-muted-foreground mt-1">GERENCIE AS PARAMETRIZAÇÕES DO SISTEMA.</p>
@@ -85,7 +86,7 @@ export default function Settings() {
   const sortedEmployees = [...employees].sort((a, b) => a.name.localeCompare(b.name))
 
   return (
-    <div className="space-y-6 animate-fade-in-up pb-10">
+    <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">CONFIGURAÇÕES</h1>
         <p className="text-muted-foreground mt-1">
@@ -232,13 +233,16 @@ export default function Settings() {
 
         <TabsContent value="usuarios">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" /> PERMISSÕES DE ACESSO
-              </CardTitle>
-              <CardDescription>
-                DEFINA O NÍVEL DE ACESSO DE CADA COLABORADOR AOS MÓDULOS DO SISTEMA.
-              </CardDescription>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" /> PERMISSÕES DE ACESSO
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  DEFINA O NÍVEL DE ACESSO DE CADA COLABORADOR AOS MÓDULOS DO SISTEMA.
+                </CardDescription>
+              </div>
+              <AddEmployeeDialog triggerText="INCLUIR USUÁRIOS" />
             </CardHeader>
             <CardContent>
               <Table>
@@ -252,8 +256,8 @@ export default function Settings() {
                 <TableBody>
                   {sortedEmployees.map((emp) => (
                     <TableRow key={emp.id}>
-                      <TableCell className="font-medium">{emp.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{emp.role}</TableCell>
+                      <TableCell className="font-medium uppercase">{emp.name}</TableCell>
+                      <TableCell className="text-muted-foreground uppercase">{emp.role}</TableCell>
                       <TableCell>
                         <Select
                           value={emp.agendaAccess || 'VIEW_ONLY'}
@@ -272,7 +276,7 @@ export default function Settings() {
                   ))}
                   {sortedEmployees.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-6">
+                      <TableCell colSpan={3} className="text-center py-6 uppercase">
                         NENHUM COLABORADOR CADASTRADO.
                       </TableCell>
                     </TableRow>

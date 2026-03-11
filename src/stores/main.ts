@@ -16,13 +16,10 @@ export type Employee = {
   email: string
   phone: string
   agendaAccess: AgendaAccess
+  password?: string
 }
 
-export type OnboardingTask = {
-  id: string
-  title: string
-  completed: boolean
-}
+export type OnboardingTask = { id: string; title: string; completed: boolean }
 
 export type OnboardingCandidate = {
   id: string
@@ -32,12 +29,7 @@ export type OnboardingCandidate = {
   tasks: OnboardingTask[]
 }
 
-export type PurchaseRecord = {
-  id: string
-  date: string
-  price: number
-  quantity: number
-}
+export type PurchaseRecord = { id: string; date: string; price: number; quantity: number }
 
 export type InventoryItem = {
   id: string
@@ -58,11 +50,7 @@ export type InventoryItem = {
   purchaseHistory?: PurchaseRecord[]
 }
 
-export type DocumentItem = {
-  id: string
-  name: string
-  date: string
-}
+export type DocumentItem = { id: string; name: string; date: string }
 
 export type AgendaItem = {
   id: string
@@ -82,6 +70,7 @@ export type AccessItem = {
 }
 
 interface AppStore {
+  isAuthenticated: boolean
   isAdmin: boolean
   currentUserId: string | null
   departments: string[]
@@ -94,6 +83,8 @@ interface AppStore {
   documents: DocumentItem[]
   agenda: AgendaItem[]
   acessos: AccessItem[]
+  login: (email: string, pass: string) => boolean
+  logout: () => void
   toggleAdmin: () => void
   setCurrentUser: (id: string | null) => void
   addDepartment: (name: string) => void
@@ -144,6 +135,7 @@ const mockEmployees: Employee[] = [
     email: 'ana.silva@nuvia.com',
     phone: '(11) 98765-4321',
     agendaAccess: 'ADD_EDIT',
+    password: 'password123',
   },
   {
     id: '2',
@@ -159,6 +151,7 @@ const mockEmployees: Employee[] = [
     email: 'carlos.santos@nuvia.com',
     phone: '(11) 99999-8888',
     agendaAccess: 'VIEW_ONLY',
+    password: 'password123',
   },
 ]
 
@@ -252,7 +245,8 @@ const mockAcessos: AccessItem[] = [
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [isAdmin, setIsAdmin] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [departments, setDepartments] = useState<string[]>(mockDepartments)
   const [packageTypes, setPackageTypes] = useState<string[]>(mockPackageTypes)
@@ -264,6 +258,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments)
   const [agenda, setAgenda] = useState<AgendaItem[]>(mockAgenda)
   const [acessos, setAcessos] = useState<AccessItem[]>(mockAcessos)
+
+  const login = useCallback(
+    (email: string, pass: string) => {
+      if (email === 'admin@nuvia.com' && pass === 'admin123') {
+        setIsAdmin(true)
+        setCurrentUserId(null)
+        setIsAuthenticated(true)
+        return true
+      }
+      const emp = employees.find((e) => e.email === email && e.password === pass)
+      if (emp) {
+        setIsAdmin(false)
+        setCurrentUserId(emp.id)
+        setIsAuthenticated(true)
+        return true
+      }
+      return false
+    },
+    [employees],
+  )
+
+  const logout = useCallback(() => {
+    setIsAuthenticated(false)
+    setCurrentUserId(null)
+    setIsAdmin(false)
+  }, [])
 
   const toggleAdmin = useCallback(() => setIsAdmin((prev) => !prev), [])
   const setCurrentUser = useCallback((id: string | null) => setCurrentUserId(id), [])
@@ -399,7 +419,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (id: string) => setDocuments((prev) => prev.filter((d) => d.id !== id)),
     [],
   )
-
   const addAgendaItem = useCallback(
     (item: Omit<AgendaItem, 'id'>) =>
       setAgenda((prev) => [...prev, { ...item, id: Math.random().toString(36) }]),
@@ -409,7 +428,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     (id: string) => setAgenda((prev) => prev.filter((i) => i.id !== id)),
     [],
   )
-
   const addAccess = useCallback(
     (item: Omit<AccessItem, 'id'>) =>
       setAcessos((prev) => [...prev, { ...item, id: Math.random().toString(36) }]),
@@ -422,6 +440,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
+      isAuthenticated,
       isAdmin,
       currentUserId,
       departments,
@@ -434,6 +453,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       documents,
       agenda,
       acessos,
+      login,
+      logout,
       toggleAdmin,
       setCurrentUser,
       addDepartment,
@@ -459,6 +480,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeAccess,
     }),
     [
+      isAuthenticated,
       isAdmin,
       currentUserId,
       departments,
@@ -471,6 +493,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       documents,
       agenda,
       acessos,
+      login,
+      logout,
       toggleAdmin,
       setCurrentUser,
       addDepartment,

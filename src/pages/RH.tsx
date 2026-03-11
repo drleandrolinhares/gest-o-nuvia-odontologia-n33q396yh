@@ -10,7 +10,7 @@ export default function RH() {
   const sortedOnboarding = [...onboarding].sort((a, b) => a.name.localeCompare(b.name))
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up uppercase">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">RECURSOS HUMANOS</h1>
         <p className="text-muted-foreground mt-1">

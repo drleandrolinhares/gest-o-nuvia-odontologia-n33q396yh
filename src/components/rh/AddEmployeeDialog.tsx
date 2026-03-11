@@ -30,22 +30,25 @@ import useAppStore from '@/stores/main'
 import { Plus } from 'lucide-react'
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  role: z.string().min(1, 'Função é obrigatória'),
-  department: z.string().min(1, 'Departamento é obrigatório'),
-  email: z.string().email('E-mail inválido').min(1, 'E-mail é obrigatório'),
-  phone: z.string().min(1, 'Telefone é obrigatório'),
-  salary: z.string().min(1, 'Salário é obrigatório'),
-  hireDate: z.string().min(1, 'Data de admissão é obrigatória'),
-  vacationDueDate: z.string().min(1, 'Vencimento de férias é obrigatório'),
+  name: z.string().min(1, 'OBRIGATÓRIO'),
+  role: z.string().min(1, 'OBRIGATÓRIO'),
+  department: z.string().min(1, 'OBRIGATÓRIO'),
+  email: z.string().email('INVÁLIDO').min(1, 'OBRIGATÓRIO'),
+  password: z.string().min(6, 'MÍN. 6 CARACTERES'),
+  phone: z.string().min(1, 'OBRIGATÓRIO'),
+  salary: z.string().min(1, 'OBRIGATÓRIO'),
+  hireDate: z.string().min(1, 'OBRIGATÓRIO'),
+  vacationDueDate: z.string().min(1, 'OBRIGATÓRIO'),
 })
-
 type FormValues = z.infer<typeof formSchema>
 
-export function AddEmployeeDialog() {
+export function AddEmployeeDialog({
+  triggerText = 'ADICIONAR COLABORADOR',
+}: {
+  triggerText?: string
+}) {
   const { addEmployee, departments } = useAppStore()
   const [open, setOpen] = useState(false)
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,6 +56,7 @@ export function AddEmployeeDialog() {
       role: '',
       department: '',
       email: '',
+      password: '',
       phone: '',
       salary: '',
       hireDate: new Date().toISOString().split('T')[0],
@@ -62,9 +66,9 @@ export function AddEmployeeDialog() {
     },
   })
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = (v: FormValues) => {
     addEmployee({
-      ...values,
+      ...v,
       status: 'Ativo',
       vacationDaysTaken: 0,
       vacationDaysTotal: 30,
@@ -74,24 +78,25 @@ export function AddEmployeeDialog() {
     form.reset()
   }
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen)
-    if (!newOpen) form.reset()
-  }
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o)
+        if (!o) form.reset()
+      }}
+    >
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" /> ADICIONAR COLABORADOR
+        <Button className="uppercase">
+          <Plus className="h-4 w-4 mr-2" /> {triggerText}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg uppercase">
         <DialogHeader>
-          <DialogTitle>NOVO COLABORADOR</DialogTitle>
+          <DialogTitle>NOVO COLABORADOR / USUÁRIO</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -132,16 +137,11 @@ export function AddEmployeeDialog() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {departments.map((d) => (
+                        {[...departments].sort().map((d) => (
                           <SelectItem key={d} value={d}>
-                            {d}
+                            {d.toUpperCase()}
                           </SelectItem>
                         ))}
-                        {departments.length === 0 && (
-                          <div className="p-2 text-sm text-muted-foreground text-center">
-                            NENHUM DEPARTAMENTO
-                          </div>
-                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -165,6 +165,21 @@ export function AddEmployeeDialog() {
               />
               <FormField
                 control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SENHA DE ACESSO</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
@@ -176,16 +191,14 @@ export function AddEmployeeDialog() {
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SALÁRIO BRUTO</FormLabel>
+                    <FormLabel>SALÁRIO</FormLabel>
                     <FormControl>
-                      <Input placeholder="R$ 0,00" {...field} />
+                      <Input placeholder="R$" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -196,20 +209,7 @@ export function AddEmployeeDialog() {
                 name="hireDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>DATA DE ADMISSÃO</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="vacationDueDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>VENC. DE FÉRIAS</FormLabel>
+                    <FormLabel>ADMISSÃO</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -218,11 +218,11 @@ export function AddEmployeeDialog() {
                 )}
               />
             </div>
-            <div className="pt-4 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 CANCELAR
               </Button>
-              <Button type="submit">SALVAR E INICIAR ONBOARDING</Button>
+              <Button type="submit">SALVAR COLABORADOR</Button>
             </div>
           </form>
         </Form>
