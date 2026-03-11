@@ -553,9 +553,9 @@ var require_react_development = /* @__PURE__ */ __commonJSMin(((exports, module)
 		}
 		function mapChildren(children, func, context) {
 			if (null == children) return children;
-			var result = [], count$2 = 0;
+			var result = [], count$3 = 0;
 			mapIntoArray(children, result, "", "", function(child) {
-				return func.call(context, child, count$2++);
+				return func.call(context, child, count$3++);
 			});
 			return result;
 		}
@@ -1036,11 +1036,11 @@ var require_react_development = /* @__PURE__ */ __commonJSMin(((exports, module)
 		exports.useMemo = function(create, deps) {
 			return resolveDispatcher().useMemo(create, deps);
 		};
-		exports.useOptimistic = function(passthrough, reducer) {
-			return resolveDispatcher().useOptimistic(passthrough, reducer);
+		exports.useOptimistic = function(passthrough, reducer$1) {
+			return resolveDispatcher().useOptimistic(passthrough, reducer$1);
 		};
-		exports.useReducer = function(reducer, initialArg, init) {
-			return resolveDispatcher().useReducer(reducer, initialArg, init);
+		exports.useReducer = function(reducer$1, initialArg, init) {
+			return resolveDispatcher().useReducer(reducer$1, initialArg, init);
 		};
 		exports.useRef = function(initialValue) {
 			return resolveDispatcher().useRef(initialValue);
@@ -4363,30 +4363,30 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		function pingEngtangledActionScope() {
 			if (0 === --currentEntangledPendingCount && (-1 < transitionUpdateTime || (transitionStartTime = -1.1), null !== currentEntangledListeners)) {
 				null !== currentEntangledActionThenable && (currentEntangledActionThenable.status = "fulfilled");
-				var listeners = currentEntangledListeners;
+				var listeners$1 = currentEntangledListeners;
 				currentEntangledListeners = null;
 				currentEntangledLane = 0;
 				currentEntangledActionThenable = null;
-				for (var i$2 = 0; i$2 < listeners.length; i$2++) (0, listeners[i$2])();
+				for (var i$2 = 0; i$2 < listeners$1.length; i$2++) (0, listeners$1[i$2])();
 			}
 		}
 		function chainThenableValue(thenable, result) {
-			var listeners = [], thenableWithOverride = {
+			var listeners$1 = [], thenableWithOverride = {
 				status: "pending",
 				value: null,
 				reason: null,
 				then: function(resolve) {
-					listeners.push(resolve);
+					listeners$1.push(resolve);
 				}
 			};
 			thenable.then(function() {
 				thenableWithOverride.status = "fulfilled";
 				thenableWithOverride.value = result;
-				for (var i$2 = 0; i$2 < listeners.length; i$2++) (0, listeners[i$2])(result);
+				for (var i$2 = 0; i$2 < listeners$1.length; i$2++) (0, listeners$1[i$2])(result);
 			}, function(error) {
 				thenableWithOverride.status = "rejected";
 				thenableWithOverride.reason = error;
-				for (error = 0; error < listeners.length; error++) (0, listeners[error])(void 0);
+				for (error = 0; error < listeners$1.length; error++) (0, listeners$1[error])(void 0);
 			});
 			return thenableWithOverride;
 		}
@@ -5376,7 +5376,7 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		function basicStateReducer(state, action) {
 			return "function" === typeof action ? action(state) : action;
 		}
-		function mountReducer(reducer, initialArg, init) {
+		function mountReducer(reducer$1, initialArg, init) {
 			var hook = mountWorkInProgressHook();
 			if (void 0 !== init) {
 				var initialState = init(initialArg);
@@ -5390,24 +5390,24 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				}
 			} else initialState = initialArg;
 			hook.memoizedState = hook.baseState = initialState;
-			reducer = {
+			reducer$1 = {
 				pending: null,
 				lanes: 0,
 				dispatch: null,
-				lastRenderedReducer: reducer,
+				lastRenderedReducer: reducer$1,
 				lastRenderedState: initialState
 			};
-			hook.queue = reducer;
-			reducer = reducer.dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber, reducer);
-			return [hook.memoizedState, reducer];
+			hook.queue = reducer$1;
+			reducer$1 = reducer$1.dispatch = dispatchReducerAction.bind(null, currentlyRenderingFiber, reducer$1);
+			return [hook.memoizedState, reducer$1];
 		}
-		function updateReducer(reducer) {
-			return updateReducerImpl(updateWorkInProgressHook(), currentHook, reducer);
+		function updateReducer(reducer$1) {
+			return updateReducerImpl(updateWorkInProgressHook(), currentHook, reducer$1);
 		}
-		function updateReducerImpl(hook, current$1, reducer) {
+		function updateReducerImpl(hook, current$1, reducer$1) {
 			var queue = hook.queue;
 			if (null === queue) throw Error("Should have a queue. You are likely calling Hooks conditionally, which is not allowed. (https://react.dev/link/invalid-hook-call)");
-			queue.lastRenderedReducer = reducer;
+			queue.lastRenderedReducer = reducer$1;
 			var baseQueue = hook.baseQueue, pendingQueue = queue.pending;
 			if (null !== pendingQueue) {
 				if (null !== baseQueue) {
@@ -5451,8 +5451,8 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 							next: null
 						}, null === newBaseQueueLast ? (newBaseQueueFirst = newBaseQueueLast = updateLane, baseFirst = pendingQueue) : newBaseQueueLast = newBaseQueueLast.next = updateLane, currentlyRenderingFiber.lanes |= revertLane, workInProgressRootSkippedLanes |= revertLane;
 						updateLane = update.action;
-						shouldDoubleInvokeUserFnsInHooksDEV && reducer(pendingQueue, updateLane);
-						pendingQueue = update.hasEagerState ? update.eagerState : reducer(pendingQueue, updateLane);
+						shouldDoubleInvokeUserFnsInHooksDEV && reducer$1(pendingQueue, updateLane);
+						pendingQueue = update.hasEagerState ? update.eagerState : reducer$1(pendingQueue, updateLane);
 					} else revertLane = {
 						lane: updateLane,
 						revertLane: update.revertLane,
@@ -5465,7 +5465,7 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					update = update.next;
 				} while (null !== update && update !== current$1);
 				null === newBaseQueueLast ? baseFirst = pendingQueue : newBaseQueueLast.next = newBaseQueueFirst;
-				if (!objectIs(pendingQueue, hook.memoizedState) && (didReceiveUpdate = !0, didReadFromEntangledAsyncAction$1 && (reducer = currentEntangledActionThenable, null !== reducer))) throw reducer;
+				if (!objectIs(pendingQueue, hook.memoizedState) && (didReceiveUpdate = !0, didReadFromEntangledAsyncAction$1 && (reducer$1 = currentEntangledActionThenable, null !== reducer$1))) throw reducer$1;
 				hook.memoizedState = pendingQueue;
 				hook.baseState = baseFirst;
 				hook.baseQueue = newBaseQueueLast;
@@ -5474,23 +5474,23 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			null === baseQueue && (queue.lanes = 0);
 			return [hook.memoizedState, queue.dispatch];
 		}
-		function rerenderReducer(reducer) {
+		function rerenderReducer(reducer$1) {
 			var hook = updateWorkInProgressHook(), queue = hook.queue;
 			if (null === queue) throw Error("Should have a queue. You are likely calling Hooks conditionally, which is not allowed. (https://react.dev/link/invalid-hook-call)");
-			queue.lastRenderedReducer = reducer;
-			var dispatch = queue.dispatch, lastRenderPhaseUpdate = queue.pending, newState = hook.memoizedState;
+			queue.lastRenderedReducer = reducer$1;
+			var dispatch$1 = queue.dispatch, lastRenderPhaseUpdate = queue.pending, newState = hook.memoizedState;
 			if (null !== lastRenderPhaseUpdate) {
 				queue.pending = null;
 				var update = lastRenderPhaseUpdate = lastRenderPhaseUpdate.next;
 				do
-					newState = reducer(newState, update.action), update = update.next;
+					newState = reducer$1(newState, update.action), update = update.next;
 				while (update !== lastRenderPhaseUpdate);
 				objectIs(newState, hook.memoizedState) || (didReceiveUpdate = !0);
 				hook.memoizedState = newState;
 				null === hook.baseQueue && (hook.baseState = newState);
 				queue.lastRenderedState = newState;
 			}
-			return [newState, dispatch];
+			return [newState, dispatch$1];
 		}
 		function mountSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
 			var fiber = currentlyRenderingFiber, hook = mountWorkInProgressHook();
@@ -5594,9 +5594,9 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		}
 		function mountState(initialState) {
 			initialState = mountStateImpl(initialState);
-			var queue = initialState.queue, dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
-			queue.dispatch = dispatch;
-			return [initialState.memoizedState, dispatch];
+			var queue = initialState.queue, dispatch$1 = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
+			queue.dispatch = dispatch$1;
+			return [initialState.memoizedState, dispatch$1];
 		}
 		function mountOptimistic(passthrough) {
 			var hook = mountWorkInProgressHook();
@@ -5613,16 +5613,16 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			queue.dispatch = hook;
 			return [passthrough, hook];
 		}
-		function updateOptimistic(passthrough, reducer) {
-			return updateOptimisticImpl(updateWorkInProgressHook(), currentHook, passthrough, reducer);
+		function updateOptimistic(passthrough, reducer$1) {
+			return updateOptimisticImpl(updateWorkInProgressHook(), currentHook, passthrough, reducer$1);
 		}
-		function updateOptimisticImpl(hook, current$1, passthrough, reducer) {
+		function updateOptimisticImpl(hook, current$1, passthrough, reducer$1) {
 			hook.baseState = passthrough;
-			return updateReducerImpl(hook, currentHook, "function" === typeof reducer ? reducer : basicStateReducer);
+			return updateReducerImpl(hook, currentHook, "function" === typeof reducer$1 ? reducer$1 : basicStateReducer);
 		}
-		function rerenderOptimistic(passthrough, reducer) {
+		function rerenderOptimistic(passthrough, reducer$1) {
 			var hook = updateWorkInProgressHook();
-			if (null !== currentHook) return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+			if (null !== currentHook) return updateOptimisticImpl(hook, currentHook, passthrough, reducer$1);
 			hook.baseState = passthrough;
 			return [passthrough, hook.queue.dispatch];
 		}
@@ -5785,11 +5785,11 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			}
 			else state = currentStateHook;
 			currentStateHook = updateWorkInProgressHook();
-			var actionQueue = currentStateHook.queue, dispatch = actionQueue.dispatch;
+			var actionQueue = currentStateHook.queue, dispatch$1 = actionQueue.dispatch;
 			action !== currentStateHook.memoizedState && (currentlyRenderingFiber.flags |= 2048, pushSimpleEffect(HasEffect | Passive, { destroy: void 0 }, actionStateActionEffect.bind(null, actionQueue, action), null));
 			return [
 				state,
-				dispatch,
+				dispatch$1,
 				stateHook
 			];
 		}
@@ -5802,11 +5802,11 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			updateWorkInProgressHook();
 			stateHook = stateHook.memoizedState;
 			currentStateHook = updateWorkInProgressHook();
-			var dispatch = currentStateHook.queue.dispatch;
+			var dispatch$1 = currentStateHook.queue.dispatch;
 			currentStateHook.memoizedState = action;
 			return [
 				stateHook,
-				dispatch,
+				dispatch$1,
 				!1
 			];
 		}
@@ -10449,11 +10449,11 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			};
 		}
 		function accumulateTwoPhaseListeners(targetFiber, reactName) {
-			for (var captureName = reactName + "Capture", listeners = []; null !== targetFiber;) {
+			for (var captureName = reactName + "Capture", listeners$1 = []; null !== targetFiber;) {
 				var _instance3 = targetFiber, stateNode = _instance3.stateNode;
 				_instance3 = _instance3.tag;
-				5 !== _instance3 && 26 !== _instance3 && 27 !== _instance3 || null === stateNode || (_instance3 = getListener(targetFiber, captureName), null != _instance3 && listeners.unshift(createDispatchListener(targetFiber, _instance3, stateNode)), _instance3 = getListener(targetFiber, reactName), null != _instance3 && listeners.push(createDispatchListener(targetFiber, _instance3, stateNode)));
-				if (3 === targetFiber.tag) return listeners;
+				5 !== _instance3 && 26 !== _instance3 && 27 !== _instance3 || null === stateNode || (_instance3 = getListener(targetFiber, captureName), null != _instance3 && listeners$1.unshift(createDispatchListener(targetFiber, _instance3, stateNode)), _instance3 = getListener(targetFiber, reactName), null != _instance3 && listeners$1.push(createDispatchListener(targetFiber, _instance3, stateNode)));
+				if (3 === targetFiber.tag) return listeners$1;
 				targetFiber = targetFiber.return;
 			}
 			return [];
@@ -10466,16 +10466,16 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			return inst ? inst : null;
 		}
 		function accumulateEnterLeaveListenersForEvent(dispatchQueue, event, target, common, inCapturePhase) {
-			for (var registrationName = event._reactName, listeners = []; null !== target && target !== common;) {
+			for (var registrationName = event._reactName, listeners$1 = []; null !== target && target !== common;) {
 				var _instance4 = target, alternate = _instance4.alternate, stateNode = _instance4.stateNode;
 				_instance4 = _instance4.tag;
 				if (null !== alternate && alternate === common) break;
-				5 !== _instance4 && 26 !== _instance4 && 27 !== _instance4 || null === stateNode || (alternate = stateNode, inCapturePhase ? (stateNode = getListener(target, registrationName), null != stateNode && listeners.unshift(createDispatchListener(target, stateNode, alternate))) : inCapturePhase || (stateNode = getListener(target, registrationName), null != stateNode && listeners.push(createDispatchListener(target, stateNode, alternate))));
+				5 !== _instance4 && 26 !== _instance4 && 27 !== _instance4 || null === stateNode || (alternate = stateNode, inCapturePhase ? (stateNode = getListener(target, registrationName), null != stateNode && listeners$1.unshift(createDispatchListener(target, stateNode, alternate))) : inCapturePhase || (stateNode = getListener(target, registrationName), null != stateNode && listeners$1.push(createDispatchListener(target, stateNode, alternate))));
 				target = target.return;
 			}
-			0 !== listeners.length && dispatchQueue.push({
+			0 !== listeners$1.length && dispatchQueue.push({
 				event,
-				listeners
+				listeners: listeners$1
 			});
 		}
 		function validatePropertiesInDevelopment(type, props) {
@@ -11465,7 +11465,7 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		}
 		function estimateBandwidth() {
 			if ("function" === typeof performance.getEntriesByType) {
-				for (var count$2 = 0, bits = 0, resourceEntries = performance.getEntriesByType("resource"), i$2 = 0; i$2 < resourceEntries.length; i$2++) {
+				for (var count$3 = 0, bits = 0, resourceEntries = performance.getEntriesByType("resource"), i$2 = 0; i$2 < resourceEntries.length; i$2++) {
 					var entry = resourceEntries[i$2], transferSize = entry.transferSize, initiatorType = entry.initiatorType, duration$2 = entry.duration;
 					if (transferSize && duration$2 && isLikelyStaticResource(initiatorType)) {
 						initiatorType = 0;
@@ -11478,13 +11478,13 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 						}
 						--i$2;
 						bits += 8 * (transferSize + initiatorType) / (entry.duration / 1e3);
-						count$2++;
-						if (10 < count$2) break;
+						count$3++;
+						if (10 < count$3) break;
 					}
 				}
-				if (0 < count$2) return bits / count$2 / 1e6;
+				if (0 < count$3) return bits / count$3 / 1e6;
 			}
-			return navigator.connection && (count$2 = navigator.connection.downlink, "number" === typeof count$2) ? count$2 : 5;
+			return navigator.connection && (count$3 = navigator.connection.downlink, "number" === typeof count$3) ? count$3 : 5;
 		}
 		function getOwnerDocumentFromRootContainer(rootContainerElement) {
 			return 9 === rootContainerElement.nodeType ? rootContainerElement : rootContainerElement.ownerDocument;
@@ -13729,15 +13729,15 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		var rendererCursorDEV = createCursor(null);
 		var rendererSigil = {};
 		var currentlyRenderingFiber$1 = null, lastContextDependency = null, isDisallowedContextReadInDEV = !1, AbortControllerLocal = "undefined" !== typeof AbortController ? AbortController : function() {
-			var listeners = [], signal = this.signal = {
+			var listeners$1 = [], signal = this.signal = {
 				aborted: !1,
 				addEventListener: function(type, listener) {
-					listeners.push(listener);
+					listeners$1.push(listener);
 				}
 			};
 			this.abort = function() {
 				signal.aborted = !0;
-				listeners.forEach(function(listener) {
+				listeners$1.forEach(function(listener) {
 					return listener();
 				});
 			};
@@ -14013,13 +14013,13 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					ReactSharedInternals.H = prevDispatcher;
 				}
 			},
-			useReducer: function(reducer, initialArg, init) {
+			useReducer: function(reducer$1, initialArg, init) {
 				currentHookNameInDev = "useReducer";
 				mountHookTypesDev();
 				var prevDispatcher = ReactSharedInternals.H;
 				ReactSharedInternals.H = InvalidNestedHooksDispatcherOnMountInDEV;
 				try {
-					return mountReducer(reducer, initialArg, init);
+					return mountReducer(reducer$1, initialArg, init);
 				} finally {
 					ReactSharedInternals.H = prevDispatcher;
 				}
@@ -14139,13 +14139,13 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					ReactSharedInternals.H = prevDispatcher;
 				}
 			},
-			useReducer: function(reducer, initialArg, init) {
+			useReducer: function(reducer$1, initialArg, init) {
 				currentHookNameInDev = "useReducer";
 				updateHookTypesDev();
 				var prevDispatcher = ReactSharedInternals.H;
 				ReactSharedInternals.H = InvalidNestedHooksDispatcherOnMountInDEV;
 				try {
-					return mountReducer(reducer, initialArg, init);
+					return mountReducer(reducer$1, initialArg, init);
 				} finally {
 					ReactSharedInternals.H = prevDispatcher;
 				}
@@ -14265,13 +14265,13 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					ReactSharedInternals.H = prevDispatcher;
 				}
 			},
-			useReducer: function(reducer, initialArg, init) {
+			useReducer: function(reducer$1, initialArg, init) {
 				currentHookNameInDev = "useReducer";
 				updateHookTypesDev();
 				var prevDispatcher = ReactSharedInternals.H;
 				ReactSharedInternals.H = InvalidNestedHooksDispatcherOnUpdateInDEV;
 				try {
-					return updateReducer(reducer, initialArg, init);
+					return updateReducer(reducer$1, initialArg, init);
 				} finally {
 					ReactSharedInternals.H = prevDispatcher;
 				}
@@ -14327,10 +14327,10 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				updateHookTypesDev();
 				return updateActionState(action);
 			},
-			useOptimistic: function(passthrough, reducer) {
+			useOptimistic: function(passthrough, reducer$1) {
 				currentHookNameInDev = "useOptimistic";
 				updateHookTypesDev();
-				return updateOptimistic(passthrough, reducer);
+				return updateOptimistic(passthrough, reducer$1);
 			},
 			useHostTransitionStatus,
 			useMemoCache,
@@ -14391,13 +14391,13 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					ReactSharedInternals.H = prevDispatcher;
 				}
 			},
-			useReducer: function(reducer, initialArg, init) {
+			useReducer: function(reducer$1, initialArg, init) {
 				currentHookNameInDev = "useReducer";
 				updateHookTypesDev();
 				var prevDispatcher = ReactSharedInternals.H;
 				ReactSharedInternals.H = InvalidNestedHooksDispatcherOnRerenderInDEV;
 				try {
-					return rerenderReducer(reducer, initialArg, init);
+					return rerenderReducer(reducer$1, initialArg, init);
 				} finally {
 					ReactSharedInternals.H = prevDispatcher;
 				}
@@ -14453,10 +14453,10 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				updateHookTypesDev();
 				return rerenderActionState(action);
 			},
-			useOptimistic: function(passthrough, reducer) {
+			useOptimistic: function(passthrough, reducer$1) {
 				currentHookNameInDev = "useOptimistic";
 				updateHookTypesDev();
-				return rerenderOptimistic(passthrough, reducer);
+				return rerenderOptimistic(passthrough, reducer$1);
 			},
 			useHostTransitionStatus,
 			useMemoCache,
@@ -14528,14 +14528,14 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					ReactSharedInternals.H = prevDispatcher;
 				}
 			},
-			useReducer: function(reducer, initialArg, init) {
+			useReducer: function(reducer$1, initialArg, init) {
 				currentHookNameInDev = "useReducer";
 				warnInvalidHookAccess();
 				mountHookTypesDev();
 				var prevDispatcher = ReactSharedInternals.H;
 				ReactSharedInternals.H = InvalidNestedHooksDispatcherOnMountInDEV;
 				try {
-					return mountReducer(reducer, initialArg, init);
+					return mountReducer(reducer$1, initialArg, init);
 				} finally {
 					ReactSharedInternals.H = prevDispatcher;
 				}
@@ -14679,14 +14679,14 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					ReactSharedInternals.H = prevDispatcher;
 				}
 			},
-			useReducer: function(reducer, initialArg, init) {
+			useReducer: function(reducer$1, initialArg, init) {
 				currentHookNameInDev = "useReducer";
 				warnInvalidHookAccess();
 				updateHookTypesDev();
 				var prevDispatcher = ReactSharedInternals.H;
 				ReactSharedInternals.H = InvalidNestedHooksDispatcherOnUpdateInDEV;
 				try {
-					return updateReducer(reducer, initialArg, init);
+					return updateReducer(reducer$1, initialArg, init);
 				} finally {
 					ReactSharedInternals.H = prevDispatcher;
 				}
@@ -14750,11 +14750,11 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				updateHookTypesDev();
 				return updateActionState(action);
 			},
-			useOptimistic: function(passthrough, reducer) {
+			useOptimistic: function(passthrough, reducer$1) {
 				currentHookNameInDev = "useOptimistic";
 				warnInvalidHookAccess();
 				updateHookTypesDev();
-				return updateOptimistic(passthrough, reducer);
+				return updateOptimistic(passthrough, reducer$1);
 			},
 			useMemoCache: function(size$3) {
 				warnInvalidHookAccess();
@@ -14830,14 +14830,14 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 					ReactSharedInternals.H = prevDispatcher;
 				}
 			},
-			useReducer: function(reducer, initialArg, init) {
+			useReducer: function(reducer$1, initialArg, init) {
 				currentHookNameInDev = "useReducer";
 				warnInvalidHookAccess();
 				updateHookTypesDev();
 				var prevDispatcher = ReactSharedInternals.H;
 				ReactSharedInternals.H = InvalidNestedHooksDispatcherOnUpdateInDEV;
 				try {
-					return rerenderReducer(reducer, initialArg, init);
+					return rerenderReducer(reducer$1, initialArg, init);
 				} finally {
 					ReactSharedInternals.H = prevDispatcher;
 				}
@@ -14901,11 +14901,11 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				updateHookTypesDev();
 				return rerenderActionState(action);
 			},
-			useOptimistic: function(passthrough, reducer) {
+			useOptimistic: function(passthrough, reducer$1) {
 				currentHookNameInDev = "useOptimistic";
 				warnInvalidHookAccess();
 				updateHookTypesDev();
-				return rerenderOptimistic(passthrough, reducer);
+				return rerenderOptimistic(passthrough, reducer$1);
 			},
 			useMemoCache: function(size$3) {
 				warnInvalidHookAccess();
@@ -20444,6 +20444,19 @@ function AppProvider({ children }) {
 		const item = storeRef.current.inventory.find((i$2) => i$2.id === id);
 		logAction(`ATUALIZOU ESTOQUE DO PRODUTO: ${item ? item.name : id} PARA ${newQuantity}`);
 	}, [logAction]);
+	const wipeInventory = (0, import_react.useCallback)(async () => {
+		if (!storeRef.current.isAdmin) return false;
+		setInventory([]);
+		storeRef.current.inventory = [];
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				if (storeRef.current.inventory.length === 0) {
+					logAction("LIMPADO TODO O ESTOQUE DO SISTEMA (RESET DE INVENTÁRIO)");
+					resolve(true);
+				} else resolve(false);
+			}, 300);
+		});
+	}, [logAction]);
 	const addPurchaseHistory = (0, import_react.useCallback)((itemId, record) => {
 		setInventory((prev) => prev.map((item$1) => {
 			if (item$1.id === itemId) {
@@ -20644,6 +20657,7 @@ function AppProvider({ children }) {
 		toggleTask,
 		addInventoryItem,
 		updateInventoryQuantity,
+		wipeInventory,
 		addPurchaseHistory,
 		addEmployee,
 		deleteEmployee,
@@ -20697,6 +20711,7 @@ function AppProvider({ children }) {
 		toggleTask,
 		addInventoryItem,
 		updateInventoryQuantity,
+		wipeInventory,
 		addPurchaseHistory,
 		addEmployee,
 		deleteEmployee,
@@ -20815,11 +20830,11 @@ function composeContextScopes$1(...scopes) {
 }
 var useLayoutEffect2 = globalThis?.document ? import_react.useLayoutEffect : () => {};
 var useReactId = import_react[" useId ".trim().toString()] || (() => void 0);
-var count$1 = 0;
+var count$2 = 0;
 function useId(deterministicId) {
 	const [id, setId] = import_react.useState(useReactId());
 	useLayoutEffect2(() => {
-		if (!deterministicId) setId((reactId) => reactId ?? String(count$1++));
+		if (!deterministicId) setId((reactId) => reactId ?? String(count$2++));
 	}, [deterministicId]);
 	return deterministicId || (id ? `radix-${id}` : "");
 }
@@ -21383,7 +21398,7 @@ function removeLinks(items) {
 	return items.filter((item) => item.tagName !== "A");
 }
 var import_react_dom$3 = /* @__PURE__ */ __toESM(require_react_dom(), 1);
-var PORTAL_NAME$4 = "Portal";
+var PORTAL_NAME$5 = "Portal";
 var Portal = import_react.forwardRef((props, forwardedRef) => {
 	const { container: containerProp, ...portalProps } = props;
 	const [mounted, setMounted] = import_react.useState(false);
@@ -21394,7 +21409,7 @@ var Portal = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	}), container) : null;
 });
-Portal.displayName = PORTAL_NAME$4;
+Portal.displayName = PORTAL_NAME$5;
 function useStateMachine(initialState, machine) {
 	return import_react.useReducer((state, event) => {
 		return machine[state][event] ?? state;
@@ -21492,16 +21507,16 @@ function getElementRef(element) {
 	if (mayWarn) return element.props.ref;
 	return element.props.ref || element.ref;
 }
-var count = 0;
+var count$1 = 0;
 function useFocusGuards() {
 	import_react.useEffect(() => {
 		const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
 		document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
 		document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
-		count++;
+		count$1++;
 		return () => {
-			if (count === 1) document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
-			count--;
+			if (count$1 === 1) document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
+			count$1--;
 		};
 	}, []);
 }
@@ -22235,10 +22250,10 @@ var Dialog$1 = (props) => {
 	});
 };
 Dialog$1.displayName = DIALOG_NAME;
-var TRIGGER_NAME$5 = "DialogTrigger";
+var TRIGGER_NAME$6 = "DialogTrigger";
 var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...triggerProps } = props;
-	const context = useDialogContext(TRIGGER_NAME$5, __scopeDialog);
+	const context = useDialogContext(TRIGGER_NAME$6, __scopeDialog);
 	const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
 		type: "button",
@@ -22251,12 +22266,12 @@ var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
 	});
 });
-DialogTrigger$1.displayName = TRIGGER_NAME$5;
-var PORTAL_NAME$3 = "DialogPortal";
-var [PortalProvider$2, usePortalContext$2] = createDialogContext(PORTAL_NAME$3, { forceMount: void 0 });
+DialogTrigger$1.displayName = TRIGGER_NAME$6;
+var PORTAL_NAME$4 = "DialogPortal";
+var [PortalProvider$2, usePortalContext$2] = createDialogContext(PORTAL_NAME$4, { forceMount: void 0 });
 var DialogPortal$1 = (props) => {
 	const { __scopeDialog, forceMount, children, container } = props;
-	const context = useDialogContext(PORTAL_NAME$3, __scopeDialog);
+	const context = useDialogContext(PORTAL_NAME$4, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider$2, {
 		scope: __scopeDialog,
 		forceMount,
@@ -22270,12 +22285,12 @@ var DialogPortal$1 = (props) => {
 		}))
 	});
 };
-DialogPortal$1.displayName = PORTAL_NAME$3;
-var OVERLAY_NAME = "DialogOverlay";
+DialogPortal$1.displayName = PORTAL_NAME$4;
+var OVERLAY_NAME$1 = "DialogOverlay";
 var DialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext$2(OVERLAY_NAME, props.__scopeDialog);
+	const portalContext = usePortalContext$2(OVERLAY_NAME$1, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...overlayProps } = props;
-	const context = useDialogContext(OVERLAY_NAME, props.__scopeDialog);
+	const context = useDialogContext(OVERLAY_NAME$1, props.__scopeDialog);
 	return context.modal ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlayImpl, {
@@ -22284,11 +22299,11 @@ var DialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	}) : null;
 });
-DialogOverlay$1.displayName = OVERLAY_NAME;
+DialogOverlay$1.displayName = OVERLAY_NAME$1;
 var Slot$3 = /* @__PURE__ */ createSlot("DialogOverlay.RemoveScroll");
 var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...overlayProps } = props;
-	const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
+	const context = useDialogContext(OVERLAY_NAME$1, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Combination_default, {
 		as: Slot$3,
 		allowPinchZoom: true,
@@ -22304,11 +22319,11 @@ var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-var CONTENT_NAME$5 = "DialogContent";
+var CONTENT_NAME$6 = "DialogContent";
 var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext$2(CONTENT_NAME$5, props.__scopeDialog);
+	const portalContext = usePortalContext$2(CONTENT_NAME$6, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$5, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$6, props.__scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: context.modal ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentModal, {
@@ -22320,9 +22335,9 @@ var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-DialogContent$1.displayName = CONTENT_NAME$5;
+DialogContent$1.displayName = CONTENT_NAME$6;
 var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$5, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$6, props.__scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
 	import_react.useEffect(() => {
@@ -22347,7 +22362,7 @@ var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$5, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$6, props.__scopeDialog);
 	const hasInteractedOutsideRef = import_react.useRef(false);
 	const hasPointerDownOutsideRef = import_react.useRef(false);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentImpl, {
@@ -22378,7 +22393,7 @@ var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
 });
 var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$5, __scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$6, __scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, contentRef);
 	useFocusGuards();
@@ -22398,33 +22413,33 @@ var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 			ref: composedRefs,
 			onDismiss: () => context.onOpenChange(false)
 		})
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TitleWarning, { titleId: context.titleId }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning, {
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TitleWarning, { titleId: context.titleId }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning$1, {
 		contentRef,
 		descriptionId: context.descriptionId
 	})] })] });
 });
-var TITLE_NAME = "DialogTitle";
+var TITLE_NAME$1 = "DialogTitle";
 var DialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...titleProps } = props;
-	const context = useDialogContext(TITLE_NAME, __scopeDialog);
+	const context = useDialogContext(TITLE_NAME$1, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.h2, {
 		id: context.titleId,
 		...titleProps,
 		ref: forwardedRef
 	});
 });
-DialogTitle$1.displayName = TITLE_NAME;
-var DESCRIPTION_NAME = "DialogDescription";
+DialogTitle$1.displayName = TITLE_NAME$1;
+var DESCRIPTION_NAME$1 = "DialogDescription";
 var DialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...descriptionProps } = props;
-	const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
+	const context = useDialogContext(DESCRIPTION_NAME$1, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.p, {
 		id: context.descriptionId,
 		...descriptionProps,
 		ref: forwardedRef
 	});
 });
-DialogDescription$1.displayName = DESCRIPTION_NAME;
+DialogDescription$1.displayName = DESCRIPTION_NAME$1;
 var CLOSE_NAME$1 = "DialogClose";
 var DialogClose$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...closeProps } = props;
@@ -22442,8 +22457,8 @@ function getState$3(open) {
 }
 var TITLE_WARNING_NAME = "DialogTitleWarning";
 var [WarningProvider, useWarningContext] = createContext2(TITLE_WARNING_NAME, {
-	contentName: CONTENT_NAME$5,
-	titleName: TITLE_NAME,
+	contentName: CONTENT_NAME$6,
+	titleName: TITLE_NAME$1,
 	docsSlug: "dialog"
 });
 var TitleWarning = ({ titleId }) => {
@@ -22461,7 +22476,7 @@ For more information, see https://radix-ui.com/primitives/docs/components/${titl
 	return null;
 };
 var DESCRIPTION_WARNING_NAME = "DialogDescriptionWarning";
-var DescriptionWarning = ({ contentRef, descriptionId }) => {
+var DescriptionWarning$1 = ({ contentRef, descriptionId }) => {
 	const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${useWarningContext(DESCRIPTION_WARNING_NAME).contentName}}.`;
 	import_react.useEffect(() => {
 		const describedById = contentRef.current?.getAttribute("aria-describedby");
@@ -22825,12 +22840,12 @@ var formatDistanceLocale$1 = {
 		other: "almost {{count}} years"
 	}
 };
-const formatDistance$1 = (token, count$2, options$1) => {
+const formatDistance$1 = (token, count$3, options$1) => {
 	let result;
 	const tokenValue = formatDistanceLocale$1[token];
 	if (typeof tokenValue === "string") result = tokenValue;
-	else if (count$2 === 1) result = tokenValue.one;
-	else result = tokenValue.other.replace("{{count}}", count$2.toString());
+	else if (count$3 === 1) result = tokenValue.one;
+	else result = tokenValue.other.replace("{{count}}", count$3.toString());
 	if (options$1?.addSuffix) if (options$1.comparison && options$1.comparison > 0) return "in " + result;
 	else return result + " ago";
 	return result;
@@ -24185,12 +24200,12 @@ var formatDistanceLocale = {
 		other: "quase {{count}} anos"
 	}
 };
-const formatDistance = (token, count$2, options$1) => {
+const formatDistance = (token, count$3, options$1) => {
 	let result;
 	const tokenValue = formatDistanceLocale[token];
 	if (typeof tokenValue === "string") result = tokenValue;
-	else if (count$2 === 1) result = tokenValue.one;
-	else result = tokenValue.other.replace("{{count}}", String(count$2));
+	else if (count$3 === 1) result = tokenValue.one;
+	else result = tokenValue.other.replace("{{count}}", String(count$3));
 	if (options$1?.addSuffix) if (options$1.comparison && options$1.comparison > 0) return "em " + result;
 	else return "há " + result;
 	return result;
@@ -26574,11 +26589,11 @@ var PopperAnchor = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 PopperAnchor.displayName = ANCHOR_NAME$1;
-var CONTENT_NAME$4 = "PopperContent";
-var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$4);
+var CONTENT_NAME$5 = "PopperContent";
+var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$5);
 var PopperContent = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopePopper, side = "bottom", sideOffset = 0, align = "center", alignOffset = 0, arrowPadding = 0, avoidCollisions = true, collisionBoundary = [], collisionPadding: collisionPaddingProp = 0, sticky = "partial", hideWhenDetached = false, updatePositionStrategy = "optimized", onPlaced, ...contentProps } = props;
-	const context = usePopperContext(CONTENT_NAME$4, __scopePopper);
+	const context = usePopperContext(CONTENT_NAME$5, __scopePopper);
 	const [content, setContent] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
 	const [arrow$3, setArrow] = import_react.useState(null);
@@ -26691,7 +26706,7 @@ var PopperContent = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-PopperContent.displayName = CONTENT_NAME$4;
+PopperContent.displayName = CONTENT_NAME$5;
 var ARROW_NAME$3 = "PopperArrow";
 var OPPOSITE_SIDE = {
 	top: "bottom",
@@ -26779,7 +26794,7 @@ function getSideAndAlignFromPlacement(placement) {
 	const [side, align = "center"] = placement.split("-");
 	return [side, align];
 }
-var Root2$3 = Popper;
+var Root2$4 = Popper;
 var Anchor = PopperAnchor;
 var Content$1 = PopperContent;
 var Arrow = PopperArrow;
@@ -26898,7 +26913,7 @@ var Tooltip$1 = (props) => {
 			}
 		};
 	}, []);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$3, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$4, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContextProvider, {
 			scope: __scopeTooltip,
@@ -26930,11 +26945,11 @@ var Tooltip$1 = (props) => {
 	});
 };
 Tooltip$1.displayName = TOOLTIP_NAME;
-var TRIGGER_NAME$4 = "TooltipTrigger";
+var TRIGGER_NAME$5 = "TooltipTrigger";
 var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, ...triggerProps } = props;
-	const context = useTooltipContext(TRIGGER_NAME$4, __scopeTooltip);
-	const providerContext = useTooltipProviderContext(TRIGGER_NAME$4, __scopeTooltip);
+	const context = useTooltipContext(TRIGGER_NAME$5, __scopeTooltip);
+	const providerContext = useTooltipProviderContext(TRIGGER_NAME$5, __scopeTooltip);
 	const popperScope = usePopperScope$2(__scopeTooltip);
 	const composedRefs = useComposedRefs(forwardedRef, import_react.useRef(null), context.onTriggerChange);
 	const isPointerDownRef = import_react.useRef(false);
@@ -26975,12 +26990,12 @@ var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TooltipTrigger$1.displayName = TRIGGER_NAME$4;
-var PORTAL_NAME$2 = "TooltipPortal";
-var [PortalProvider$1, usePortalContext$1] = createTooltipContext(PORTAL_NAME$2, { forceMount: void 0 });
+TooltipTrigger$1.displayName = TRIGGER_NAME$5;
+var PORTAL_NAME$3 = "TooltipPortal";
+var [PortalProvider$1, usePortalContext$1] = createTooltipContext(PORTAL_NAME$3, { forceMount: void 0 });
 var TooltipPortal = (props) => {
 	const { __scopeTooltip, forceMount, children, container } = props;
-	const context = useTooltipContext(PORTAL_NAME$2, __scopeTooltip);
+	const context = useTooltipContext(PORTAL_NAME$3, __scopeTooltip);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider$1, {
 		scope: __scopeTooltip,
 		forceMount,
@@ -26994,12 +27009,12 @@ var TooltipPortal = (props) => {
 		})
 	});
 };
-TooltipPortal.displayName = PORTAL_NAME$2;
-var CONTENT_NAME$3 = "TooltipContent";
+TooltipPortal.displayName = PORTAL_NAME$3;
+var CONTENT_NAME$4 = "TooltipContent";
 var TooltipContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext$1(CONTENT_NAME$3, props.__scopeTooltip);
+	const portalContext = usePortalContext$1(CONTENT_NAME$4, props.__scopeTooltip);
 	const { forceMount = portalContext.forceMount, side = "top", ...contentProps } = props;
-	const context = useTooltipContext(CONTENT_NAME$3, props.__scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$4, props.__scopeTooltip);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: context.disableHoverableContent ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContentImpl, {
@@ -27014,8 +27029,8 @@ var TooltipContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var TooltipContentHoverable = import_react.forwardRef((props, forwardedRef) => {
-	const context = useTooltipContext(CONTENT_NAME$3, props.__scopeTooltip);
-	const providerContext = useTooltipProviderContext(CONTENT_NAME$3, props.__scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$4, props.__scopeTooltip);
+	const providerContext = useTooltipProviderContext(CONTENT_NAME$4, props.__scopeTooltip);
 	const ref = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, ref);
 	const [pointerGraceArea, setPointerGraceArea] = import_react.useState(null);
@@ -27089,10 +27104,10 @@ var TooltipContentHoverable = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var [VisuallyHiddenContentContextProvider, useVisuallyHiddenContentContext] = createTooltipContext(TOOLTIP_NAME, { isInside: false });
-var Slottable = /* @__PURE__ */ createSlottable("TooltipContent");
+var Slottable$1 = /* @__PURE__ */ createSlottable("TooltipContent");
 var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, children, "aria-label": ariaLabel, onEscapeKeyDown, onPointerDownOutside, ...contentProps } = props;
-	const context = useTooltipContext(CONTENT_NAME$3, __scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$4, __scopeTooltip);
 	const popperScope = usePopperScope$2(__scopeTooltip);
 	const { onClose } = context;
 	import_react.useEffect(() => {
@@ -27128,7 +27143,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 				"--radix-tooltip-trigger-width": "var(--radix-popper-anchor-width)",
 				"--radix-tooltip-trigger-height": "var(--radix-popper-anchor-height)"
 			},
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable$1, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
 				scope: __scopeTooltip,
 				isInside: true,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
@@ -27140,7 +27155,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TooltipContent$1.displayName = CONTENT_NAME$3;
+TooltipContent$1.displayName = CONTENT_NAME$4;
 var ARROW_NAME$2 = "TooltipArrow";
 var TooltipArrow = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, ...arrowProps } = props;
@@ -27285,17 +27300,17 @@ function getHullPresorted(points) {
 var Provider = TooltipProvider$1;
 var Root3 = Tooltip$1;
 var Trigger$3 = TooltipTrigger$1;
-var Content2$2 = TooltipContent$1;
+var Content2$3 = TooltipContent$1;
 var TooltipProvider = Provider;
 var Tooltip = Root3;
 var TooltipTrigger = Trigger$3;
-var TooltipContent = import_react.forwardRef(({ className, sideOffset = 4, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2$2, {
+var TooltipContent = import_react.forwardRef(({ className, sideOffset = 4, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2$3, {
 	ref,
 	sideOffset,
 	className: cn("z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-tooltip-content-transform-origin]", className),
 	...props
 }));
-TooltipContent.displayName = Content2$2.displayName;
+TooltipContent.displayName = Content2$3.displayName;
 var SIDEBAR_COOKIE_NAME = "sidebar_state";
 var SIDEBAR_COOKIE_MAX_AGE = 3600 * 24 * 7;
 var SIDEBAR_WIDTH = "16rem";
@@ -27785,7 +27800,7 @@ var Select$2 = (props) => {
 	const isFormControl = trigger ? form || !!trigger.closest("form") : true;
 	const [nativeOptionsSet, setNativeOptionsSet] = import_react.useState(/* @__PURE__ */ new Set());
 	const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$3, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$4, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectProvider, {
 			required: required$1,
@@ -27836,11 +27851,11 @@ var Select$2 = (props) => {
 	});
 };
 Select$2.displayName = SELECT_NAME;
-var TRIGGER_NAME$3 = "SelectTrigger";
+var TRIGGER_NAME$4 = "SelectTrigger";
 var SelectTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, disabled = false, ...triggerProps } = props;
 	const popperScope = usePopperScope$1(__scopeSelect);
-	const context = useSelectContext(TRIGGER_NAME$3, __scopeSelect);
+	const context = useSelectContext(TRIGGER_NAME$4, __scopeSelect);
 	const isDisabled = context.disabled || disabled;
 	const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
 	const getItems = useCollection$1(__scopeSelect);
@@ -27902,7 +27917,7 @@ var SelectTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-SelectTrigger$1.displayName = TRIGGER_NAME$3;
+SelectTrigger$1.displayName = TRIGGER_NAME$4;
 var VALUE_NAME = "SelectValue";
 var SelectValue$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
@@ -27932,17 +27947,17 @@ var SelectIcon = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 SelectIcon.displayName = ICON_NAME;
-var PORTAL_NAME$1 = "SelectPortal";
+var PORTAL_NAME$2 = "SelectPortal";
 var SelectPortal = (props) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal, {
 		asChild: true,
 		...props
 	});
 };
-SelectPortal.displayName = PORTAL_NAME$1;
-var CONTENT_NAME$2 = "SelectContent";
+SelectPortal.displayName = PORTAL_NAME$2;
+var CONTENT_NAME$3 = "SelectContent";
 var SelectContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const context = useSelectContext(CONTENT_NAME$2, props.__scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$3, props.__scopeSelect);
 	const [fragment, setFragment] = import_react.useState();
 	useLayoutEffect2(() => {
 		setFragment(new DocumentFragment());
@@ -27962,14 +27977,14 @@ var SelectContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	});
 });
-SelectContent$1.displayName = CONTENT_NAME$2;
+SelectContent$1.displayName = CONTENT_NAME$3;
 var CONTENT_MARGIN = 10;
-var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME$2);
+var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME$3);
 var CONTENT_IMPL_NAME = "SelectContentImpl";
 var Slot$2 = /* @__PURE__ */ createSlot("SelectContent.RemoveScroll");
 var SelectContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, position = "item-aligned", onCloseAutoFocus, onEscapeKeyDown, onPointerDownOutside, side, sideOffset, align, alignOffset, arrowPadding, collisionBoundary, collisionPadding, sticky, hideWhenDetached, avoidCollisions, ...contentProps } = props;
-	const context = useSelectContext(CONTENT_NAME$2, __scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$3, __scopeSelect);
 	const [content, setContent] = import_react.useState(null);
 	const [viewport, setViewport] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
@@ -28159,8 +28174,8 @@ SelectContentImpl.displayName = CONTENT_IMPL_NAME;
 var ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition";
 var SelectItemAlignedPosition = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, onPlaced, ...popperProps } = props;
-	const context = useSelectContext(CONTENT_NAME$2, __scopeSelect);
-	const contentContext = useSelectContentContext(CONTENT_NAME$2, __scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$3, __scopeSelect);
+	const contentContext = useSelectContentContext(CONTENT_NAME$3, __scopeSelect);
 	const [contentWrapper, setContentWrapper] = import_react.useState(null);
 	const [content, setContent] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
@@ -28304,7 +28319,7 @@ var SelectPopperPosition = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 SelectPopperPosition.displayName = POPPER_POSITION_NAME;
-var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME$2, {});
+var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME$3, {});
 var VIEWPORT_NAME = "SelectViewport";
 var SelectViewport = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, nonce, ...viewportProps } = props;
@@ -28684,12 +28699,12 @@ function findNextItem(items, search, currentItem) {
 function wrapArray$1(array$1, startIndex) {
 	return array$1.map((_, index$1) => array$1[(startIndex + index$1) % array$1.length]);
 }
-var Root2$2 = Select$2;
+var Root2$3 = Select$2;
 var Trigger$2 = SelectTrigger$1;
 var Value = SelectValue$1;
 var Icon = SelectIcon;
 var Portal$2 = SelectPortal;
-var Content2$1 = SelectContent$1;
+var Content2$2 = SelectContent$1;
 var Viewport = SelectViewport;
 var Label$2 = SelectLabel$1;
 var Item$1 = SelectItem$1;
@@ -28698,7 +28713,7 @@ var ItemIndicator = SelectItemIndicator;
 var ScrollUpButton = SelectScrollUpButton$1;
 var ScrollDownButton = SelectScrollDownButton$1;
 var Separator = SelectSeparator$1;
-var Select = Root2$2;
+var Select = Root2$3;
 var SelectValue = Value;
 var SelectTrigger = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Trigger$2, {
 	ref,
@@ -28724,7 +28739,7 @@ var SelectScrollDownButton = import_react.forwardRef(({ className, ...props }, r
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { className: "h-4 w-4" })
 }));
 SelectScrollDownButton.displayName = ScrollDownButton.displayName;
-var SelectContent = import_react.forwardRef(({ className, children, position = "popper", ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$2, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content2$1, {
+var SelectContent = import_react.forwardRef(({ className, children, position = "popper", ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$2, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content2$2, {
 	ref,
 	className: cn("relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]", position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className),
 	position,
@@ -28738,7 +28753,7 @@ var SelectContent = import_react.forwardRef(({ className, children, position = "
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectScrollDownButton, {})
 	]
 }) }));
-SelectContent.displayName = Content2$1.displayName;
+SelectContent.displayName = Content2$2.displayName;
 var SelectLabel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
 	ref,
 	className: cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className),
@@ -29423,10 +29438,10 @@ var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 TabsList$1.displayName = TAB_LIST_NAME;
-var TRIGGER_NAME$2 = "TabsTrigger";
+var TRIGGER_NAME$3 = "TabsTrigger";
 var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTabs, value, disabled = false, ...triggerProps } = props;
-	const context = useTabsContext(TRIGGER_NAME$2, __scopeTabs);
+	const context = useTabsContext(TRIGGER_NAME$3, __scopeTabs);
 	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
 	const triggerId = makeTriggerId(context.baseId, value);
 	const contentId = makeContentId(context.baseId, value);
@@ -29461,11 +29476,11 @@ var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TabsTrigger$1.displayName = TRIGGER_NAME$2;
-var CONTENT_NAME$1 = "TabsContent";
+TabsTrigger$1.displayName = TRIGGER_NAME$3;
+var CONTENT_NAME$2 = "TabsContent";
 var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTabs, value, forceMount, children, ...contentProps } = props;
-	const context = useTabsContext(CONTENT_NAME$1, __scopeTabs);
+	const context = useTabsContext(CONTENT_NAME$2, __scopeTabs);
 	const triggerId = makeTriggerId(context.baseId, value);
 	const contentId = makeContentId(context.baseId, value);
 	const isSelected = value === context.value;
@@ -29494,18 +29509,18 @@ var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TabsContent$1.displayName = CONTENT_NAME$1;
+TabsContent$1.displayName = CONTENT_NAME$2;
 function makeTriggerId(baseId, value) {
 	return `${baseId}-trigger-${value}`;
 }
 function makeContentId(baseId, value) {
 	return `${baseId}-content-${value}`;
 }
-var Root2$1 = Tabs$1;
+var Root2$2 = Tabs$1;
 var List = TabsList$1;
 var Trigger$1 = TabsTrigger$1;
 var Content = TabsContent$1;
-var Tabs = Root2$1;
+var Tabs = Root2$2;
 var TabsList = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(List, {
 	ref,
 	className: cn("inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground", className),
@@ -35830,9 +35845,9 @@ function CheckboxProvider(props) {
 		children: isFunction(internal_do_not_use_render) ? internal_do_not_use_render(context) : children
 	});
 }
-var TRIGGER_NAME$1 = "CheckboxTrigger";
+var TRIGGER_NAME$2 = "CheckboxTrigger";
 var CheckboxTrigger = import_react.forwardRef(({ __scopeCheckbox, onKeyDown, onClick, ...checkboxProps }, forwardedRef) => {
-	const { control, value, disabled, checked, required: required$1, setControl, setChecked, hasConsumerStoppedPropagationRef, isFormControl, bubbleInput } = useCheckboxContext(TRIGGER_NAME$1, __scopeCheckbox);
+	const { control, value, disabled, checked, required: required$1, setControl, setChecked, hasConsumerStoppedPropagationRef, isFormControl, bubbleInput } = useCheckboxContext(TRIGGER_NAME$2, __scopeCheckbox);
 	const composedRefs = useComposedRefs(forwardedRef, setControl);
 	const initialCheckedStateRef = import_react.useRef(checked);
 	import_react.useEffect(() => {
@@ -35866,7 +35881,7 @@ var CheckboxTrigger = import_react.forwardRef(({ __scopeCheckbox, onKeyDown, onC
 		})
 	});
 });
-CheckboxTrigger.displayName = TRIGGER_NAME$1;
+CheckboxTrigger.displayName = TRIGGER_NAME$2;
 var Checkbox$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeCheckbox, name, checked, defaultChecked, required: required$1, disabled, value, onCheckedChange, form, ...checkboxProps } = props;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CheckboxProvider, {
@@ -36302,6 +36317,312 @@ function EmployeeProfile() {
 		})]
 	});
 }
+var TOAST_LIMIT = 1;
+var TOAST_REMOVE_DELAY = 1e6;
+var count = 0;
+function genId() {
+	count = (count + 1) % Number.MAX_SAFE_INTEGER;
+	return count.toString();
+}
+var toastTimeouts = /* @__PURE__ */ new Map();
+var addToRemoveQueue = (toastId) => {
+	if (toastTimeouts.has(toastId)) return;
+	const timeout = setTimeout(() => {
+		toastTimeouts.delete(toastId);
+		dispatch({
+			type: "REMOVE_TOAST",
+			toastId
+		});
+	}, TOAST_REMOVE_DELAY);
+	toastTimeouts.set(toastId, timeout);
+};
+const reducer = (state, action) => {
+	switch (action.type) {
+		case "ADD_TOAST": return {
+			...state,
+			toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT)
+		};
+		case "UPDATE_TOAST": return {
+			...state,
+			toasts: state.toasts.map((t$1) => t$1.id === action.toast.id ? {
+				...t$1,
+				...action.toast
+			} : t$1)
+		};
+		case "DISMISS_TOAST": {
+			const { toastId } = action;
+			if (toastId) addToRemoveQueue(toastId);
+			else state.toasts.forEach((toast$1) => {
+				addToRemoveQueue(toast$1.id);
+			});
+			return {
+				...state,
+				toasts: state.toasts.map((t$1) => t$1.id === toastId || toastId === void 0 ? {
+					...t$1,
+					open: false
+				} : t$1)
+			};
+		}
+		case "REMOVE_TOAST":
+			if (action.toastId === void 0) return {
+				...state,
+				toasts: []
+			};
+			return {
+				...state,
+				toasts: state.toasts.filter((t$1) => t$1.id !== action.toastId)
+			};
+	}
+};
+var listeners = [];
+var memoryState = { toasts: [] };
+function dispatch(action) {
+	memoryState = reducer(memoryState, action);
+	listeners.forEach((listener) => {
+		listener(memoryState);
+	});
+}
+function toast({ ...props }) {
+	const id = genId();
+	const update = (props$1) => dispatch({
+		type: "UPDATE_TOAST",
+		toast: {
+			...props$1,
+			id
+		}
+	});
+	const dismiss = () => dispatch({
+		type: "DISMISS_TOAST",
+		toastId: id
+	});
+	dispatch({
+		type: "ADD_TOAST",
+		toast: {
+			...props,
+			id,
+			open: true,
+			onOpenChange: (open) => {
+				if (!open) dismiss();
+			}
+		}
+	});
+	return {
+		id,
+		dismiss,
+		update
+	};
+}
+function useToast() {
+	const [state, setState] = import_react.useState(memoryState);
+	import_react.useEffect(() => {
+		listeners.push(setState);
+		return () => {
+			const index$1 = listeners.indexOf(setState);
+			if (index$1 > -1) listeners.splice(index$1, 1);
+		};
+	}, [state]);
+	return {
+		...state,
+		toast,
+		dismiss: (toastId) => dispatch({
+			type: "DISMISS_TOAST",
+			toastId
+		})
+	};
+}
+var ROOT_NAME = "AlertDialog";
+var [createAlertDialogContext, createAlertDialogScope] = createContextScope(ROOT_NAME, [createDialogScope]);
+var useDialogScope = createDialogScope();
+var AlertDialog$1 = (props) => {
+	const { __scopeAlertDialog, ...alertDialogProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$8, {
+		...dialogScope,
+		...alertDialogProps,
+		modal: true
+	});
+};
+AlertDialog$1.displayName = ROOT_NAME;
+var TRIGGER_NAME$1 = "AlertDialogTrigger";
+var AlertDialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...triggerProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger$4, {
+		...dialogScope,
+		...triggerProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogTrigger$1.displayName = TRIGGER_NAME$1;
+var PORTAL_NAME$1 = "AlertDialogPortal";
+var AlertDialogPortal$1 = (props) => {
+	const { __scopeAlertDialog, ...portalProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$3, {
+		...dialogScope,
+		...portalProps
+	});
+};
+AlertDialogPortal$1.displayName = PORTAL_NAME$1;
+var OVERLAY_NAME = "AlertDialogOverlay";
+var AlertDialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...overlayProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
+		...dialogScope,
+		...overlayProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogOverlay$1.displayName = OVERLAY_NAME;
+var CONTENT_NAME$1 = "AlertDialogContent";
+var [AlertDialogContentProvider, useAlertDialogContentContext] = createAlertDialogContext(CONTENT_NAME$1);
+var Slottable = /* @__PURE__ */ createSlottable("AlertDialogContent");
+var AlertDialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, children, ...contentProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	const contentRef = import_react.useRef(null);
+	const composedRefs = useComposedRefs(forwardedRef, contentRef);
+	const cancelRef = import_react.useRef(null);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WarningProvider, {
+		contentName: CONTENT_NAME$1,
+		titleName: TITLE_NAME,
+		docsSlug: "alert-dialog",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogContentProvider, {
+			scope: __scopeAlertDialog,
+			cancelRef,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$2, {
+				role: "alertdialog",
+				...dialogScope,
+				...contentProps,
+				ref: composedRefs,
+				onOpenAutoFocus: composeEventHandlers(contentProps.onOpenAutoFocus, (event) => {
+					event.preventDefault();
+					cancelRef.current?.focus({ preventScroll: true });
+				}),
+				onPointerDownOutside: (event) => event.preventDefault(),
+				onInteractOutside: (event) => event.preventDefault(),
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning, { contentRef })]
+			})
+		})
+	});
+});
+AlertDialogContent$1.displayName = CONTENT_NAME$1;
+var TITLE_NAME = "AlertDialogTitle";
+var AlertDialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...titleProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
+		...dialogScope,
+		...titleProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogTitle$1.displayName = TITLE_NAME;
+var DESCRIPTION_NAME = "AlertDialogDescription";
+var AlertDialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...descriptionProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
+		...dialogScope,
+		...descriptionProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogDescription$1.displayName = DESCRIPTION_NAME;
+var ACTION_NAME = "AlertDialogAction";
+var AlertDialogAction$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...actionProps } = props;
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
+		...dialogScope,
+		...actionProps,
+		ref: forwardedRef
+	});
+});
+AlertDialogAction$1.displayName = ACTION_NAME;
+var CANCEL_NAME = "AlertDialogCancel";
+var AlertDialogCancel$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeAlertDialog, ...cancelProps } = props;
+	const { cancelRef } = useAlertDialogContentContext(CANCEL_NAME, __scopeAlertDialog);
+	const dialogScope = useDialogScope(__scopeAlertDialog);
+	const ref = useComposedRefs(forwardedRef, cancelRef);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
+		...dialogScope,
+		...cancelProps,
+		ref
+	});
+});
+AlertDialogCancel$1.displayName = CANCEL_NAME;
+var DescriptionWarning = ({ contentRef }) => {
+	const MESSAGE = `\`${CONTENT_NAME$1}\` requires a description for the component to be accessible for screen reader users.
+
+You can add a description to the \`${CONTENT_NAME$1}\` by passing a \`${DESCRIPTION_NAME}\` component as a child, which also benefits sighted users by adding visible context to the dialog.
+
+Alternatively, you can use your own component as a description by assigning it an \`id\` and passing the same value to the \`aria-describedby\` prop in \`${CONTENT_NAME$1}\`. If the description is confusing or duplicative for sighted users, you can use the \`@radix-ui/react-visually-hidden\` primitive as a wrapper around your description component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/alert-dialog`;
+	import_react.useEffect(() => {
+		if (!document.getElementById(contentRef.current?.getAttribute("aria-describedby"))) console.warn(MESSAGE);
+	}, [MESSAGE, contentRef]);
+	return null;
+};
+var Root2$1 = AlertDialog$1;
+var Portal2 = AlertDialogPortal$1;
+var Overlay2 = AlertDialogOverlay$1;
+var Content2$1 = AlertDialogContent$1;
+var Action = AlertDialogAction$1;
+var Cancel = AlertDialogCancel$1;
+var Title2 = AlertDialogTitle$1;
+var Description2 = AlertDialogDescription$1;
+var AlertDialog = Root2$1;
+var AlertDialogPortal = Portal2;
+var AlertDialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay2, {
+	className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+	...props,
+	ref
+}));
+AlertDialogOverlay.displayName = Overlay2.displayName;
+var AlertDialogContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2$1, {
+	ref,
+	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg", className),
+	...props
+})] }));
+AlertDialogContent.displayName = Content2$1.displayName;
+var AlertDialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col space-y-2 text-center sm:text-left", className),
+	...props
+});
+AlertDialogHeader.displayName = "AlertDialogHeader";
+var AlertDialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+	...props
+});
+AlertDialogFooter.displayName = "AlertDialogFooter";
+var AlertDialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title2, {
+	ref,
+	className: cn("text-lg font-semibold", className),
+	...props
+}));
+AlertDialogTitle.displayName = Title2.displayName;
+var AlertDialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description2, {
+	ref,
+	className: cn("text-sm text-muted-foreground", className),
+	...props
+}));
+AlertDialogDescription.displayName = Description2.displayName;
+var AlertDialogAction = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Action, {
+	ref,
+	className: cn(buttonVariants(), className),
+	...props
+}));
+AlertDialogAction.displayName = Action.displayName;
+var AlertDialogCancel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Cancel, {
+	ref,
+	className: cn(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className),
+	...props
+}));
+AlertDialogCancel.displayName = Cancel.displayName;
 var Textarea = import_react.forwardRef(({ className, ...props }, ref) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
 		className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm uppercase", className),
@@ -36325,7 +36646,7 @@ var Popover$1 = (props) => {
 		onChange: onOpenChange,
 		caller: POPOVER_NAME
 	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$3, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$4, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverProvider, {
 			scope: __scopePopover,
@@ -39673,7 +39994,8 @@ function NewPurchaseModal({ item, open, onOpenChange }) {
 	});
 }
 function Inventory() {
-	const { inventory, specialties } = useAppStore();
+	const { inventory, specialties, isAdmin, wipeInventory } = useAppStore();
+	const { toast: toast$1 } = useToast();
 	const [isAdding, setIsAdding] = (0, import_react.useState)(false);
 	const [selectedSpecialty, setSelectedSpecialty] = (0, import_react.useState)("all");
 	const [searchQuery, setSearchQuery] = (0, import_react.useState)("");
@@ -39682,12 +40004,37 @@ function Inventory() {
 	const [itemToDecrease, setItemToDecrease] = (0, import_react.useState)(null);
 	const [itemToEdit, setItemToEdit] = (0, import_react.useState)(null);
 	const [itemToPurchase, setItemToPurchase] = (0, import_react.useState)(null);
+	const [isWipeDialogOpen, setIsWipeDialogOpen] = (0, import_react.useState)(false);
+	const [isWiping, setIsWiping] = (0, import_react.useState)(false);
 	const isCriticalStock = (item) => {
 		return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock;
 	};
 	const now = /* @__PURE__ */ new Date();
 	const sixtyDays = /* @__PURE__ */ new Date();
 	sixtyDays.setDate(now.getDate() + 60);
+	const handleWipeInventory = async () => {
+		setIsWiping(true);
+		try {
+			if (await wipeInventory()) toast$1({
+				title: "ESTOQUE LIMPO",
+				description: "TODOS OS PRODUTOS E REGISTROS FORAM REMOVIDOS COM SUCESSO."
+			});
+			else toast$1({
+				variant: "destructive",
+				title: "ERRO DE VERIFICAÇÃO",
+				description: "A CONTAGEM DE ESTOQUE NÃO RETORNOU ZERO. AÇÃO CANCELADA."
+			});
+		} catch (error) {
+			toast$1({
+				variant: "destructive",
+				title: "ERRO CRÍTICO",
+				description: "FALHA AO EXECUTAR A LIMPEZA DO ESTOQUE."
+			});
+		} finally {
+			setIsWiping(false);
+			setIsWipeDialogOpen(false);
+		}
+	};
 	const filteredInventory = (0, import_react.useMemo)(() => {
 		return inventory.filter((item) => {
 			const matchSpecialty = selectedSpecialty === "all" || item.specialty === selectedSpecialty;
@@ -39740,13 +40087,18 @@ function Inventory() {
 						className: "text-muted-foreground mt-1",
 						children: "GERENCIE EMBALAGENS, CÓDIGOS E LOTES."
 					})] })]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "flex items-center gap-3 w-full sm:w-auto",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						className: "bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm",
+					children: [isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						variant: "destructive",
+						className: "whitespace-nowrap shadow-sm font-bold uppercase",
+						onClick: () => setIsWipeDialogOpen(true),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "w-4 h-4 mr-2" }), " LIMPAR ESTOQUE"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						className: "bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm font-bold",
 						onClick: () => setIsAdding(true),
 						children: "+ NOVO PRODUTO"
-					})
+					})]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -40046,6 +40398,32 @@ function Inventory() {
 				onOpenChange: (val) => {
 					if (!val) setItemToPurchase(null);
 				}
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialog, {
+				open: isWipeDialogOpen,
+				onOpenChange: setIsWipeDialogOpen,
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogContent, {
+					className: "uppercase",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTitle, {
+						className: "text-red-600 font-bold text-xl",
+						children: "APAGAR TODO O ESTOQUE?"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogDescription, {
+						className: "text-sm font-semibold",
+						children: "ESTA AÇÃO É IRREVERSÍVEL. TODOS OS PRODUTOS, HISTÓRICOS DE COMPRAS E REGISTROS DE ESTOQUE SERÃO PERMANENTEMENTE REMOVIDOS DO SISTEMA. TEM CERTEZA QUE DESEJA PROSSEGUIR COM A LIMPEZA TOTAL?"
+					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogFooter, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogCancel, {
+						disabled: isWiping,
+						className: "font-bold",
+						children: "CANCELAR"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogAction, {
+						onClick: (e) => {
+							e.preventDefault();
+							handleWipeInventory();
+						},
+						disabled: isWiping,
+						className: "bg-red-600 hover:bg-red-700 text-white font-bold",
+						children: isWiping ? "APAGANDO..." : "SIM, APAGAR TUDO"
+					})] })]
+				})
 			})
 		]
 	});
@@ -42242,4 +42620,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-DDLfP58e.js.map
+//# sourceMappingURL=index-DA7oMXdI.js.map

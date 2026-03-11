@@ -167,6 +167,7 @@ interface AppStore {
   addSupplier: (item: Omit<Supplier, 'id'>) => void
   updateSupplier: (id: string, item: Partial<Supplier>) => void
   removeSupplier: (id: string) => void
+  wipeInventory: () => Promise<boolean>
 }
 
 const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção']
@@ -332,7 +333,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsAdmin(false)
         setCurrentUserId(emp.id)
         setIsAuthenticated(true)
-        // Set context immediately in storeRef for correct log
         storeRef.current.currentUserId = emp.id
         logAction('FEZ LOGIN NO SISTEMA')
         return true
@@ -464,6 +464,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+
+  const wipeInventory = useCallback(async () => {
+    if (!storeRef.current.isAdmin) return false
+
+    setInventory([])
+    storeRef.current.inventory = []
+
+    return new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        if (storeRef.current.inventory.length === 0) {
+          logAction('LIMPADO TODO O ESTOQUE DO SISTEMA (RESET DE INVENTÁRIO)')
+          resolve(true)
+        } else {
+          resolve(false)
+        }
+      }, 300)
+    })
+  }, [logAction])
 
   const addPurchaseHistory = useCallback(
     (itemId: string, record: Omit<PurchaseRecord, 'id'>) => {
@@ -719,6 +737,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
+      wipeInventory,
       addPurchaseHistory,
       addEmployee,
       deleteEmployee,
@@ -773,6 +792,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
+      wipeInventory,
       addPurchaseHistory,
       addEmployee,
       deleteEmployee,
