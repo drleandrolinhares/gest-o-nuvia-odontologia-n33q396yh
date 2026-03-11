@@ -22,9 +22,12 @@ import { AddEmployeeDialog } from '@/components/rh/AddEmployeeDialog'
 import { EditEmployeeDialog } from '@/components/rh/EditEmployeeDialog'
 
 export function UsersList() {
-  const { employees, updateEmployeeAgendaAccess } = useAppStore()
+  const { employees, updateEmployeeAgendaAccess, can, isAdmin } = useAppStore()
   const [selectedEmpForEdit, setSelectedEmpForEdit] = useState<Employee | null>(null)
   const sortedEmployees = [...employees].sort((a, b) => a.name.localeCompare(b.name))
+
+  const canAdd = isAdmin || can('colaboradores', 'criar_colaborador')
+  const canEdit = isAdmin || can('colaboradores', 'editar_colaborador')
 
   return (
     <Card>
@@ -37,7 +40,7 @@ export function UsersList() {
             VISUALIZE E DEFINA NÍVEL BÁSICO DA AGENDA E DADOS DOS COLABORADORES.
           </CardDescription>
         </div>
-        <AddEmployeeDialog triggerText="INCLUIR USUÁRIOS" />
+        {canAdd && <AddEmployeeDialog triggerText="INCLUIR USUÁRIOS" />}
       </CardHeader>
       <CardContent>
         <Table>
@@ -58,6 +61,7 @@ export function UsersList() {
                   <Select
                     value={emp.agendaAccess || 'VIEW_ONLY'}
                     onValueChange={(v) => updateEmployeeAgendaAccess(emp.id, v as any)}
+                    disabled={!canEdit}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -69,15 +73,17 @@ export function UsersList() {
                   </Select>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSelectedEmpForEdit(emp)}
-                    className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
-                    title="EDITAR COLABORADOR"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  {canEdit && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedEmpForEdit(emp)}
+                      className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+                      title="EDITAR COLABORADOR"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

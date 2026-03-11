@@ -24,7 +24,7 @@ import { Eye, EyeOff, Copy, Check, Plus, Trash2, Shield, Edit2 } from 'lucide-re
 import { Badge } from '@/components/ui/badge'
 
 export default function Acessos() {
-  const { acessos, addAccess, updateAccess, removeAccess, isAdmin } = useAppStore()
+  const { acessos, addAccess, updateAccess, removeAccess, can, isAdmin } = useAppStore()
   const [open, setOpen] = useState(false)
   const [visibleRows, setVisibleRows] = useState<Record<string, boolean>>({})
   const [copied, setCopied] = useState<string | null>(null)
@@ -35,11 +35,18 @@ export default function Acessos() {
   const [login, setLogin] = useState('')
   const [pass, setPass] = useState('')
   const [instructions, setInstructions] = useState('')
-  const [accessLevel, setAccessLevel] = useState<'OPERACIONAL' | 'ADMINISTRATIVO'>('OPERACIONAL')
+  const [accessLevel, setAccessLevel] = useState<'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO'>(
+    'OPERACIONAL',
+  )
 
   const sortedAcessos = [...acessos].sort((a, b) => a.platform.localeCompare(b.platform))
 
+  const canViewLogins = isAdmin || can('acessos', 'visualizar_logins')
+  const canAdd = isAdmin || can('acessos', 'criar_acesso')
+  const canEdit = isAdmin || can('acessos', 'editar_acesso')
+
   const handleCopy = (id: string, text: string) => {
+    if (!canViewLogins) return
     navigator.clipboard.writeText(text)
     setCopied(id)
     setTimeout(() => setCopied(null), 2000)
@@ -53,7 +60,9 @@ export default function Acessos() {
       setLogin(item.login)
       setPass(item.pass)
       setInstructions(item.instructions || '')
-      setAccessLevel((item.accessLevel as 'OPERACIONAL' | 'ADMINISTRATIVO') || 'OPERACIONAL')
+      setAccessLevel(
+        (item.accessLevel as 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO') || 'OPERACIONAL',
+      )
     } else {
       setEditingId(null)
       setPlatform('')
@@ -89,7 +98,7 @@ export default function Acessos() {
             ARMAZENE E GERENCIE CREDENCIAIS DE SISTEMAS PARCEIROS DE FORMA SEGURA.
           </p>
         </div>
-        {isAdmin && (
+        {canAdd && (
           <Button onClick={() => openForm()} className="bg-primary text-primary-foreground">
             <Plus className="h-4 w-4 mr-2" /> NOVO ACESSO
           </Button>
@@ -126,7 +135,7 @@ export default function Acessos() {
                 </TableCell>
                 <TableCell className="font-medium">{item.login}</TableCell>
                 <TableCell className="font-mono text-sm tracking-widest bg-muted/50 rounded px-2 py-1 inline-block mt-2 lowercase">
-                  {visibleRows[item.id] ? item.pass : '••••••••••••'}
+                  {canViewLogins && visibleRows[item.id] ? item.pass : '••••••••••••'}
                 </TableCell>
                 <TableCell
                   className="text-sm text-muted-foreground max-w-[200px] truncate"
@@ -135,33 +144,37 @@ export default function Acessos() {
                   {item.instructions || '-'}
                 </TableCell>
                 <TableCell className="text-right whitespace-nowrap">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      setVisibleRows((prev) => ({ ...prev, [item.id]: !prev[item.id] }))
-                    }
-                    title="VER SENHA"
-                  >
-                    {visibleRows[item.id] ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleCopy(item.id, item.pass)}
-                    title="COPIAR SENHA"
-                  >
-                    {copied === item.id ? (
-                      <Check className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                  {isAdmin && (
+                  {canViewLogins && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          setVisibleRows((prev) => ({ ...prev, [item.id]: !prev[item.id] }))
+                        }
+                        title="VER SENHA"
+                      >
+                        {visibleRows[item.id] ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleCopy(item.id, item.pass)}
+                        title="COPIAR SENHA"
+                      >
+                        {copied === item.id ? (
+                          <Check className="h-4 w-4 text-emerald-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </>
+                  )}
+                  {canEdit && (
                     <>
                       <Button
                         variant="ghost"
@@ -228,7 +241,8 @@ export default function Acessos() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="OPERACIONAL">OPERACIONAL</SelectItem>
-                    <SelectItem value="ADMINISTRATIVO">ADMINISTRATIVO</SelectItem>
+                    <SelectItem value="GERENCIAL">GERENCIAL</SelectItem>
+                    <SelectItem value="ESTRATEGICO">ESTRATEGICO</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

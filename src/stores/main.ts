@@ -11,6 +11,8 @@ import React, {
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 
+export type PermissionsMap = Record<string, string[]>
+
 export type AgendaAccess = 'VIEW_ONLY' | 'ADD_EDIT'
 export type Employee = {
   id: string
@@ -27,8 +29,8 @@ export type Employee = {
   email: string
   phone: string
   agendaAccess: AgendaAccess
-  permissions?: string[]
-  accessLevel?: 'OPERACIONAL' | 'ADMINISTRATIVO'
+  permissions?: PermissionsMap
+  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO'
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
 export type OnboardingCandidate = {
@@ -86,7 +88,7 @@ export type AccessItem = {
   login: string
   pass: string
   instructions: string
-  accessLevel?: 'OPERACIONAL' | 'ADMINISTRATIVO'
+  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO'
 }
 export type Supplier = {
   id: string
@@ -117,8 +119,8 @@ interface AppStore {
   agenda: AgendaItem[]
   acessos: AccessItem[]
   suppliers: Supplier[]
-  levelPermissions: Record<string, string[]>
   auditLogs: AuditLog[]
+  can: (module: string, action: string) => boolean
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -130,6 +132,7 @@ interface AppStore {
   toggleTask: (c: string, t: string) => void
   addInventoryItem: (i: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, q: number) => void
+  deleteInventoryItem: (id: string) => void
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
   addEmployee: (e: Omit<Employee, 'id'>) => void
   updateEmployee: (id: string, e: Partial<Employee>) => Promise<{ success: boolean; error?: any }>
@@ -137,8 +140,7 @@ interface AppStore {
   updateEmployeeStatus: (id: string, s: Employee['status']) => void
   updateEmployeeLevel: (id: string, l: Employee['accessLevel']) => void
   updateEmployeeAgendaAccess: (id: string, a: AgendaAccess) => void
-  updateEmployeePermissions: (id: string, p: string[]) => void
-  updateLevelPermissions: (l: string, p: string[]) => void
+  updateEmployeePermissions: (id: string, p: PermissionsMap) => void
   addOnboardingTask: (c: string, t: string) => void
   removeOnboardingTask: (c: string, t: string) => void
   addDocument: (n: string) => void
@@ -164,24 +166,28 @@ const mockSpecialties = [
 ]
 const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria']
 
-const mEmp = (d: any): Employee => ({
-  id: d.id,
-  user_id: d.user_id,
-  name: d.name,
-  role: d.role,
-  department: d.department,
-  status: d.status,
-  hireDate: d.hire_date,
-  salary: d.salary,
-  vacationDaysTaken: d.vacation_days_taken,
-  vacationDaysTotal: d.vacation_days_total,
-  vacationDueDate: d.vacation_due_date,
-  email: d.email,
-  phone: d.phone,
-  agendaAccess: d.agenda_access,
-  permissions: d.permissions,
-  accessLevel: d.access_level,
-})
+const mEmp = (d: any): Employee => {
+  const p = d.permissions
+  const isObj = p && typeof p === 'object' && !Array.isArray(p)
+  return {
+    id: d.id,
+    user_id: d.user_id,
+    name: d.name,
+    role: d.role,
+    department: d.department,
+    status: d.status,
+    hireDate: d.hire_date,
+    salary: d.salary,
+    vacationDaysTaken: d.vacation_days_taken,
+    vacationDaysTotal: d.vacation_days_total,
+    vacationDueDate: d.vacation_due_date,
+    email: d.email,
+    phone: d.phone,
+    agendaAccess: d.agenda_access,
+    permissions: isObj ? p : {},
+    accessLevel: d.access_level,
+  }
+}
 const mInv = (d: any): InventoryItem => ({
   id: d.id,
   name: d.name,
@@ -262,18 +268,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [acessos, setAcessos] = useState<AccessItem[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [alerts] = useState<string[]>([])
-  const [levelPermissions, setLevelPermissions] = useState<Record<string, string[]>>({
-    OPERACIONAL: ['dashboard', 'agenda'],
-    ADMINISTRATIVO: [
-      'dashboard',
-      'agenda',
-      'acessos',
-      'rh',
-      'estoque',
-      'configuracoes',
-      'auditoria',
-    ],
-  })
 
   const storeRef = useRef({ user, employees })
   useEffect(() => {
@@ -340,7 +334,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const me = employees.find((e) => e.user_id === user?.id)
-    setIsAdmin(me?.accessLevel === 'ADMINISTRATIVO')
+    setIsAdmin(me?.accessLevel === 'ESTRATEGICO')
     setCurrentUserId(me?.id || null)
   }, [employees, user])
 
@@ -360,6 +354,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...p,
           ])
       })
+  }, [])
+
+  const can = useCallback((module: string, action: string) => {
+    if (!storeRef.current.user) return false
+    const me = storeRef.current.employees.find((e) => e.user_id === storeRef.current.user?.id)
+    if (!me) return false
+    if (me.accessLevel === 'ESTRATEGICO') return true
+    return me.permissions?.[module]?.includes(action) ?? false
   }, [])
 
   const addDepartment = useCallback(
@@ -520,6 +522,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+  const deleteInventoryItem = useCallback(
+    (id: string) => {
+      supabase
+        .from('inventory')
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setInventory((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU PRODUTO ID: ${id}`)
+        })
+    },
+    [logAction],
+  )
   const addPurchaseHistory = useCallback(
     (itemId: string, r: Omit<PurchaseRecord, 'id'>) => {
       setInventory((prev) => {
@@ -571,7 +586,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             email: e.email,
             phone: e.phone,
             agenda_access: e.agendaAccess,
-            permissions: e.permissions || ['dashboard'],
+            permissions: e.permissions || {},
             access_level: e.accessLevel || 'OPERACIONAL',
           },
         ])
@@ -599,6 +614,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.email !== undefined) payload.email = e.email
       if (e.phone !== undefined) payload.phone = e.phone
       if (e.accessLevel !== undefined) payload.access_level = e.accessLevel
+      if (e.permissions !== undefined) payload.permissions = e.permissions
 
       const { error } = await supabase.from('employees').update(payload).eq('id', id)
 
@@ -665,7 +681,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
   const updateEmployeePermissions = useCallback(
-    (id: string, perms: string[]) => {
+    (id: string, perms: PermissionsMap) => {
       supabase
         .from('employees')
         .update({ permissions: perms })
@@ -674,13 +690,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setEmployees((p) => p.map((e) => (e.id === id ? { ...e, permissions: perms } : e)))
           logAction(`PERMISSÕES COLAB ID: ${id}`)
         })
-    },
-    [logAction],
-  )
-  const updateLevelPermissions = useCallback(
-    (l: string, perms: string[]) => {
-      setLevelPermissions((p) => ({ ...p, [l]: perms }))
-      logAction(`PERMISSÕES PADRÃO NÍVEL: ${l}`)
     },
     [logAction],
   )
@@ -896,8 +905,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       agenda,
       acessos,
       suppliers,
-      levelPermissions,
       auditLogs,
+      can,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -909,6 +918,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
+      deleteInventoryItem,
       addPurchaseHistory,
       addEmployee,
       updateEmployee,
@@ -917,7 +927,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateEmployeeLevel,
       updateEmployeeAgendaAccess,
       updateEmployeePermissions,
-      updateLevelPermissions,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,
@@ -947,8 +956,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       agenda,
       acessos,
       suppliers,
-      levelPermissions,
       auditLogs,
+      can,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -960,6 +969,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
+      deleteInventoryItem,
       addPurchaseHistory,
       addEmployee,
       updateEmployee,
@@ -968,7 +978,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateEmployeeLevel,
       updateEmployeeAgendaAccess,
       updateEmployeePermissions,
-      updateLevelPermissions,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,

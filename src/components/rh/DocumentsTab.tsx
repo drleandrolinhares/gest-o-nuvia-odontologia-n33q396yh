@@ -5,8 +5,19 @@ import { FileText, Download, Trash2, Upload } from 'lucide-react'
 import useAppStore from '@/stores/main'
 
 export function DocumentsTab() {
-  const { documents, addDocument, removeDocument } = useAppStore()
+  const { documents, addDocument, removeDocument, can, isAdmin } = useAppStore()
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const canView = isAdmin || can('documentos', 'visualizar_documentos')
+  const canAdd = isAdmin || can('documentos', 'adicionar_documento')
+
+  if (!canView) {
+    return (
+      <div className="p-10 text-center uppercase text-muted-foreground border border-dashed rounded-lg bg-card/50 mt-6">
+        VOCÊ NÃO TEM PERMISSÃO PARA VISUALIZAR DOCUMENTOS.
+      </div>
+    )
+  }
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -19,31 +30,33 @@ export function DocumentsTab() {
   const sortedDocuments = [...documents].sort((a, b) => a.name.localeCompare(b.name))
 
   return (
-    <Card className="mt-6">
+    <Card className="mt-6 uppercase">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <CardTitle>DOCUMENTOS E NORMATIVAS</CardTitle>
-          <CardDescription>
+          <CardDescription className="uppercase mt-1 text-xs">
             REPOSITÓRIO DE MANUAIS E PROCEDIMENTOS OPERACIONAIS PADRÃO (POPS) DO RH.
           </CardDescription>
         </div>
-        <div>
-          <input
-            type="file"
-            ref={fileRef}
-            className="hidden"
-            onChange={handleUpload}
-            accept=".pdf,.doc,.docx"
-          />
-          <Button onClick={() => fileRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-2" /> FAZER UPLOAD
-          </Button>
-        </div>
+        {canAdd && (
+          <div>
+            <input
+              type="file"
+              ref={fileRef}
+              className="hidden"
+              onChange={handleUpload}
+              accept=".pdf,.doc,.docx"
+            />
+            <Button onClick={() => fileRef.current?.click()} className="uppercase">
+              <Upload className="h-4 w-4 mr-2" /> FAZER UPLOAD
+            </Button>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {sortedDocuments.length === 0 ? (
           <div className="text-center py-10 text-muted-foreground border border-dashed rounded-lg bg-muted/20 uppercase">
-            NENHUM DOCUMENTO ARMAZENADO NO MOMENTO. FAÇA O UPLOAD DO SEU PRIMEIRO ARQUIVO.
+            NENHUM DOCUMENTO ARMAZENADO NO MOMENTO.
           </div>
         ) : (
           <div className="grid gap-3">
@@ -67,14 +80,16 @@ export function DocumentsTab() {
                   <Button variant="outline" size="sm" className="hidden sm:flex uppercase">
                     <Download className="h-4 w-4 mr-2" /> BAIXAR
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeDocument(doc.id)}
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeDocument(doc.id)}
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

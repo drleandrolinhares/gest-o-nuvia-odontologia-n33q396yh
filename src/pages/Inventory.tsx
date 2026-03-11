@@ -38,7 +38,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function Inventory() {
-  const { inventory, specialties } = useAppStore()
+  const { inventory, specialties, can, isAdmin } = useAppStore()
   const [isAdding, setIsAdding] = useState(false)
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -48,6 +48,11 @@ export default function Inventory() {
   const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null)
   const [itemToPurchase, setItemToPurchase] = useState<InventoryItem | null>(null)
+
+  const canAdd = isAdmin || can('estoque', 'adicionar_item')
+  const canEdit = isAdmin || can('estoque', 'editar_item')
+  const canMove = isAdmin || can('estoque', 'registrar_movimentacao')
+  const canViewCosts = isAdmin || can('estoque', 'visualizar_custos')
 
   const isCriticalStock = (item: InventoryItem) => {
     return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock
@@ -105,12 +110,14 @@ export default function Inventory() {
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button
-            className="bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm font-bold"
-            onClick={() => setIsAdding(true)}
-          >
-            + NOVO PRODUTO
-          </Button>
+          {canAdd && (
+            <Button
+              className="bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm font-bold"
+              onClick={() => setIsAdding(true)}
+            >
+              + NOVO PRODUTO
+            </Button>
+          )}
         </div>
       </div>
 
@@ -170,17 +177,24 @@ export default function Inventory() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-600 shadow-sm rounded-xl">
-          <CardContent className="p-6">
-            <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
-              CAPITAL INVESTIDO ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
-            </p>
-            <div className="text-2xl font-extrabold text-blue-600 truncate">
-              {formatCurrency(totalCapital)}
-            </div>
-          </CardContent>
-        </Card>
+      <div
+        className={cn(
+          'grid gap-4',
+          canViewCosts ? 'md:grid-cols-2 lg:grid-cols-4' : 'md:grid-cols-2 lg:grid-cols-2',
+        )}
+      >
+        {canViewCosts && (
+          <Card className="border-l-4 border-l-blue-600 shadow-sm rounded-xl">
+            <CardContent className="p-6">
+              <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
+                CAPITAL INVESTIDO ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
+              </p>
+              <div className="text-2xl font-extrabold text-blue-600 truncate">
+                {formatCurrency(totalCapital)}
+              </div>
+            </CardContent>
+          </Card>
+        )}
         <Card className="border-l-4 border-l-[#D81B84] shadow-sm rounded-xl">
           <CardContent className="p-6">
             <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
@@ -189,21 +203,23 @@ export default function Inventory() {
             <div className="text-2xl font-extrabold text-[#D81B84] truncate">{totalItems}</div>
           </CardContent>
         </Card>
-        <Card className="border-l-4 border-l-amber-500 shadow-sm rounded-xl">
-          <CardContent className="p-6">
-            <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
-              ESPECIALIDADE (MAIOR CAPITAL)
-            </p>
-            <div className="flex flex-col">
-              <span className="text-xl font-extrabold text-amber-500 truncate">
-                {topStats.maxValSpec}
-              </span>
-              <span className="text-xs font-medium text-muted-foreground mt-1">
-                {formatCurrency(topStats.maxVal)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        {canViewCosts && (
+          <Card className="border-l-4 border-l-amber-500 shadow-sm rounded-xl">
+            <CardContent className="p-6">
+              <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
+                ESPECIALIDADE (MAIOR CAPITAL)
+              </p>
+              <div className="flex flex-col">
+                <span className="text-xl font-extrabold text-amber-500 truncate">
+                  {topStats.maxValSpec}
+                </span>
+                <span className="text-xs font-medium text-muted-foreground mt-1">
+                  {formatCurrency(topStats.maxVal)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         <Card className="border-l-4 border-l-emerald-500 shadow-sm rounded-xl">
           <CardContent className="p-6">
             <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
@@ -234,7 +250,9 @@ export default function Inventory() {
               <TableHead className="font-semibold text-muted-foreground">
                 VALIDADE / LOCAL
               </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">CUSTO EMB.</TableHead>
+              {canViewCosts && (
+                <TableHead className="font-semibold text-muted-foreground">CUSTO EMB.</TableHead>
+              )}
               <TableHead className="font-semibold text-muted-foreground text-center">
                 QTD.
               </TableHead>
@@ -252,8 +270,14 @@ export default function Inventory() {
               return (
                 <TableRow
                   key={item.id}
-                  className="hover:bg-muted/10 cursor-pointer transition-colors"
-                  onClick={() => setItemToEdit(item)}
+                  className={cn(
+                    canEdit || canViewCosts
+                      ? 'hover:bg-muted/10 cursor-pointer transition-colors'
+                      : '',
+                  )}
+                  onClick={() => {
+                    if (canEdit || canViewCosts) setItemToEdit(item)
+                  }}
                 >
                   <TableCell className="align-top py-4">
                     <div className="flex items-start flex-col gap-1.5 mb-2">
@@ -315,9 +339,11 @@ export default function Inventory() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="align-middle py-4 font-medium text-muted-foreground uppercase">
-                    {formatCurrency(item.packageCost)}
-                  </TableCell>
+                  {canViewCosts && (
+                    <TableCell className="align-middle py-4 font-medium text-muted-foreground uppercase">
+                      {formatCurrency(item.packageCost)}
+                    </TableCell>
+                  )}
                   <TableCell className="align-middle py-4 text-center">
                     <span
                       className={cn(
@@ -334,15 +360,17 @@ export default function Inventory() {
                     className="align-middle py-4 text-center"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
-                      onClick={() => setItemToDecrease(item)}
-                      disabled={item.quantity === 0}
-                    >
-                      <MinusCircle className="w-3.5 h-3.5 mr-1.5" /> BAIXAR
-                    </Button>
+                    {canMove && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
+                        onClick={() => setItemToDecrease(item)}
+                        disabled={item.quantity === 0}
+                      >
+                        <MinusCircle className="w-3.5 h-3.5 mr-1.5" /> BAIXAR
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               )
@@ -350,7 +378,7 @@ export default function Inventory() {
             {filteredInventory.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={canViewCosts ? 6 : 5}
                   className="text-center py-10 text-muted-foreground uppercase"
                 >
                   <div className="flex flex-col items-center justify-center space-y-3">

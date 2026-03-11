@@ -5,12 +5,17 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { GeneralSettings } from '@/components/settings/GeneralSettings'
 import { SuppliersManagement } from '@/components/settings/SuppliersManagement'
 import { UsersList } from '@/components/settings/UsersList'
-import { PermissionsControl } from '@/components/settings/PermissionsControl'
 
 export default function Settings() {
-  const { isAdmin } = useAppStore()
+  const { can, isAdmin } = useAppStore()
 
-  if (!isAdmin) {
+  const canViewGeneral = isAdmin
+  const canViewFornecedores = isAdmin || can('fornecedores', 'visualizar_fornecedores')
+  const canViewUsers = isAdmin || can('colaboradores', 'visualizar_lista')
+
+  const hasAnyAccess = canViewGeneral || canViewFornecedores || canViewUsers
+
+  if (!hasAnyAccess) {
     return (
       <div className="space-y-6 animate-fade-in-up uppercase">
         <div>
@@ -21,12 +26,14 @@ export default function Settings() {
           <ShieldAlert className="h-4 w-4" />
           <AlertTitle>ACESSO RESTRITO</AlertTitle>
           <AlertDescription>
-            VOCÊ PRECISA DE PRIVILÉGIOS DE ADMINISTRADOR PARA ACESSAR AS CONFIGURAÇÕES DO SISTEMA.
+            VOCÊ PRECISA DE PRIVILÉGIOS DE ACESSO PARA VISUALIZAR AS CONFIGURAÇÕES DO SISTEMA.
           </AlertDescription>
         </Alert>
       </div>
     )
   }
+
+  const defaultTab = canViewGeneral ? 'geral' : canViewFornecedores ? 'fornecedores' : 'usuarios'
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
@@ -37,35 +44,30 @@ export default function Settings() {
         </p>
       </div>
 
-      <Tabs defaultValue="geral" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="mb-6 grid w-full grid-cols-1 md:grid-cols-3 max-w-2xl">
-          <TabsTrigger value="geral">GERAL</TabsTrigger>
-          <TabsTrigger value="fornecedores">FORNECEDORES</TabsTrigger>
-          <TabsTrigger value="usuarios">USUÁRIOS E PERMISSÕES</TabsTrigger>
+          {canViewGeneral && <TabsTrigger value="geral">GERAL</TabsTrigger>}
+          {canViewFornecedores && <TabsTrigger value="fornecedores">FORNECEDORES</TabsTrigger>}
+          {canViewUsers && <TabsTrigger value="usuarios">USUÁRIOS E EQUIPE</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="geral">
-          <GeneralSettings />
-        </TabsContent>
+        {canViewGeneral && (
+          <TabsContent value="geral">
+            <GeneralSettings />
+          </TabsContent>
+        )}
 
-        <TabsContent value="fornecedores">
-          <SuppliersManagement />
-        </TabsContent>
+        {canViewFornecedores && (
+          <TabsContent value="fornecedores">
+            <SuppliersManagement />
+          </TabsContent>
+        )}
 
-        <TabsContent value="usuarios">
-          <Tabs defaultValue="lista" className="w-full">
-            <TabsList className="mb-6 grid w-full grid-cols-2 max-w-md">
-              <TabsTrigger value="lista">LISTA DE COLABORADORES</TabsTrigger>
-              <TabsTrigger value="permissoes">CONTROLE DE PERMISSÕES</TabsTrigger>
-            </TabsList>
-            <TabsContent value="lista">
-              <UsersList />
-            </TabsContent>
-            <TabsContent value="permissoes">
-              <PermissionsControl />
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
+        {canViewUsers && (
+          <TabsContent value="usuarios">
+            <UsersList />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

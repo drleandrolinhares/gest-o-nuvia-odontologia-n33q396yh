@@ -39,6 +39,7 @@ const formSchema = z.object({
   salary: z.string().min(1, 'OBRIGATÓRIO'),
   hireDate: z.string().min(1, 'OBRIGATÓRIO'),
   vacationDueDate: z.string().min(1, 'OBRIGATÓRIO'),
+  accessLevel: z.enum(['OPERACIONAL', 'GERENCIAL', 'ESTRATEGICO']),
 })
 type FormValues = z.infer<typeof formSchema>
 
@@ -59,6 +60,7 @@ export function AddEmployeeDialog({
       password: '',
       phone: '',
       salary: '',
+      accessLevel: 'OPERACIONAL',
       hireDate: new Date().toISOString().split('T')[0],
       vacationDueDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
         .toISOString()
@@ -73,6 +75,7 @@ export function AddEmployeeDialog({
       vacationDaysTaken: 0,
       vacationDaysTotal: 30,
       agendaAccess: 'VIEW_ONLY',
+      permissions: {},
     })
     setOpen(false)
     form.reset()
@@ -96,7 +99,10 @@ export function AddEmployeeDialog({
           <DialogTitle>NOVO COLABORADOR / USUÁRIO</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 max-h-[70vh] overflow-y-auto pr-2"
+          >
             <FormField
               control={form.control}
               name="name"
@@ -177,7 +183,29 @@ export function AddEmployeeDialog({
                 )}
               />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="accessLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>NÍVEL DE ACESSO</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="SELECIONE..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="OPERACIONAL">OPERACIONAL</SelectItem>
+                        <SelectItem value="GERENCIAL">GERENCIAL</SelectItem>
+                        <SelectItem value="ESTRATEGICO">ESTRATEGICO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="phone"
@@ -191,6 +219,8 @@ export function AddEmployeeDialog({
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="salary"
