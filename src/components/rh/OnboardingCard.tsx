@@ -1,26 +1,36 @@
-import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { Trash2, Plus } from 'lucide-react'
 import useAppStore, { OnboardingCandidate } from '@/stores/main'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const schema = z.object({
+  title: z.string().min(1, 'Digite o nome da tarefa'),
+})
 
 export function OnboardingCard({ candidate }: { candidate: OnboardingCandidate }) {
   const { toggleTask, addOnboardingTask, removeOnboardingTask } = useAppStore()
-  const [newTask, setNewTask] = useState('')
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: { title: '' },
+  })
 
   const completed = candidate.tasks.filter((t) => t.completed).length
   const total = candidate.tasks.length
   const progress = total === 0 ? 0 : (completed / total) * 100
   const isFinished = progress === 100 && total > 0
 
-  const handleAddTask = () => {
-    if (!newTask.trim()) return
-    addOnboardingTask(candidate.id, newTask)
-    setNewTask('')
+  const onSubmit = (values: z.infer<typeof schema>) => {
+    addOnboardingTask(candidate.id, values.title)
+    form.reset()
   }
 
   return (
@@ -85,23 +95,27 @@ export function OnboardingCard({ candidate }: { candidate: OnboardingCandidate }
             ))}
           </div>
 
-          <div className="flex items-center gap-2 mt-4 pt-2 border-t">
-            <Input
-              placeholder="Nova tarefa..."
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-              className="h-9 text-sm"
-            />
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleAddTask}
-              className="h-9 px-3 shrink-0"
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex items-start gap-2 mt-4 pt-2 border-t"
             >
-              <Plus className="h-4 w-4 mr-1" /> Adicionar
-            </Button>
-          </div>
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem className="flex-1 space-y-0">
+                    <FormControl>
+                      <Input placeholder="Nova tarefa..." className="h-9 text-sm" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" size="sm" variant="secondary" className="h-9 px-3 shrink-0">
+                <Plus className="h-4 w-4 mr-1" /> Adicionar
+              </Button>
+            </form>
+          </Form>
         </div>
       </CardContent>
     </Card>

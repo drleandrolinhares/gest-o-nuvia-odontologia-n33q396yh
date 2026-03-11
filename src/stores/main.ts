@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react'
 
 export type Employee = {
   id: string
@@ -162,17 +162,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory)
   const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments)
 
-  const toggleAdmin = () => setIsAdmin((prev) => !prev)
+  const toggleAdmin = useCallback(() => setIsAdmin((prev) => !prev), [])
 
-  const addDepartment = (name: string) => {
+  const addDepartment = useCallback((name: string) => {
     setDepartments((prev) => [...prev, name])
-  }
+  }, [])
 
-  const removeDepartment = (name: string) => {
+  const removeDepartment = useCallback((name: string) => {
     setDepartments((prev) => prev.filter((d) => d !== name))
-  }
+  }, [])
 
-  const toggleTask = (candidateId: string, taskId: string) => {
+  const toggleTask = useCallback((candidateId: string, taskId: string) => {
     setOnboarding((prev) =>
       prev.map((c) =>
         c.id === candidateId
@@ -183,18 +183,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
           : c,
       ),
     )
-  }
+  }, [])
 
-  const addInventoryItem = (item: Omit<InventoryItem, 'id'>) => {
-    setInventory((prev) => [...prev, { ...item, id: Math.random().toString(36).substr(2, 9) }])
-  }
+  const addInventoryItem = useCallback((item: Omit<InventoryItem, 'id'>) => {
+    setInventory((prev) => [...prev, { ...item, id: Math.random().toString(36).substring(2, 11) }])
+  }, [])
 
-  const updateInventoryQuantity = (id: string, newQuantity: number) => {
+  const updateInventoryQuantity = useCallback((id: string, newQuantity: number) => {
     setInventory((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: newQuantity } : i)))
-  }
+  }, [])
 
-  const addEmployee = (emp: Omit<Employee, 'id'>) => {
-    const id = Math.random().toString(36).substr(2, 9)
+  const addEmployee = useCallback((emp: Omit<Employee, 'id'>) => {
+    const id = Math.random().toString(36).substring(2, 11)
     setEmployees((prev) => [...prev, { ...emp, id }])
 
     setOnboarding((prev) => [
@@ -206,30 +206,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
         department: emp.department,
         tasks: [
           {
-            id: Math.random().toString(36).substr(2, 9),
+            id: Math.random().toString(36).substring(2, 11),
             title: 'Assinatura de Contrato',
             completed: false,
           },
           {
-            id: Math.random().toString(36).substr(2, 9),
+            id: Math.random().toString(36).substring(2, 11),
             title: 'Entrega de EPIs',
             completed: false,
           },
           {
-            id: Math.random().toString(36).substr(2, 9),
+            id: Math.random().toString(36).substring(2, 11),
             title: 'Acesso ao Sistema Nuvia',
             completed: false,
           },
         ],
       },
     ])
-  }
+  }, [])
 
-  const deleteEmployee = (id: string) => {
+  const deleteEmployee = useCallback((id: string) => {
     setEmployees((prev) => prev.filter((e) => e.id !== id))
-  }
+  }, [])
 
-  const addOnboardingTask = (candidateId: string, title: string) => {
+  const addOnboardingTask = useCallback((candidateId: string, title: string) => {
     setOnboarding((prev) =>
       prev.map((c) =>
         c.id === candidateId
@@ -237,64 +237,83 @@ export function AppProvider({ children }: { children: ReactNode }) {
               ...c,
               tasks: [
                 ...c.tasks,
-                { id: Math.random().toString(36).substr(2, 9), title, completed: false },
+                { id: Math.random().toString(36).substring(2, 11), title, completed: false },
               ],
             }
           : c,
       ),
     )
-  }
+  }, [])
 
-  const removeOnboardingTask = (candidateId: string, taskId: string) => {
+  const removeOnboardingTask = useCallback((candidateId: string, taskId: string) => {
     setOnboarding((prev) =>
       prev.map((c) =>
         c.id === candidateId ? { ...c, tasks: c.tasks.filter((t) => t.id !== taskId) } : c,
       ),
     )
-  }
+  }, [])
 
-  const addDocument = (name: string) => {
+  const addDocument = useCallback((name: string) => {
     setDocuments((prev) => [
       ...prev,
       {
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random().toString(36).substring(2, 11),
         name,
         date: new Date().toLocaleDateString('pt-BR'),
       },
     ])
-  }
+  }, [])
 
-  const removeDocument = (id: string) => {
+  const removeDocument = useCallback((id: string) => {
     setDocuments((prev) => prev.filter((d) => d.id !== id))
-  }
+  }, [])
 
-  return React.createElement(
-    StoreContext.Provider,
-    {
-      value: {
-        isAdmin,
-        departments,
-        employees,
-        alerts,
-        onboarding,
-        inventory,
-        documents,
-        toggleAdmin,
-        addDepartment,
-        removeDepartment,
-        toggleTask,
-        addInventoryItem,
-        updateInventoryQuantity,
-        addEmployee,
-        deleteEmployee,
-        addOnboardingTask,
-        removeOnboardingTask,
-        addDocument,
-        removeDocument,
-      },
-    },
-    children,
+  const value = useMemo(
+    () => ({
+      isAdmin,
+      departments,
+      employees,
+      alerts,
+      onboarding,
+      inventory,
+      documents,
+      toggleAdmin,
+      addDepartment,
+      removeDepartment,
+      toggleTask,
+      addInventoryItem,
+      updateInventoryQuantity,
+      addEmployee,
+      deleteEmployee,
+      addOnboardingTask,
+      removeOnboardingTask,
+      addDocument,
+      removeDocument,
+    }),
+    [
+      isAdmin,
+      departments,
+      employees,
+      alerts,
+      onboarding,
+      inventory,
+      documents,
+      toggleAdmin,
+      addDepartment,
+      removeDepartment,
+      toggleTask,
+      addInventoryItem,
+      updateInventoryQuantity,
+      addEmployee,
+      deleteEmployee,
+      addOnboardingTask,
+      removeOnboardingTask,
+      addDocument,
+      removeDocument,
+    ],
   )
+
+  return React.createElement(StoreContext.Provider, { value }, children)
 }
 
 export default function useAppStore() {
