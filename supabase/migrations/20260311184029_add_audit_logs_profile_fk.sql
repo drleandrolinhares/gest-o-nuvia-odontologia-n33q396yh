@@ -1,0 +1,4 @@
+ALTER TABLE public.audit_logs
+ADD CONSTRAINT audit_logs_user_id_profiles_fkey
+FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+ON DELETE SET NULL;

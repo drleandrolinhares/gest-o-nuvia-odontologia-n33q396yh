@@ -9,7 +9,333 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      acessos: {
+        Row: {
+          access_level: string | null
+          created_at: string
+          id: string
+          instructions: string | null
+          login: string
+          pass: string
+          platform: string
+          url: string
+        }
+        Insert: {
+          access_level?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          login: string
+          pass: string
+          platform: string
+          url?: string
+        }
+        Update: {
+          access_level?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          login?: string
+          pass?: string
+          platform?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      agenda: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          involves_third_party: boolean | null
+          location: string
+          third_party_details: string | null
+          time: string
+          title: string
+          type: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          id?: string
+          involves_third_party?: boolean | null
+          location: string
+          third_party_details?: string | null
+          time: string
+          title: string
+          type: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          involves_third_party?: boolean | null
+          location?: string
+          third_party_details?: string | null
+          time?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          access_level: string | null
+          agenda_access: string | null
+          created_at: string
+          department: string
+          email: string | null
+          hire_date: string | null
+          id: string
+          name: string
+          permissions: Json | null
+          phone: string | null
+          role: string
+          salary: string | null
+          status: string | null
+          user_id: string | null
+          vacation_days_taken: number | null
+          vacation_days_total: number | null
+          vacation_due_date: string | null
+        }
+        Insert: {
+          access_level?: string | null
+          agenda_access?: string | null
+          created_at?: string
+          department: string
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          name: string
+          permissions?: Json | null
+          phone?: string | null
+          role: string
+          salary?: string | null
+          status?: string | null
+          user_id?: string | null
+          vacation_days_taken?: number | null
+          vacation_days_total?: number | null
+          vacation_due_date?: string | null
+        }
+        Update: {
+          access_level?: string | null
+          agenda_access?: string | null
+          created_at?: string
+          department?: string
+          email?: string | null
+          hire_date?: string | null
+          id?: string
+          name?: string
+          permissions?: Json | null
+          phone?: string | null
+          role?: string
+          salary?: string | null
+          status?: string | null
+          user_id?: string | null
+          vacation_days_taken?: number | null
+          vacation_days_total?: number | null
+          vacation_due_date?: string | null
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          barcode: string | null
+          brand: string | null
+          created_at: string
+          entry_date: string | null
+          expiration_date: string | null
+          id: string
+          items_per_box: number | null
+          last_brand: string | null
+          last_value: number | null
+          min_stock: number | null
+          name: string
+          notes: string | null
+          package_cost: number | null
+          package_type: string | null
+          purchase_history: Json | null
+          quantity: number | null
+          specialty: string | null
+          storage_location: string | null
+        }
+        Insert: {
+          barcode?: string | null
+          brand?: string | null
+          created_at?: string
+          entry_date?: string | null
+          expiration_date?: string | null
+          id?: string
+          items_per_box?: number | null
+          last_brand?: string | null
+          last_value?: number | null
+          min_stock?: number | null
+          name: string
+          notes?: string | null
+          package_cost?: number | null
+          package_type?: string | null
+          purchase_history?: Json | null
+          quantity?: number | null
+          specialty?: string | null
+          storage_location?: string | null
+        }
+        Update: {
+          barcode?: string | null
+          brand?: string | null
+          created_at?: string
+          entry_date?: string | null
+          expiration_date?: string | null
+          id?: string
+          items_per_box?: number | null
+          last_brand?: string | null
+          last_value?: number | null
+          min_stock?: number | null
+          name?: string
+          notes?: string | null
+          package_cost?: number | null
+          package_type?: string | null
+          purchase_history?: Json | null
+          quantity?: number | null
+          specialty?: string | null
+          storage_location?: string | null
+        }
+        Relationships: []
+      }
+      onboarding: {
+        Row: {
+          created_at: string
+          department: string
+          id: string
+          name: string
+          role: string
+          tasks: Json | null
+        }
+        Insert: {
+          created_at?: string
+          department: string
+          id?: string
+          name: string
+          role: string
+          tasks?: Json | null
+        }
+        Update: {
+          created_at?: string
+          department?: string
+          id?: string
+          name?: string
+          role?: string
+          tasks?: Json | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          id: string
+          name?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          cnpj: string
+          contact: string
+          created_at: string
+          email: string
+          has_special_negotiation: boolean | null
+          id: string
+          name: string
+          negotiation_notes: string | null
+          phone: string
+          website: string | null
+        }
+        Insert: {
+          cnpj?: string
+          contact?: string
+          created_at?: string
+          email?: string
+          has_special_negotiation?: boolean | null
+          id?: string
+          name: string
+          negotiation_notes?: string | null
+          phone?: string
+          website?: string | null
+        }
+        Update: {
+          cnpj?: string
+          contact?: string
+          created_at?: string
+          email?: string
+          has_special_negotiation?: boolean | null
+          id?: string
+          name?: string
+          negotiation_notes?: string | null
+          phone?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -153,3 +479,136 @@ export const Constants = {
 // IMPORTANT: The TypeScript types above map UUID, TEXT, VARCHAR all to "string".
 // Use the COLUMN TYPES section below to know the real PostgreSQL type for each column.
 // Always use the correct PostgreSQL type when writing SQL migrations.
+
+// --- COLUMN TYPES (actual PostgreSQL types) ---
+// Use this to know the real database type when writing migrations.
+// "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: acessos
+//   id: uuid (not null, default: gen_random_uuid())
+//   platform: text (not null)
+//   url: text (not null, default: ''::text)
+//   login: text (not null)
+//   pass: text (not null)
+//   instructions: text (nullable)
+//   access_level: text (nullable, default: 'OPERACIONAL'::text)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: agenda
+//   id: uuid (not null, default: gen_random_uuid())
+//   title: text (not null)
+//   date: text (not null)
+//   time: text (not null)
+//   location: text (not null)
+//   type: text (not null)
+//   assigned_to: text (nullable)
+//   involves_third_party: boolean (nullable, default: false)
+//   third_party_details: text (nullable)
+//   created_by: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: audit_logs
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   action: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: documents
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   date: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: employees
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   name: text (not null)
+//   role: text (not null)
+//   department: text (not null)
+//   status: text (nullable, default: 'Ativo'::text)
+//   hire_date: timestamp with time zone (nullable)
+//   salary: text (nullable)
+//   vacation_days_taken: integer (nullable, default: 0)
+//   vacation_days_total: integer (nullable, default: 30)
+//   vacation_due_date: timestamp with time zone (nullable)
+//   email: text (nullable)
+//   phone: text (nullable)
+//   agenda_access: text (nullable, default: 'VIEW_ONLY'::text)
+//   permissions: jsonb (nullable, default: '["dashboard"]'::jsonb)
+//   access_level: text (nullable, default: 'OPERACIONAL'::text)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: inventory
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   package_cost: numeric (nullable, default: 0)
+//   storage_location: text (nullable)
+//   package_type: text (nullable)
+//   items_per_box: integer (nullable, default: 1)
+//   min_stock: integer (nullable, default: 0)
+//   quantity: integer (nullable, default: 0)
+//   specialty: text (nullable)
+//   entry_date: timestamp with time zone (nullable)
+//   expiration_date: timestamp with time zone (nullable)
+//   brand: text (nullable)
+//   last_brand: text (nullable)
+//   last_value: numeric (nullable, default: 0)
+//   notes: text (nullable)
+//   barcode: text (nullable)
+//   purchase_history: jsonb (nullable, default: '[]'::jsonb)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: onboarding
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   role: text (not null)
+//   department: text (not null)
+//   tasks: jsonb (nullable, default: '[]'::jsonb)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: profiles
+//   id: uuid (not null)
+//   email: text (not null, default: ''::text)
+//   name: text (not null, default: ''::text)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: suppliers
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   contact: text (not null, default: ''::text)
+//   phone: text (not null, default: ''::text)
+//   email: text (not null, default: ''::text)
+//   cnpj: text (not null, default: ''::text)
+//   website: text (nullable)
+//   has_special_negotiation: boolean (nullable, default: false)
+//   negotiation_notes: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+
+// --- CONSTRAINTS ---
+// Table: acessos
+//   PRIMARY KEY acessos_pkey: PRIMARY KEY (id)
+// Table: agenda
+//   PRIMARY KEY agenda_pkey: PRIMARY KEY (id)
+// Table: audit_logs
+//   PRIMARY KEY audit_logs_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
+// Table: documents
+//   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
+// Table: employees
+//   PRIMARY KEY employees_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
+// Table: inventory
+//   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
+// Table: onboarding
+//   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
+// Table: profiles
+//   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
+// Table: suppliers
+//   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
+
+// --- DATABASE FUNCTIONS ---
+// FUNCTION handle_new_user()
+//   CREATE OR REPLACE FUNCTION public.handle_new_user()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     INSERT INTO public.profiles (id, email, name)
+//     VALUES (NEW.id, COALESCE(NEW.email, ''), COALESCE(NEW.raw_user_meta_data->>'name', 'Colaborador'));
+//     RETURN NEW;
+//   END;
+//   $function$
+//
