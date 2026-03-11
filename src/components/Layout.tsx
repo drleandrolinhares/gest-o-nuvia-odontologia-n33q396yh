@@ -1,8 +1,17 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Users, Package, Bell, Search, User, Menu } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  Bell,
+  Search,
+  User,
+  Settings as SettingsIcon,
+} from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import useAppStore from '@/stores/main'
 import {
   SidebarProvider,
   Sidebar,
@@ -21,10 +30,12 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/rh', label: 'RH', icon: Users },
   { href: '/estoque', label: 'Estoque', icon: Package },
+  { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
 ]
 
 export function AppSidebar() {
   const location = useLocation()
+  const { isAdmin, toggleAdmin } = useAppStore()
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -66,7 +77,13 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-medium truncate">Dr. Souza Filho</span>
-            <span className="text-xs text-muted-foreground truncate">Administrador</span>
+            <span
+              className="text-xs text-muted-foreground truncate cursor-pointer hover:underline hover:text-primary transition-colors"
+              onClick={toggleAdmin}
+              title="Clique para alternar permissões"
+            >
+              {isAdmin ? 'Administrador' : 'Usuário Padrão'}
+            </span>
           </div>
         </div>
       </SidebarFooter>

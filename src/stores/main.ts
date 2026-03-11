@@ -10,6 +10,7 @@ export type Employee = {
   salary: string
   vacationDaysTaken: number
   vacationDaysTotal: number
+  vacationDueDate: string
   email: string
   phone: string
 }
@@ -45,20 +46,28 @@ export type DocumentItem = {
 }
 
 interface AppStore {
+  isAdmin: boolean
+  departments: string[]
   employees: Employee[]
   alerts: string[]
   onboarding: OnboardingCandidate[]
   inventory: InventoryItem[]
   documents: DocumentItem[]
+  toggleAdmin: () => void
+  addDepartment: (name: string) => void
+  removeDepartment: (name: string) => void
   toggleTask: (candidateId: string, taskId: string) => void
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, newQuantity: number) => void
   addEmployee: (emp: Omit<Employee, 'id'>) => void
+  deleteEmployee: (id: string) => void
   addOnboardingTask: (candidateId: string, title: string) => void
   removeOnboardingTask: (candidateId: string, taskId: string) => void
   addDocument: (name: string) => void
   removeDocument: (id: string) => void
 }
+
+const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção']
 
 const mockEmployees: Employee[] = [
   {
@@ -71,6 +80,7 @@ const mockEmployees: Employee[] = [
     salary: 'R$ 8.500',
     vacationDaysTaken: 10,
     vacationDaysTotal: 30,
+    vacationDueDate: '2024-01-15',
     email: 'ana.silva@nuvia.com',
     phone: '(11) 98765-4321',
   },
@@ -84,6 +94,7 @@ const mockEmployees: Employee[] = [
     salary: 'R$ 12.000',
     vacationDaysTaken: 30,
     vacationDaysTotal: 30,
+    vacationDueDate: '2023-06-10',
     email: 'carlos.santos@nuvia.com',
     phone: '(11) 99999-8888',
   },
@@ -131,11 +142,23 @@ const mockDocuments: DocumentItem[] = [
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [isAdmin, setIsAdmin] = useState(true)
+  const [departments, setDepartments] = useState<string[]>(mockDepartments)
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
   const [alerts] = useState<string[]>(['Carlos Santos: Retorna de férias em 2 dias.'])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
   const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory)
   const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments)
+
+  const toggleAdmin = () => setIsAdmin((prev) => !prev)
+
+  const addDepartment = (name: string) => {
+    setDepartments((prev) => [...prev, name])
+  }
+
+  const removeDepartment = (name: string) => {
+    setDepartments((prev) => prev.filter((d) => d !== name))
+  }
 
   const toggleTask = (candidateId: string, taskId: string) => {
     setOnboarding((prev) =>
@@ -191,6 +214,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ])
   }
 
+  const deleteEmployee = (id: string) => {
+    setEmployees((prev) => prev.filter((e) => e.id !== id))
+  }
+
   const addOnboardingTask = (candidateId: string, title: string) => {
     setOnboarding((prev) =>
       prev.map((c) =>
@@ -234,15 +261,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     StoreContext.Provider,
     {
       value: {
+        isAdmin,
+        departments,
         employees,
         alerts,
         onboarding,
         inventory,
         documents,
+        toggleAdmin,
+        addDepartment,
+        removeDepartment,
         toggleTask,
         addInventoryItem,
         updateInventoryQuantity,
         addEmployee,
+        deleteEmployee,
         addOnboardingTask,
         removeOnboardingTask,
         addDocument,

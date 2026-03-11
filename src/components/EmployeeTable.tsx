@@ -1,11 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Employee } from '@/stores/main'
+import useAppStore from '@/stores/main'
 import { cn } from '@/lib/utils'
-import { UserCircle } from 'lucide-react'
+import { UserCircle, Trash2 } from 'lucide-react'
 
 export function EmployeeTable({ employees }: { employees: Employee[] }) {
   const navigate = useNavigate()
+  const { isAdmin, deleteEmployee } = useAppStore()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -34,9 +37,9 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
         <div
           key={emp.id}
           onClick={() => navigate(`/rh/colaborador/${emp.id}`)}
-          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:border-primary/50 cursor-pointer transition-all gap-4 shadow-sm"
+          className="flex flex-col sm:flex-row sm:items-center p-4 border rounded-lg bg-card hover:border-primary/50 cursor-pointer transition-all gap-4 shadow-sm group"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-1">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
               <UserCircle className="h-6 w-6" />
             </div>
@@ -48,7 +51,7 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 sm:gap-8 border-t sm:border-0 pt-3 sm:pt-0">
+          <div className="flex items-center gap-3 sm:gap-6 border-t sm:border-0 pt-3 sm:pt-0">
             <div className="text-sm text-right hidden md:block">
               <p className="text-muted-foreground text-xs">Admissão</p>
               <p className="font-medium">{new Date(emp.hireDate).toLocaleDateString('pt-BR')}</p>
@@ -56,6 +59,22 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
             <Badge className={cn('text-white whitespace-nowrap', getStatusColor(emp.status))}>
               {emp.status}
             </Badge>
+
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (window.confirm(`Tem certeza que deseja remover ${emp.name}?`)) {
+                    deleteEmployee(emp.id)
+                  }
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       ))}
