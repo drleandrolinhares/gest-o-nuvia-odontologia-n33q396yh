@@ -38,14 +38,26 @@ export type InventoryItem = {
   lastRestocked: string
 }
 
+export type DocumentItem = {
+  id: string
+  name: string
+  date: string
+}
+
 interface AppStore {
   employees: Employee[]
   alerts: string[]
   onboarding: OnboardingCandidate[]
   inventory: InventoryItem[]
+  documents: DocumentItem[]
   toggleTask: (candidateId: string, taskId: string) => void
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, newQuantity: number) => void
+  addEmployee: (emp: Omit<Employee, 'id'>) => void
+  addOnboardingTask: (candidateId: string, title: string) => void
+  removeOnboardingTask: (candidateId: string, taskId: string) => void
+  addDocument: (name: string) => void
+  removeDocument: (id: string) => void
 }
 
 const mockEmployees: Employee[] = [
@@ -75,19 +87,6 @@ const mockEmployees: Employee[] = [
     email: 'carlos.santos@nuvia.com',
     phone: '(11) 99999-8888',
   },
-  {
-    id: '3',
-    name: 'Mariana Costa',
-    role: 'Recepcionista',
-    department: 'Atendimento',
-    status: 'Ativo',
-    hireDate: '2024-02-01',
-    salary: 'R$ 2.500',
-    vacationDaysTaken: 0,
-    vacationDaysTotal: 30,
-    email: 'mariana.costa@nuvia.com',
-    phone: '(11) 97777-6666',
-  },
 ]
 
 const mockOnboarding: OnboardingCandidate[] = [
@@ -99,8 +98,6 @@ const mockOnboarding: OnboardingCandidate[] = [
     tasks: [
       { id: 't1', title: 'Assinatura de Contrato', completed: true },
       { id: 't2', title: 'Entrega de EPIs', completed: false },
-      { id: 't3', title: 'Treinamento de Biossegurança', completed: false },
-      { id: 't4', title: 'Acesso ao Sistema Nuvia', completed: false },
     ],
   },
 ]
@@ -124,27 +121,21 @@ const mockInventory: InventoryItem[] = [
     threshold: 20,
     lastRestocked: '2026-03-01',
   },
-  {
-    id: '3',
-    name: 'Agulha Gengival',
-    category: 'Descartáveis',
-    quantity: 150,
-    unit: 'Unidades',
-    threshold: 100,
-    lastRestocked: '2026-02-15',
-  },
+]
+
+const mockDocuments: DocumentItem[] = [
+  { id: '1', name: 'POP - Onboarding e Admissão v2.pdf', date: '10/01/2026' },
+  { id: '2', name: 'Manual de Conduta Nuvia.pdf', date: '15/02/2026' },
 ]
 
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [employees] = useState<Employee[]>(mockEmployees)
-  const [alerts] = useState<string[]>([
-    'Carlos Santos: Retorna de férias em 2 dias.',
-    'Mariana Costa: Vencimento do período aquisitivo de férias no próximo mês.',
-  ])
+  const [employees, setEmployees] = useState<Employee[]>(mockEmployees)
+  const [alerts] = useState<string[]>(['Carlos Santos: Retorna de férias em 2 dias.'])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
   const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory)
+  const [documents, setDocuments] = useState<DocumentItem[]>(mockDocuments)
 
   const toggleTask = (candidateId: string, taskId: string) => {
     setOnboarding((prev) =>
@@ -167,6 +158,78 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setInventory((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: newQuantity } : i)))
   }
 
+  const addEmployee = (emp: Omit<Employee, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9)
+    setEmployees((prev) => [...prev, { ...emp, id }])
+
+    // Auto-create onboarding process
+    setOnboarding((prev) => [
+      ...prev,
+      {
+        id: `o_${id}`,
+        name: emp.name,
+        role: emp.role,
+        department: emp.department,
+        tasks: [
+          {
+            id: Math.random().toString(36).substr(2, 9),
+            title: 'Assinatura de Contrato',
+            completed: false,
+          },
+          {
+            id: Math.random().toString(36).substr(2, 9),
+            title: 'Entrega de EPIs',
+            completed: false,
+          },
+          {
+            id: Math.random().toString(36).substr(2, 9),
+            title: 'Acesso ao Sistema Nuvia',
+            completed: false,
+          },
+        ],
+      },
+    ])
+  }
+
+  const addOnboardingTask = (candidateId: string, title: string) => {
+    setOnboarding((prev) =>
+      prev.map((c) =>
+        c.id === candidateId
+          ? {
+              ...c,
+              tasks: [
+                ...c.tasks,
+                { id: Math.random().toString(36).substr(2, 9), title, completed: false },
+              ],
+            }
+          : c,
+      ),
+    )
+  }
+
+  const removeOnboardingTask = (candidateId: string, taskId: string) => {
+    setOnboarding((prev) =>
+      prev.map((c) =>
+        c.id === candidateId ? { ...c, tasks: c.tasks.filter((t) => t.id !== taskId) } : c,
+      ),
+    )
+  }
+
+  const addDocument = (name: string) => {
+    setDocuments((prev) => [
+      ...prev,
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        date: new Date().toLocaleDateString('pt-BR'),
+      },
+    ])
+  }
+
+  const removeDocument = (id: string) => {
+    setDocuments((prev) => prev.filter((d) => d.id !== id))
+  }
+
   return React.createElement(
     StoreContext.Provider,
     {
@@ -175,9 +238,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         alerts,
         onboarding,
         inventory,
+        documents,
         toggleTask,
         addInventoryItem,
         updateInventoryQuantity,
+        addEmployee,
+        addOnboardingTask,
+        removeOnboardingTask,
+        addDocument,
+        removeDocument,
       },
     },
     children,

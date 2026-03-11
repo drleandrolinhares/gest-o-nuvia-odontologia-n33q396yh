@@ -17623,6 +17623,28 @@ var Search = createLucideIcon("search", [["path", {
 	r: "8",
 	key: "4ej97u"
 }]]);
+var Trash2 = createLucideIcon("trash-2", [
+	["path", {
+		d: "M10 11v6",
+		key: "nco0om"
+	}],
+	["path", {
+		d: "M14 11v6",
+		key: "outv1u"
+	}],
+	["path", {
+		d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6",
+		key: "miytrc"
+	}],
+	["path", {
+		d: "M3 6h18",
+		key: "d0wm0j"
+	}],
+	["path", {
+		d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
+		key: "e791ji"
+	}]
+]);
 var TrendingDown = createLucideIcon("trending-down", [["path", {
 	d: "M16 17h6v-6",
 	key: "t6n2it"
@@ -17630,6 +17652,20 @@ var TrendingDown = createLucideIcon("trending-down", [["path", {
 	d: "m22 17-8.5-8.5-5 5L2 7",
 	key: "x473p"
 }]]);
+var Upload = createLucideIcon("upload", [
+	["path", {
+		d: "M12 3v12",
+		key: "1x0j5s"
+	}],
+	["path", {
+		d: "m17 8-5-5-5 5",
+		key: "7q97r8"
+	}],
+	["path", {
+		d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+		key: "ih7n3h"
+	}]
+]);
 var User = createLucideIcon("user", [["path", {
 	d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2",
 	key: "975kel"
@@ -19480,7 +19516,7 @@ function useIsMobile() {
 	return !!isMobile;
 }
 require_react_dom();
-var Primitive = [
+var Primitive$1 = [
 	"a",
 	"button",
 	"div",
@@ -19526,7 +19562,7 @@ var Separator$1 = import_react.forwardRef((props, forwardedRef) => {
 		"aria-orientation": ariaOrientation,
 		role: "separator"
 	};
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 		"data-orientation": orientation,
 		...semanticProps,
 		...domProps,
@@ -19789,7 +19825,7 @@ function getElementRef$1(element) {
 	return element.props.ref || element.ref;
 }
 var import_react_dom$2 = /* @__PURE__ */ __toESM(require_react_dom(), 1);
-var Primitive$1 = [
+var Primitive = [
 	"a",
 	"button",
 	"div",
@@ -19923,7 +19959,7 @@ var DismissableLayer = import_react.forwardRef((props, forwardedRef) => {
 		document.addEventListener(CONTEXT_UPDATE, handleUpdate);
 		return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
 	}, []);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 		...layerProps,
 		ref: composedRefs,
 		style: {
@@ -19950,7 +19986,7 @@ var DismissableLayerBranch = import_react.forwardRef((props, forwardedRef) => {
 			};
 		}
 	}, [context.branches]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 		...props,
 		ref: composedRefs
 	});
@@ -20127,7 +20163,7 @@ var FocusScope = import_react.forwardRef((props, forwardedRef) => {
 		trapped,
 		focusScope.paused
 	]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 		tabIndex: -1,
 		...scopeProps,
 		ref: composedRefs,
@@ -20210,7 +20246,7 @@ var Portal = import_react.forwardRef((props, forwardedRef) => {
 	const [mounted, setMounted] = import_react.useState(false);
 	useLayoutEffect2(() => setMounted(true), []);
 	const container = containerProp || mounted && globalThis?.document?.body;
-	return container ? import_react_dom$1.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+	return container ? import_react_dom$1.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 		...portalProps,
 		ref: forwardedRef
 	}), container) : null;
@@ -21061,7 +21097,7 @@ var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...triggerProps } = props;
 	const context = useDialogContext(TRIGGER_NAME$3, __scopeDialog);
 	const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
 		type: "button",
 		"aria-haspopup": "dialog",
 		"aria-expanded": context.open,
@@ -21114,7 +21150,7 @@ var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 		as: Slot$1,
 		allowPinchZoom: true,
 		shards: [context.contentRef],
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 			"data-state": getState$1(context.open),
 			...overlayProps,
 			ref: forwardedRef,
@@ -21228,7 +21264,7 @@ var TITLE_NAME = "DialogTitle";
 var DialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...titleProps } = props;
 	const context = useDialogContext(TITLE_NAME, __scopeDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.h2, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.h2, {
 		id: context.titleId,
 		...titleProps,
 		ref: forwardedRef
@@ -21239,7 +21275,7 @@ var DESCRIPTION_NAME = "DialogDescription";
 var DialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...descriptionProps } = props;
 	const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.p, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.p, {
 		id: context.descriptionId,
 		...descriptionProps,
 		ref: forwardedRef
@@ -21250,7 +21286,7 @@ var CLOSE_NAME = "DialogClose";
 var DialogClose$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...closeProps } = props;
 	const context = useDialogContext(CLOSE_NAME, __scopeDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
 		type: "button",
 		...closeProps,
 		ref: forwardedRef,
@@ -22862,7 +22898,7 @@ var arrow = (options$1, deps) => ({
 var NAME$2 = "Arrow";
 var Arrow$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { children, width = 10, height = 5, ...arrowProps } = props;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.svg, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.svg, {
 		...arrowProps,
 		ref: forwardedRef,
 		width,
@@ -22934,7 +22970,7 @@ var PopperAnchor = import_react.forwardRef((props, forwardedRef) => {
 		anchorRef.current = virtualRef?.current || ref.current;
 		if (previousAnchor !== anchorRef.current) context.onAnchorChange(anchorRef.current);
 	});
-	return virtualRef ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+	return virtualRef ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 		...anchorProps,
 		ref: composedRefs
 	});
@@ -23044,7 +23080,7 @@ var PopperContent = import_react.forwardRef((props, forwardedRef) => {
 			arrowX,
 			arrowY,
 			shouldHideArrow: cannotCenterArrow,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 				"data-side": placedSide,
 				"data-align": placedAlign,
 				...contentProps,
@@ -23163,7 +23199,7 @@ var VISUALLY_HIDDEN_STYLES = Object.freeze({
 });
 var NAME$1 = "VisuallyHidden";
 var VisuallyHidden = import_react.forwardRef((props, forwardedRef) => {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.span, {
 		...props,
 		ref: forwardedRef,
 		style: {
@@ -23312,7 +23348,7 @@ var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Anchor, {
 		asChild: true,
 		...popperScope,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
 			"aria-describedby": context.open ? context.contentId : void 0,
 			"data-state": context.stateAttribute,
 			...triggerProps,
@@ -24167,110 +24203,79 @@ var CardFooter = import_react.forwardRef(({ className, ...props }, ref) => /* @_
 	...props
 }));
 CardFooter.displayName = "CardFooter";
-var mockEmployees = [
-	{
-		id: "1",
-		name: "Ana Silva",
-		role: "Dentista Clínica",
-		department: "Odontologia",
-		status: "Ativo",
-		hireDate: "2023-01-15",
-		salary: "R$ 8.500",
-		vacationDaysTaken: 10,
-		vacationDaysTotal: 30,
-		email: "ana.silva@nuvia.com",
-		phone: "(11) 98765-4321"
-	},
-	{
-		id: "2",
-		name: "Carlos Santos",
-		role: "Ortodontista",
-		department: "Odontologia",
-		status: "Férias",
-		hireDate: "2022-06-10",
-		salary: "R$ 12.000",
-		vacationDaysTaken: 30,
-		vacationDaysTotal: 30,
-		email: "carlos.santos@nuvia.com",
-		phone: "(11) 99999-8888"
-	},
-	{
-		id: "3",
-		name: "Mariana Costa",
-		role: "Recepcionista",
-		department: "Atendimento",
-		status: "Ativo",
-		hireDate: "2024-02-01",
-		salary: "R$ 2.500",
-		vacationDaysTaken: 0,
-		vacationDaysTotal: 30,
-		email: "mariana.costa@nuvia.com",
-		phone: "(11) 97777-6666"
-	}
-];
+var mockEmployees = [{
+	id: "1",
+	name: "Ana Silva",
+	role: "Dentista Clínica",
+	department: "Odontologia",
+	status: "Ativo",
+	hireDate: "2023-01-15",
+	salary: "R$ 8.500",
+	vacationDaysTaken: 10,
+	vacationDaysTotal: 30,
+	email: "ana.silva@nuvia.com",
+	phone: "(11) 98765-4321"
+}, {
+	id: "2",
+	name: "Carlos Santos",
+	role: "Ortodontista",
+	department: "Odontologia",
+	status: "Férias",
+	hireDate: "2022-06-10",
+	salary: "R$ 12.000",
+	vacationDaysTaken: 30,
+	vacationDaysTotal: 30,
+	email: "carlos.santos@nuvia.com",
+	phone: "(11) 99999-8888"
+}];
 var mockOnboarding = [{
 	id: "o1",
 	name: "Fernanda Lima",
 	role: "Auxiliar de Saúde Bucal",
 	department: "Operacional",
-	tasks: [
-		{
-			id: "t1",
-			title: "Assinatura de Contrato",
-			completed: true
-		},
-		{
-			id: "t2",
-			title: "Entrega de EPIs",
-			completed: false
-		},
-		{
-			id: "t3",
-			title: "Treinamento de Biossegurança",
-			completed: false
-		},
-		{
-			id: "t4",
-			title: "Acesso ao Sistema Nuvia",
-			completed: false
-		}
-	]
+	tasks: [{
+		id: "t1",
+		title: "Assinatura de Contrato",
+		completed: true
+	}, {
+		id: "t2",
+		title: "Entrega de EPIs",
+		completed: false
+	}]
 }];
-var mockInventory = [
-	{
-		id: "1",
-		name: "Resina Composta",
-		category: "Materiais Clínicos",
-		quantity: 15,
-		unit: "Seringas",
-		threshold: 10,
-		lastRestocked: "2026-02-20"
-	},
-	{
-		id: "2",
-		name: "Luvas de Procedimento (M)",
-		category: "EPIs",
-		quantity: 5,
-		unit: "Caixas",
-		threshold: 20,
-		lastRestocked: "2026-03-01"
-	},
-	{
-		id: "3",
-		name: "Agulha Gengival",
-		category: "Descartáveis",
-		quantity: 150,
-		unit: "Unidades",
-		threshold: 100,
-		lastRestocked: "2026-02-15"
-	}
-];
+var mockInventory = [{
+	id: "1",
+	name: "Resina Composta",
+	category: "Materiais Clínicos",
+	quantity: 15,
+	unit: "Seringas",
+	threshold: 10,
+	lastRestocked: "2026-02-20"
+}, {
+	id: "2",
+	name: "Luvas de Procedimento (M)",
+	category: "EPIs",
+	quantity: 5,
+	unit: "Caixas",
+	threshold: 20,
+	lastRestocked: "2026-03-01"
+}];
+var mockDocuments = [{
+	id: "1",
+	name: "POP - Onboarding e Admissão v2.pdf",
+	date: "10/01/2026"
+}, {
+	id: "2",
+	name: "Manual de Conduta Nuvia.pdf",
+	date: "15/02/2026"
+}];
 var StoreContext = (0, import_react.createContext)(void 0);
 function AppProvider({ children }) {
-	const [employees] = (0, import_react.useState)(mockEmployees);
-	const [alerts] = (0, import_react.useState)(["Carlos Santos: Retorna de férias em 2 dias.", "Mariana Costa: Vencimento do período aquisitivo de férias no próximo mês."]);
+	const [employees, setEmployees] = (0, import_react.useState)(mockEmployees);
+	const [alerts] = (0, import_react.useState)(["Carlos Santos: Retorna de férias em 2 dias."]);
 	const [onboarding, setOnboarding] = (0, import_react.useState)(mockOnboarding);
 	const [inventory, setInventory] = (0, import_react.useState)(mockInventory);
+	const [documents, setDocuments] = (0, import_react.useState)(mockDocuments);
 	const toggleTask = (candidateId, taskId) => {
 		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
 			...c,
@@ -24292,14 +24297,76 @@ function AppProvider({ children }) {
 			quantity: newQuantity
 		} : i));
 	};
+	const addEmployee = (emp) => {
+		const id = Math.random().toString(36).substr(2, 9);
+		setEmployees((prev) => [...prev, {
+			...emp,
+			id
+		}]);
+		setOnboarding((prev) => [...prev, {
+			id: `o_${id}`,
+			name: emp.name,
+			role: emp.role,
+			department: emp.department,
+			tasks: [
+				{
+					id: Math.random().toString(36).substr(2, 9),
+					title: "Assinatura de Contrato",
+					completed: false
+				},
+				{
+					id: Math.random().toString(36).substr(2, 9),
+					title: "Entrega de EPIs",
+					completed: false
+				},
+				{
+					id: Math.random().toString(36).substr(2, 9),
+					title: "Acesso ao Sistema Nuvia",
+					completed: false
+				}
+			]
+		}]);
+	};
+	const addOnboardingTask = (candidateId, title) => {
+		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
+			...c,
+			tasks: [...c.tasks, {
+				id: Math.random().toString(36).substr(2, 9),
+				title,
+				completed: false
+			}]
+		} : c));
+	};
+	const removeOnboardingTask = (candidateId, taskId) => {
+		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
+			...c,
+			tasks: c.tasks.filter((t) => t.id !== taskId)
+		} : c));
+	};
+	const addDocument = (name) => {
+		setDocuments((prev) => [...prev, {
+			id: Math.random().toString(36).substr(2, 9),
+			name,
+			date: (/* @__PURE__ */ new Date()).toLocaleDateString("pt-BR")
+		}]);
+	};
+	const removeDocument = (id) => {
+		setDocuments((prev) => prev.filter((d) => d.id !== id));
+	};
 	return import_react.createElement(StoreContext.Provider, { value: {
 		employees,
 		alerts,
 		onboarding,
 		inventory,
+		documents,
 		toggleTask,
 		addInventoryItem,
-		updateInventoryQuantity
+		updateInventoryQuantity,
+		addEmployee,
+		addOnboardingTask,
+		removeOnboardingTask,
+		addDocument,
+		removeDocument
 	} }, children);
 }
 function useAppStore() {
@@ -24594,7 +24661,7 @@ var RovingFocusGroupImpl = import_react.forwardRef((props, forwardedRef) => {
 		onItemShiftTab: import_react.useCallback(() => setIsTabbingBackOut(true), []),
 		onFocusableItemAdd: import_react.useCallback(() => setFocusableItemsCount((prevCount) => prevCount + 1), []),
 		onFocusableItemRemove: import_react.useCallback(() => setFocusableItemsCount((prevCount) => prevCount - 1), []),
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 			tabIndex: isTabbingBackOut || focusableItemsCount === 0 ? -1 : 0,
 			"data-orientation": orientation,
 			...groupProps,
@@ -24650,7 +24717,7 @@ var RovingFocusGroupItem = import_react.forwardRef((props, forwardedRef) => {
 		id,
 		focusable,
 		active,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.span, {
 			tabIndex: isCurrentTabStop ? 0 : -1,
 			"data-orientation": context.orientation,
 			...itemProps,
@@ -24742,7 +24809,7 @@ var Tabs$1 = import_react.forwardRef((props, forwardedRef) => {
 		orientation,
 		dir: direction,
 		activationMode,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 			dir: direction,
 			"data-orientation": orientation,
 			...tabsProps,
@@ -24762,7 +24829,7 @@ var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
 		orientation: context.orientation,
 		dir: context.dir,
 		loop,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 			role: "tablist",
 			"aria-orientation": context.orientation,
 			...listProps,
@@ -24784,7 +24851,7 @@ var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		...rovingFocusGroupScope,
 		focusable: !disabled,
 		active: isSelected,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
 			type: "button",
 			role: "tab",
 			"aria-selected": isSelected,
@@ -24824,7 +24891,7 @@ var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	}, []);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || isSelected,
-		children: ({ present }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		children: ({ present }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 			"data-state": isSelected ? "active" : "inactive",
 			"data-orientation": context.orientation,
 			role: "tabpanel",
@@ -24941,6 +25008,307 @@ function EmployeeTable({ employees }) {
 		}, emp.id))
 	});
 }
+var Dialog = Root$5;
+var DialogTrigger = Trigger$2;
+var DialogPortal = Portal$1;
+var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
+	ref,
+	className: cn("fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+	...props
+}));
+DialogOverlay.displayName = Overlay.displayName;
+var DialogContent = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$2, {
+	ref,
+	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-y-auto max-h-screen", className),
+	...props,
+	children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Close, {
+		className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "h-4 w-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "sr-only",
+			children: "Close"
+		})]
+	})]
+})] }));
+DialogContent.displayName = Content$2.displayName;
+var DialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
+	...props
+});
+DialogHeader.displayName = "DialogHeader";
+var DialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+	...props
+});
+DialogFooter.displayName = "DialogFooter";
+var DialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
+	ref,
+	className: cn("text-lg font-semibold leading-none tracking-tight", className),
+	...props
+}));
+DialogTitle.displayName = Title.displayName;
+var DialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
+	ref,
+	className: cn("text-sm text-muted-foreground", className),
+	...props
+}));
+DialogDescription.displayName = Description.displayName;
+var NAME = "Label";
+var Label$1 = import_react.forwardRef((props, forwardedRef) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.label, {
+		...props,
+		ref: forwardedRef,
+		onMouseDown: (event) => {
+			if (event.target.closest("button, input, select, textarea")) return;
+			props.onMouseDown?.(event);
+			if (!event.defaultPrevented && event.detail > 1) event.preventDefault();
+		}
+	});
+});
+Label$1.displayName = NAME;
+var Root$1 = Label$1;
+var labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
+var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+	ref,
+	className: cn(labelVariants(), className),
+	...props
+}));
+Label.displayName = Root$1.displayName;
+function AddEmployeeDialog() {
+	const { addEmployee } = useAppStore();
+	const [open, setOpen] = (0, import_react.useState)(false);
+	const [formData, setFormData] = (0, import_react.useState)({
+		name: "",
+		role: "",
+		department: "",
+		email: "",
+		phone: "",
+		salary: ""
+	});
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		addEmployee({
+			...formData,
+			status: "Ativo",
+			hireDate: (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
+			vacationDaysTaken: 0,
+			vacationDaysTotal: 30
+		});
+		setOpen(false);
+		setFormData({
+			name: "",
+			role: "",
+			department: "",
+			email: "",
+			phone: "",
+			salary: ""
+		});
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, {
+		open,
+		onOpenChange: setOpen,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
+			asChild: true,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " Adicionar Colaborador"] })
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+			className: "max-w-md",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Novo Colaborador" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+				onSubmit: handleSubmit,
+				className: "space-y-4 mt-4",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "space-y-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+							htmlFor: "name",
+							children: "Nome Completo"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							id: "name",
+							required: true,
+							value: formData.name,
+							onChange: (e) => setFormData((p) => ({
+								...p,
+								name: e.target.value
+							}))
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid grid-cols-2 gap-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								htmlFor: "role",
+								children: "Cargo"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								id: "role",
+								required: true,
+								value: formData.role,
+								onChange: (e) => setFormData((p) => ({
+									...p,
+									role: e.target.value
+								}))
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								htmlFor: "department",
+								children: "Departamento"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								id: "department",
+								required: true,
+								value: formData.department,
+								onChange: (e) => setFormData((p) => ({
+									...p,
+									department: e.target.value
+								}))
+							})]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid grid-cols-2 gap-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								htmlFor: "email",
+								children: "E-mail"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								id: "email",
+								type: "email",
+								required: true,
+								value: formData.email,
+								onChange: (e) => setFormData((p) => ({
+									...p,
+									email: e.target.value
+								}))
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								htmlFor: "phone",
+								children: "Telefone"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								id: "phone",
+								required: true,
+								value: formData.phone,
+								onChange: (e) => setFormData((p) => ({
+									...p,
+									phone: e.target.value
+								}))
+							})]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "space-y-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+							htmlFor: "salary",
+							children: "Salário Bruto"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							id: "salary",
+							required: true,
+							placeholder: "R$ 0,00",
+							value: formData.salary,
+							onChange: (e) => setFormData((p) => ({
+								...p,
+								salary: e.target.value
+							}))
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "pt-4 flex justify-end gap-3",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							type: "button",
+							variant: "outline",
+							onClick: () => setOpen(false),
+							children: "Cancelar"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							type: "submit",
+							children: "Salvar e Iniciar Onboarding"
+						})]
+					})
+				]
+			})]
+		})]
+	});
+}
+function TeamTab() {
+	const { employees } = useAppStore();
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-4 mt-6",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-5 rounded-lg border shadow-sm",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+				className: "text-lg font-semibold text-foreground",
+				children: "Quadro de Funcionários"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-sm text-muted-foreground",
+				children: "Gerencie a equipe atual da clínica e adicione novos colaboradores."
+			})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddEmployeeDialog, {})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmployeeTable, { employees })]
+	});
+}
+function DocumentsTab() {
+	const { documents, addDocument, removeDocument } = useAppStore();
+	const fileRef = (0, import_react.useRef)(null);
+	const handleUpload = (e) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			addDocument(file.name);
+			if (fileRef.current) fileRef.current.value = "";
+		}
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		className: "mt-6",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+			className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Documentos e Normativas" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Repositório de Manuais e Procedimentos Operacionais Padrão (POPs) do RH." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+				type: "file",
+				ref: fileRef,
+				className: "hidden",
+				onChange: handleUpload,
+				accept: ".pdf,.doc,.docx"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+				onClick: () => fileRef.current?.click(),
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { className: "h-4 w-4 mr-2" }), " Fazer Upload"]
+			})] })]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+			className: "space-y-4",
+			children: documents.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "text-center py-10 text-muted-foreground border border-dashed rounded-lg bg-muted/20",
+				children: "Nenhum documento armazenado no momento. Faça o upload do seu primeiro arquivo."
+			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "grid gap-3",
+				children: documents.map((doc) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:border-primary/50 transition-colors gap-4 shadow-sm group",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-3",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { className: "h-5 w-5 text-primary" })
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "font-medium text-sm text-foreground",
+							children: doc.name
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+							className: "text-xs text-muted-foreground",
+							children: ["Adicionado em ", doc.date]
+						})] })]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+							variant: "outline",
+							size: "sm",
+							className: "hidden sm:flex",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "h-4 w-4 mr-2" }), " Baixar"]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							size: "icon",
+							onClick: () => removeDocument(doc.id),
+							className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+						})]
+					})]
+				}, doc.id))
+			})
+		})]
+	});
+}
 function createContextScope$1(scopeName, createContextScopeDeps = []) {
 	let defaultContexts = [];
 	function createContext3(rootComponentName, defaultContext) {
@@ -25019,7 +25387,7 @@ var Progress$1 = import_react.forwardRef((props, forwardedRef) => {
 		scope: __scopeProgress,
 		value,
 		max: max$1,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 			"aria-valuemax": max$1,
 			"aria-valuemin": 0,
 			"aria-valuenow": isNumber(value) ? value : void 0,
@@ -25038,7 +25406,7 @@ var INDICATOR_NAME$1 = "ProgressIndicator";
 var ProgressIndicator = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeProgress, ...indicatorProps } = props;
 	const context = useProgressContext(INDICATOR_NAME$1, __scopeProgress);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 		"data-state": getProgressState(context.value, context.max),
 		"data-value": context.value ?? void 0,
 		"data-max": context.max,
@@ -25073,9 +25441,9 @@ function getInvalidValueError(propValue, componentName) {
 
 Defaulting to \`null\`.`;
 }
-var Root$1 = Progress$1;
+var Root = Progress$1;
 var Indicator = ProgressIndicator;
-var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
 	ref,
 	className: cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
 	...props,
@@ -25084,7 +25452,7 @@ var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => 
 		style: { transform: `translateX(-${100 - (value || 0)}%)` }
 	})
 }));
-Progress.displayName = Root$1.displayName;
+Progress.displayName = Root.displayName;
 function usePrevious(value) {
 	const ref = import_react.useRef({
 		value,
@@ -25148,7 +25516,7 @@ var CheckboxTrigger = import_react.forwardRef(({ __scopeCheckbox, onKeyDown, onC
 			return () => form.removeEventListener("reset", reset);
 		}
 	}, [control, setChecked]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
 		type: "button",
 		role: "checkbox",
 		"aria-checked": isIndeterminate(checked) ? "mixed" : checked,
@@ -25198,7 +25566,7 @@ var CheckboxIndicator = import_react.forwardRef((props, forwardedRef) => {
 	const context = useCheckboxContext(INDICATOR_NAME, __scopeCheckbox);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || isIndeterminate(context.checked) || context.checked === true,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.span, {
 			"data-state": getState(context.checked),
 			"data-disabled": context.disabled ? "" : void 0,
 			...indicatorProps,
@@ -25236,7 +25604,7 @@ var CheckboxBubbleInput = import_react.forwardRef(({ __scopeCheckbox, ...props }
 		hasConsumerStoppedPropagationRef
 	]);
 	const defaultCheckedRef = import_react.useRef(isIndeterminate(checked) ? false : checked);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.input, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.input, {
 		type: "checkbox",
 		"aria-hidden": true,
 		defaultChecked: defaultChecked ?? defaultCheckedRef.current,
@@ -25279,8 +25647,107 @@ var Checkbox = import_react.forwardRef(({ className, ...props }, ref) => /* @__P
 	})
 }));
 Checkbox.displayName = Checkbox$1.displayName;
+function OnboardingCard({ candidate }) {
+	const { toggleTask, addOnboardingTask, removeOnboardingTask } = useAppStore();
+	const [newTask, setNewTask] = (0, import_react.useState)("");
+	const completed = candidate.tasks.filter((t) => t.completed).length;
+	const total = candidate.tasks.length;
+	const progress = total === 0 ? 0 : completed / total * 100;
+	const isFinished = progress === 100 && total > 0;
+	const handleAddTask = () => {
+		if (!newTask.trim()) return;
+		addOnboardingTask(candidate.id, newTask);
+		setNewTask("");
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		className: `transition-colors ${isFinished ? "border-emerald-200 bg-emerald-50/30" : ""}`,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
+			className: "pb-4",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex justify-between items-start",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
+					className: "text-lg",
+					children: candidate.name
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardDescription, { children: [
+					candidate.role,
+					" • ",
+					candidate.department
+				] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+					variant: isFinished ? "default" : "secondary",
+					className: isFinished ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "",
+					children: isFinished ? "Concluído" : "Em Andamento"
+				})]
+			})
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+			className: "space-y-5",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "space-y-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
+					value: progress,
+					className: "h-2"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "text-xs text-right text-muted-foreground",
+					children: [
+						completed,
+						" de ",
+						total,
+						" tarefas concluídas"
+					]
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "space-y-3 pt-2",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+						className: "text-sm font-medium text-foreground mb-3",
+						children: "Checklist de Tarefas"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "space-y-2 max-h-[220px] overflow-y-auto pr-2",
+						children: candidate.tasks.map((task) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center justify-between rounded-md border p-3 hover:bg-muted/50 transition-colors group bg-background",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-center space-x-3 max-w-[85%]",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Checkbox, {
+									id: `task-${candidate.id}-${task.id}`,
+									checked: task.completed,
+									onCheckedChange: () => toggleTask(candidate.id, task.id)
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+									htmlFor: `task-${candidate.id}-${task.id}`,
+									className: `text-sm font-medium leading-none cursor-pointer truncate ${task.completed ? "line-through text-muted-foreground" : ""}`,
+									children: task.title
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								variant: "ghost",
+								size: "icon",
+								className: "h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+								onClick: () => removeOnboardingTask(candidate.id, task.id),
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+							})]
+						}, task.id))
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-2 mt-4 pt-2 border-t",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							placeholder: "Nova tarefa...",
+							value: newTask,
+							onChange: (e) => setNewTask(e.target.value),
+							onKeyDown: (e) => e.key === "Enter" && handleAddTask(),
+							className: "h-9 text-sm"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+							size: "sm",
+							variant: "secondary",
+							onClick: handleAddTask,
+							className: "h-9 px-3 shrink-0",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-1" }), " Adicionar"]
+						})]
+					})
+				]
+			})]
+		})]
+	});
+}
 function RH() {
-	const { employees, onboarding, toggleTask } = useAppStore();
+	const { onboarding } = useAppStore();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-6 animate-fade-in-up",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
@@ -25312,103 +25779,21 @@ function RH() {
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
 					value: "equipe",
-					className: "mt-6",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmployeeTable, { employees })
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamTab, {})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
 					value: "onboarding",
-					className: "mt-6",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "grid gap-6 md:grid-cols-2",
-						children: [onboarding.map((candidate) => {
-							const completed = candidate.tasks.filter((t) => t.completed).length;
-							const total = candidate.tasks.length;
-							const progress = total === 0 ? 0 : completed / total * 100;
-							const isFinished = progress === 100;
-							return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-								className: isFinished ? "border-emerald-200" : "",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
-									className: "pb-4",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex justify-between items-start",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-											className: "text-lg",
-											children: candidate.name
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardDescription, { children: [
-											candidate.role,
-											" • ",
-											candidate.department
-										] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-											variant: isFinished ? "default" : "secondary",
-											className: isFinished ? "bg-emerald-500" : "",
-											children: isFinished ? "Concluído" : "Em Andamento"
-										})]
-									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-									className: "space-y-5",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-										className: "space-y-2",
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
-											value: progress,
-											className: "h-2"
-										})
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "space-y-3 pt-2",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-											className: "text-sm font-medium text-foreground mb-3",
-											children: "Checklist de Tarefas"
-										}), candidate.tasks.map((task) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											className: "flex items-center space-x-3 rounded-md border p-3 hover:bg-muted/50 transition-colors",
-											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Checkbox, {
-												id: `task-${candidate.id}-${task.id}`,
-												checked: task.completed,
-												onCheckedChange: () => toggleTask(candidate.id, task.id)
-											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-												htmlFor: `task-${candidate.id}-${task.id}`,
-												className: `text-sm font-medium leading-none cursor-pointer ${task.completed ? "line-through text-muted-foreground" : ""}`,
-												children: task.title
-											})]
-										}, task.id))]
-									})]
-								})]
-							}, candidate.id);
-						}), onboarding.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "col-span-2 py-12 text-center text-muted-foreground border border-dashed rounded-lg",
+						className: "grid gap-6 lg:grid-cols-2 mt-6",
+						children: [onboarding.map((candidate) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(OnboardingCard, { candidate }, candidate.id)), onboarding.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "col-span-full py-16 text-center text-muted-foreground border border-dashed rounded-lg bg-card/50",
 							children: "Nenhum processo de onboarding em andamento no momento."
 						})]
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
 					value: "rotinas",
-					className: "mt-6",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Documentos e Normativas" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Manuais e Procedimentos Operacionais Padrão (POPs) do RH." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-						className: "space-y-4",
-						children: [{
-							id: 1,
-							name: "POP - Onboarding e Admissão v2.pdf",
-							date: "10/01/2026"
-						}, {
-							id: 2,
-							name: "Manual de Conduta Nuvia.pdf",
-							date: "15/02/2026"
-						}].map((doc) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-center gap-3",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { className: "h-5 w-5 text-primary" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									className: "font-medium text-sm",
-									children: doc.name
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-									className: "text-xs text-muted-foreground",
-									children: ["Atualizado em ", doc.date]
-								})] })]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-								variant: "outline",
-								size: "sm",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "h-4 w-4 mr-2" }), " Baixar"]
-							})]
-						}, doc.id))
-					})] })
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DocumentsTab, {})
 				})
 			]
 		})]
@@ -25589,71 +25974,6 @@ var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* 
 	...props
 }));
 TableCaption.displayName = "TableCaption";
-var Dialog = Root$5;
-var DialogTrigger = Trigger$2;
-var DialogPortal = Portal$1;
-var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
-	ref,
-	className: cn("fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
-	...props
-}));
-DialogOverlay.displayName = Overlay.displayName;
-var DialogContent = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$2, {
-	ref,
-	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-y-auto max-h-screen", className),
-	...props,
-	children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Close, {
-		className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "h-4 w-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-			className: "sr-only",
-			children: "Close"
-		})]
-	})]
-})] }));
-DialogContent.displayName = Content$2.displayName;
-var DialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
-	...props
-});
-DialogHeader.displayName = "DialogHeader";
-var DialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
-	...props
-});
-DialogFooter.displayName = "DialogFooter";
-var DialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
-	ref,
-	className: cn("text-lg font-semibold leading-none tracking-tight", className),
-	...props
-}));
-DialogTitle.displayName = Title.displayName;
-var DialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
-	ref,
-	className: cn("text-sm text-muted-foreground", className),
-	...props
-}));
-DialogDescription.displayName = Description.displayName;
-var NAME = "Label";
-var Label$1 = import_react.forwardRef((props, forwardedRef) => {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.label, {
-		...props,
-		ref: forwardedRef,
-		onMouseDown: (event) => {
-			if (event.target.closest("button, input, select, textarea")) return;
-			props.onMouseDown?.(event);
-			if (!event.defaultPrevented && event.detail > 1) event.preventDefault();
-		}
-	});
-});
-Label$1.displayName = NAME;
-var Root = Label$1;
-var labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
-var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
-	ref,
-	className: cn(labelVariants(), className),
-	...props
-}));
-Label.displayName = Root.displayName;
 function Inventory() {
 	const { inventory, updateInventoryQuantity, addInventoryItem } = useAppStore();
 	const [search, setSearch] = (0, import_react.useState)("");
@@ -25922,4 +26242,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-PoGxGjGM.js.map
+//# sourceMappingURL=index-DfQp43IV.js.map
