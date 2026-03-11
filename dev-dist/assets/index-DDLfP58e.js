@@ -20268,6 +20268,17 @@ var mockSuppliers = [{
 	hasSpecialNegotiation: true,
 	negotiationNotes: "Desconto de 15% em compras acima de R$ 1.000,00"
 }];
+var mockAuditLogs = [{
+	id: "l1",
+	userName: "DR. SOUZA FILHO (ADMIN)",
+	action: "CRIOU PRODUTO NO ESTOQUE: RESINA COMPOSTA A2",
+	timestamp: (/* @__PURE__ */ new Date(Date.now() - 36e5)).toISOString()
+}, {
+	id: "l2",
+	userName: "DR. SOUZA FILHO (ADMIN)",
+	action: "CRIOU NÍVEL DE PERMISSÃO OPERACIONAL E ADMINISTRATIVO",
+	timestamp: (/* @__PURE__ */ new Date(Date.now() - 72e5)).toISOString()
+}];
 var StoreContext = (0, import_react.createContext)(void 0);
 function AppProvider({ children }) {
 	const [isAuthenticated, setIsAuthenticated] = (0, import_react.useState)(false);
@@ -20285,6 +20296,7 @@ function AppProvider({ children }) {
 	const [agenda, setAgenda] = (0, import_react.useState)(mockAgenda);
 	const [acessos, setAcessos] = (0, import_react.useState)(mockAcessos);
 	const [suppliers, setSuppliers] = (0, import_react.useState)(mockSuppliers);
+	const [auditLogs, setAuditLogs] = (0, import_react.useState)(mockAuditLogs);
 	const [levelPermissions, setLevelPermissions] = (0, import_react.useState)({
 		OPERACIONAL: ["dashboard", "agenda"],
 		ADMINISTRATIVO: [
@@ -20293,14 +20305,58 @@ function AppProvider({ children }) {
 			"acessos",
 			"rh",
 			"estoque",
-			"configuracoes"
+			"configuracoes",
+			"auditoria"
 		]
 	});
+	const storeRef = (0, import_react.useRef)({
+		currentUserId,
+		employees,
+		isAdmin,
+		inventory,
+		agenda,
+		acessos,
+		suppliers
+	});
+	(0, import_react.useEffect)(() => {
+		storeRef.current = {
+			currentUserId,
+			employees,
+			isAdmin,
+			inventory,
+			agenda,
+			acessos,
+			suppliers
+		};
+	}, [
+		currentUserId,
+		employees,
+		isAdmin,
+		inventory,
+		agenda,
+		acessos,
+		suppliers
+	]);
+	const logAction = (0, import_react.useCallback)((action) => {
+		const { currentUserId: currentUserId$1, employees: employees$1, isAdmin: isAdmin$1 } = storeRef.current;
+		let userName = "SISTEMA";
+		if (currentUserId$1) {
+			const emp = employees$1.find((e) => e.id === currentUserId$1);
+			userName = emp ? emp.name : "DESCONHECIDO";
+		} else if (isAdmin$1) userName = "DR. SOUZA FILHO (ADMIN)";
+		setAuditLogs((prev) => [{
+			id: Math.random().toString(36).substring(2, 11),
+			userName: userName.toUpperCase(),
+			action: action.toUpperCase(),
+			timestamp: (/* @__PURE__ */ new Date()).toISOString()
+		}, ...prev]);
+	}, []);
 	const login = (0, import_react.useCallback)((email$1, pass) => {
 		if (email$1 === "admin@nuvia.com" && pass === "admin123") {
 			setIsAdmin(true);
 			setCurrentUserId(null);
 			setIsAuthenticated(true);
+			logAction("FEZ LOGIN NO SISTEMA COMO ADMINISTRADOR");
 			return true;
 		}
 		const emp = employees.find((e) => e.email === email$1 && e.password === pass);
@@ -20308,25 +20364,52 @@ function AppProvider({ children }) {
 			setIsAdmin(false);
 			setCurrentUserId(emp.id);
 			setIsAuthenticated(true);
+			storeRef.current.currentUserId = emp.id;
+			logAction("FEZ LOGIN NO SISTEMA");
 			return true;
 		}
 		return false;
-	}, [employees]);
+	}, [employees, logAction]);
 	const logout = (0, import_react.useCallback)(() => {
+		logAction("FEZ LOGOUT DO SISTEMA");
 		setIsAuthenticated(false);
 		setCurrentUserId(null);
 		setIsAdmin(false);
-	}, []);
+	}, [logAction]);
 	const toggleAdmin = (0, import_react.useCallback)(() => setIsAdmin((prev) => !prev), []);
 	const setCurrentUser = (0, import_react.useCallback)((id) => setCurrentUserId(id), []);
-	const addDepartment = (0, import_react.useCallback)((name) => setDepartments((prev) => [...prev, name]), []);
-	const removeDepartment = (0, import_react.useCallback)((name) => setDepartments((prev) => prev.filter((d) => d !== name)), []);
-	const addPackageType = (0, import_react.useCallback)((name) => setPackageTypes((prev) => [...prev, name]), []);
-	const removePackageType = (0, import_react.useCallback)((name) => setPackageTypes((prev) => prev.filter((pt) => pt !== name)), []);
-	const addSpecialty = (0, import_react.useCallback)((name) => setSpecialties((prev) => [...prev, name]), []);
-	const removeSpecialty = (0, import_react.useCallback)((name) => setSpecialties((prev) => prev.filter((s$2) => s$2 !== name)), []);
-	const addAgendaType = (0, import_react.useCallback)((name) => setAgendaTypes((prev) => [...prev, name]), []);
-	const removeAgendaType = (0, import_react.useCallback)((name) => setAgendaTypes((prev) => prev.filter((t$1) => t$1 !== name)), []);
+	const addDepartment = (0, import_react.useCallback)((name) => {
+		setDepartments((prev) => [...prev, name]);
+		logAction(`CRIOU DEPARTAMENTO: ${name}`);
+	}, [logAction]);
+	const removeDepartment = (0, import_react.useCallback)((name) => {
+		setDepartments((prev) => prev.filter((d) => d !== name));
+		logAction(`REMOVEU DEPARTAMENTO: ${name}`);
+	}, [logAction]);
+	const addPackageType = (0, import_react.useCallback)((name) => {
+		setPackageTypes((prev) => [...prev, name]);
+		logAction(`CRIOU TIPO DE EMBALAGEM: ${name}`);
+	}, [logAction]);
+	const removePackageType = (0, import_react.useCallback)((name) => {
+		setPackageTypes((prev) => prev.filter((pt) => pt !== name));
+		logAction(`REMOVEU TIPO DE EMBALAGEM: ${name}`);
+	}, [logAction]);
+	const addSpecialty = (0, import_react.useCallback)((name) => {
+		setSpecialties((prev) => [...prev, name]);
+		logAction(`CRIOU ESPECIALIDADE: ${name}`);
+	}, [logAction]);
+	const removeSpecialty = (0, import_react.useCallback)((name) => {
+		setSpecialties((prev) => prev.filter((s$2) => s$2 !== name));
+		logAction(`REMOVEU ESPECIALIDADE: ${name}`);
+	}, [logAction]);
+	const addAgendaType = (0, import_react.useCallback)((name) => {
+		setAgendaTypes((prev) => [...prev, name]);
+		logAction(`CRIOU TIPO DE COMPROMISSO: ${name}`);
+	}, [logAction]);
+	const removeAgendaType = (0, import_react.useCallback)((name) => {
+		setAgendaTypes((prev) => prev.filter((t$1) => t$1 !== name));
+		logAction(`REMOVEU TIPO DE COMPROMISSO: ${name}`);
+	}, [logAction]);
 	const toggleTask = (0, import_react.useCallback)((candidateId, taskId) => {
 		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
 			...c,
@@ -20335,7 +20418,8 @@ function AppProvider({ children }) {
 				completed: !t$1.completed
 			} : t$1)
 		} : c));
-	}, []);
+		logAction(`ALTEROU TAREFA DE ONBOARDING DO CANDIDATO ID: ${candidateId}`);
+	}, [logAction]);
 	const addInventoryItem = (0, import_react.useCallback)((item) => {
 		const id = Math.random().toString(36).substring(2, 11);
 		const purchaseHistory = item.quantity > 0 ? [{
@@ -20350,32 +20434,36 @@ function AppProvider({ children }) {
 			id,
 			purchaseHistory
 		}]);
-	}, []);
+		logAction(`CRIOU PRODUTO NO ESTOQUE: ${item.name}`);
+	}, [logAction]);
 	const updateInventoryQuantity = (0, import_react.useCallback)((id, newQuantity) => {
 		setInventory((prev) => prev.map((i$2) => i$2.id === id ? {
 			...i$2,
 			quantity: newQuantity
 		} : i$2));
-	}, []);
+		const item = storeRef.current.inventory.find((i$2) => i$2.id === id);
+		logAction(`ATUALIZOU ESTOQUE DO PRODUTO: ${item ? item.name : id} PARA ${newQuantity}`);
+	}, [logAction]);
 	const addPurchaseHistory = (0, import_react.useCallback)((itemId, record) => {
-		setInventory((prev) => prev.map((item) => {
-			if (item.id === itemId) {
+		setInventory((prev) => prev.map((item$1) => {
+			if (item$1.id === itemId) {
 				const newHistory = [{
 					...record,
 					id: Math.random().toString(36).substring(2, 11)
-				}, ...item.purchaseHistory || []];
+				}, ...item$1.purchaseHistory || []];
 				return {
-					...item,
+					...item$1,
 					purchaseHistory: newHistory,
-					quantity: item.quantity + record.quantity,
+					quantity: item$1.quantity + record.quantity,
 					packageCost: record.price,
-					expirationDate: record.expirationDate || item.expirationDate
+					expirationDate: record.expirationDate || item$1.expirationDate
 				};
 			}
-			return item;
+			return item$1;
 		}));
-	}, []);
-	const clearInventory = (0, import_react.useCallback)(() => setInventory([]), []);
+		const item = storeRef.current.inventory.find((i$2) => i$2.id === itemId);
+		logAction(`REGISTROU NOVA COMPRA PARA O PRODUTO: ${item ? item.name : itemId}`);
+	}, [logAction]);
 	const addEmployee = (0, import_react.useCallback)((emp) => {
 		const id = Math.random().toString(36).substring(2, 11);
 		setEmployees((prev) => [...prev, {
@@ -20395,28 +20483,52 @@ function AppProvider({ children }) {
 				completed: false
 			}]
 		}]);
-	}, []);
-	const deleteEmployee = (0, import_react.useCallback)((id) => setEmployees((prev) => prev.filter((e) => e.id !== id)), []);
-	const updateEmployeeStatus = (0, import_react.useCallback)((id, status) => setEmployees((prev) => prev.map((e) => e.id === id ? {
-		...e,
-		status
-	} : e)), []);
-	const updateEmployeeLevel = (0, import_react.useCallback)((id, level) => setEmployees((prev) => prev.map((e) => e.id === id ? {
-		...e,
-		accessLevel: level
-	} : e)), []);
-	const updateEmployeeAgendaAccess = (0, import_react.useCallback)((id, access) => setEmployees((prev) => prev.map((e) => e.id === id ? {
-		...e,
-		agendaAccess: access
-	} : e)), []);
-	const updateEmployeePermissions = (0, import_react.useCallback)((id, permissions) => setEmployees((prev) => prev.map((e) => e.id === id ? {
-		...e,
-		permissions
-	} : e)), []);
-	const updateLevelPermissions = (0, import_react.useCallback)((level, perms) => setLevelPermissions((prev) => ({
-		...prev,
-		[level]: perms
-	})), []);
+		logAction(`CRIOU CADASTRO DE COLABORADOR: ${emp.name}`);
+	}, [logAction]);
+	const deleteEmployee = (0, import_react.useCallback)((id) => {
+		const emp = storeRef.current.employees.find((e) => e.id === id);
+		setEmployees((prev) => prev.filter((e) => e.id !== id));
+		logAction(`REMOVEU COLABORADOR: ${emp ? emp.name : id}`);
+	}, [logAction]);
+	const updateEmployeeStatus = (0, import_react.useCallback)((id, status) => {
+		const emp = storeRef.current.employees.find((e) => e.id === id);
+		setEmployees((prev) => prev.map((e) => e.id === id ? {
+			...e,
+			status
+		} : e));
+		logAction(`ALTEROU STATUS DO COLABORADOR: ${emp ? emp.name : id} PARA ${status}`);
+	}, [logAction]);
+	const updateEmployeeLevel = (0, import_react.useCallback)((id, level) => {
+		const emp = storeRef.current.employees.find((e) => e.id === id);
+		setEmployees((prev) => prev.map((e) => e.id === id ? {
+			...e,
+			accessLevel: level
+		} : e));
+		logAction(`ALTEROU NÍVEL DE ACESSO DO COLABORADOR: ${emp ? emp.name : id} PARA ${level}`);
+	}, [logAction]);
+	const updateEmployeeAgendaAccess = (0, import_react.useCallback)((id, access) => {
+		const emp = storeRef.current.employees.find((e) => e.id === id);
+		setEmployees((prev) => prev.map((e) => e.id === id ? {
+			...e,
+			agendaAccess: access
+		} : e));
+		logAction(`ALTEROU ACESSO DE AGENDA DO COLABORADOR: ${emp ? emp.name : id}`);
+	}, [logAction]);
+	const updateEmployeePermissions = (0, import_react.useCallback)((id, permissions) => {
+		const emp = storeRef.current.employees.find((e) => e.id === id);
+		setEmployees((prev) => prev.map((e) => e.id === id ? {
+			...e,
+			permissions
+		} : e));
+		logAction(`ATUALIZOU PERMISSÕES DO COLABORADOR: ${emp ? emp.name : id}`);
+	}, [logAction]);
+	const updateLevelPermissions = (0, import_react.useCallback)((level, perms) => {
+		setLevelPermissions((prev) => ({
+			...prev,
+			[level]: perms
+		}));
+		logAction(`ATUALIZOU PERMISSÕES PADRÃO DO NÍVEL: ${level}`);
+	}, [logAction]);
 	const addOnboardingTask = (0, import_react.useCallback)((candidateId, title) => {
 		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
 			...c,
@@ -20426,42 +20538,79 @@ function AppProvider({ children }) {
 				completed: false
 			}]
 		} : c));
-	}, []);
+		logAction(`CRIOU TAREFA DE ONBOARDING: ${title}`);
+	}, [logAction]);
 	const removeOnboardingTask = (0, import_react.useCallback)((candidateId, taskId) => {
 		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
 			...c,
 			tasks: c.tasks.filter((t$1) => t$1.id !== taskId)
 		} : c));
-	}, []);
-	const addDocument = (0, import_react.useCallback)((name) => setDocuments((prev) => [...prev, {
-		id: Math.random().toString(36),
-		name,
-		date: (/* @__PURE__ */ new Date()).toLocaleDateString("pt-BR")
-	}]), []);
-	const removeDocument = (0, import_react.useCallback)((id) => setDocuments((prev) => prev.filter((d) => d.id !== id)), []);
-	const addAgendaItem = (0, import_react.useCallback)((item) => setAgenda((prev) => [...prev, {
-		...item,
-		id: Math.random().toString(36)
-	}]), []);
-	const removeAgendaItem = (0, import_react.useCallback)((id) => setAgenda((prev) => prev.filter((i$2) => i$2.id !== id)), []);
-	const addAccess = (0, import_react.useCallback)((item) => setAcessos((prev) => [...prev, {
-		...item,
-		id: Math.random().toString(36)
-	}]), []);
-	const updateAccess = (0, import_react.useCallback)((id, item) => setAcessos((prev) => prev.map((a$1) => a$1.id === id ? {
-		...a$1,
-		...item
-	} : a$1)), []);
-	const removeAccess = (0, import_react.useCallback)((id) => setAcessos((prev) => prev.filter((i$2) => i$2.id !== id)), []);
-	const addSupplier = (0, import_react.useCallback)((item) => setSuppliers((prev) => [...prev, {
-		...item,
-		id: Math.random().toString(36)
-	}]), []);
-	const updateSupplier = (0, import_react.useCallback)((id, item) => setSuppliers((prev) => prev.map((s$2) => s$2.id === id ? {
-		...s$2,
-		...item
-	} : s$2)), []);
-	const removeSupplier = (0, import_react.useCallback)((id) => setSuppliers((prev) => prev.filter((i$2) => i$2.id !== id)), []);
+		logAction(`REMOVEU TAREFA DE ONBOARDING`);
+	}, [logAction]);
+	const addDocument = (0, import_react.useCallback)((name) => {
+		setDocuments((prev) => [...prev, {
+			id: Math.random().toString(36),
+			name,
+			date: (/* @__PURE__ */ new Date()).toLocaleDateString("pt-BR")
+		}]);
+		logAction(`ADICIONOU DOCUMENTO: ${name}`);
+	}, [logAction]);
+	const removeDocument = (0, import_react.useCallback)((id) => {
+		setDocuments((prev) => prev.filter((d) => d.id !== id));
+		logAction(`REMOVEU DOCUMENTO ID: ${id}`);
+	}, [logAction]);
+	const addAgendaItem = (0, import_react.useCallback)((item) => {
+		setAgenda((prev) => [...prev, {
+			...item,
+			id: Math.random().toString(36)
+		}]);
+		logAction(`CRIOU COMPROMISSO NA AGENDA: ${item.title}`);
+	}, [logAction]);
+	const removeAgendaItem = (0, import_react.useCallback)((id) => {
+		const item = storeRef.current.agenda.find((i$2) => i$2.id === id);
+		setAgenda((prev) => prev.filter((i$2) => i$2.id !== id));
+		logAction(`REMOVEU COMPROMISSO: ${item ? item.title : id}`);
+	}, [logAction]);
+	const addAccess = (0, import_react.useCallback)((item) => {
+		setAcessos((prev) => [...prev, {
+			...item,
+			id: Math.random().toString(36)
+		}]);
+		logAction(`CRIOU CREDENCIAL DE ACESSO: ${item.platform}`);
+	}, [logAction]);
+	const updateAccess = (0, import_react.useCallback)((id, item) => {
+		const acc = storeRef.current.acessos.find((a$1) => a$1.id === id);
+		setAcessos((prev) => prev.map((a$1) => a$1.id === id ? {
+			...a$1,
+			...item
+		} : a$1));
+		logAction(`ATUALIZOU CREDENCIAL DE ACESSO: ${acc ? acc.platform : id}`);
+	}, [logAction]);
+	const removeAccess = (0, import_react.useCallback)((id) => {
+		const acc = storeRef.current.acessos.find((a$1) => a$1.id === id);
+		setAcessos((prev) => prev.filter((i$2) => i$2.id !== id));
+		logAction(`REMOVEU CREDENCIAL DE ACESSO: ${acc ? acc.platform : id}`);
+	}, [logAction]);
+	const addSupplier = (0, import_react.useCallback)((item) => {
+		setSuppliers((prev) => [...prev, {
+			...item,
+			id: Math.random().toString(36)
+		}]);
+		logAction(`CRIOU FORNECEDOR: ${item.name}`);
+	}, [logAction]);
+	const updateSupplier = (0, import_react.useCallback)((id, item) => {
+		const sup = storeRef.current.suppliers.find((s$2) => s$2.id === id);
+		setSuppliers((prev) => prev.map((s$2) => s$2.id === id ? {
+			...s$2,
+			...item
+		} : s$2));
+		logAction(`ATUALIZOU FORNECEDOR: ${sup ? sup.name : id}`);
+	}, [logAction]);
+	const removeSupplier = (0, import_react.useCallback)((id) => {
+		const sup = storeRef.current.suppliers.find((s$2) => s$2.id === id);
+		setSuppliers((prev) => prev.filter((i$2) => i$2.id !== id));
+		logAction(`REMOVEU FORNECEDOR: ${sup ? sup.name : id}`);
+	}, [logAction]);
 	const value = (0, import_react.useMemo)(() => ({
 		isAuthenticated,
 		isAdmin,
@@ -20479,6 +20628,7 @@ function AppProvider({ children }) {
 		acessos,
 		suppliers,
 		levelPermissions,
+		auditLogs,
 		login,
 		logout,
 		toggleAdmin,
@@ -20495,7 +20645,6 @@ function AppProvider({ children }) {
 		addInventoryItem,
 		updateInventoryQuantity,
 		addPurchaseHistory,
-		clearInventory,
 		addEmployee,
 		deleteEmployee,
 		updateEmployeeStatus,
@@ -20532,6 +20681,7 @@ function AppProvider({ children }) {
 		acessos,
 		suppliers,
 		levelPermissions,
+		auditLogs,
 		login,
 		logout,
 		toggleAdmin,
@@ -20548,7 +20698,6 @@ function AppProvider({ children }) {
 		addInventoryItem,
 		updateInventoryQuantity,
 		addPurchaseHistory,
-		clearInventory,
 		addEmployee,
 		deleteEmployee,
 		updateEmployeeStatus,
@@ -21234,7 +21383,7 @@ function removeLinks(items) {
 	return items.filter((item) => item.tagName !== "A");
 }
 var import_react_dom$3 = /* @__PURE__ */ __toESM(require_react_dom(), 1);
-var PORTAL_NAME$5 = "Portal";
+var PORTAL_NAME$4 = "Portal";
 var Portal = import_react.forwardRef((props, forwardedRef) => {
 	const { container: containerProp, ...portalProps } = props;
 	const [mounted, setMounted] = import_react.useState(false);
@@ -21245,7 +21394,7 @@ var Portal = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	}), container) : null;
 });
-Portal.displayName = PORTAL_NAME$5;
+Portal.displayName = PORTAL_NAME$4;
 function useStateMachine(initialState, machine) {
 	return import_react.useReducer((state, event) => {
 		return machine[state][event] ?? state;
@@ -22086,10 +22235,10 @@ var Dialog$1 = (props) => {
 	});
 };
 Dialog$1.displayName = DIALOG_NAME;
-var TRIGGER_NAME$6 = "DialogTrigger";
+var TRIGGER_NAME$5 = "DialogTrigger";
 var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...triggerProps } = props;
-	const context = useDialogContext(TRIGGER_NAME$6, __scopeDialog);
+	const context = useDialogContext(TRIGGER_NAME$5, __scopeDialog);
 	const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
 		type: "button",
@@ -22102,12 +22251,12 @@ var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
 	});
 });
-DialogTrigger$1.displayName = TRIGGER_NAME$6;
-var PORTAL_NAME$4 = "DialogPortal";
-var [PortalProvider$2, usePortalContext$2] = createDialogContext(PORTAL_NAME$4, { forceMount: void 0 });
+DialogTrigger$1.displayName = TRIGGER_NAME$5;
+var PORTAL_NAME$3 = "DialogPortal";
+var [PortalProvider$2, usePortalContext$2] = createDialogContext(PORTAL_NAME$3, { forceMount: void 0 });
 var DialogPortal$1 = (props) => {
 	const { __scopeDialog, forceMount, children, container } = props;
-	const context = useDialogContext(PORTAL_NAME$4, __scopeDialog);
+	const context = useDialogContext(PORTAL_NAME$3, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider$2, {
 		scope: __scopeDialog,
 		forceMount,
@@ -22121,12 +22270,12 @@ var DialogPortal$1 = (props) => {
 		}))
 	});
 };
-DialogPortal$1.displayName = PORTAL_NAME$4;
-var OVERLAY_NAME$1 = "DialogOverlay";
+DialogPortal$1.displayName = PORTAL_NAME$3;
+var OVERLAY_NAME = "DialogOverlay";
 var DialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext$2(OVERLAY_NAME$1, props.__scopeDialog);
+	const portalContext = usePortalContext$2(OVERLAY_NAME, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...overlayProps } = props;
-	const context = useDialogContext(OVERLAY_NAME$1, props.__scopeDialog);
+	const context = useDialogContext(OVERLAY_NAME, props.__scopeDialog);
 	return context.modal ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlayImpl, {
@@ -22135,11 +22284,11 @@ var DialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	}) : null;
 });
-DialogOverlay$1.displayName = OVERLAY_NAME$1;
+DialogOverlay$1.displayName = OVERLAY_NAME;
 var Slot$3 = /* @__PURE__ */ createSlot("DialogOverlay.RemoveScroll");
 var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...overlayProps } = props;
-	const context = useDialogContext(OVERLAY_NAME$1, __scopeDialog);
+	const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Combination_default, {
 		as: Slot$3,
 		allowPinchZoom: true,
@@ -22155,11 +22304,11 @@ var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-var CONTENT_NAME$6 = "DialogContent";
+var CONTENT_NAME$5 = "DialogContent";
 var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext$2(CONTENT_NAME$6, props.__scopeDialog);
+	const portalContext = usePortalContext$2(CONTENT_NAME$5, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$6, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$5, props.__scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: context.modal ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentModal, {
@@ -22171,9 +22320,9 @@ var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-DialogContent$1.displayName = CONTENT_NAME$6;
+DialogContent$1.displayName = CONTENT_NAME$5;
 var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$6, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$5, props.__scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
 	import_react.useEffect(() => {
@@ -22198,7 +22347,7 @@ var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$6, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$5, props.__scopeDialog);
 	const hasInteractedOutsideRef = import_react.useRef(false);
 	const hasPointerDownOutsideRef = import_react.useRef(false);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentImpl, {
@@ -22229,7 +22378,7 @@ var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
 });
 var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$6, __scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$5, __scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, contentRef);
 	useFocusGuards();
@@ -22249,33 +22398,33 @@ var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 			ref: composedRefs,
 			onDismiss: () => context.onOpenChange(false)
 		})
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TitleWarning, { titleId: context.titleId }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning$1, {
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TitleWarning, { titleId: context.titleId }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning, {
 		contentRef,
 		descriptionId: context.descriptionId
 	})] })] });
 });
-var TITLE_NAME$1 = "DialogTitle";
+var TITLE_NAME = "DialogTitle";
 var DialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...titleProps } = props;
-	const context = useDialogContext(TITLE_NAME$1, __scopeDialog);
+	const context = useDialogContext(TITLE_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.h2, {
 		id: context.titleId,
 		...titleProps,
 		ref: forwardedRef
 	});
 });
-DialogTitle$1.displayName = TITLE_NAME$1;
-var DESCRIPTION_NAME$1 = "DialogDescription";
+DialogTitle$1.displayName = TITLE_NAME;
+var DESCRIPTION_NAME = "DialogDescription";
 var DialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...descriptionProps } = props;
-	const context = useDialogContext(DESCRIPTION_NAME$1, __scopeDialog);
+	const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.p, {
 		id: context.descriptionId,
 		...descriptionProps,
 		ref: forwardedRef
 	});
 });
-DialogDescription$1.displayName = DESCRIPTION_NAME$1;
+DialogDescription$1.displayName = DESCRIPTION_NAME;
 var CLOSE_NAME$1 = "DialogClose";
 var DialogClose$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...closeProps } = props;
@@ -22293,8 +22442,8 @@ function getState$3(open) {
 }
 var TITLE_WARNING_NAME = "DialogTitleWarning";
 var [WarningProvider, useWarningContext] = createContext2(TITLE_WARNING_NAME, {
-	contentName: CONTENT_NAME$6,
-	titleName: TITLE_NAME$1,
+	contentName: CONTENT_NAME$5,
+	titleName: TITLE_NAME,
 	docsSlug: "dialog"
 });
 var TitleWarning = ({ titleId }) => {
@@ -22312,7 +22461,7 @@ For more information, see https://radix-ui.com/primitives/docs/components/${titl
 	return null;
 };
 var DESCRIPTION_WARNING_NAME = "DialogDescriptionWarning";
-var DescriptionWarning$1 = ({ contentRef, descriptionId }) => {
+var DescriptionWarning = ({ contentRef, descriptionId }) => {
 	const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${useWarningContext(DESCRIPTION_WARNING_NAME).contentName}}.`;
 	import_react.useEffect(() => {
 		const describedById = contentRef.current?.getAttribute("aria-describedby");
@@ -24700,6 +24849,12 @@ const navItems = [
 		href: "/admin/configuracoes",
 		label: "CONFIGURAÇÕES",
 		icon: Settings$1
+	},
+	{
+		id: "auditoria",
+		href: "/admin/auditoria",
+		label: "LOG DE AUDITORIA",
+		icon: ClipboardList
 	}
 ];
 var MOBILE_BREAKPOINT = 768;
@@ -26419,11 +26574,11 @@ var PopperAnchor = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 PopperAnchor.displayName = ANCHOR_NAME$1;
-var CONTENT_NAME$5 = "PopperContent";
-var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$5);
+var CONTENT_NAME$4 = "PopperContent";
+var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$4);
 var PopperContent = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopePopper, side = "bottom", sideOffset = 0, align = "center", alignOffset = 0, arrowPadding = 0, avoidCollisions = true, collisionBoundary = [], collisionPadding: collisionPaddingProp = 0, sticky = "partial", hideWhenDetached = false, updatePositionStrategy = "optimized", onPlaced, ...contentProps } = props;
-	const context = usePopperContext(CONTENT_NAME$5, __scopePopper);
+	const context = usePopperContext(CONTENT_NAME$4, __scopePopper);
 	const [content, setContent] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
 	const [arrow$3, setArrow] = import_react.useState(null);
@@ -26536,7 +26691,7 @@ var PopperContent = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-PopperContent.displayName = CONTENT_NAME$5;
+PopperContent.displayName = CONTENT_NAME$4;
 var ARROW_NAME$3 = "PopperArrow";
 var OPPOSITE_SIDE = {
 	top: "bottom",
@@ -26624,7 +26779,7 @@ function getSideAndAlignFromPlacement(placement) {
 	const [side, align = "center"] = placement.split("-");
 	return [side, align];
 }
-var Root2$4 = Popper;
+var Root2$3 = Popper;
 var Anchor = PopperAnchor;
 var Content$1 = PopperContent;
 var Arrow = PopperArrow;
@@ -26743,7 +26898,7 @@ var Tooltip$1 = (props) => {
 			}
 		};
 	}, []);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$4, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$3, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContextProvider, {
 			scope: __scopeTooltip,
@@ -26775,11 +26930,11 @@ var Tooltip$1 = (props) => {
 	});
 };
 Tooltip$1.displayName = TOOLTIP_NAME;
-var TRIGGER_NAME$5 = "TooltipTrigger";
+var TRIGGER_NAME$4 = "TooltipTrigger";
 var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, ...triggerProps } = props;
-	const context = useTooltipContext(TRIGGER_NAME$5, __scopeTooltip);
-	const providerContext = useTooltipProviderContext(TRIGGER_NAME$5, __scopeTooltip);
+	const context = useTooltipContext(TRIGGER_NAME$4, __scopeTooltip);
+	const providerContext = useTooltipProviderContext(TRIGGER_NAME$4, __scopeTooltip);
 	const popperScope = usePopperScope$2(__scopeTooltip);
 	const composedRefs = useComposedRefs(forwardedRef, import_react.useRef(null), context.onTriggerChange);
 	const isPointerDownRef = import_react.useRef(false);
@@ -26820,12 +26975,12 @@ var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TooltipTrigger$1.displayName = TRIGGER_NAME$5;
-var PORTAL_NAME$3 = "TooltipPortal";
-var [PortalProvider$1, usePortalContext$1] = createTooltipContext(PORTAL_NAME$3, { forceMount: void 0 });
+TooltipTrigger$1.displayName = TRIGGER_NAME$4;
+var PORTAL_NAME$2 = "TooltipPortal";
+var [PortalProvider$1, usePortalContext$1] = createTooltipContext(PORTAL_NAME$2, { forceMount: void 0 });
 var TooltipPortal = (props) => {
 	const { __scopeTooltip, forceMount, children, container } = props;
-	const context = useTooltipContext(PORTAL_NAME$3, __scopeTooltip);
+	const context = useTooltipContext(PORTAL_NAME$2, __scopeTooltip);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider$1, {
 		scope: __scopeTooltip,
 		forceMount,
@@ -26839,12 +26994,12 @@ var TooltipPortal = (props) => {
 		})
 	});
 };
-TooltipPortal.displayName = PORTAL_NAME$3;
-var CONTENT_NAME$4 = "TooltipContent";
+TooltipPortal.displayName = PORTAL_NAME$2;
+var CONTENT_NAME$3 = "TooltipContent";
 var TooltipContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext$1(CONTENT_NAME$4, props.__scopeTooltip);
+	const portalContext = usePortalContext$1(CONTENT_NAME$3, props.__scopeTooltip);
 	const { forceMount = portalContext.forceMount, side = "top", ...contentProps } = props;
-	const context = useTooltipContext(CONTENT_NAME$4, props.__scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$3, props.__scopeTooltip);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: context.disableHoverableContent ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContentImpl, {
@@ -26859,8 +27014,8 @@ var TooltipContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var TooltipContentHoverable = import_react.forwardRef((props, forwardedRef) => {
-	const context = useTooltipContext(CONTENT_NAME$4, props.__scopeTooltip);
-	const providerContext = useTooltipProviderContext(CONTENT_NAME$4, props.__scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$3, props.__scopeTooltip);
+	const providerContext = useTooltipProviderContext(CONTENT_NAME$3, props.__scopeTooltip);
 	const ref = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, ref);
 	const [pointerGraceArea, setPointerGraceArea] = import_react.useState(null);
@@ -26934,10 +27089,10 @@ var TooltipContentHoverable = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var [VisuallyHiddenContentContextProvider, useVisuallyHiddenContentContext] = createTooltipContext(TOOLTIP_NAME, { isInside: false });
-var Slottable$1 = /* @__PURE__ */ createSlottable("TooltipContent");
+var Slottable = /* @__PURE__ */ createSlottable("TooltipContent");
 var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, children, "aria-label": ariaLabel, onEscapeKeyDown, onPointerDownOutside, ...contentProps } = props;
-	const context = useTooltipContext(CONTENT_NAME$4, __scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$3, __scopeTooltip);
 	const popperScope = usePopperScope$2(__scopeTooltip);
 	const { onClose } = context;
 	import_react.useEffect(() => {
@@ -26973,7 +27128,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 				"--radix-tooltip-trigger-width": "var(--radix-popper-anchor-width)",
 				"--radix-tooltip-trigger-height": "var(--radix-popper-anchor-height)"
 			},
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable$1, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
 				scope: __scopeTooltip,
 				isInside: true,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
@@ -26985,7 +27140,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TooltipContent$1.displayName = CONTENT_NAME$4;
+TooltipContent$1.displayName = CONTENT_NAME$3;
 var ARROW_NAME$2 = "TooltipArrow";
 var TooltipArrow = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, ...arrowProps } = props;
@@ -27130,17 +27285,17 @@ function getHullPresorted(points) {
 var Provider = TooltipProvider$1;
 var Root3 = Tooltip$1;
 var Trigger$3 = TooltipTrigger$1;
-var Content2$3 = TooltipContent$1;
+var Content2$2 = TooltipContent$1;
 var TooltipProvider = Provider;
 var Tooltip = Root3;
 var TooltipTrigger = Trigger$3;
-var TooltipContent = import_react.forwardRef(({ className, sideOffset = 4, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2$3, {
+var TooltipContent = import_react.forwardRef(({ className, sideOffset = 4, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2$2, {
 	ref,
 	sideOffset,
 	className: cn("z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-tooltip-content-transform-origin]", className),
 	...props
 }));
-TooltipContent.displayName = Content2$3.displayName;
+TooltipContent.displayName = Content2$2.displayName;
 var SIDEBAR_COOKIE_NAME = "sidebar_state";
 var SIDEBAR_COOKIE_MAX_AGE = 3600 * 24 * 7;
 var SIDEBAR_WIDTH = "16rem";
@@ -27630,7 +27785,7 @@ var Select$2 = (props) => {
 	const isFormControl = trigger ? form || !!trigger.closest("form") : true;
 	const [nativeOptionsSet, setNativeOptionsSet] = import_react.useState(/* @__PURE__ */ new Set());
 	const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$4, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$3, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectProvider, {
 			required: required$1,
@@ -27681,11 +27836,11 @@ var Select$2 = (props) => {
 	});
 };
 Select$2.displayName = SELECT_NAME;
-var TRIGGER_NAME$4 = "SelectTrigger";
+var TRIGGER_NAME$3 = "SelectTrigger";
 var SelectTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, disabled = false, ...triggerProps } = props;
 	const popperScope = usePopperScope$1(__scopeSelect);
-	const context = useSelectContext(TRIGGER_NAME$4, __scopeSelect);
+	const context = useSelectContext(TRIGGER_NAME$3, __scopeSelect);
 	const isDisabled = context.disabled || disabled;
 	const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
 	const getItems = useCollection$1(__scopeSelect);
@@ -27747,7 +27902,7 @@ var SelectTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-SelectTrigger$1.displayName = TRIGGER_NAME$4;
+SelectTrigger$1.displayName = TRIGGER_NAME$3;
 var VALUE_NAME = "SelectValue";
 var SelectValue$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
@@ -27777,17 +27932,17 @@ var SelectIcon = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 SelectIcon.displayName = ICON_NAME;
-var PORTAL_NAME$2 = "SelectPortal";
+var PORTAL_NAME$1 = "SelectPortal";
 var SelectPortal = (props) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal, {
 		asChild: true,
 		...props
 	});
 };
-SelectPortal.displayName = PORTAL_NAME$2;
-var CONTENT_NAME$3 = "SelectContent";
+SelectPortal.displayName = PORTAL_NAME$1;
+var CONTENT_NAME$2 = "SelectContent";
 var SelectContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const context = useSelectContext(CONTENT_NAME$3, props.__scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$2, props.__scopeSelect);
 	const [fragment, setFragment] = import_react.useState();
 	useLayoutEffect2(() => {
 		setFragment(new DocumentFragment());
@@ -27807,14 +27962,14 @@ var SelectContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	});
 });
-SelectContent$1.displayName = CONTENT_NAME$3;
+SelectContent$1.displayName = CONTENT_NAME$2;
 var CONTENT_MARGIN = 10;
-var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME$3);
+var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME$2);
 var CONTENT_IMPL_NAME = "SelectContentImpl";
 var Slot$2 = /* @__PURE__ */ createSlot("SelectContent.RemoveScroll");
 var SelectContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, position = "item-aligned", onCloseAutoFocus, onEscapeKeyDown, onPointerDownOutside, side, sideOffset, align, alignOffset, arrowPadding, collisionBoundary, collisionPadding, sticky, hideWhenDetached, avoidCollisions, ...contentProps } = props;
-	const context = useSelectContext(CONTENT_NAME$3, __scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$2, __scopeSelect);
 	const [content, setContent] = import_react.useState(null);
 	const [viewport, setViewport] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
@@ -28004,8 +28159,8 @@ SelectContentImpl.displayName = CONTENT_IMPL_NAME;
 var ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition";
 var SelectItemAlignedPosition = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, onPlaced, ...popperProps } = props;
-	const context = useSelectContext(CONTENT_NAME$3, __scopeSelect);
-	const contentContext = useSelectContentContext(CONTENT_NAME$3, __scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$2, __scopeSelect);
+	const contentContext = useSelectContentContext(CONTENT_NAME$2, __scopeSelect);
 	const [contentWrapper, setContentWrapper] = import_react.useState(null);
 	const [content, setContent] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
@@ -28149,7 +28304,7 @@ var SelectPopperPosition = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 SelectPopperPosition.displayName = POPPER_POSITION_NAME;
-var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME$3, {});
+var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME$2, {});
 var VIEWPORT_NAME = "SelectViewport";
 var SelectViewport = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, nonce, ...viewportProps } = props;
@@ -28529,12 +28684,12 @@ function findNextItem(items, search, currentItem) {
 function wrapArray$1(array$1, startIndex) {
 	return array$1.map((_, index$1) => array$1[(startIndex + index$1) % array$1.length]);
 }
-var Root2$3 = Select$2;
+var Root2$2 = Select$2;
 var Trigger$2 = SelectTrigger$1;
 var Value = SelectValue$1;
 var Icon = SelectIcon;
 var Portal$2 = SelectPortal;
-var Content2$2 = SelectContent$1;
+var Content2$1 = SelectContent$1;
 var Viewport = SelectViewport;
 var Label$2 = SelectLabel$1;
 var Item$1 = SelectItem$1;
@@ -28543,7 +28698,7 @@ var ItemIndicator = SelectItemIndicator;
 var ScrollUpButton = SelectScrollUpButton$1;
 var ScrollDownButton = SelectScrollDownButton$1;
 var Separator = SelectSeparator$1;
-var Select = Root2$3;
+var Select = Root2$2;
 var SelectValue = Value;
 var SelectTrigger = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Trigger$2, {
 	ref,
@@ -28569,7 +28724,7 @@ var SelectScrollDownButton = import_react.forwardRef(({ className, ...props }, r
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { className: "h-4 w-4" })
 }));
 SelectScrollDownButton.displayName = ScrollDownButton.displayName;
-var SelectContent = import_react.forwardRef(({ className, children, position = "popper", ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$2, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content2$2, {
+var SelectContent = import_react.forwardRef(({ className, children, position = "popper", ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$2, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content2$1, {
 	ref,
 	className: cn("relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]", position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className),
 	position,
@@ -28583,7 +28738,7 @@ var SelectContent = import_react.forwardRef(({ className, children, position = "
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectScrollDownButton, {})
 	]
 }) }));
-SelectContent.displayName = Content2$2.displayName;
+SelectContent.displayName = Content2$1.displayName;
 var SelectLabel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
 	ref,
 	className: cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className),
@@ -29268,10 +29423,10 @@ var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 TabsList$1.displayName = TAB_LIST_NAME;
-var TRIGGER_NAME$3 = "TabsTrigger";
+var TRIGGER_NAME$2 = "TabsTrigger";
 var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTabs, value, disabled = false, ...triggerProps } = props;
-	const context = useTabsContext(TRIGGER_NAME$3, __scopeTabs);
+	const context = useTabsContext(TRIGGER_NAME$2, __scopeTabs);
 	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
 	const triggerId = makeTriggerId(context.baseId, value);
 	const contentId = makeContentId(context.baseId, value);
@@ -29306,11 +29461,11 @@ var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TabsTrigger$1.displayName = TRIGGER_NAME$3;
-var CONTENT_NAME$2 = "TabsContent";
+TabsTrigger$1.displayName = TRIGGER_NAME$2;
+var CONTENT_NAME$1 = "TabsContent";
 var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTabs, value, forceMount, children, ...contentProps } = props;
-	const context = useTabsContext(CONTENT_NAME$2, __scopeTabs);
+	const context = useTabsContext(CONTENT_NAME$1, __scopeTabs);
 	const triggerId = makeTriggerId(context.baseId, value);
 	const contentId = makeContentId(context.baseId, value);
 	const isSelected = value === context.value;
@@ -29339,18 +29494,18 @@ var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TabsContent$1.displayName = CONTENT_NAME$2;
+TabsContent$1.displayName = CONTENT_NAME$1;
 function makeTriggerId(baseId, value) {
 	return `${baseId}-trigger-${value}`;
 }
 function makeContentId(baseId, value) {
 	return `${baseId}-content-${value}`;
 }
-var Root2$2 = Tabs$1;
+var Root2$1 = Tabs$1;
 var List = TabsList$1;
 var Trigger$1 = TabsTrigger$1;
 var Content = TabsContent$1;
-var Tabs = Root2$2;
+var Tabs = Root2$1;
 var TabsList = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(List, {
 	ref,
 	className: cn("inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground", className),
@@ -35675,9 +35830,9 @@ function CheckboxProvider(props) {
 		children: isFunction(internal_do_not_use_render) ? internal_do_not_use_render(context) : children
 	});
 }
-var TRIGGER_NAME$2 = "CheckboxTrigger";
+var TRIGGER_NAME$1 = "CheckboxTrigger";
 var CheckboxTrigger = import_react.forwardRef(({ __scopeCheckbox, onKeyDown, onClick, ...checkboxProps }, forwardedRef) => {
-	const { control, value, disabled, checked, required: required$1, setControl, setChecked, hasConsumerStoppedPropagationRef, isFormControl, bubbleInput } = useCheckboxContext(TRIGGER_NAME$2, __scopeCheckbox);
+	const { control, value, disabled, checked, required: required$1, setControl, setChecked, hasConsumerStoppedPropagationRef, isFormControl, bubbleInput } = useCheckboxContext(TRIGGER_NAME$1, __scopeCheckbox);
 	const composedRefs = useComposedRefs(forwardedRef, setControl);
 	const initialCheckedStateRef = import_react.useRef(checked);
 	import_react.useEffect(() => {
@@ -35711,7 +35866,7 @@ var CheckboxTrigger = import_react.forwardRef(({ __scopeCheckbox, onKeyDown, onC
 		})
 	});
 });
-CheckboxTrigger.displayName = TRIGGER_NAME$2;
+CheckboxTrigger.displayName = TRIGGER_NAME$1;
 var Checkbox$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeCheckbox, name, checked, defaultChecked, required: required$1, disabled, value, onCheckedChange, form, ...checkboxProps } = props;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CheckboxProvider, {
@@ -36147,201 +36302,6 @@ function EmployeeProfile() {
 		})]
 	});
 }
-var ROOT_NAME = "AlertDialog";
-var [createAlertDialogContext, createAlertDialogScope] = createContextScope(ROOT_NAME, [createDialogScope]);
-var useDialogScope = createDialogScope();
-var AlertDialog$1 = (props) => {
-	const { __scopeAlertDialog, ...alertDialogProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$8, {
-		...dialogScope,
-		...alertDialogProps,
-		modal: true
-	});
-};
-AlertDialog$1.displayName = ROOT_NAME;
-var TRIGGER_NAME$1 = "AlertDialogTrigger";
-var AlertDialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...triggerProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger$4, {
-		...dialogScope,
-		...triggerProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogTrigger$1.displayName = TRIGGER_NAME$1;
-var PORTAL_NAME$1 = "AlertDialogPortal";
-var AlertDialogPortal$1 = (props) => {
-	const { __scopeAlertDialog, ...portalProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal$3, {
-		...dialogScope,
-		...portalProps
-	});
-};
-AlertDialogPortal$1.displayName = PORTAL_NAME$1;
-var OVERLAY_NAME = "AlertDialogOverlay";
-var AlertDialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...overlayProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
-		...dialogScope,
-		...overlayProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogOverlay$1.displayName = OVERLAY_NAME;
-var CONTENT_NAME$1 = "AlertDialogContent";
-var [AlertDialogContentProvider, useAlertDialogContentContext] = createAlertDialogContext(CONTENT_NAME$1);
-var Slottable = /* @__PURE__ */ createSlottable("AlertDialogContent");
-var AlertDialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, children, ...contentProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	const contentRef = import_react.useRef(null);
-	const composedRefs = useComposedRefs(forwardedRef, contentRef);
-	const cancelRef = import_react.useRef(null);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(WarningProvider, {
-		contentName: CONTENT_NAME$1,
-		titleName: TITLE_NAME,
-		docsSlug: "alert-dialog",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogContentProvider, {
-			scope: __scopeAlertDialog,
-			cancelRef,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$2, {
-				role: "alertdialog",
-				...dialogScope,
-				...contentProps,
-				ref: composedRefs,
-				onOpenAutoFocus: composeEventHandlers(contentProps.onOpenAutoFocus, (event) => {
-					event.preventDefault();
-					cancelRef.current?.focus({ preventScroll: true });
-				}),
-				onPointerDownOutside: (event) => event.preventDefault(),
-				onInteractOutside: (event) => event.preventDefault(),
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionWarning, { contentRef })]
-			})
-		})
-	});
-});
-AlertDialogContent$1.displayName = CONTENT_NAME$1;
-var TITLE_NAME = "AlertDialogTitle";
-var AlertDialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...titleProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
-		...dialogScope,
-		...titleProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogTitle$1.displayName = TITLE_NAME;
-var DESCRIPTION_NAME = "AlertDialogDescription";
-var AlertDialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...descriptionProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
-		...dialogScope,
-		...descriptionProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogDescription$1.displayName = DESCRIPTION_NAME;
-var ACTION_NAME = "AlertDialogAction";
-var AlertDialogAction$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...actionProps } = props;
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
-		...dialogScope,
-		...actionProps,
-		ref: forwardedRef
-	});
-});
-AlertDialogAction$1.displayName = ACTION_NAME;
-var CANCEL_NAME = "AlertDialogCancel";
-var AlertDialogCancel$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeAlertDialog, ...cancelProps } = props;
-	const { cancelRef } = useAlertDialogContentContext(CANCEL_NAME, __scopeAlertDialog);
-	const dialogScope = useDialogScope(__scopeAlertDialog);
-	const ref = useComposedRefs(forwardedRef, cancelRef);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Close, {
-		...dialogScope,
-		...cancelProps,
-		ref
-	});
-});
-AlertDialogCancel$1.displayName = CANCEL_NAME;
-var DescriptionWarning = ({ contentRef }) => {
-	const MESSAGE = `\`${CONTENT_NAME$1}\` requires a description for the component to be accessible for screen reader users.
-
-You can add a description to the \`${CONTENT_NAME$1}\` by passing a \`${DESCRIPTION_NAME}\` component as a child, which also benefits sighted users by adding visible context to the dialog.
-
-Alternatively, you can use your own component as a description by assigning it an \`id\` and passing the same value to the \`aria-describedby\` prop in \`${CONTENT_NAME$1}\`. If the description is confusing or duplicative for sighted users, you can use the \`@radix-ui/react-visually-hidden\` primitive as a wrapper around your description component.
-
-For more information, see https://radix-ui.com/primitives/docs/components/alert-dialog`;
-	import_react.useEffect(() => {
-		if (!document.getElementById(contentRef.current?.getAttribute("aria-describedby"))) console.warn(MESSAGE);
-	}, [MESSAGE, contentRef]);
-	return null;
-};
-var Root2$1 = AlertDialog$1;
-var Trigger2 = AlertDialogTrigger$1;
-var Portal2 = AlertDialogPortal$1;
-var Overlay2 = AlertDialogOverlay$1;
-var Content2$1 = AlertDialogContent$1;
-var Action = AlertDialogAction$1;
-var Cancel = AlertDialogCancel$1;
-var Title2 = AlertDialogTitle$1;
-var Description2 = AlertDialogDescription$1;
-var AlertDialog = Root2$1;
-var AlertDialogTrigger = Trigger2;
-var AlertDialogPortal = Portal2;
-var AlertDialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay2, {
-	className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
-	...props,
-	ref
-}));
-AlertDialogOverlay.displayName = Overlay2.displayName;
-var AlertDialogContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2$1, {
-	ref,
-	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg", className),
-	...props
-})] }));
-AlertDialogContent.displayName = Content2$1.displayName;
-var AlertDialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn("flex flex-col space-y-2 text-center sm:text-left", className),
-	...props
-});
-AlertDialogHeader.displayName = "AlertDialogHeader";
-var AlertDialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
-	...props
-});
-AlertDialogFooter.displayName = "AlertDialogFooter";
-var AlertDialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title2, {
-	ref,
-	className: cn("text-lg font-semibold", className),
-	...props
-}));
-AlertDialogTitle.displayName = Title2.displayName;
-var AlertDialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description2, {
-	ref,
-	className: cn("text-sm text-muted-foreground", className),
-	...props
-}));
-AlertDialogDescription.displayName = Description2.displayName;
-var AlertDialogAction = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Action, {
-	ref,
-	className: cn(buttonVariants(), className),
-	...props
-}));
-AlertDialogAction.displayName = Action.displayName;
-var AlertDialogCancel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Cancel, {
-	ref,
-	className: cn(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className),
-	...props
-}));
-AlertDialogCancel.displayName = Cancel.displayName;
 var Textarea = import_react.forwardRef(({ className, ...props }, ref) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("textarea", {
 		className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm uppercase", className),
@@ -36365,7 +36325,7 @@ var Popover$1 = (props) => {
 		onChange: onOpenChange,
 		caller: POPOVER_NAME
 	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$4, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$3, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverProvider, {
 			scope: __scopePopover,
@@ -39713,7 +39673,7 @@ function NewPurchaseModal({ item, open, onOpenChange }) {
 	});
 }
 function Inventory() {
-	const { inventory, specialties, isAdmin, clearInventory } = useAppStore();
+	const { inventory, specialties } = useAppStore();
 	const [isAdding, setIsAdding] = (0, import_react.useState)(false);
 	const [selectedSpecialty, setSelectedSpecialty] = (0, import_react.useState)("all");
 	const [searchQuery, setSearchQuery] = (0, import_react.useState)("");
@@ -39780,24 +39740,13 @@ function Inventory() {
 						className: "text-muted-foreground mt-1",
 						children: "GERENCIE EMBALAGENS, CÓDIGOS E LOTES."
 					})] })]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "flex items-center gap-3 w-full sm:w-auto",
-					children: [isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialog, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTrigger, {
-						asChild: true,
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-							variant: "outline",
-							className: "text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 whitespace-nowrap shadow-sm",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4 mr-2" }), " LIMPAR ESTOQUE"]
-						})
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogTitle, { children: "Limpar Todo o Estoque?" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogDescription, { children: "Isso irá remover permanentemente todos os produtos de demonstração, itens atuais e o histórico de compras. Essa ação não pode ser desfeita." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDialogFooter, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogCancel, { children: "Cancelar" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDialogAction, {
-						onClick: clearInventory,
-						className: "bg-red-600 text-white hover:bg-red-700",
-						children: "Sim, Limpar Estoque"
-					})] })] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 						className: "bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm",
 						onClick: () => setIsAdding(true),
 						children: "+ NOVO PRODUTO"
-					})]
+					})
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -42178,6 +42127,61 @@ function ProtectedRoute({ children }) {
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
 }
+function AuditLog() {
+	const { auditLogs } = useAppStore();
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-6 animate-fade-in-up uppercase",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
+				className: "text-3xl font-bold tracking-tight text-nuvia-navy flex items-center gap-3",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardList, { className: "h-8 w-8 text-[#D81B84]" }), " LOG DE AUDITORIA"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-muted-foreground mt-1",
+				children: "RASTREIE TODAS AS AÇÕES REALIZADAS PELOS USUÁRIOS NO SISTEMA."
+			})] })
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+			className: "shadow-sm border-muted overflow-hidden",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+				className: "bg-muted/30",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+						className: "font-bold text-muted-foreground w-[220px]",
+						children: "DATA E HORA"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+						className: "font-bold text-muted-foreground w-[250px]",
+						children: "NOME DO USUÁRIO"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+						className: "font-bold text-muted-foreground",
+						children: "AÇÃO"
+					})
+				]
+			}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [auditLogs.map((log) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+				className: "hover:bg-muted/10",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+						className: "font-medium text-sm text-muted-foreground",
+						children: new Date(log.timestamp).toLocaleString("pt-BR")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+						className: "font-bold text-nuvia-navy",
+						children: log.userName
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+						className: "text-sm font-semibold",
+						children: log.action
+					})
+				]
+			}, log.id)), auditLogs.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+				colSpan: 3,
+				className: "text-center py-12 text-muted-foreground font-bold",
+				children: "NENHUM REGISTRO DE AUDITORIA ENCONTRADO."
+			}) })] })] })
+		})]
+	});
+}
 function App() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, { children: [
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
@@ -42221,6 +42225,10 @@ function App() {
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings, {})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+					path: "auditoria",
+					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuditLog, {})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 					path: "*",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NotFound, {})
 				})
@@ -42234,4 +42242,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-COc4sAzS.js.map
+//# sourceMappingURL=index-DDLfP58e.js.map

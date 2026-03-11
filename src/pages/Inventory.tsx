@@ -28,19 +28,7 @@ import {
   MinusCircle,
   ScanBarcode,
   Barcode,
-  Trash2,
 } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
 import { DecreaseStockModal } from '@/components/inventory/DecreaseStockModal'
@@ -50,7 +38,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function Inventory() {
-  const { inventory, specialties, isAdmin, clearInventory } = useAppStore()
+  const { inventory, specialties } = useAppStore()
   const [isAdding, setIsAdding] = useState(false)
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -117,36 +105,6 @@ export default function Inventory() {
           </div>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {isAdmin && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 whitespace-nowrap shadow-sm"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> LIMPAR ESTOQUE
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Limpar Todo o Estoque?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Isso irá remover permanentemente todos os produtos de demonstração, itens atuais
-                    e o histórico de compras. Essa ação não pode ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={clearInventory}
-                    className="bg-red-600 text-white hover:bg-red-700"
-                  >
-                    Sim, Limpar Estoque
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
           <Button
             className="bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm"
             onClick={() => setIsAdding(true)}

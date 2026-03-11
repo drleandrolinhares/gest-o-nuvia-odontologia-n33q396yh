@@ -11,6 +11,7 @@ import Acessos from '@/pages/Acessos'
 import PublicHome from '@/pages/PublicHome'
 import Login from '@/pages/Login'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import AuditLog from '@/pages/AuditLog'
 import { AppProvider } from '@/stores/main'
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
             <Route path="estoque" element={<Inventory />} />
             <Route path="configuracoes" element={<Settings />} />
+            <Route path="auditoria" element={<AuditLog />} />
             <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="*" element={<NotFound />} />

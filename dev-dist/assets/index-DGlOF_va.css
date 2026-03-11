@@ -1112,6 +1112,12 @@ video {
 .w-\[1px\] {
   width: 1px;
 }
+.w-\[220px\] {
+  width: 220px;
+}
+.w-\[250px\] {
+  width: 250px;
+}
 .w-\[300px\] {
   width: 300px;
 }
