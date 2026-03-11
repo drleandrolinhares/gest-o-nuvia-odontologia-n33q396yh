@@ -48,7 +48,7 @@ export default function Settings() {
         <TabsList className="mb-6 grid w-full grid-cols-1 md:grid-cols-3 max-w-2xl">
           {canViewGeneral && <TabsTrigger value="geral">GERAL</TabsTrigger>}
           {canViewFornecedores && <TabsTrigger value="fornecedores">FORNECEDORES</TabsTrigger>}
-          {canViewUsers && <TabsTrigger value="usuarios">USUÁRIOS E EQUIPE</TabsTrigger>}
+          {canViewUsers && <TabsTrigger value="usuarios">USUÁRIOS E PERMISSÕES</TabsTrigger>}
         </TabsList>
 
         {canViewGeneral && (

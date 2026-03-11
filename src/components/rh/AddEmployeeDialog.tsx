@@ -31,6 +31,7 @@ import { Plus } from 'lucide-react'
 
 const formSchema = z.object({
   name: z.string().min(1, 'OBRIGATÓRIO'),
+  username: z.string().optional(),
   role: z.string().min(1, 'OBRIGATÓRIO'),
   department: z.string().min(1, 'OBRIGATÓRIO'),
   email: z.string().email('INVÁLIDO').min(1, 'OBRIGATÓRIO'),
@@ -45,8 +46,10 @@ type FormValues = z.infer<typeof formSchema>
 
 export function AddEmployeeDialog({
   triggerText = 'ADICIONAR COLABORADOR',
+  customTrigger,
 }: {
   triggerText?: string
+  customTrigger?: React.ReactNode
 }) {
   const { addEmployee, departments } = useAppStore()
   const [open, setOpen] = useState(false)
@@ -54,6 +57,7 @@ export function AddEmployeeDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      username: '',
       role: '',
       department: '',
       email: '',
@@ -76,6 +80,7 @@ export function AddEmployeeDialog({
       vacationDaysTotal: 30,
       agendaAccess: 'VIEW_ONLY',
       permissions: {},
+      systemProfiles: [],
     })
     setOpen(false)
     form.reset()
@@ -90,9 +95,13 @@ export function AddEmployeeDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button className="uppercase">
-          <Plus className="h-4 w-4 mr-2" /> {triggerText}
-        </Button>
+        {customTrigger ? (
+          customTrigger
+        ) : (
+          <Button className="uppercase">
+            <Plus className="h-4 w-4 mr-2" /> {triggerText}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-lg uppercase">
         <DialogHeader>
@@ -171,12 +180,12 @@ export function AddEmployeeDialog({
               />
               <FormField
                 control={form.control}
-                name="password"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SENHA DE ACESSO</FormLabel>
+                    <FormLabel>NOME DE USUÁRIO</FormLabel>
                     <FormControl>
-                      <Input type="text" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -184,6 +193,19 @@ export function AddEmployeeDialog({
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SENHA PROVISÓRIA</FormLabel>
+                    <FormControl>
+                      <Input type="text" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="accessLevel"
@@ -206,6 +228,8 @@ export function AddEmployeeDialog({
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="phone"
@@ -219,8 +243,6 @@ export function AddEmployeeDialog({
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="salary"
@@ -234,20 +256,20 @@ export function AddEmployeeDialog({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="hireDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ADMISSÃO</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
+            <FormField
+              control={form.control}
+              name="hireDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ADMISSÃO</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 CANCELAR

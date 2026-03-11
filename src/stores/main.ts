@@ -18,9 +18,10 @@ export type Employee = {
   id: string
   user_id?: string
   name: string
+  username?: string
   role: string
   department: string
-  status: 'Ativo' | 'Férias' | 'Aviso Prévio' | 'Desligado'
+  status: 'Ativo' | 'Férias' | 'Aviso Prévio' | 'Desligado' | 'Inativo'
   hireDate: string
   salary: string
   vacationDaysTaken: number
@@ -31,6 +32,18 @@ export type Employee = {
   agendaAccess: AgendaAccess
   permissions?: PermissionsMap
   accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO'
+  rg?: string
+  cpf?: string
+  birthDate?: string
+  cep?: string
+  address?: string
+  addressNumber?: string
+  addressComplement?: string
+  city?: string
+  state?: string
+  accessSchedule?: boolean
+  systemProfiles?: string[]
+  lastAccess?: string
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
 export type OnboardingCandidate = {
@@ -173,6 +186,7 @@ const mEmp = (d: any): Employee => {
     id: d.id,
     user_id: d.user_id,
     name: d.name,
+    username: d.username,
     role: d.role,
     department: d.department,
     status: d.status,
@@ -186,6 +200,18 @@ const mEmp = (d: any): Employee => {
     agendaAccess: d.agenda_access,
     permissions: isObj ? p : {},
     accessLevel: d.access_level,
+    rg: d.rg,
+    cpf: d.cpf,
+    birthDate: d.birth_date,
+    cep: d.cep,
+    address: d.address,
+    addressNumber: d.address_number,
+    addressComplement: d.address_complement,
+    city: d.city,
+    state: d.state,
+    accessSchedule: d.access_schedule,
+    systemProfiles: d.system_profiles || [],
+    lastAccess: d.last_access,
   }
 }
 const mInv = (d: any): InventoryItem => ({
@@ -575,6 +601,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .insert([
           {
             name: e.name,
+            username: e.username,
             role: e.role,
             department: e.department,
             status: e.status,
@@ -588,6 +615,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
             agenda_access: e.agendaAccess,
             permissions: e.permissions || {},
             access_level: e.accessLevel || 'OPERACIONAL',
+            rg: e.rg,
+            cpf: e.cpf,
+            birth_date: e.birthDate,
+            cep: e.cep,
+            address: e.address,
+            address_number: e.addressNumber,
+            address_complement: e.addressComplement,
+            city: e.city,
+            state: e.state,
+            access_schedule: e.accessSchedule,
+            system_profiles: e.systemProfiles || [],
           },
         ])
         .select()
@@ -606,6 +644,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (id: string, e: Partial<Employee>) => {
       const payload: any = {}
       if (e.name !== undefined) payload.name = e.name
+      if (e.username !== undefined) payload.username = e.username
       if (e.role !== undefined) payload.role = e.role
       if (e.department !== undefined) payload.department = e.department
       if (e.status !== undefined) payload.status = e.status
@@ -615,6 +654,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.phone !== undefined) payload.phone = e.phone
       if (e.accessLevel !== undefined) payload.access_level = e.accessLevel
       if (e.permissions !== undefined) payload.permissions = e.permissions
+      if (e.rg !== undefined) payload.rg = e.rg
+      if (e.cpf !== undefined) payload.cpf = e.cpf
+      if (e.birthDate !== undefined) payload.birth_date = e.birthDate
+      if (e.cep !== undefined) payload.cep = e.cep
+      if (e.address !== undefined) payload.address = e.address
+      if (e.addressNumber !== undefined) payload.address_number = e.addressNumber
+      if (e.addressComplement !== undefined) payload.address_complement = e.addressComplement
+      if (e.city !== undefined) payload.city = e.city
+      if (e.state !== undefined) payload.state = e.state
+      if (e.accessSchedule !== undefined) payload.access_schedule = e.accessSchedule
+      if (e.systemProfiles !== undefined) payload.system_profiles = e.systemProfiles
 
       const { error } = await supabase.from('employees').update(payload).eq('id', id)
 
