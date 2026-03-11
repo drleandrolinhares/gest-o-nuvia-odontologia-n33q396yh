@@ -1,23 +1,12 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  Users,
-  Package,
-  Bell,
-  Search,
-  User,
-  Settings as SettingsIcon,
-  Calendar,
-  Key,
-  Truck,
-  PackageSearch,
-} from 'lucide-react'
+import { Bell, Search, User, PackageSearch } from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import useAppStore from '@/stores/main'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
+import { navItems } from '@/config/navigation'
 import {
   SidebarProvider,
   Sidebar,
@@ -39,20 +28,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-const navItems = [
-  { href: '/admin', label: 'DASHBOARD', icon: LayoutDashboard },
-  { href: '/admin/agenda', label: 'AGENDA', icon: Calendar },
-  { href: '/admin/acessos', label: 'ACESSOS', icon: Key },
-  { href: '/admin/fornecedor', label: 'FORNECEDOR', icon: Truck },
-  { href: '/admin/rh', label: 'RH', icon: Users },
-  { href: '/admin/estoque', label: 'ESTOQUE', icon: Package },
-  { href: '/admin/configuracoes', label: 'CONFIGURAÇÕES', icon: SettingsIcon },
-]
-
 export function AppSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAdmin, toggleAdmin, employees, currentUserId, setCurrentUser, logout } = useAppStore()
+
+  const currentUser = employees.find((e) => e.id === currentUserId)
 
   const handleUserChange = (val: string) => {
     if (val === 'logout') {
@@ -85,6 +66,9 @@ export function AppSidebar() {
       <SidebarContent className="p-2 pt-4">
         <SidebarMenu>
           {navItems.map((item) => {
+            if (!isAdmin && currentUser && !currentUser.permissions?.includes(item.id)) {
+              return null
+            }
             const isActive =
               location.pathname === item.href ||
               (item.href !== '/admin' && location.pathname.startsWith(item.href))

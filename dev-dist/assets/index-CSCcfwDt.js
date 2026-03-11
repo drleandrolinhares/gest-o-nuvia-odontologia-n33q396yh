@@ -20202,7 +20202,15 @@ var mockEmployees = [{
 	email: "ana.silva@nuvia.com",
 	phone: "(11) 98765-4321",
 	agendaAccess: "ADD_EDIT",
-	password: "password123"
+	password: "password123",
+	permissions: [
+		"dashboard",
+		"agenda",
+		"acessos",
+		"rh",
+		"estoque",
+		"configuracoes"
+	]
 }, {
 	id: "2",
 	name: "Carlos Santos",
@@ -20217,7 +20225,8 @@ var mockEmployees = [{
 	email: "carlos.santos@nuvia.com",
 	phone: "(11) 99999-8888",
 	agendaAccess: "VIEW_ONLY",
-	password: "password123"
+	password: "password123",
+	permissions: ["dashboard", "agenda"]
 }];
 var mockOnboarding = [{
 	id: "o1",
@@ -20404,7 +20413,8 @@ function AppProvider({ children }) {
 		const id = Math.random().toString(36).substring(2, 11);
 		setEmployees((prev) => [...prev, {
 			...emp,
-			id
+			id,
+			permissions: ["dashboard"]
 		}]);
 		setOnboarding((prev) => [...prev, {
 			id: `o_${id}`,
@@ -20422,6 +20432,10 @@ function AppProvider({ children }) {
 	const updateEmployeeAgendaAccess = (0, import_react.useCallback)((id, access) => setEmployees((prev) => prev.map((e) => e.id === id ? {
 		...e,
 		agendaAccess: access
+	} : e)), []);
+	const updateEmployeePermissions = (0, import_react.useCallback)((id, permissions) => setEmployees((prev) => prev.map((e) => e.id === id ? {
+		...e,
+		permissions
 	} : e)), []);
 	const addOnboardingTask = (0, import_react.useCallback)((candidateId, title) => {
 		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
@@ -20503,6 +20517,7 @@ function AppProvider({ children }) {
 		addEmployee,
 		deleteEmployee,
 		updateEmployeeAgendaAccess,
+		updateEmployeePermissions,
 		addOnboardingTask,
 		removeOnboardingTask,
 		addDocument,
@@ -20550,6 +20565,7 @@ function AppProvider({ children }) {
 		addEmployee,
 		deleteEmployee,
 		updateEmployeeAgendaAccess,
+		updateEmployeePermissions,
 		addOnboardingTask,
 		removeOnboardingTask,
 		addDocument,
@@ -24658,6 +24674,44 @@ function QuickProductSearchModal({ open, onOpenChange }) {
 		})
 	});
 }
+const navItems = [
+	{
+		id: "dashboard",
+		href: "/admin",
+		label: "DASHBOARD",
+		icon: LayoutDashboard
+	},
+	{
+		id: "agenda",
+		href: "/admin/agenda",
+		label: "AGENDA",
+		icon: Calendar$1
+	},
+	{
+		id: "acessos",
+		href: "/admin/acessos",
+		label: "ACESSOS",
+		icon: Key
+	},
+	{
+		id: "rh",
+		href: "/admin/rh",
+		label: "RH",
+		icon: Users
+	},
+	{
+		id: "estoque",
+		href: "/admin/estoque",
+		label: "ESTOQUE",
+		icon: Package
+	},
+	{
+		id: "configuracoes",
+		href: "/admin/configuracoes",
+		label: "CONFIGURAÇÕES",
+		icon: Settings$1
+	}
+];
 var MOBILE_BREAKPOINT = 768;
 function useIsMobile() {
 	const [isMobile, setIsMobile] = import_react.useState(void 0);
@@ -28562,47 +28616,11 @@ var SelectSeparator = import_react.forwardRef(({ className, ...props }, ref) => 
 	...props
 }));
 SelectSeparator.displayName = Separator.displayName;
-var navItems = [
-	{
-		href: "/admin",
-		label: "DASHBOARD",
-		icon: LayoutDashboard
-	},
-	{
-		href: "/admin/agenda",
-		label: "AGENDA",
-		icon: Calendar$1
-	},
-	{
-		href: "/admin/acessos",
-		label: "ACESSOS",
-		icon: Key
-	},
-	{
-		href: "/admin/fornecedor",
-		label: "FORNECEDOR",
-		icon: Truck
-	},
-	{
-		href: "/admin/rh",
-		label: "RH",
-		icon: Users
-	},
-	{
-		href: "/admin/estoque",
-		label: "ESTOQUE",
-		icon: Package
-	},
-	{
-		href: "/admin/configuracoes",
-		label: "CONFIGURAÇÕES",
-		icon: Settings$1
-	}
-];
 function AppSidebar() {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { isAdmin, toggleAdmin, employees, currentUserId, setCurrentUser, logout } = useAppStore();
+	const currentUser = employees.find((e) => e.id === currentUserId);
 	const handleUserChange = (val) => {
 		if (val === "logout") {
 			logout();
@@ -28635,6 +28653,7 @@ function AppSidebar() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
 				className: "p-2 pt-4",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, { children: navItems.map((item) => {
+					if (!isAdmin && currentUser && !currentUser.permissions?.includes(item.id)) return null;
 					return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
 						asChild: true,
 						isActive: location.pathname === item.href || item.href !== "/admin" && location.pathname.startsWith(item.href),
@@ -39832,8 +39851,8 @@ function Inventory() {
 		]
 	});
 }
-function Settings() {
-	const { isAdmin, departments, addDepartment, removeDepartment, packageTypes, addPackageType, removePackageType, specialties, addSpecialty, removeSpecialty, agendaTypes, addAgendaType, removeAgendaType, employees, updateEmployeeAgendaAccess } = useAppStore();
+function GeneralSettings() {
+	const { departments, addDepartment, removeDepartment, packageTypes, addPackageType, removePackageType, specialties, addSpecialty, removeSpecialty, agendaTypes, addAgendaType, removeAgendaType } = useAppStore();
 	const [newDept, setNewDept] = (0, import_react.useState)("");
 	const [newPkg, setNewPkg] = (0, import_react.useState)("");
 	const [newSpec, setNewSpec] = (0, import_react.useState)("");
@@ -39866,263 +39885,146 @@ function Settings() {
 			setNewAgendaType("");
 		}
 	};
-	if (!isAdmin) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-6 animate-fade-in-up uppercase",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-			className: "text-3xl font-bold tracking-tight text-nuvia-navy",
-			children: "CONFIGURAÇÕES"
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-			className: "text-muted-foreground mt-1",
-			children: "GERENCIE AS PARAMETRIZAÇÕES DO SISTEMA."
-		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
-			variant: "destructive",
-			className: "bg-destructive/5 max-w-2xl",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldAlert, { className: "h-4 w-4" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "ACESSO RESTRITO" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDescription, { children: "VOCÊ PRECISA DE PRIVILÉGIOS DE ADMINISTRADOR PARA ACESSAR AS CONFIGURAÇÕES DO SISTEMA." })
-			]
-		})]
-	});
-	const sortedEmployees = [...employees].sort((a$1, b) => a$1.name.localeCompare(b.name));
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-6 animate-fade-in-up pb-10 uppercase",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-			className: "text-3xl font-bold tracking-tight text-nuvia-navy",
-			children: "CONFIGURAÇÕES"
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-			className: "text-muted-foreground mt-1",
-			children: "GERENCIE AS PARAMETRIZAÇÕES E PERMISSÕES DO SISTEMA."
-		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
-			defaultValue: "geral",
-			className: "w-full",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
-					className: "mb-6 grid w-full grid-cols-2 max-w-md",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-						value: "geral",
-						children: "GERAL"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-						value: "usuarios",
-						children: "USUÁRIOS & PERMISSÕES"
-					})]
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					value: "geral",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "grid gap-6 md:grid-cols-2 lg:grid-cols-3",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-								className: "flex items-center gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, { className: "h-5 w-5 text-primary" }), " DEPARTAMENTOS"]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "GERENCIE OS DEPARTAMENTOS DISPONÍVEIS PARA ALOCAÇÃO DE COLABORADORES." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-								className: "space-y-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-									onSubmit: handleAddDept,
-									className: "flex gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										placeholder: "NOVO DEPARTAMENTO...",
-										value: newDept,
-										onChange: (e) => setNewDept(e.target.value)
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-										type: "submit",
-										disabled: !newDept.trim(),
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
-									children: [...departments].sort().map((dept) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-											className: "font-medium text-sm text-foreground uppercase",
-											children: dept
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-											variant: "ghost",
-											size: "icon",
-											className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8",
-											onClick: () => removeDepartment(dept),
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
-										})]
-									}, dept))
-								})]
-							})] }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-								className: "flex items-center gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "h-5 w-5 text-primary" }), " TIPOS DE EMBALAGEM"]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "GERENCIE AS OPÇÕES DE EMBALAGEM PARA O CONTROLE DE ESTOQUE." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-								className: "space-y-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-									onSubmit: handleAddPkg,
-									className: "flex gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										placeholder: "NOVO TIPO...",
-										value: newPkg,
-										onChange: (e) => setNewPkg(e.target.value)
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-										type: "submit",
-										disabled: !newPkg.trim(),
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
-									children: [...packageTypes].sort().map((pkg) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-											className: "font-medium text-sm text-foreground uppercase",
-											children: pkg
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-											variant: "ghost",
-											size: "icon",
-											className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8",
-											onClick: () => removePackageType(pkg),
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
-										})]
-									}, pkg))
-								})]
-							})] }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-								className: "flex items-center gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Stethoscope, { className: "h-5 w-5 text-[#D81B84]" }), " ESPECIALIDADES"]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "GERENCIE AS ESPECIALIDADES PARA CATEGORIZAR O ESTOQUE." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-								className: "space-y-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-									onSubmit: handleAddSpec,
-									className: "flex gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										placeholder: "NOVA ESPECIALIDADE...",
-										value: newSpec,
-										onChange: (e) => setNewSpec(e.target.value)
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-										type: "submit",
-										disabled: !newSpec.trim(),
-										className: "bg-[#D81B84] hover:bg-[#B71770] text-white",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
-									children: [...specialties].sort().map((spec) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-											className: "font-medium text-sm text-foreground uppercase",
-											children: spec
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-											variant: "ghost",
-											size: "icon",
-											className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8",
-											onClick: () => removeSpecialty(spec),
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
-										})]
-									}, spec))
-								})]
-							})] }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-								className: "flex items-center gap-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { className: "h-5 w-5 text-indigo-500" }), " TIPOS DE COMPROMISSO"]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "CONFIGURE AS CATEGORIAS DISPONÍVEIS NA AGENDA." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-								className: "space-y-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-									onSubmit: handleAddAgendaType,
-									className: "flex gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										placeholder: "NOVO TIPO...",
-										value: newAgendaType,
-										onChange: (e) => setNewAgendaType(e.target.value)
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-										type: "submit",
-										disabled: !newAgendaType.trim(),
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
-									children: [...agendaTypes].sort().map((type) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-											className: "font-medium text-sm text-foreground uppercase",
-											children: type
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-											variant: "ghost",
-											size: "icon",
-											className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8",
-											onClick: () => removeAgendaType(type),
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
-										})]
-									}, type))
-								})]
-							})] })
-						]
-					})
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					value: "usuarios",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-						className: "flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-							className: "flex items-center gap-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { className: "h-5 w-5 text-primary" }), " PERMISSÕES DE ACESSO"]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
-							className: "mt-1",
-							children: "DEFINA O NÍVEL DE ACESSO DE CADA COLABORADOR AOS MÓDULOS DO SISTEMA."
-						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddEmployeeDialog, { triggerText: "INCLUIR USUÁRIOS" })]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "NOME DO COLABORADOR" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "FUNÇÃO" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "w-[300px]",
-							children: "PERMISSÃO DA AGENDA"
-						})
-					] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [sortedEmployees.map((emp) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "font-medium uppercase",
-							children: emp.name
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "text-muted-foreground uppercase",
-							children: emp.role
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-							value: emp.agendaAccess || "VIEW_ONLY",
-							onValueChange: (v) => updateEmployeeAgendaAccess(emp.id, v),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-								value: "VIEW_ONLY",
-								children: "APENAS VISUALIZAR A AGENDA"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-								value: "ADD_EDIT",
-								children: "PODE ADD ITENS A AGENDA"
-							})] })]
-						}) })
-					] }, emp.id)), sortedEmployees.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-						colSpan: 3,
-						className: "text-center py-6 uppercase",
-						children: "NENHUM COLABORADOR CADASTRADO."
-					}) })] })] }) })] })
-				})
-			]
-		})]
-	});
-}
-function NotFound() {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 uppercase",
+		className: "grid gap-6 md:grid-cols-2 lg:grid-cols-3",
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-				className: "text-6xl font-bold text-nuvia-navy",
-				children: "404"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-				className: "text-2xl font-semibold",
-				children: "PÁGINA NÃO ENCONTRADA"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				className: "text-muted-foreground max-w-md mx-auto",
-				children: "A SEÇÃO QUE VOCÊ TENTOU ACESSAR NÃO EXISTE OU FOI MOVIDA. VERIFIQUE O LINK OU RETORNE AO PAINEL INICIAL."
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-				to: "/admin",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					size: "lg",
-					children: "VOLTAR PARA O DASHBOARD"
-				})
-			})
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+				className: "flex items-center gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, { className: "h-5 w-5 text-primary" }), " DEPARTAMENTOS"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "GERENCIE OS DEPARTAMENTOS DO SISTEMA." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+				className: "space-y-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: handleAddDept,
+					className: "flex gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+						placeholder: "NOVO DEPARTAMENTO...",
+						value: newDept,
+						onChange: (e) => setNewDept(e.target.value)
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						type: "submit",
+						disabled: !newDept.trim(),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
+					children: [...departments].sort().map((dept) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-medium text-sm text-foreground uppercase",
+							children: dept
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							size: "icon",
+							className: "text-muted-foreground hover:text-destructive h-8 w-8",
+							onClick: () => removeDepartment(dept),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+						})]
+					}, dept))
+				})]
+			})] }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+				className: "flex items-center gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "h-5 w-5 text-primary" }), " TIPOS DE EMBALAGEM"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "GERENCIE AS OPÇÕES DE EMBALAGEM." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+				className: "space-y-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: handleAddPkg,
+					className: "flex gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+						placeholder: "NOVO TIPO...",
+						value: newPkg,
+						onChange: (e) => setNewPkg(e.target.value)
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						type: "submit",
+						disabled: !newPkg.trim(),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
+					children: [...packageTypes].sort().map((pkg) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-medium text-sm text-foreground uppercase",
+							children: pkg
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							size: "icon",
+							className: "text-muted-foreground hover:text-destructive h-8 w-8",
+							onClick: () => removePackageType(pkg),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+						})]
+					}, pkg))
+				})]
+			})] }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+				className: "flex items-center gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Stethoscope, { className: "h-5 w-5 text-[#D81B84]" }), " ESPECIALIDADES"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "GERENCIE AS ESPECIALIDADES PARA O ESTOQUE." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+				className: "space-y-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: handleAddSpec,
+					className: "flex gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+						placeholder: "NOVA ESPECIALIDADE...",
+						value: newSpec,
+						onChange: (e) => setNewSpec(e.target.value)
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						type: "submit",
+						disabled: !newSpec.trim(),
+						className: "bg-[#D81B84] hover:bg-[#B71770] text-white",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
+					children: [...specialties].sort().map((spec) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-medium text-sm text-foreground uppercase",
+							children: spec
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							size: "icon",
+							className: "text-muted-foreground hover:text-destructive h-8 w-8",
+							onClick: () => removeSpecialty(spec),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+						})]
+					}, spec))
+				})]
+			})] }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+				className: "flex items-center gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { className: "h-5 w-5 text-indigo-500" }), " TIPOS DE COMPROMISSO"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "CATEGORIAS DISPONÍVEIS NA AGENDA." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+				className: "space-y-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: handleAddAgendaType,
+					className: "flex gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+						placeholder: "NOVO TIPO...",
+						value: newAgendaType,
+						onChange: (e) => setNewAgendaType(e.target.value)
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						type: "submit",
+						disabled: !newAgendaType.trim(),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " ADD"]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "space-y-2 max-h-[350px] overflow-y-auto pr-2",
+					children: [...agendaTypes].sort().map((type) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-medium text-sm text-foreground uppercase",
+							children: type
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "ghost",
+							size: "icon",
+							className: "text-muted-foreground hover:text-destructive h-8 w-8",
+							onClick: () => removeAgendaType(type),
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+						})]
+					}, type))
+				})]
+			})] })
 		]
 	});
 }
@@ -40240,6 +40142,594 @@ var Switch = import_react.forwardRef(({ className, ...props }, ref) => /* @__PUR
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Thumb, { className: cn("pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0") })
 }));
 Switch.displayName = Root.displayName;
+function SupplierFormDialog({ open, onOpenChange, supplier, onSave }) {
+	const [name, setName] = (0, import_react.useState)("");
+	const [cnpj, setCnpj] = (0, import_react.useState)("");
+	const [contact, setContact] = (0, import_react.useState)("");
+	const [phone, setPhone] = (0, import_react.useState)("");
+	const [email$1, setEmail] = (0, import_react.useState)("");
+	const [website, setWebsite] = (0, import_react.useState)("");
+	const [hasSpecialNegotiation, setHasSpecialNegotiation] = (0, import_react.useState)(false);
+	const [negotiationNotes, setNegotiationNotes] = (0, import_react.useState)("");
+	(0, import_react.useEffect)(() => {
+		if (open) if (supplier) {
+			setName(supplier.name);
+			setCnpj(supplier.cnpj);
+			setContact(supplier.contact);
+			setPhone(supplier.phone);
+			setEmail(supplier.email);
+			setWebsite(supplier.website || "");
+			setHasSpecialNegotiation(!!supplier.hasSpecialNegotiation);
+			setNegotiationNotes(supplier.negotiationNotes || "");
+		} else {
+			setName("");
+			setCnpj("");
+			setContact("");
+			setPhone("");
+			setEmail("");
+			setWebsite("");
+			setHasSpecialNegotiation(false);
+			setNegotiationNotes("");
+		}
+	}, [open, supplier]);
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		if (name && contact) onSave({
+			name: name.toUpperCase(),
+			cnpj: cnpj.toUpperCase(),
+			contact: contact.toUpperCase(),
+			phone: phone.toUpperCase(),
+			email: email$1.toUpperCase(),
+			website: website.toLowerCase(),
+			hasSpecialNegotiation,
+			negotiationNotes: hasSpecialNegotiation ? negotiationNotes.toUpperCase() : ""
+		});
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
+		open,
+		onOpenChange,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+			className: "max-w-lg uppercase",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
+				className: "flex items-center gap-2",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Truck, { className: "h-5 w-5 text-primary" }),
+					" ",
+					supplier ? "EDITAR FORNECEDOR" : "ADICIONAR FORNECEDOR"
+				]
+			}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+				onSubmit: handleSubmit,
+				className: "space-y-4 mt-2 max-h-[70vh] overflow-y-auto pr-2",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "space-y-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "text-xs font-semibold text-muted-foreground",
+							children: "NOME / RAZÃO SOCIAL *"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							value: name,
+							onChange: (e) => setName(e.target.value),
+							required: true,
+							placeholder: "EX: DENTAL CREMER"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid grid-cols-2 gap-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "text-xs font-semibold text-muted-foreground",
+								children: "CNPJ"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								value: cnpj,
+								onChange: (e) => setCnpj(e.target.value),
+								placeholder: "00.000.000/0000-00"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "text-xs font-semibold text-muted-foreground",
+								children: "SITE (OPCIONAL)"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								value: website,
+								onChange: (e) => setWebsite(e.target.value),
+								placeholder: "WWW.EXEMPLO.COM.BR",
+								className: "lowercase"
+							})]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid grid-cols-2 gap-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "text-xs font-semibold text-muted-foreground",
+								children: "CONTATO (NOME) *"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								value: contact,
+								onChange: (e) => setContact(e.target.value),
+								required: true,
+								placeholder: "EX: MARIA"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "text-xs font-semibold text-muted-foreground",
+								children: "TELEFONE *"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								value: phone,
+								onChange: (e) => setPhone(e.target.value),
+								required: true,
+								placeholder: "(00) 0000-0000"
+							})]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "space-y-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+							className: "text-xs font-semibold text-muted-foreground",
+							children: "E-MAIL"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							value: email$1,
+							onChange: (e) => setEmail(e.target.value),
+							placeholder: "CONTATO@FORNECEDOR.COM"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "pt-4 border-t border-muted",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center justify-between",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "text-sm font-bold text-foreground",
+								children: "EXISTÊNCIA DE NEGOCIAÇÃO ESPECIAL?"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
+								checked: hasSpecialNegotiation,
+								onCheckedChange: setHasSpecialNegotiation
+							})]
+						}), hasSpecialNegotiation && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "mt-3 space-y-2 animate-fade-in-up",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+								className: "text-xs font-semibold text-muted-foreground",
+								children: "NOTAS E DETALHES DA NEGOCIAÇÃO"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Textarea, {
+								value: negotiationNotes,
+								onChange: (e) => setNegotiationNotes(e.target.value),
+								placeholder: "DESCRIÇÃO DE DESCONTOS, PRAZOS, CONDIÇÕES...",
+								rows: 3
+							})]
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex justify-end gap-3 pt-4 border-t",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							type: "button",
+							variant: "outline",
+							onClick: () => onOpenChange(false),
+							children: "CANCELAR"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							type: "submit",
+							children: "SALVAR FORNECEDOR"
+						})]
+					})
+				]
+			})]
+		})
+	});
+}
+function SupplierDetailsDialog({ supplier, onClose }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
+		open: !!supplier,
+		onOpenChange: (o$1) => !o$1 && onClose(),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+			className: "max-w-xl uppercase",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
+				className: "flex items-center gap-2 text-2xl text-primary border-b pb-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building, { className: "h-6 w-6" }), " DETALHES DO FORNECEDOR"]
+			}) }), supplier && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mt-4 space-y-6",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+						className: "text-xl font-bold text-foreground",
+						children: supplier.name
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "text-sm text-muted-foreground font-medium mt-1",
+						children: ["CNPJ: ", supplier.cnpj || "NÃO INFORMADO"]
+					})] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg border shadow-sm",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-start gap-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Truck, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-xs font-bold text-muted-foreground",
+									children: "CONTATO PRINCIPAL"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-sm font-medium",
+									children: supplier.contact
+								})] })]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-start gap-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-xs font-bold text-muted-foreground",
+									children: "TELEFONE"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-sm font-medium",
+									children: supplier.phone
+								})] })]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-start gap-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Mail, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-xs font-bold text-muted-foreground",
+									children: "E-MAIL"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-sm font-medium lowercase",
+									children: supplier.email || "NÃO INFORMADO"
+								})] })]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-start gap-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link$1, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-xs font-bold text-muted-foreground",
+									children: "SITE / URL"
+								}), supplier.website ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+									href: `https://${supplier.website.replace(/^https?:\/\//, "")}`,
+									target: "_blank",
+									rel: "noreferrer",
+									className: "text-sm font-medium text-primary hover:underline lowercase",
+									children: supplier.website
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-sm font-medium text-muted-foreground",
+									children: "NÃO INFORMADO"
+								})] })]
+							})
+						]
+					}),
+					supplier.hasSpecialNegotiation && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "bg-amber-50 border border-amber-200 rounded-lg p-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+							className: "text-sm font-bold text-amber-900 mb-2 flex items-center gap-2",
+							children: "ESTE FORNECEDOR POSSUI NEGOCIAÇÃO ESPECIAL"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "text-sm text-amber-800 bg-white/50 p-3 rounded border border-amber-100 whitespace-pre-wrap",
+							children: supplier.negotiationNotes
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "flex justify-end pt-4 border-t",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "outline",
+							onClick: onClose,
+							children: "FECHAR"
+						})
+					})
+				]
+			})]
+		})
+	});
+}
+function SuppliersManagement() {
+	const { suppliers, addSupplier, updateSupplier, removeSupplier, isAdmin } = useAppStore();
+	const [openForm, setOpenForm] = (0, import_react.useState)(false);
+	const [editingSupplier, setEditingSupplier] = (0, import_react.useState)(null);
+	const [selectedSupplier, setSelectedSupplier] = (0, import_react.useState)(null);
+	const sortedSuppliers = [...suppliers].sort((a$1, b) => a$1.name.localeCompare(b.name));
+	const handleOpenForm = (item) => {
+		setEditingSupplier(item || null);
+		setOpenForm(true);
+	};
+	const handleSave = (data) => {
+		if (editingSupplier) updateSupplier(editingSupplier.id, data);
+		else addSupplier(data);
+		setOpenForm(false);
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		className: "uppercase animate-fade-in-up",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+				className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+					className: "flex items-center gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Truck, { className: "h-5 w-5 text-primary" }), " FORNECEDORES"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
+					className: "mt-1 uppercase",
+					children: "GESTÃO DE FORNECEDORES DE MATERIAIS CLÍNICOS E SERVIÇOS."
+				})] }), isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					onClick: () => handleOpenForm(),
+					className: "bg-primary text-primary-foreground",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " NOVO FORNECEDOR"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "border-t border-muted overflow-hidden",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+					className: "bg-muted/30",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "NOME / RAZÃO SOCIAL"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "CNPJ"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground",
+							children: "CONTATO"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "font-semibold text-muted-foreground text-right",
+							children: "AÇÕES"
+						})
+					]
+				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [sortedSuppliers.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+					className: "hover:bg-muted/10 cursor-pointer transition-colors",
+					onClick: () => setSelectedSupplier(item),
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "font-bold text-primary flex items-center gap-2",
+							children: [item.name, item.hasSpecialNegotiation && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold",
+								children: "NEGOCIAÇÃO"
+							})]
+						}), item.website && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "text-xs text-muted-foreground lowercase mt-0.5",
+							children: item.website
+						})] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "font-medium text-muted-foreground",
+							children: item.cnpj || "NÃO INFORMADO"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "font-semibold",
+							children: item.contact
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "text-xs text-muted-foreground",
+							children: item.phone
+						})] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "text-right whitespace-nowrap",
+							onClick: (e) => e.stopPropagation(),
+							children: isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								variant: "ghost",
+								size: "icon",
+								onClick: () => handleOpenForm(item),
+								className: "text-muted-foreground hover:text-primary hover:bg-primary/10",
+								title: "EDITAR",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pen, { className: "h-4 w-4" })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								variant: "ghost",
+								size: "icon",
+								onClick: () => removeSupplier(item.id),
+								className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+								title: "REMOVER",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
+							})] })
+						})
+					]
+				}, item.id)), sortedSuppliers.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+					colSpan: 4,
+					className: "text-center py-10 text-muted-foreground",
+					children: "NENHUM FORNECEDOR CADASTRADO."
+				}) })] })] })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SupplierFormDialog, {
+				open: openForm,
+				onOpenChange: setOpenForm,
+				supplier: editingSupplier,
+				onSave: handleSave
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SupplierDetailsDialog, {
+				supplier: selectedSupplier,
+				onClose: () => setSelectedSupplier(null)
+			})
+		]
+	});
+}
+function UsersList() {
+	const { employees, updateEmployeeAgendaAccess } = useAppStore();
+	const sortedEmployees = [...employees].sort((a$1, b) => a$1.name.localeCompare(b.name));
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+		className: "flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+			className: "flex items-center gap-2",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { className: "h-5 w-5 text-primary" }), " LISTA DE COLABORADORES"]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
+			className: "mt-1 uppercase",
+			children: "VISUALIZE E DEFINA NÍVEL BÁSICO DA AGENDA PARA OS COLABORADORES."
+		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AddEmployeeDialog, { triggerText: "INCLUIR USUÁRIOS" })]
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "NOME DO COLABORADOR" }),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "FUNÇÃO" }),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+			className: "w-[300px]",
+			children: "PERMISSÃO DA AGENDA"
+		})
+	] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [sortedEmployees.map((emp) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+			className: "font-medium uppercase",
+			children: emp.name
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+			className: "text-muted-foreground uppercase",
+			children: emp.role
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+			value: emp.agendaAccess || "VIEW_ONLY",
+			onValueChange: (v) => updateEmployeeAgendaAccess(emp.id, v),
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+				value: "VIEW_ONLY",
+				children: "APENAS VISUALIZAR A AGENDA"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+				value: "ADD_EDIT",
+				children: "PODE ADD ITENS A AGENDA"
+			})] })]
+		}) })
+	] }, emp.id)), sortedEmployees.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+		colSpan: 3,
+		className: "text-center py-6 uppercase text-muted-foreground",
+		children: "NENHUM COLABORADOR CADASTRADO."
+	}) })] })] }) })] });
+}
+function PermissionsControl() {
+	const { employees, updateEmployeePermissions } = useAppStore();
+	const sortedEmployees = [...employees].sort((a$1, b) => a$1.name.localeCompare(b.name));
+	const togglePermission = (empId, currentPerms = [], modId) => {
+		updateEmployeePermissions(empId, currentPerms.includes(modId) ? currentPerms.filter((id) => id !== modId) : [...currentPerms, modId]);
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+		className: "flex items-center gap-2 uppercase",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Shield, { className: "h-5 w-5 text-primary" }), " CONTROLE DE PERMISSÕES"]
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
+		className: "uppercase",
+		children: "GERENCIE QUAIS MÓDULOS CADA COLABORADOR PODE ACESSAR NO SISTEMA."
+	})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+		className: "space-y-6",
+		children: [sortedEmployees.map((emp) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "p-4 border rounded-lg bg-muted/10 space-y-4",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "font-bold text-lg uppercase flex items-center gap-3 border-b pb-2 border-muted",
+				children: [emp.name, /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "text-xs font-bold text-muted-foreground bg-background px-2 py-1 rounded",
+					children: emp.role
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4",
+				children: navItems.map((mod) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center justify-between bg-background p-3 rounded-md border shadow-sm hover:border-primary/30 transition-colors",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(mod.icon, { className: "w-4 h-4 text-muted-foreground" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "text-sm font-bold uppercase",
+							children: mod.label
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
+						checked: emp.permissions?.includes(mod.id) || false,
+						onCheckedChange: () => togglePermission(emp.id, emp.permissions, mod.id)
+					})]
+				}, mod.id))
+			})]
+		}, emp.id)), sortedEmployees.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "text-center py-10 text-muted-foreground uppercase",
+			children: "NENHUM COLABORADOR CADASTRADO PARA GERENCIAR PERMISSÕES."
+		})]
+	})] });
+}
+function Settings() {
+	const { isAdmin } = useAppStore();
+	if (!isAdmin) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-6 animate-fade-in-up uppercase",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+			className: "text-3xl font-bold tracking-tight text-nuvia-navy",
+			children: "CONFIGURAÇÕES"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+			className: "text-muted-foreground mt-1",
+			children: "GERENCIE AS PARAMETRIZAÇÕES DO SISTEMA."
+		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+			variant: "destructive",
+			className: "bg-destructive/5 max-w-2xl",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldAlert, { className: "h-4 w-4" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "ACESSO RESTRITO" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDescription, { children: "VOCÊ PRECISA DE PRIVILÉGIOS DE ADMINISTRADOR PARA ACESSAR AS CONFIGURAÇÕES DO SISTEMA." })
+			]
+		})]
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-6 animate-fade-in-up pb-10 uppercase",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+			className: "text-3xl font-bold tracking-tight text-nuvia-navy",
+			children: "CONFIGURAÇÕES"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+			className: "text-muted-foreground mt-1",
+			children: "GERENCIE AS PARAMETRIZAÇÕES, FORNECEDORES E PERMISSÕES DO SISTEMA."
+		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
+			defaultValue: "geral",
+			className: "w-full",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
+					className: "mb-6 grid w-full grid-cols-1 md:grid-cols-3 max-w-2xl",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							value: "geral",
+							children: "GERAL"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							value: "fornecedores",
+							children: "FORNECEDORES"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							value: "usuarios",
+							children: "USUÁRIOS E PERMISSÕES"
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					value: "geral",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GeneralSettings, {})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					value: "fornecedores",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SuppliersManagement, {})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					value: "usuarios",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
+						defaultValue: "lista",
+						className: "w-full",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
+								className: "mb-6 grid w-full grid-cols-2 max-w-md",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+									value: "lista",
+									children: "LISTA DE COLABORADORES"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+									value: "permissoes",
+									children: "CONTROLE DE PERMISSÕES"
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+								value: "lista",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UsersList, {})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+								value: "permissoes",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PermissionsControl, {})
+							})
+						]
+					})
+				})
+			]
+		})]
+	});
+}
+function NotFound() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 uppercase",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+				className: "text-6xl font-bold text-nuvia-navy",
+				children: "404"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+				className: "text-2xl font-semibold",
+				children: "PÁGINA NÃO ENCONTRADA"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-muted-foreground max-w-md mx-auto",
+				children: "A SEÇÃO QUE VOCÊ TENTOU ACESSAR NÃO EXISTE OU FOI MOVIDA. VERIFIQUE O LINK OU RETORNE AO PAINEL INICIAL."
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+				to: "/admin",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					size: "lg",
+					children: "VOLTAR PARA O DASHBOARD"
+				})
+			})
+		]
+	});
+}
 function Agenda() {
 	const { agenda, addAgendaItem, removeAgendaItem, currentUserId, employees, agendaTypes, isAdmin } = useAppStore();
 	const [openAdd, setOpenAdd] = (0, import_react.useState)(false);
@@ -40919,376 +41409,6 @@ function Acessos() {
 		]
 	});
 }
-function Suppliers() {
-	const { suppliers, addSupplier, updateSupplier, removeSupplier, isAdmin } = useAppStore();
-	const [openForm, setOpenForm] = (0, import_react.useState)(false);
-	const [selectedSupplier, setSelectedSupplier] = (0, import_react.useState)(null);
-	const [editingId, setEditingId] = (0, import_react.useState)(null);
-	const [name, setName] = (0, import_react.useState)("");
-	const [cnpj, setCnpj] = (0, import_react.useState)("");
-	const [contact, setContact] = (0, import_react.useState)("");
-	const [phone, setPhone] = (0, import_react.useState)("");
-	const [email$1, setEmail] = (0, import_react.useState)("");
-	const [website, setWebsite] = (0, import_react.useState)("");
-	const [hasSpecialNegotiation, setHasSpecialNegotiation] = (0, import_react.useState)(false);
-	const [negotiationNotes, setNegotiationNotes] = (0, import_react.useState)("");
-	const sortedSuppliers = [...suppliers].sort((a$1, b) => a$1.name.localeCompare(b.name));
-	const handleOpenForm = (item) => {
-		if (item) {
-			setEditingId(item.id);
-			setName(item.name);
-			setCnpj(item.cnpj);
-			setContact(item.contact);
-			setPhone(item.phone);
-			setEmail(item.email);
-			setWebsite(item.website || "");
-			setHasSpecialNegotiation(!!item.hasSpecialNegotiation);
-			setNegotiationNotes(item.negotiationNotes || "");
-		} else {
-			setEditingId(null);
-			setName("");
-			setCnpj("");
-			setContact("");
-			setPhone("");
-			setEmail("");
-			setWebsite("");
-			setHasSpecialNegotiation(false);
-			setNegotiationNotes("");
-		}
-		setOpenForm(true);
-	};
-	const handleSave = (e) => {
-		e.preventDefault();
-		if (name && contact) {
-			const data = {
-				name: name.toUpperCase(),
-				cnpj: cnpj.toUpperCase(),
-				contact: contact.toUpperCase(),
-				phone: phone.toUpperCase(),
-				email: email$1.toUpperCase(),
-				website: website.toLowerCase(),
-				hasSpecialNegotiation,
-				negotiationNotes: hasSpecialNegotiation ? negotiationNotes.toUpperCase() : ""
-			};
-			if (editingId) updateSupplier(editingId, data);
-			else addSupplier(data);
-			setOpenForm(false);
-		}
-	};
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-6 animate-fade-in-up uppercase",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-					className: "text-3xl font-bold tracking-tight text-nuvia-navy",
-					children: "FORNECEDORES"
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					className: "text-muted-foreground mt-1",
-					children: "GESTÃO DE FORNECEDORES DE MATERIAIS CLÍNICOS E SERVIÇOS."
-				})] }), isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					onClick: () => handleOpenForm(),
-					className: "bg-primary text-primary-foreground",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "h-4 w-4 mr-2" }), " NOVO FORNECEDOR"]
-				})]
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-				className: "shadow-sm border-muted overflow-hidden",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-					className: "bg-muted/30",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "font-semibold text-muted-foreground",
-							children: "NOME / RAZÃO SOCIAL"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "font-semibold text-muted-foreground",
-							children: "CNPJ"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "font-semibold text-muted-foreground",
-							children: "CONTATO"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "font-semibold text-muted-foreground text-right",
-							children: "AÇÕES"
-						})
-					]
-				}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [sortedSuppliers.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-					className: "hover:bg-muted/10 cursor-pointer transition-colors",
-					onClick: () => setSelectedSupplier(item),
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "font-bold text-primary flex items-center gap-2",
-							children: [item.name, item.hasSpecialNegotiation && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold",
-								children: "NEGOCIAÇÃO"
-							})]
-						}), item.website && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "text-xs text-muted-foreground lowercase mt-0.5",
-							children: item.website
-						})] }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "font-medium text-muted-foreground",
-							children: item.cnpj || "NÃO INFORMADO"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "font-semibold",
-							children: item.contact
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "text-xs text-muted-foreground",
-							children: item.phone
-						})] }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "text-right whitespace-nowrap",
-							onClick: (e) => e.stopPropagation(),
-							children: isAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								variant: "ghost",
-								size: "icon",
-								onClick: () => handleOpenForm(item),
-								className: "text-muted-foreground hover:text-primary hover:bg-primary/10",
-								title: "EDITAR",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pen, { className: "h-4 w-4" })
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								variant: "ghost",
-								size: "icon",
-								onClick: () => removeSupplier(item.id),
-								className: "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-								title: "REMOVER",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, { className: "h-4 w-4" })
-							})] })
-						})
-					]
-				}, item.id)), sortedSuppliers.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-					colSpan: 4,
-					className: "text-center py-10 text-muted-foreground",
-					children: "NENHUM FORNECEDOR CADASTRADO."
-				}) })] })] })
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-				open: openForm,
-				onOpenChange: setOpenForm,
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-					className: "max-w-lg uppercase",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
-						className: "flex items-center gap-2",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Truck, { className: "h-5 w-5 text-primary" }),
-							" ",
-							editingId ? "EDITAR FORNECEDOR" : "ADICIONAR FORNECEDOR"
-						]
-					}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-						onSubmit: handleSave,
-						className: "space-y-4 mt-2 max-h-[70vh] overflow-y-auto pr-2",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "space-y-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-									className: "text-xs font-semibold text-muted-foreground",
-									children: "NOME / RAZÃO SOCIAL *"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									value: name,
-									onChange: (e) => setName(e.target.value),
-									required: true,
-									placeholder: "EX: DENTAL CREMER"
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid grid-cols-2 gap-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "space-y-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-										className: "text-xs font-semibold text-muted-foreground",
-										children: "CNPJ"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										value: cnpj,
-										onChange: (e) => setCnpj(e.target.value),
-										placeholder: "00.000.000/0000-00"
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "space-y-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-										className: "text-xs font-semibold text-muted-foreground",
-										children: "SITE (OPCIONAL)"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										value: website,
-										onChange: (e) => setWebsite(e.target.value),
-										placeholder: "WWW.EXEMPLO.COM.BR",
-										className: "lowercase"
-									})]
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid grid-cols-2 gap-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "space-y-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-										className: "text-xs font-semibold text-muted-foreground",
-										children: "CONTATO (NOME) *"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										value: contact,
-										onChange: (e) => setContact(e.target.value),
-										required: true,
-										placeholder: "EX: MARIA"
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "space-y-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-										className: "text-xs font-semibold text-muted-foreground",
-										children: "TELEFONE *"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-										value: phone,
-										onChange: (e) => setPhone(e.target.value),
-										required: true,
-										placeholder: "(00) 0000-0000"
-									})]
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "space-y-2",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-									className: "text-xs font-semibold text-muted-foreground",
-									children: "E-MAIL"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									value: email$1,
-									onChange: (e) => setEmail(e.target.value),
-									placeholder: "CONTATO@FORNECEDOR.COM"
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "pt-4 border-t border-muted",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "flex items-center justify-between",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-										className: "text-sm font-bold text-foreground",
-										children: "EXISTÊNCIA DE NEGOCIAÇÃO ESPECIAL?"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
-										checked: hasSpecialNegotiation,
-										onCheckedChange: setHasSpecialNegotiation
-									})]
-								}), hasSpecialNegotiation && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									className: "mt-3 space-y-2 animate-fade-in-up",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-										className: "text-xs font-semibold text-muted-foreground",
-										children: "NOTAS E DETALHES DA NEGOCIAÇÃO"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Textarea, {
-										value: negotiationNotes,
-										onChange: (e) => setNegotiationNotes(e.target.value),
-										placeholder: "DESCRIÇÃO DE DESCONTOS, PRAZOS, CONDIÇÕES...",
-										rows: 3
-									})]
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex justify-end gap-3 pt-4 border-t",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-									type: "button",
-									variant: "outline",
-									onClick: () => setOpenForm(false),
-									children: "CANCELAR"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-									type: "submit",
-									children: "SALVAR FORNECEDOR"
-								})]
-							})
-						]
-					})]
-				})
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-				open: !!selectedSupplier,
-				onOpenChange: (o$1) => !o$1 && setSelectedSupplier(null),
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-					className: "max-w-xl uppercase",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
-						className: "flex items-center gap-2 text-2xl text-primary border-b pb-4",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building, { className: "h-6 w-6" }), " DETALHES DO FORNECEDOR"]
-					}) }), selectedSupplier && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "mt-4 space-y-6",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-								className: "text-xl font-bold text-foreground",
-								children: selectedSupplier.name
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-								className: "text-sm text-muted-foreground font-medium mt-1",
-								children: ["CNPJ: ", selectedSupplier.cnpj || "NÃO INFORMADO"]
-							})] }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg border shadow-sm",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-start gap-3",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Truck, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-xs font-bold text-muted-foreground",
-											children: "CONTATO PRINCIPAL"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-sm font-medium",
-											children: selectedSupplier.contact
-										})] })]
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-start gap-3",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-xs font-bold text-muted-foreground",
-											children: "TELEFONE"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-sm font-medium",
-											children: selectedSupplier.phone
-										})] })]
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-start gap-3",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Mail, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-xs font-bold text-muted-foreground",
-											children: "E-MAIL"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-sm font-medium lowercase",
-											children: selectedSupplier.email || "NÃO INFORMADO"
-										})] })]
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "flex items-start gap-3",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link$1, { className: "h-5 w-5 text-muted-foreground shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-xs font-bold text-muted-foreground",
-											children: "SITE / URL"
-										}), selectedSupplier.website ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-											href: `https://${selectedSupplier.website.replace(/^https?:\/\//, "")}`,
-											target: "_blank",
-											rel: "noreferrer",
-											className: "text-sm font-medium text-primary hover:underline lowercase",
-											children: selectedSupplier.website
-										}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											className: "text-sm font-medium text-muted-foreground",
-											children: "NÃO INFORMADO"
-										})] })]
-									})
-								]
-							}),
-							selectedSupplier.hasSpecialNegotiation && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "bg-amber-50 border border-amber-200 rounded-lg p-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-									className: "text-sm font-bold text-amber-900 mb-2 flex items-center gap-2",
-									children: "ESTE FORNECEDOR POSSUI NEGOCIAÇÃO ESPECIAL"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									className: "text-sm text-amber-800 bg-white/50 p-3 rounded border border-amber-100 whitespace-pre-wrap",
-									children: selectedSupplier.negotiationNotes
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "flex justify-end pt-4 border-t",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-									variant: "outline",
-									onClick: () => setSelectedSupplier(null),
-									children: "FECHAR"
-								})
-							})
-						]
-					})]
-				})
-			})
-		]
-	});
-}
 function PublicHome() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "min-h-screen bg-background flex flex-col uppercase font-sans",
@@ -41657,10 +41777,6 @@ function App() {
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Acessos, {})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-					path: "fornecedor",
-					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Suppliers, {})
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 					path: "rh",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RH, {})
 				}),
@@ -41690,4 +41806,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-CmrD9Hj2.js.map
+//# sourceMappingURL=index-CSCcfwDt.js.map

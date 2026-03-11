@@ -2569,6 +2569,9 @@ video {
   --tw-border-opacity: 1;
   border-color: rgb(216 27 132 / var(--tw-border-opacity, 1));
 }
+.hover\:border-primary\/30:hover {
+  border-color: hsl(var(--primary) / 0.3);
+}
 .hover\:border-primary\/50:hover {
   border-color: hsl(var(--primary) / 0.5);
 }

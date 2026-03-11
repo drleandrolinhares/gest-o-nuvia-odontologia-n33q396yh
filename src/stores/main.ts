@@ -17,6 +17,7 @@ export type Employee = {
   phone: string
   agendaAccess: AgendaAccess
   password?: string
+  permissions?: string[]
 }
 
 export type OnboardingTask = { id: string; title: string; completed: boolean }
@@ -130,6 +131,7 @@ interface AppStore {
   addEmployee: (emp: Omit<Employee, 'id'>) => void
   deleteEmployee: (id: string) => void
   updateEmployeeAgendaAccess: (id: string, access: AgendaAccess) => void
+  updateEmployeePermissions: (id: string, permissions: string[]) => void
   addOnboardingTask: (candidateId: string, title: string) => void
   removeOnboardingTask: (candidateId: string, taskId: string) => void
   addDocument: (name: string) => void
@@ -171,6 +173,7 @@ const mockEmployees: Employee[] = [
     phone: '(11) 98765-4321',
     agendaAccess: 'ADD_EDIT',
     password: 'password123',
+    permissions: ['dashboard', 'agenda', 'acessos', 'rh', 'estoque', 'configuracoes'],
   },
   {
     id: '2',
@@ -187,6 +190,7 @@ const mockEmployees: Employee[] = [
     phone: '(11) 99999-8888',
     agendaAccess: 'VIEW_ONLY',
     password: 'password123',
+    permissions: ['dashboard', 'agenda'],
   },
 ]
 
@@ -407,7 +411,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addEmployee = useCallback((emp: Omit<Employee, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 11)
-    setEmployees((prev) => [...prev, { ...emp, id }])
+    setEmployees((prev) => [...prev, { ...emp, id, permissions: ['dashboard'] }])
     setOnboarding((prev) => [
       ...prev,
       {
@@ -429,6 +433,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateEmployeeAgendaAccess = useCallback(
     (id: string, access: AgendaAccess) =>
       setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, agendaAccess: access } : e))),
+    [],
+  )
+  const updateEmployeePermissions = useCallback(
+    (id: string, permissions: string[]) =>
+      setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, permissions } : e))),
     [],
   )
 
@@ -538,6 +547,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addEmployee,
       deleteEmployee,
       updateEmployeeAgendaAccess,
+      updateEmployeePermissions,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,
@@ -586,6 +596,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addEmployee,
       deleteEmployee,
       updateEmployeeAgendaAccess,
+      updateEmployeePermissions,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,
