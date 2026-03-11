@@ -1430,6 +1430,10 @@ video {
 .border-transparent {
   border-color: transparent;
 }
+.border-l-\[\#D81B84\] {
+  --tw-border-opacity: 1;
+  border-left-color: rgb(216 27 132 / var(--tw-border-opacity, 1));
+}
 .border-l-blue-600 {
   --tw-border-opacity: 1;
   border-left-color: rgb(37 99 235 / var(--tw-border-opacity, 1));

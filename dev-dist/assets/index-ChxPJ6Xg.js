@@ -37787,6 +37787,7 @@ function Inventory() {
 		return inventory.filter((item) => item.specialty === selectedSpecialty);
 	}, [inventory, selectedSpecialty]);
 	const totalCapital = filteredInventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0);
+	const totalItems = filteredInventory.reduce((acc, item) => acc + item.quantity, 0);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-8 animate-fade-in-up pb-10",
 		children: [
@@ -37826,9 +37827,9 @@ function Inventory() {
 					})]
 				})]
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "grid gap-4 md:grid-cols-3",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "grid gap-4 md:grid-cols-2 lg:grid-cols-3",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 					className: "border-l-4 border-l-blue-600 shadow-sm rounded-xl",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 						className: "p-6",
@@ -37844,7 +37845,23 @@ function Inventory() {
 							children: formatCurrency(totalCapital)
 						})]
 					})
-				})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+					className: "border-l-4 border-l-[#D81B84] shadow-sm rounded-xl",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+						className: "p-6",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+							className: "text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2",
+							children: [
+								"Itens em Estoque (",
+								selectedSpecialty === "all" ? "Total" : selectedSpecialty,
+								")"
+							]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "text-4xl font-extrabold text-[#D81B84]",
+							children: totalItems
+						})]
+					})
+				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 				className: "shadow-sm border-muted rounded-xl overflow-hidden",
@@ -38204,4 +38221,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-BGxyhhNU.js.map
+//# sourceMappingURL=index-ChxPJ6Xg.js.map

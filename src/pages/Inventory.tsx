@@ -38,6 +38,8 @@ export default function Inventory() {
     0,
   )
 
+  const totalItems = filteredInventory.reduce((acc, item) => acc + item.quantity, 0)
+
   return (
     <div className="space-y-8 animate-fade-in-up pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -77,7 +79,7 @@ export default function Inventory() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="border-l-4 border-l-blue-600 shadow-sm rounded-xl">
           <CardContent className="p-6">
             <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
@@ -86,6 +88,15 @@ export default function Inventory() {
             <div className="text-4xl font-extrabold text-blue-600">
               {formatCurrency(totalCapital)}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-[#D81B84] shadow-sm rounded-xl">
+          <CardContent className="p-6">
+            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              Itens em Estoque ({selectedSpecialty === 'all' ? 'Total' : selectedSpecialty})
+            </p>
+            <div className="text-4xl font-extrabold text-[#D81B84]">{totalItems}</div>
           </CardContent>
         </Card>
       </div>
