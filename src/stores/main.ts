@@ -131,6 +131,7 @@ interface AppStore {
   addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, newQuantity: number) => void
   addPurchaseHistory: (itemId: string, record: Omit<PurchaseRecord, 'id'>) => void
+  clearInventory: () => void
   addEmployee: (emp: Omit<Employee, 'id'>) => void
   deleteEmployee: (id: string) => void
   updateEmployeeStatus: (id: string, status: Employee['status']) => void
@@ -351,6 +352,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     )
   }, [])
 
+  const clearInventory = useCallback(() => setInventory([]), [])
+
   const addEmployee = useCallback((emp: Omit<Employee, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 11)
     setEmployees((prev) => [
@@ -509,6 +512,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addInventoryItem,
       updateInventoryQuantity,
       addPurchaseHistory,
+      clearInventory,
       addEmployee,
       deleteEmployee,
       updateEmployeeStatus,
@@ -562,6 +566,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addInventoryItem,
       updateInventoryQuantity,
       addPurchaseHistory,
+      clearInventory,
       addEmployee,
       deleteEmployee,
       updateEmployeeStatus,
