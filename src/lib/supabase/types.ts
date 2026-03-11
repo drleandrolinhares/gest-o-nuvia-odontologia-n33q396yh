@@ -103,7 +103,15 @@ export type Database = {
           id?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'audit_logs_user_id_profiles_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       documents: {
         Row: {
@@ -583,6 +591,7 @@ export const Constants = {
 // Table: audit_logs
 //   PRIMARY KEY audit_logs_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
+//   FOREIGN KEY audit_logs_user_id_profiles_fkey: FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE SET NULL
 // Table: documents
 //   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
 // Table: employees

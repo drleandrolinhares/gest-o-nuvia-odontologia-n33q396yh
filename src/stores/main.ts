@@ -132,6 +132,7 @@ interface AppStore {
   updateInventoryQuantity: (id: string, q: number) => void
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
   addEmployee: (e: Omit<Employee, 'id'>) => void
+  updateEmployee: (id: string, e: Partial<Employee>) => Promise<{ success: boolean; error?: any }>
   deleteEmployee: (id: string) => void
   updateEmployeeStatus: (id: string, s: Employee['status']) => void
   updateEmployeeLevel: (id: string, l: Employee['accessLevel']) => void
@@ -585,6 +586,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+
+  const updateEmployee = useCallback(
+    async (id: string, e: Partial<Employee>) => {
+      const payload: any = {}
+      if (e.name !== undefined) payload.name = e.name
+      if (e.role !== undefined) payload.role = e.role
+      if (e.department !== undefined) payload.department = e.department
+      if (e.status !== undefined) payload.status = e.status
+      if (e.hireDate !== undefined) payload.hire_date = e.hireDate
+      if (e.salary !== undefined) payload.salary = e.salary
+      if (e.email !== undefined) payload.email = e.email
+      if (e.phone !== undefined) payload.phone = e.phone
+      if (e.accessLevel !== undefined) payload.access_level = e.accessLevel
+
+      const { error } = await supabase.from('employees').update(payload).eq('id', id)
+
+      if (!error) {
+        setEmployees((p) => p.map((emp) => (emp.id === id ? { ...emp, ...e } : emp)))
+        logAction(`ATUALIZOU DADOS DO COLABORADOR ID: ${id}`)
+        return { success: true }
+      }
+      return { success: false, error }
+    },
+    [logAction],
+  )
+
   const deleteEmployee = useCallback(
     (id: string) => {
       supabase
@@ -884,6 +911,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateInventoryQuantity,
       addPurchaseHistory,
       addEmployee,
+      updateEmployee,
       deleteEmployee,
       updateEmployeeStatus,
       updateEmployeeLevel,
@@ -934,6 +962,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateInventoryQuantity,
       addPurchaseHistory,
       addEmployee,
+      updateEmployee,
       deleteEmployee,
       updateEmployeeStatus,
       updateEmployeeLevel,

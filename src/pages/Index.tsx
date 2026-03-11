@@ -51,7 +51,10 @@ export default function Index() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card>
+        <Card
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
+          onClick={() => navigate('/admin/rh')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">EQUIPE ATIVA</CardTitle>
             <Users className="h-4 w-4 text-primary" />
@@ -63,7 +66,11 @@ export default function Index() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
+          onClick={() => navigate('/admin/rh')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ONBOARDING PENDENTE</CardTitle>
             <ListTodo className="h-4 w-4 text-blue-500" />
@@ -73,7 +80,14 @@ export default function Index() {
             <p className="text-xs text-muted-foreground mt-1">PROCESSOS EM ANDAMENTO (RH)</p>
           </CardContent>
         </Card>
-        <Card className={lowStockItems > 0 ? 'border-destructive/30 bg-destructive/5' : ''}>
+
+        <Card
+          className={cn(
+            'cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md',
+            lowStockItems > 0 ? 'border-destructive/30 bg-destructive/5' : '',
+          )}
+          onClick={() => navigate('/admin/estoque')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">AVISOS DE ESTOQUE</CardTitle>
             <TrendingDown
@@ -87,7 +101,11 @@ export default function Index() {
             <p className="text-xs text-muted-foreground mt-1">ITENS PRECISAM DE REPOSIÇÃO</p>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
+          onClick={() => navigate('/admin/estoque')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CAPITAL INVESTIDO</CardTitle>
             <DollarSign className="h-4 w-4 text-emerald-500" />
@@ -97,7 +115,11 @@ export default function Index() {
             <p className="text-xs text-muted-foreground mt-1">VALOR EM ESTOQUE CLÍNICO</p>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
+          onClick={() => navigate('/admin/estoque')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ITENS EM ESTOQUE</CardTitle>
             <Boxes className="h-4 w-4 text-indigo-500" />

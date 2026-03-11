@@ -14,6 +14,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
+import { Toaster } from '@/components/ui/toaster'
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
+        <Toaster />
       </AppProvider>
     </AuthProvider>
   )

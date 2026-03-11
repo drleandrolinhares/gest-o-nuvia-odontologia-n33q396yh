@@ -8,12 +8,15 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Employee } from '@/stores/main'
-import { User, Phone, Mail, Briefcase, Calendar as CalIcon, Building2 } from 'lucide-react'
+import { User, Phone, Mail, Briefcase, Calendar as CalIcon, Building2, Pencil } from 'lucide-react'
+import { EditEmployeeDialog } from './rh/EditEmployeeDialog'
 
 export function EmployeeTable({ employees }: { employees: Employee[] }) {
   const [selectedEmp, setSelectedEmp] = useState<Employee | null>(null)
+  const [selectedEmpForEdit, setSelectedEmpForEdit] = useState<Employee | null>(null)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -50,6 +53,9 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
               <TableHead className="font-semibold text-muted-foreground uppercase">
                 STATUS
               </TableHead>
+              <TableHead className="font-semibold text-muted-foreground uppercase text-right">
+                AÇÕES
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -69,11 +75,25 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                     {emp.status}
                   </Badge>
                 </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedEmpForEdit(emp)
+                    }}
+                    className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+                    title="Editar Colaborador"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {sortedEmployees.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground uppercase">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground uppercase">
                   NENHUM COLABORADOR ENCONTRADO.
                 </TableCell>
               </TableRow>
@@ -124,7 +144,9 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">ADMISSÃO</p>
                     <p className="text-sm font-medium">
-                      {new Date(selectedEmp.hireDate).toLocaleDateString('pt-BR')}
+                      {selectedEmp.hireDate
+                        ? new Date(selectedEmp.hireDate).toLocaleDateString('pt-BR')
+                        : '-'}
                     </p>
                   </div>
                 </div>
@@ -132,7 +154,7 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                   <User className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">SALÁRIO MENSAL</p>
-                    <p className="text-sm font-medium">{selectedEmp.salary}</p>
+                    <p className="text-sm font-medium">{selectedEmp.salary || '-'}</p>
                   </div>
                 </div>
               </div>
@@ -142,14 +164,14 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                   <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">E-MAIL</p>
-                    <p className="text-sm font-medium lowercase">{selectedEmp.email}</p>
+                    <p className="text-sm font-medium lowercase">{selectedEmp.email || '-'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground">TELEFONE</p>
-                    <p className="text-sm font-medium">{selectedEmp.phone}</p>
+                    <p className="text-sm font-medium">{selectedEmp.phone || '-'}</p>
                   </div>
                 </div>
               </div>
@@ -191,6 +213,12 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
           )}
         </DialogContent>
       </Dialog>
+
+      <EditEmployeeDialog
+        employee={selectedEmpForEdit}
+        open={!!selectedEmpForEdit}
+        onOpenChange={(open) => !open && setSelectedEmpForEdit(null)}
+      />
     </>
   )
 }
