@@ -7,6 +7,8 @@ import {
   Search,
   User,
   Settings as SettingsIcon,
+  Calendar,
+  Key,
 } from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { Button } from '@/components/ui/button'
@@ -25,17 +27,36 @@ import {
   SidebarInset,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/', label: 'DASHBOARD', icon: LayoutDashboard },
+  { href: '/agenda', label: 'AGENDA', icon: Calendar },
+  { href: '/acessos', label: 'ACESSOS', icon: Key },
   { href: '/rh', label: 'RH', icon: Users },
-  { href: '/estoque', label: 'Estoque', icon: Package },
-  { href: '/configuracoes', label: 'Configurações', icon: SettingsIcon },
+  { href: '/estoque', label: 'ESTOQUE', icon: Package },
+  { href: '/configuracoes', label: 'CONFIGURAÇÕES', icon: SettingsIcon },
 ]
 
 export function AppSidebar() {
   const location = useLocation()
-  const { isAdmin, toggleAdmin } = useAppStore()
+  const { isAdmin, toggleAdmin, employees, currentUserId, setCurrentUser } = useAppStore()
+
+  const handleUserChange = (val: string) => {
+    if (val === 'admin') {
+      setCurrentUser(null)
+      if (!isAdmin) toggleAdmin()
+    } else {
+      setCurrentUser(val)
+      if (isAdmin) toggleAdmin()
+    }
+  }
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -61,7 +82,7 @@ export function AppSidebar() {
                 <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
                   <Link to={item.href}>
                     <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
+                    <span className="uppercase">{item.label}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -75,14 +96,24 @@ export function AppSidebar() {
           <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary">
             <User size={16} />
           </div>
-          <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-medium truncate">Dr. Souza Filho</span>
-            <span
-              className="text-xs text-muted-foreground truncate cursor-pointer hover:underline hover:text-primary transition-colors"
-              onClick={toggleAdmin}
-              title="Clique para alternar permissões"
-            >
-              {isAdmin ? 'Administrador' : 'Usuário Padrão'}
+          <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden flex-1">
+            <Select value={currentUserId || 'admin'} onValueChange={handleUserChange}>
+              <SelectTrigger className="h-auto p-0 border-none bg-transparent shadow-none focus:ring-0 text-sm font-medium w-full text-left justify-between">
+                <SelectValue placeholder="Selecionar Usuário" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">DR. SOUZA FILHO (ADMIN)</SelectItem>
+                {[...employees]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((e) => (
+                    <SelectItem key={e.id} value={e.id}>
+                      {e.name.toUpperCase()}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            <span className="text-xs text-muted-foreground truncate">
+              {isAdmin ? 'ADMINISTRADOR' : 'COLABORADOR'}
             </span>
           </div>
         </div>
@@ -99,18 +130,16 @@ export default function Layout() {
       <SidebarInset className="flex flex-col flex-1 overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-card px-4 md:px-6 shadow-sm z-10">
           <SidebarTrigger className="-ml-2" />
-
           <div className="flex flex-1 items-center gap-4 md:gap-8">
             <div className="relative flex-1 max-w-md hidden sm:block">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Buscar no sistema Nuvia..."
+                placeholder="BUSCAR NO SISTEMA NUVIA..."
                 className="pl-8 bg-muted/50 w-full"
               />
             </div>
           </div>
-
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5 text-foreground" />

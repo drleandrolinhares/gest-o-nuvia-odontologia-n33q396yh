@@ -7,20 +7,22 @@ import useAppStore from '@/stores/main'
 export default function RH() {
   const { onboarding } = useAppStore()
 
+  const sortedOnboarding = [...onboarding].sort((a, b) => a.name.localeCompare(b.name))
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">Recursos Humanos</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">RECURSOS HUMANOS</h1>
         <p className="text-muted-foreground mt-1">
-          Gestão consolidada de equipe, integrações de onboarding e rotinas operacionais.
+          GESTÃO CONSOLIDADA DE EQUIPE, INTEGRAÇÕES DE ONBOARDING E ROTINAS OPERACIONAIS.
         </p>
       </div>
 
       <Tabs defaultValue="equipe" className="w-full">
         <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="equipe">Equipe Nuvia</TabsTrigger>
-          <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
-          <TabsTrigger value="rotinas">Rotinas / POPs</TabsTrigger>
+          <TabsTrigger value="equipe">EQUIPE NUVIA</TabsTrigger>
+          <TabsTrigger value="onboarding">ONBOARDING</TabsTrigger>
+          <TabsTrigger value="rotinas">ROTINAS / POPS</TabsTrigger>
         </TabsList>
 
         <TabsContent value="equipe">
@@ -29,12 +31,12 @@ export default function RH() {
 
         <TabsContent value="onboarding">
           <div className="grid gap-6 lg:grid-cols-2 mt-6">
-            {onboarding.map((candidate) => (
+            {sortedOnboarding.map((candidate) => (
               <OnboardingCard key={candidate.id} candidate={candidate} />
             ))}
-            {onboarding.length === 0 && (
-              <div className="col-span-full py-16 text-center text-muted-foreground border border-dashed rounded-lg bg-card/50">
-                Nenhum processo de onboarding em andamento no momento.
+            {sortedOnboarding.length === 0 && (
+              <div className="col-span-full py-16 text-center text-muted-foreground border border-dashed rounded-lg bg-card/50 uppercase">
+                NENHUM PROCESSO DE ONBOARDING EM ANDAMENTO NO MOMENTO.
               </div>
             )}
           </div>

@@ -68,6 +68,7 @@ export function AddEmployeeDialog() {
       status: 'Ativo',
       vacationDaysTaken: 0,
       vacationDaysTotal: 30,
+      agendaAccess: 'VIEW_ONLY',
     })
     setOpen(false)
     form.reset()
@@ -82,12 +83,12 @@ export function AddEmployeeDialog() {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="h-4 w-4 mr-2" /> Adicionar Colaborador
+          <Plus className="h-4 w-4 mr-2" /> ADICIONAR COLABORADOR
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Novo Colaborador</DialogTitle>
+          <DialogTitle>NOVO COLABORADOR</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
@@ -96,7 +97,7 @@ export function AddEmployeeDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome Completo</FormLabel>
+                  <FormLabel>NOME COMPLETO</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -110,7 +111,7 @@ export function AddEmployeeDialog() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Função</FormLabel>
+                    <FormLabel>FUNÇÃO</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -123,11 +124,11 @@ export function AddEmployeeDialog() {
                 name="department"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Departamento</FormLabel>
+                    <FormLabel>DEPARTAMENTO</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione..." />
+                          <SelectValue placeholder="SELECIONE..." />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -138,7 +139,7 @@ export function AddEmployeeDialog() {
                         ))}
                         {departments.length === 0 && (
                           <div className="p-2 text-sm text-muted-foreground text-center">
-                            Nenhum departamento
+                            NENHUM DEPARTAMENTO
                           </div>
                         )}
                       </SelectContent>
@@ -154,7 +155,7 @@ export function AddEmployeeDialog() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel>E-MAIL</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} />
                     </FormControl>
@@ -167,7 +168,7 @@ export function AddEmployeeDialog() {
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone</FormLabel>
+                    <FormLabel>TELEFONE</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -182,7 +183,7 @@ export function AddEmployeeDialog() {
                 name="salary"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Salário Bruto</FormLabel>
+                    <FormLabel>SALÁRIO BRUTO</FormLabel>
                     <FormControl>
                       <Input placeholder="R$ 0,00" {...field} />
                     </FormControl>
@@ -195,7 +196,7 @@ export function AddEmployeeDialog() {
                 name="hireDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Data de Admissão</FormLabel>
+                    <FormLabel>DATA DE ADMISSÃO</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -208,7 +209,7 @@ export function AddEmployeeDialog() {
                 name="vacationDueDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Venc. de Férias</FormLabel>
+                    <FormLabel>VENC. DE FÉRIAS</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -219,9 +220,9 @@ export function AddEmployeeDialog() {
             </div>
             <div className="pt-4 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-                Cancelar
+                CANCELAR
               </Button>
-              <Button type="submit">Salvar e Iniciar Onboarding</Button>
+              <Button type="submit">SALVAR E INICIAR ONBOARDING</Button>
             </div>
           </form>
         </Form>

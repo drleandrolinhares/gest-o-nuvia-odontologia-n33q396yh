@@ -2,7 +2,23 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2, Building2, Plus, ShieldAlert, Package, Stethoscope } from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Trash2, Building2, Plus, ShieldAlert, Package, Stethoscope, Users } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
@@ -18,6 +34,8 @@ export default function Settings() {
     specialties,
     addSpecialty,
     removeSpecialty,
+    employees,
+    updateEmployeeAgendaAccess,
   } = useAppStore()
 
   const [newDept, setNewDept] = useState('')
@@ -31,7 +49,6 @@ export default function Settings() {
       setNewDept('')
     }
   }
-
   const handleAddPkg = (e: React.FormEvent) => {
     e.preventDefault()
     if (newPkg.trim() && !packageTypes.includes(newPkg.trim())) {
@@ -39,7 +56,6 @@ export default function Settings() {
       setNewPkg('')
     }
   }
-
   const handleAddSpec = (e: React.FormEvent) => {
     e.preventDefault()
     if (newSpec.trim() && !specialties.includes(newSpec.trim())) {
@@ -52,176 +68,221 @@ export default function Settings() {
     return (
       <div className="space-y-6 animate-fade-in-up">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">Configurações</h1>
-          <p className="text-muted-foreground mt-1">Gerencie as parametrizações do sistema.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">CONFIGURAÇÕES</h1>
+          <p className="text-muted-foreground mt-1">GERENCIE AS PARAMETRIZAÇÕES DO SISTEMA.</p>
         </div>
         <Alert variant="destructive" className="bg-destructive/5 max-w-2xl">
           <ShieldAlert className="h-4 w-4" />
-          <AlertTitle>Acesso Restrito</AlertTitle>
+          <AlertTitle>ACESSO RESTRITO</AlertTitle>
           <AlertDescription>
-            Você precisa de privilégios de Administrador para acessar as configurações do sistema.
+            VOCÊ PRECISA DE PRIVILÉGIOS DE ADMINISTRADOR PARA ACESSAR AS CONFIGURAÇÕES DO SISTEMA.
           </AlertDescription>
         </Alert>
       </div>
     )
   }
 
+  const sortedEmployees = [...employees].sort((a, b) => a.name.localeCompare(b.name))
+
   return (
     <div className="space-y-6 animate-fade-in-up pb-10">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">Configurações</h1>
-        <p className="text-muted-foreground mt-1">Gerencie as parametrizações do sistema.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">CONFIGURAÇÕES</h1>
+        <p className="text-muted-foreground mt-1">
+          GERENCIE AS PARAMETRIZAÇÕES E PERMISSÕES DO SISTEMA.
+        </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" /> Departamentos
-            </CardTitle>
-            <CardDescription>
-              Gerencie os departamentos disponíveis para alocação de colaboradores.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleAddDept} className="flex gap-2">
-              <Input
-                placeholder="Novo departamento..."
-                value={newDept}
-                onChange={(e) => setNewDept(e.target.value)}
-              />
-              <Button type="submit" disabled={!newDept.trim()}>
-                <Plus className="h-4 w-4 mr-2" /> Adicionar
-              </Button>
-            </form>
+      <Tabs defaultValue="geral" className="w-full">
+        <TabsList className="mb-6 grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="geral">GERAL</TabsTrigger>
+          <TabsTrigger value="usuarios">USUÁRIOS & PERMISSÕES</TabsTrigger>
+        </TabsList>
 
-            <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-              {departments.map((dept) => (
-                <div
-                  key={dept}
-                  className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
-                >
-                  <span className="font-medium text-sm text-foreground">{dept}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
-                    onClick={() => removeDepartment(dept)}
-                    title={`Remover departamento ${dept}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
+        <TabsContent value="geral">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" /> DEPARTAMENTOS
+                </CardTitle>
+                <CardDescription>
+                  GERENCIE OS DEPARTAMENTOS DISPONÍVEIS PARA ALOCAÇÃO DE COLABORADORES.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form onSubmit={handleAddDept} className="flex gap-2">
+                  <Input
+                    placeholder="NOVO DEPARTAMENTO..."
+                    value={newDept}
+                    onChange={(e) => setNewDept(e.target.value)}
+                  />
+                  <Button type="submit" disabled={!newDept.trim()}>
+                    <Plus className="h-4 w-4 mr-2" /> ADD
                   </Button>
+                </form>
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+                  {[...departments].sort().map((dept) => (
+                    <div
+                      key={dept}
+                      className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+                    >
+                      <span className="font-medium text-sm text-foreground uppercase">{dept}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+                        onClick={() => removeDepartment(dept)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {departments.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-md">
-                  Nenhum departamento cadastrado.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" /> Tipos de Embalagem
-            </CardTitle>
-            <CardDescription>
-              Gerencie as opções de embalagem para o controle de estoque.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleAddPkg} className="flex gap-2">
-              <Input
-                placeholder="Novo tipo de embalagem..."
-                value={newPkg}
-                onChange={(e) => setNewPkg(e.target.value)}
-              />
-              <Button type="submit" disabled={!newPkg.trim()}>
-                <Plus className="h-4 w-4 mr-2" /> Adicionar
-              </Button>
-            </form>
-
-            <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-              {packageTypes.map((pkg) => (
-                <div
-                  key={pkg}
-                  className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
-                >
-                  <span className="font-medium text-sm text-foreground">{pkg}</span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
-                    onClick={() => removePackageType(pkg)}
-                    title={`Remover embalagem ${pkg}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" /> TIPOS DE EMBALAGEM
+                </CardTitle>
+                <CardDescription>
+                  GERENCIE AS OPÇÕES DE EMBALAGEM PARA O CONTROLE DE ESTOQUE.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form onSubmit={handleAddPkg} className="flex gap-2">
+                  <Input
+                    placeholder="NOVO TIPO..."
+                    value={newPkg}
+                    onChange={(e) => setNewPkg(e.target.value)}
+                  />
+                  <Button type="submit" disabled={!newPkg.trim()}>
+                    <Plus className="h-4 w-4 mr-2" /> ADD
                   </Button>
+                </form>
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+                  {[...packageTypes].sort().map((pkg) => (
+                    <div
+                      key={pkg}
+                      className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+                    >
+                      <span className="font-medium text-sm text-foreground uppercase">{pkg}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+                        onClick={() => removePackageType(pkg)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {packageTypes.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-md">
-                  Nenhum tipo de embalagem cadastrado.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Stethoscope className="h-5 w-5 text-[#D81B84]" /> Especialidades
-            </CardTitle>
-            <CardDescription>
-              Gerencie as especialidades para categorizar o estoque.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleAddSpec} className="flex gap-2">
-              <Input
-                placeholder="Nova especialidade..."
-                value={newSpec}
-                onChange={(e) => setNewSpec(e.target.value)}
-              />
-              <Button
-                type="submit"
-                disabled={!newSpec.trim()}
-                className="bg-[#D81B84] hover:bg-[#B71770] text-white"
-              >
-                <Plus className="h-4 w-4 mr-2" /> Adicionar
-              </Button>
-            </form>
-
-            <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-              {specialties.map((spec) => (
-                <div
-                  key={spec}
-                  className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
-                >
-                  <span className="font-medium text-sm text-foreground">{spec}</span>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Stethoscope className="h-5 w-5 text-[#D81B84]" /> ESPECIALIDADES
+                </CardTitle>
+                <CardDescription>
+                  GERENCIE AS ESPECIALIDADES PARA CATEGORIZAR O ESTOQUE.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form onSubmit={handleAddSpec} className="flex gap-2">
+                  <Input
+                    placeholder="NOVA ESPECIALIDADE..."
+                    value={newSpec}
+                    onChange={(e) => setNewSpec(e.target.value)}
+                  />
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
-                    onClick={() => removeSpecialty(spec)}
-                    title={`Remover especialidade ${spec}`}
+                    type="submit"
+                    disabled={!newSpec.trim()}
+                    className="bg-[#D81B84] hover:bg-[#B71770] text-white"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Plus className="h-4 w-4 mr-2" /> ADD
                   </Button>
+                </form>
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+                  {[...specialties].sort().map((spec) => (
+                    <div
+                      key={spec}
+                      className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+                    >
+                      <span className="font-medium text-sm text-foreground uppercase">{spec}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+                        onClick={() => removeSpecialty(spec)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {specialties.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-md">
-                  Nenhuma especialidade cadastrada.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="usuarios">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" /> PERMISSÕES DE ACESSO
+              </CardTitle>
+              <CardDescription>
+                DEFINA O NÍVEL DE ACESSO DE CADA COLABORADOR AOS MÓDULOS DO SISTEMA.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>NOME DO COLABORADOR</TableHead>
+                    <TableHead>FUNÇÃO</TableHead>
+                    <TableHead className="w-[300px]">PERMISSÃO DA AGENDA</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedEmployees.map((emp) => (
+                    <TableRow key={emp.id}>
+                      <TableCell className="font-medium">{emp.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{emp.role}</TableCell>
+                      <TableCell>
+                        <Select
+                          value={emp.agendaAccess || 'VIEW_ONLY'}
+                          onValueChange={(v) => updateEmployeeAgendaAccess(emp.id, v as any)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="VIEW_ONLY">APENAS VISUALIZAR A AGENDA</SelectItem>
+                            <SelectItem value="ADD_EDIT">PODE ADD ITENS A AGENDA</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {sortedEmployees.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-6">
+                        NENHUM COLABORADOR CADASTRADO.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

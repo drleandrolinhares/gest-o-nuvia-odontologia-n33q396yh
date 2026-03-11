@@ -6,6 +6,8 @@ import EmployeeProfile from '@/pages/EmployeeProfile'
 import Inventory from '@/pages/Inventory'
 import Settings from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
+import Agenda from '@/pages/Agenda'
+import Acessos from '@/pages/Acessos'
 import { AppProvider } from '@/stores/main'
 
 export default function App() {
@@ -15,6 +17,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Index />} />
+            <Route path="agenda" element={<Agenda />} />
+            <Route path="acessos" element={<Acessos />} />
             <Route path="rh" element={<RH />} />
             <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
             <Route path="estoque" element={<Inventory />} />

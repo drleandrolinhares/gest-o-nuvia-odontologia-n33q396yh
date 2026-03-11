@@ -16,13 +16,15 @@ export function DocumentsTab() {
     }
   }
 
+  const sortedDocuments = [...documents].sort((a, b) => a.name.localeCompare(b.name))
+
   return (
     <Card className="mt-6">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <CardTitle>Documentos e Normativas</CardTitle>
+          <CardTitle>DOCUMENTOS E NORMATIVAS</CardTitle>
           <CardDescription>
-            Repositório de Manuais e Procedimentos Operacionais Padrão (POPs) do RH.
+            REPOSITÓRIO DE MANUAIS E PROCEDIMENTOS OPERACIONAIS PADRÃO (POPS) DO RH.
           </CardDescription>
         </div>
         <div>
@@ -34,18 +36,18 @@ export function DocumentsTab() {
             accept=".pdf,.doc,.docx"
           />
           <Button onClick={() => fileRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-2" /> Fazer Upload
+            <Upload className="h-4 w-4 mr-2" /> FAZER UPLOAD
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {documents.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground border border-dashed rounded-lg bg-muted/20">
-            Nenhum documento armazenado no momento. Faça o upload do seu primeiro arquivo.
+        {sortedDocuments.length === 0 ? (
+          <div className="text-center py-10 text-muted-foreground border border-dashed rounded-lg bg-muted/20 uppercase">
+            NENHUM DOCUMENTO ARMAZENADO NO MOMENTO. FAÇA O UPLOAD DO SEU PRIMEIRO ARQUIVO.
           </div>
         ) : (
           <div className="grid gap-3">
-            {documents.map((doc) => (
+            {sortedDocuments.map((doc) => (
               <div
                 key={doc.id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:border-primary/50 transition-colors gap-4 shadow-sm group"
@@ -55,13 +57,15 @@ export function DocumentsTab() {
                     <FileText className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-foreground">{doc.name}</p>
-                    <p className="text-xs text-muted-foreground">Adicionado em {doc.date}</p>
+                    <p className="font-medium text-sm text-foreground uppercase">{doc.name}</p>
+                    <p className="text-xs text-muted-foreground uppercase">
+                      ADICIONADO EM {doc.date}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="hidden sm:flex">
-                    <Download className="h-4 w-4 mr-2" /> Baixar
+                  <Button variant="outline" size="sm" className="hidden sm:flex uppercase">
+                    <Download className="h-4 w-4 mr-2" /> BAIXAR
                   </Button>
                   <Button
                     variant="ghost"

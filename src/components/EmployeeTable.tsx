@@ -23,9 +23,11 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
     }
   }
 
-  if (employees.length === 0) {
+  const sortedEmployees = [...employees].sort((a, b) => a.name.localeCompare(b.name))
+
+  if (sortedEmployees.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg bg-card">
+      <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg bg-card uppercase">
         Nenhum colaborador encontrado no momento.
       </div>
     )
@@ -33,7 +35,7 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {employees.map((emp) => (
+      {sortedEmployees.map((emp) => (
         <div
           key={emp.id}
           onClick={() => navigate(`/rh/colaborador/${emp.id}`)}
@@ -44,22 +46,24 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
               <UserCircle className="h-6 w-6" />
             </div>
             <div>
-              <h4 className="font-semibold text-foreground">{emp.name}</h4>
-              <p className="text-sm text-muted-foreground">
+              <h4 className="font-semibold text-foreground uppercase">{emp.name}</h4>
+              <p className="text-sm text-muted-foreground uppercase">
                 {emp.role} • {emp.department}
               </p>
             </div>
           </div>
-
           <div className="flex items-center gap-3 sm:gap-6 border-t sm:border-0 pt-3 sm:pt-0">
             <div className="text-sm text-right hidden md:block">
-              <p className="text-muted-foreground text-xs">Admissão</p>
-              <p className="font-medium">{new Date(emp.hireDate).toLocaleDateString('pt-BR')}</p>
+              <p className="text-muted-foreground text-xs uppercase">ADMISSÃO</p>
+              <p className="font-medium uppercase">
+                {new Date(emp.hireDate).toLocaleDateString('pt-BR')}
+              </p>
             </div>
-            <Badge className={cn('text-white whitespace-nowrap', getStatusColor(emp.status))}>
+            <Badge
+              className={cn('text-white whitespace-nowrap uppercase', getStatusColor(emp.status))}
+            >
               {emp.status}
             </Badge>
-
             {isAdmin && (
               <Button
                 variant="ghost"
