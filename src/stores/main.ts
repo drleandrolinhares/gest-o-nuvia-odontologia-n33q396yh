@@ -10,6 +10,8 @@ export type Employee = {
   salary: string
   vacationDaysTaken: number
   vacationDaysTotal: number
+  email: string
+  phone: string
 }
 
 export type OnboardingTask = {
@@ -26,11 +28,24 @@ export type OnboardingCandidate = {
   tasks: OnboardingTask[]
 }
 
+export type InventoryItem = {
+  id: string
+  name: string
+  category: string
+  quantity: number
+  unit: string
+  threshold: number
+  lastRestocked: string
+}
+
 interface AppStore {
   employees: Employee[]
   alerts: string[]
   onboarding: OnboardingCandidate[]
+  inventory: InventoryItem[]
   toggleTask: (candidateId: string, taskId: string) => void
+  addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void
+  updateInventoryQuantity: (id: string, newQuantity: number) => void
 }
 
 const mockEmployees: Employee[] = [
@@ -38,56 +53,40 @@ const mockEmployees: Employee[] = [
     id: '1',
     name: 'Ana Silva',
     role: 'Dentista Clínica',
-    department: 'Operacional',
+    department: 'Odontologia',
     status: 'Ativo',
     hireDate: '2023-01-15',
     salary: 'R$ 8.500',
     vacationDaysTaken: 10,
     vacationDaysTotal: 30,
+    email: 'ana.silva@nuvia.com',
+    phone: '(11) 98765-4321',
   },
   {
     id: '2',
     name: 'Carlos Santos',
     role: 'Ortodontista',
-    department: 'Operacional',
+    department: 'Odontologia',
     status: 'Férias',
     hireDate: '2022-06-10',
     salary: 'R$ 12.000',
     vacationDaysTaken: 30,
     vacationDaysTotal: 30,
+    email: 'carlos.santos@nuvia.com',
+    phone: '(11) 99999-8888',
   },
   {
     id: '3',
     name: 'Mariana Costa',
     role: 'Recepcionista',
-    department: 'Administrativo',
+    department: 'Atendimento',
     status: 'Ativo',
     hireDate: '2024-02-01',
     salary: 'R$ 2.500',
     vacationDaysTaken: 0,
     vacationDaysTotal: 30,
-  },
-  {
-    id: '4',
-    name: 'João Mendes',
-    role: 'Gerente Financeiro',
-    department: 'Financeiro',
-    status: 'Ativo',
-    hireDate: '2021-11-20',
-    salary: 'R$ 9.000',
-    vacationDaysTaken: 15,
-    vacationDaysTotal: 30,
-  },
-  {
-    id: '5',
-    name: 'Patricia Leme',
-    role: 'Diretora Estratégica',
-    department: 'Estratégico',
-    status: 'Ativo',
-    hireDate: '2020-03-05',
-    salary: 'R$ 18.000',
-    vacationDaysTaken: 25,
-    vacationDaysTotal: 30,
+    email: 'mariana.costa@nuvia.com',
+    phone: '(11) 97777-6666',
   },
 ]
 
@@ -106,6 +105,36 @@ const mockOnboarding: OnboardingCandidate[] = [
   },
 ]
 
+const mockInventory: InventoryItem[] = [
+  {
+    id: '1',
+    name: 'Resina Composta',
+    category: 'Materiais Clínicos',
+    quantity: 15,
+    unit: 'Seringas',
+    threshold: 10,
+    lastRestocked: '2026-02-20',
+  },
+  {
+    id: '2',
+    name: 'Luvas de Procedimento (M)',
+    category: 'EPIs',
+    quantity: 5,
+    unit: 'Caixas',
+    threshold: 20,
+    lastRestocked: '2026-03-01',
+  },
+  {
+    id: '3',
+    name: 'Agulha Gengival',
+    category: 'Descartáveis',
+    quantity: 150,
+    unit: 'Unidades',
+    threshold: 100,
+    lastRestocked: '2026-02-15',
+  },
+]
+
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -113,28 +142,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [alerts] = useState<string[]>([
     'Carlos Santos: Retorna de férias em 2 dias.',
     'Mariana Costa: Vencimento do período aquisitivo de férias no próximo mês.',
-    'Novo colaborador: Fernanda Lima inicia o onboarding na próxima segunda.',
   ])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>(mockOnboarding)
+  const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory)
 
   const toggleTask = (candidateId: string, taskId: string) => {
     setOnboarding((prev) =>
-      prev.map((c) => {
-        if (c.id === candidateId) {
-          return {
-            ...c,
-            tasks: c.tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)),
-          }
-        }
-        return c
-      }),
+      prev.map((c) =>
+        c.id === candidateId
+          ? {
+              ...c,
+              tasks: c.tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)),
+            }
+          : c,
+      ),
     )
+  }
+
+  const addInventoryItem = (item: Omit<InventoryItem, 'id'>) => {
+    setInventory((prev) => [...prev, { ...item, id: Math.random().toString(36).substr(2, 9) }])
+  }
+
+  const updateInventoryQuantity = (id: string, newQuantity: number) => {
+    setInventory((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: newQuantity } : i)))
   }
 
   return React.createElement(
     StoreContext.Provider,
     {
-      value: { employees, alerts, onboarding, toggleTask },
+      value: {
+        employees,
+        alerts,
+        onboarding,
+        inventory,
+        toggleTask,
+        addInventoryItem,
+        updateInventoryQuantity,
+      },
     },
     children,
   )

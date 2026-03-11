@@ -1,56 +1,41 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Users,
-  CalendarClock,
-  ListTodo,
-  TrendingUp,
-  AlertCircle,
-  PlusCircle,
-  FileText,
-  KeyRound,
-} from 'lucide-react'
+import { Users, Package, ListTodo, TrendingDown, AlertCircle, FileText } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
+import { Link } from 'react-router-dom'
 
 export default function Index() {
-  const { employees, alerts, onboarding } = useAppStore()
+  const { employees, alerts, onboarding, inventory } = useAppStore()
 
   const activeEmployees = employees.filter((e) => e.status === 'Ativo').length
-  const vacationAlerts = employees.filter((e) => e.status === 'Férias').length
   const pendingOnboarding = onboarding.length
+  const lowStockItems = inventory.filter((i) => i.quantity <= i.threshold).length
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">Dashboard Nuvia</h1>
         <p className="text-muted-foreground mt-1">
-          Visão geral da gestão clínica e administrativa.
+          Visão geral da gestão de recursos humanos e estoque clínico.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Colaboradores Ativos</CardTitle>
+            <CardTitle className="text-sm font-medium">Equipe Ativa</CardTitle>
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeEmployees}</div>
-            <p className="text-xs text-muted-foreground mt-1">De um total de {employees.length}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Colaboradores de um total de {employees.length}
+            </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Alertas de Férias</CardTitle>
-            <CalendarClock className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{vacationAlerts}</div>
-            <p className="text-xs text-muted-foreground mt-1">Colaboradores afastados</p>
-          </CardContent>
-        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Onboarding Pendente</CardTitle>
@@ -58,17 +43,22 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingOnboarding}</div>
-            <p className="text-xs text-muted-foreground mt-1">Processos em andamento</p>
+            <p className="text-xs text-muted-foreground mt-1">Processos em andamento (RH)</p>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card className={lowStockItems > 0 ? 'border-destructive/30 bg-destructive/5' : ''}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resumo Financeiro</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
+            <CardTitle className="text-sm font-medium">Avisos de Estoque</CardTitle>
+            <TrendingDown
+              className={cn('h-4 w-4', lowStockItems > 0 ? 'text-destructive' : 'text-emerald-500')}
+            />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Saudável</div>
-            <p className="text-xs text-muted-foreground mt-1">Consulte o painel financeiro</p>
+            <div className={cn('text-2xl font-bold', lowStockItems > 0 ? 'text-destructive' : '')}>
+              {lowStockItems}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Itens precisam de reposição</p>
           </CardContent>
         </Card>
       </div>
@@ -78,7 +68,7 @@ export default function Index() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              Avisos e Alertas (RH)
+              Central de Alertas Operacionais
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -93,6 +83,16 @@ export default function Index() {
                 <AlertDescription>{alert}</AlertDescription>
               </Alert>
             ))}
+            {lowStockItems > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Estoque Crítico</AlertTitle>
+                <AlertDescription>
+                  Existem {lowStockItems} itens com estoque abaixo do limite no inventário clínico.
+                  Reposição necessária.
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
 
@@ -101,15 +101,21 @@ export default function Index() {
             <CardTitle>Ações Rápidas</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline">
-              <PlusCircle className="mr-2 h-4 w-4" /> Novo Colaborador
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <FileText className="mr-2 h-4 w-4" /> Adicionar Documento
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <KeyRound className="mr-2 h-4 w-4" /> Acessar Senhas
-            </Button>
+            <Link to="/rh" className="w-full block">
+              <Button className="w-full justify-start" variant="outline">
+                <Users className="mr-2 h-4 w-4" /> Gestão de Equipe (RH)
+              </Button>
+            </Link>
+            <Link to="/estoque" className="w-full block">
+              <Button className="w-full justify-start" variant="outline">
+                <Package className="mr-2 h-4 w-4" /> Atualizar Estoque
+              </Button>
+            </Link>
+            <Link to="/rh" className="w-full block">
+              <Button className="w-full justify-start" variant="outline">
+                <FileText className="mr-2 h-4 w-4" /> Rotinas e Manuais
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

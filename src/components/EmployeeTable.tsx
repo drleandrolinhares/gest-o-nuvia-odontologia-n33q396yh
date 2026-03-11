@@ -1,26 +1,11 @@
-import { useState } from 'react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Progress } from '@/components/ui/progress'
 import { Employee } from '@/stores/main'
 import { cn } from '@/lib/utils'
+import { UserCircle } from 'lucide-react'
 
 export function EmployeeTable({ employees }: { employees: Employee[] }) {
-  const [selectedEmp, setSelectedEmp] = useState<Employee | null>(null)
+  const navigate = useNavigate()
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -35,95 +20,45 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
     }
   }
 
-  return (
-    <>
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Função</TableHead>
-              <TableHead>Data de Admissão</TableHead>
-              <TableHead>Salário Base</TableHead>
-              <TableHead className="text-right">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {employees.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                  Nenhum colaborador encontrado.
-                </TableCell>
-              </TableRow>
-            ) : (
-              employees.map((emp) => (
-                <TableRow
-                  key={emp.id}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => setSelectedEmp(emp)}
-                >
-                  <TableCell className="font-medium">{emp.name}</TableCell>
-                  <TableCell>{emp.role}</TableCell>
-                  <TableCell>{new Date(emp.hireDate).toLocaleDateString('pt-BR')}</TableCell>
-                  <TableCell>{emp.salary}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge className={cn('text-white', getStatusColor(emp.status))}>
-                      {emp.status}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+  if (employees.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg bg-card">
+        Nenhum colaborador encontrado no momento.
       </div>
+    )
+  }
 
-      <Dialog open={!!selectedEmp} onOpenChange={(open) => !open && setSelectedEmp(null)}>
-        {selectedEmp && (
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Detalhes do Colaborador</DialogTitle>
-              <DialogDescription>Informações completas de {selectedEmp.name}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6 pt-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground block mb-1">Departamento</span>
-                  <span className="font-medium">{selectedEmp.department}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block mb-1">Função</span>
-                  <span className="font-medium">{selectedEmp.role}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block mb-1">Admissão</span>
-                  <span className="font-medium">
-                    {new Date(selectedEmp.hireDate).toLocaleDateString('pt-BR')}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block mb-1">Status Atual</span>
-                  <Badge className={cn('text-white mt-1', getStatusColor(selectedEmp.status))}>
-                    {selectedEmp.status}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="space-y-2 border-t pt-4">
-                <h4 className="font-medium text-sm">Controle de Férias</h4>
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{selectedEmp.vacationDaysTaken} dias gozados</span>
-                  <span>Total: {selectedEmp.vacationDaysTotal} dias</span>
-                </div>
-                <Progress
-                  value={(selectedEmp.vacationDaysTaken / selectedEmp.vacationDaysTotal) * 100}
-                  className="h-2"
-                />
-              </div>
+  return (
+    <div className="flex flex-col gap-3">
+      {employees.map((emp) => (
+        <div
+          key={emp.id}
+          onClick={() => navigate(`/rh/colaborador/${emp.id}`)}
+          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:border-primary/50 cursor-pointer transition-all gap-4 shadow-sm"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <UserCircle className="h-6 w-6" />
             </div>
-          </DialogContent>
-        )}
-      </Dialog>
-    </>
+            <div>
+              <h4 className="font-semibold text-foreground">{emp.name}</h4>
+              <p className="text-sm text-muted-foreground">
+                {emp.role} • {emp.department}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 sm:gap-8 border-t sm:border-0 pt-3 sm:pt-0">
+            <div className="text-sm text-right hidden md:block">
+              <p className="text-muted-foreground text-xs">Admissão</p>
+              <p className="font-medium">{new Date(emp.hireDate).toLocaleDateString('pt-BR')}</p>
+            </div>
+            <Badge className={cn('text-white whitespace-nowrap', getStatusColor(emp.status))}>
+              {emp.status}
+            </Badge>
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }

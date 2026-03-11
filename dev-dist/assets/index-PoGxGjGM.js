@@ -111,11 +111,11 @@ var require_scheduler_development = /* @__PURE__ */ __commonJSMin(((exports) => 
 			}
 		}
 		function push(heap, node) {
-			var index = heap.length;
+			var index$1 = heap.length;
 			heap.push(node);
-			a: for (; 0 < index;) {
-				var parentIndex = index - 1 >>> 1, parent = heap[parentIndex];
-				if (0 < compare(parent, node)) heap[parentIndex] = node, heap[index] = parent, index = parentIndex;
+			a: for (; 0 < index$1;) {
+				var parentIndex = index$1 - 1 >>> 1, parent = heap[parentIndex];
+				if (0 < compare(parent, node)) heap[parentIndex] = node, heap[index$1] = parent, index$1 = parentIndex;
 				else break a;
 			}
 		}
@@ -127,10 +127,10 @@ var require_scheduler_development = /* @__PURE__ */ __commonJSMin(((exports) => 
 			var first = heap[0], last = heap.pop();
 			if (last !== first) {
 				heap[0] = last;
-				a: for (var index = 0, length = heap.length, halfLength = length >>> 1; index < halfLength;) {
-					var leftIndex = 2 * (index + 1) - 1, left = heap[leftIndex], rightIndex = leftIndex + 1, right = heap[rightIndex];
-					if (0 > compare(left, last)) rightIndex < length && 0 > compare(right, left) ? (heap[index] = right, heap[rightIndex] = last, index = rightIndex) : (heap[index] = left, heap[leftIndex] = last, index = leftIndex);
-					else if (rightIndex < length && 0 > compare(right, last)) heap[index] = right, heap[rightIndex] = last, index = rightIndex;
+				a: for (var index$1 = 0, length = heap.length, halfLength = length >>> 1; index$1 < halfLength;) {
+					var leftIndex = 2 * (index$1 + 1) - 1, left = heap[leftIndex], rightIndex = leftIndex + 1, right = heap[rightIndex];
+					if (0 > compare(left, last)) rightIndex < length && 0 > compare(right, left) ? (heap[index$1] = right, heap[rightIndex] = last, index$1 = rightIndex) : (heap[index$1] = left, heap[leftIndex] = last, index$1 = leftIndex);
+					else if (rightIndex < length && 0 > compare(right, last)) heap[index$1] = right, heap[rightIndex] = last, index$1 = rightIndex;
 					else break a;
 				}
 			}
@@ -485,8 +485,8 @@ var require_react_development = /* @__PURE__ */ __commonJSMin(((exports, module)
 				return escaperLookup[match];
 			});
 		}
-		function getElementKey(element, index) {
-			return "object" === typeof element && null !== element && null != element.key ? (checkKeyStringCoercion(element.key), escape("" + element.key)) : index.toString(36);
+		function getElementKey(element, index$1) {
+			return "object" === typeof element && null !== element && null != element.key ? (checkKeyStringCoercion(element.key), escape("" + element.key)) : index$1.toString(36);
 		}
 		function resolveThenable(thenable) {
 			switch (thenable.status) {
@@ -733,8 +733,8 @@ var require_react_development = /* @__PURE__ */ __commonJSMin(((exports, module)
 		} : enqueueTask;
 		deprecatedAPIs = Object.freeze({
 			__proto__: null,
-			c: function(size) {
-				return resolveDispatcher().useMemoCache(size);
+			c: function(size$3) {
+				return resolveDispatcher().useMemoCache(size$3);
 			}
 		});
 		var fnName = {
@@ -1243,10 +1243,10 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			for (fiber = fiber.memoizedState; null !== fiber && 0 < id;) fiber = fiber.next, id--;
 			return fiber;
 		}
-		function copyWithSetImpl(obj, path, index, value) {
-			if (index >= path.length) return value;
-			var key = path[index], updated = isArrayImpl(obj) ? obj.slice() : assign({}, obj);
-			updated[key] = copyWithSetImpl(obj[key], path, index + 1, value);
+		function copyWithSetImpl(obj, path, index$1, value) {
+			if (index$1 >= path.length) return value;
+			var key = path[index$1], updated = isArrayImpl(obj) ? obj.slice() : assign({}, obj);
+			updated[key] = copyWithSetImpl(obj[key], path, index$1 + 1, value);
 			return updated;
 		}
 		function copyWithRename(obj, oldPath, newPath) {
@@ -1259,15 +1259,15 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				return copyWithRenameImpl(obj, oldPath, newPath, 0);
 			}
 		}
-		function copyWithRenameImpl(obj, oldPath, newPath, index) {
-			var oldKey = oldPath[index], updated = isArrayImpl(obj) ? obj.slice() : assign({}, obj);
-			index + 1 === oldPath.length ? (updated[newPath[index]] = updated[oldKey], isArrayImpl(updated) ? updated.splice(oldKey, 1) : delete updated[oldKey]) : updated[oldKey] = copyWithRenameImpl(obj[oldKey], oldPath, newPath, index + 1);
+		function copyWithRenameImpl(obj, oldPath, newPath, index$1) {
+			var oldKey = oldPath[index$1], updated = isArrayImpl(obj) ? obj.slice() : assign({}, obj);
+			index$1 + 1 === oldPath.length ? (updated[newPath[index$1]] = updated[oldKey], isArrayImpl(updated) ? updated.splice(oldKey, 1) : delete updated[oldKey]) : updated[oldKey] = copyWithRenameImpl(obj[oldKey], oldPath, newPath, index$1 + 1);
 			return updated;
 		}
-		function copyWithDeleteImpl(obj, path, index) {
-			var key = path[index], updated = isArrayImpl(obj) ? obj.slice() : assign({}, obj);
-			if (index + 1 === path.length) return isArrayImpl(updated) ? updated.splice(key, 1) : delete updated[key], updated;
-			updated[key] = copyWithDeleteImpl(obj[key], path, index + 1);
+		function copyWithDeleteImpl(obj, path, index$1) {
+			var key = path[index$1], updated = isArrayImpl(obj) ? obj.slice() : assign({}, obj);
+			if (index$1 + 1 === path.length) return isArrayImpl(updated) ? updated.splice(key, 1) : delete updated[key], updated;
+			updated[key] = copyWithDeleteImpl(obj[key], path, index$1 + 1);
 			return updated;
 		}
 		function shouldSuspendImpl() {
@@ -1995,12 +1995,12 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			root$1.shellSuspendCounter = 0;
 			var entanglements = root$1.entanglements, expirationTimes = root$1.expirationTimes, hiddenUpdates = root$1.hiddenUpdates;
 			for (remainingLanes = previouslyPendingLanes & ~remainingLanes; 0 < remainingLanes;) {
-				var index = 31 - clz32(remainingLanes), lane = 1 << index;
-				entanglements[index] = 0;
-				expirationTimes[index] = -1;
-				var hiddenUpdatesForLane = hiddenUpdates[index];
-				if (null !== hiddenUpdatesForLane) for (hiddenUpdates[index] = null, index = 0; index < hiddenUpdatesForLane.length; index++) {
-					var update = hiddenUpdatesForLane[index];
+				var index$1 = 31 - clz32(remainingLanes), lane = 1 << index$1;
+				entanglements[index$1] = 0;
+				expirationTimes[index$1] = -1;
+				var hiddenUpdatesForLane = hiddenUpdates[index$1];
+				if (null !== hiddenUpdatesForLane) for (hiddenUpdates[index$1] = null, index$1 = 0; index$1 < hiddenUpdatesForLane.length; index$1++) {
+					var update = hiddenUpdatesForLane[index$1];
 					null !== update && (update.lane &= -536870913);
 				}
 				remainingLanes &= ~lane;
@@ -2018,8 +2018,8 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		function markRootEntangled(root$1, entangledLanes) {
 			var rootEntangledLanes = root$1.entangledLanes |= entangledLanes;
 			for (root$1 = root$1.entanglements; rootEntangledLanes;) {
-				var index = 31 - clz32(rootEntangledLanes), lane = 1 << index;
-				lane & entangledLanes | root$1[index] & entangledLanes && (root$1[index] |= entangledLanes);
+				var index$1 = 31 - clz32(rootEntangledLanes), lane = 1 << index$1;
+				lane & entangledLanes | root$1[index$1] & entangledLanes && (root$1[index$1] |= entangledLanes);
 				rootEntangledLanes &= ~lane;
 			}
 		}
@@ -2068,20 +2068,20 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		}
 		function addFiberToLanesMap(root$1, fiber, lanes) {
 			if (isDevToolsPresent) for (root$1 = root$1.pendingUpdatersLaneMap; 0 < lanes;) {
-				var index = 31 - clz32(lanes), lane = 1 << index;
-				root$1[index].add(fiber);
+				var index$1 = 31 - clz32(lanes), lane = 1 << index$1;
+				root$1[index$1].add(fiber);
 				lanes &= ~lane;
 			}
 		}
 		function movePendingFibersToMemoized(root$1, lanes) {
 			if (isDevToolsPresent) for (var pendingUpdatersLaneMap = root$1.pendingUpdatersLaneMap, memoizedUpdaters = root$1.memoizedUpdaters; 0 < lanes;) {
-				var index = 31 - clz32(lanes);
-				root$1 = 1 << index;
-				index = pendingUpdatersLaneMap[index];
-				0 < index.size && (index.forEach(function(fiber) {
+				var index$1 = 31 - clz32(lanes);
+				root$1 = 1 << index$1;
+				index$1 = pendingUpdatersLaneMap[index$1];
+				0 < index$1.size && (index$1.forEach(function(fiber) {
 					var alternate = fiber.alternate;
 					null !== alternate && memoizedUpdaters.has(alternate) || memoizedUpdaters.add(fiber);
-				}), index.clear());
+				}), index$1.clear());
 				lanes &= ~root$1;
 			}
 		}
@@ -3215,15 +3215,15 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			for (; node && node.firstChild;) node = node.firstChild;
 			return node;
 		}
-		function getNodeForCharacterOffset(root$1, offset) {
+		function getNodeForCharacterOffset(root$1, offset$3) {
 			var node = getLeafNode(root$1);
 			root$1 = 0;
 			for (var nodeEnd; node;) {
 				if (3 === node.nodeType) {
 					nodeEnd = root$1 + node.textContent.length;
-					if (root$1 <= offset && nodeEnd >= offset) return {
+					if (root$1 <= offset$3 && nodeEnd >= offset$3) return {
 						node,
-						offset: offset - root$1
+						offset: offset$3 - root$1
 					};
 					root$1 = nodeEnd;
 				}
@@ -3859,7 +3859,7 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			treeForkProvider = workInProgress$1;
 			treeForkCount = totalChildren;
 		}
-		function pushTreeId(workInProgress$1, totalChildren, index) {
+		function pushTreeId(workInProgress$1, totalChildren, index$1) {
 			warnIfNotHydrating();
 			idStack[idStackIndex++] = treeContextId;
 			idStack[idStackIndex++] = treeContextOverflow;
@@ -3869,16 +3869,16 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			workInProgress$1 = treeContextOverflow;
 			var baseLength = 32 - clz32(baseIdWithLeadingBit) - 1;
 			baseIdWithLeadingBit &= ~(1 << baseLength);
-			index += 1;
+			index$1 += 1;
 			var length = 32 - clz32(totalChildren) + baseLength;
 			if (30 < length) {
 				var numberOfOverflowBits = baseLength - baseLength % 5;
 				length = (baseIdWithLeadingBit & (1 << numberOfOverflowBits) - 1).toString(32);
 				baseIdWithLeadingBit >>= numberOfOverflowBits;
 				baseLength -= numberOfOverflowBits;
-				treeContextId = 1 << 32 - clz32(totalChildren) + baseLength | index << baseLength | baseIdWithLeadingBit;
+				treeContextId = 1 << 32 - clz32(totalChildren) + baseLength | index$1 << baseLength | baseIdWithLeadingBit;
 				treeContextOverflow = length + workInProgress$1;
-			} else treeContextId = 1 << length | index << baseLength | baseIdWithLeadingBit, treeContextOverflow = workInProgress$1;
+			} else treeContextId = 1 << length | index$1 << baseLength | baseIdWithLeadingBit, treeContextOverflow = workInProgress$1;
 		}
 		function pushMaterializedTreeId(workInProgress$1) {
 			warnIfNotHydrating();
@@ -4405,11 +4405,11 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			thenable = thenable.status;
 			return "fulfilled" === thenable || "rejected" === thenable;
 		}
-		function trackUsedThenable(thenableState$2, thenable, index) {
+		function trackUsedThenable(thenableState$2, thenable, index$1) {
 			null !== ReactSharedInternals.actQueue && (ReactSharedInternals.didUsePromise = !0);
 			var trackedThenables = thenableState$2.thenables;
-			index = trackedThenables[index];
-			void 0 === index ? trackedThenables.push(thenable) : index !== thenable && (thenableState$2.didWarnAboutUncachedPromise || (thenableState$2.didWarnAboutUncachedPromise = !0, console.error("A component was suspended by an uncached promise. Creating promises inside a Client Component or hook is not yet supported, except via a Suspense-compatible library or framework.")), thenable.then(noop$1, noop$1), thenable = index);
+			index$1 = trackedThenables[index$1];
+			void 0 === index$1 ? trackedThenables.push(thenable) : index$1 !== thenable && (thenableState$2.didWarnAboutUncachedPromise || (thenableState$2.didWarnAboutUncachedPromise = !0, console.error("A component was suspended by an uncached promise. Creating promises inside a Client Component or hook is not yet supported, except via a Suspense-compatible library or framework.")), thenable.then(noop$1, noop$1), thenable = index$1);
 			if (void 0 === thenable._debugInfo) {
 				thenableState$2 = performance.now();
 				trackedThenables = thenable.displayName;
@@ -4503,10 +4503,10 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			}
 		}
 		function unwrapThenable(thenable) {
-			var index = thenableIndexCounter$1;
+			var index$1 = thenableIndexCounter$1;
 			thenableIndexCounter$1 += 1;
 			null === thenableState$1 && (thenableState$1 = createThenableState());
-			return trackUsedThenable(thenableState$1, thenable, index);
+			return trackUsedThenable(thenableState$1, thenable, index$1);
 		}
 		function coerceRef(workInProgress$1, element) {
 			element = element.props.ref;
@@ -4868,10 +4868,10 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				}
 			};
 		}
-		function validateSuspenseListNestedChild(childSlot, index) {
+		function validateSuspenseListNestedChild(childSlot, index$1) {
 			var isAnArray = isArrayImpl(childSlot);
 			childSlot = !isAnArray && "function" === typeof getIteratorFn(childSlot);
-			return isAnArray || childSlot ? (isAnArray = isAnArray ? "array" : "iterable", console.error("A nested %s was passed to row #%s in <SuspenseList />. Wrap it in an additional SuspenseList to configure its revealOrder: <SuspenseList revealOrder=...> ... <SuspenseList revealOrder=...>{%s}</SuspenseList> ... </SuspenseList>", isAnArray, index, isAnArray), !1) : !0;
+			return isAnArray || childSlot ? (isAnArray = isAnArray ? "array" : "iterable", console.error("A nested %s was passed to row #%s in <SuspenseList />. Wrap it in an additional SuspenseList to configure its revealOrder: <SuspenseList revealOrder=...> ... <SuspenseList revealOrder=...>{%s}</SuspenseList> ... </SuspenseList>", isAnArray, index$1, isAnArray), !1) : !0;
 		}
 		function initializeUpdateQueue(fiber) {
 			fiber.updateQueue = {
@@ -5325,12 +5325,12 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			};
 		}
 		function useThenable(thenable) {
-			var index = thenableIndexCounter;
+			var index$1 = thenableIndexCounter;
 			thenableIndexCounter += 1;
 			null === thenableState && (thenableState = createThenableState());
-			thenable = trackUsedThenable(thenableState, thenable, index);
-			index = currentlyRenderingFiber;
-			null === (null === workInProgressHook ? index.memoizedState : workInProgressHook.next) && (index = index.alternate, ReactSharedInternals.H = null !== index && null !== index.memoizedState ? HooksDispatcherOnUpdateInDEV : HooksDispatcherOnMountInDEV);
+			thenable = trackUsedThenable(thenableState, thenable, index$1);
+			index$1 = currentlyRenderingFiber;
+			null === (null === workInProgressHook ? index$1.memoizedState : workInProgressHook.next) && (index$1 = index$1.alternate, ReactSharedInternals.H = null !== index$1 && null !== index$1.memoizedState ? HooksDispatcherOnUpdateInDEV : HooksDispatcherOnMountInDEV);
 			return thenable;
 		}
 		function use$1(usable) {
@@ -5340,7 +5340,7 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			}
 			throw Error("An unsupported type was passed to use(): " + String(usable));
 		}
-		function useMemoCache(size) {
+		function useMemoCache(size$3) {
 			var memoCache = null, updateQueue = currentlyRenderingFiber.updateQueue;
 			null !== updateQueue && (memoCache = updateQueue.memoCache);
 			if (null == memoCache) {
@@ -5359,8 +5359,8 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			null === updateQueue && (updateQueue = createFunctionComponentUpdateQueue(), currentlyRenderingFiber.updateQueue = updateQueue);
 			updateQueue.memoCache = memoCache;
 			updateQueue = memoCache.data[memoCache.index];
-			if (void 0 === updateQueue || ignorePreviousDependencies) for (updateQueue = memoCache.data[memoCache.index] = Array(size), current$1 = 0; current$1 < size; current$1++) updateQueue[current$1] = REACT_MEMO_CACHE_SENTINEL;
-			else updateQueue.length !== size && console.error("Expected a constant size argument for each invocation of useMemoCache. The previous cache was allocated with size %s but size %s was requested.", updateQueue.length, size);
+			if (void 0 === updateQueue || ignorePreviousDependencies) for (updateQueue = memoCache.data[memoCache.index] = Array(size$3), current$1 = 0; current$1 < size$3; current$1++) updateQueue[current$1] = REACT_MEMO_CACHE_SENTINEL;
+			else updateQueue.length !== size$3 && console.error("Expected a constant size argument for each invocation of useMemoCache. The previous cache was allocated with size %s but size %s was requested.", updateQueue.length, size$3);
 			memoCache.index++;
 			return updateQueue;
 		}
@@ -9090,8 +9090,8 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 			didAttemptEntireTree && (root$1.warmLanes |= suspendedLanes);
 			didAttemptEntireTree = root$1.expirationTimes;
 			for (var lanes = suspendedLanes; 0 < lanes;) {
-				var index = 31 - clz32(lanes), lane = 1 << index;
-				didAttemptEntireTree[index] = -1;
+				var index$1 = 31 - clz32(lanes), lane = 1 << index$1;
+				didAttemptEntireTree[index$1] = -1;
 				lanes &= ~lane;
 			}
 			0 !== spawnedLane && markSpawnedDeferredLane(root$1, spawnedLane, suspendedLanes);
@@ -9985,9 +9985,9 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 		}
 		function scheduleTaskForRootDuringMicrotask(root$1, currentTime) {
 			for (var suspendedLanes = root$1.suspendedLanes, pingedLanes = root$1.pingedLanes, expirationTimes = root$1.expirationTimes, lanes = root$1.pendingLanes & -62914561; 0 < lanes;) {
-				var index = 31 - clz32(lanes), lane = 1 << index, expirationTime = expirationTimes[index];
+				var index$1 = 31 - clz32(lanes), lane = 1 << index$1, expirationTime = expirationTimes[index$1];
 				if (-1 === expirationTime) {
-					if (0 === (lane & suspendedLanes) || 0 !== (lane & pingedLanes)) expirationTimes[index] = computeExpirationTime(lane, currentTime);
+					if (0 === (lane & suspendedLanes) || 0 !== (lane & pingedLanes)) expirationTimes[index$1] = computeExpirationTime(lane, currentTime);
 				} else expirationTime <= currentTime && (root$1.expiredLanes |= lane);
 				lanes &= ~lane;
 			}
@@ -14596,9 +14596,9 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				mountHookTypesDev();
 				return mountOptimistic(passthrough);
 			},
-			useMemoCache: function(size) {
+			useMemoCache: function(size$3) {
 				warnInvalidHookAccess();
-				return useMemoCache(size);
+				return useMemoCache(size$3);
 			},
 			useHostTransitionStatus,
 			useCacheRefresh: function() {
@@ -14747,9 +14747,9 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				updateHookTypesDev();
 				return updateOptimistic(passthrough, reducer);
 			},
-			useMemoCache: function(size) {
+			useMemoCache: function(size$3) {
 				warnInvalidHookAccess();
-				return useMemoCache(size);
+				return useMemoCache(size$3);
 			},
 			useHostTransitionStatus,
 			useCacheRefresh: function() {
@@ -14898,9 +14898,9 @@ var require_react_dom_client_development = /* @__PURE__ */ __commonJSMin(((expor
 				updateHookTypesDev();
 				return rerenderOptimistic(passthrough, reducer);
 			},
-			useMemoCache: function(size) {
+			useMemoCache: function(size$3) {
 				warnInvalidHookAccess();
-				return useMemoCache(size);
+				return useMemoCache(size$3);
 			},
 			useHostTransitionStatus,
 			useCacheRefresh: function() {
@@ -15451,11 +15451,11 @@ function warning(cond, message) {
 function createKey() {
 	return Math.random().toString(36).substring(2, 10);
 }
-function getHistoryState(location, index) {
+function getHistoryState(location, index$1) {
 	return {
 		usr: location.state,
 		key: location.key,
-		idx: index,
+		idx: index$1,
 		masked: location.unstable_mask ? {
 			pathname: location.pathname,
 			search: location.search,
@@ -15501,12 +15501,12 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options$
 	let globalHistory = window2.history;
 	let action = "POP";
 	let listener = null;
-	let index = getIndex();
-	if (index == null) {
-		index = 0;
+	let index$1 = getIndex();
+	if (index$1 == null) {
+		index$1 = 0;
 		globalHistory.replaceState({
 			...globalHistory.state,
-			idx: index
+			idx: index$1
 		}, "");
 	}
 	function getIndex() {
@@ -15515,8 +15515,8 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options$
 	function handlePop() {
 		action = "POP";
 		let nextIndex = getIndex();
-		let delta = nextIndex == null ? null : nextIndex - index;
-		index = nextIndex;
+		let delta = nextIndex == null ? null : nextIndex - index$1;
+		index$1 = nextIndex;
 		if (listener) listener({
 			action,
 			location: history.location,
@@ -15527,8 +15527,8 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options$
 		action = "PUSH";
 		let location = isLocation(to) ? to : createLocation(history.location, to, state);
 		if (validateLocation) validateLocation(location, to);
-		index = getIndex() + 1;
-		let historyState = getHistoryState(location, index);
+		index$1 = getIndex() + 1;
+		let historyState = getHistoryState(location, index$1);
 		let url = history.createHref(location.unstable_mask || location);
 		try {
 			globalHistory.pushState(historyState, "", url);
@@ -15546,8 +15546,8 @@ function getUrlBasedHistory(getLocation, createHref2, validateLocation, options$
 		action = "REPLACE";
 		let location = isLocation(to) ? to : createLocation(history.location, to, state);
 		if (validateLocation) validateLocation(location, to);
-		index = getIndex();
-		let historyState = getHistoryState(location, index);
+		index$1 = getIndex();
+		let historyState = getHistoryState(location, index$1);
 		let url = history.createHref(location.unstable_mask || location);
 		globalHistory.replaceState(historyState, "", url);
 		if (v5Compat && listener) listener({
@@ -15631,11 +15631,11 @@ function convertRouteMatchToUiMatch(match, loaderData) {
 	};
 }
 function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "", _hasParentOptionalSegments = false) {
-	let flattenRoute = (route, index, hasParentOptionalSegments = _hasParentOptionalSegments, relativePath) => {
+	let flattenRoute = (route, index$1, hasParentOptionalSegments = _hasParentOptionalSegments, relativePath) => {
 		let meta = {
 			relativePath: relativePath === void 0 ? route.path || "" : relativePath,
 			caseSensitive: route.caseSensitive === true,
-			childrenIndex: index,
+			childrenIndex: index$1,
 			route
 		};
 		if (meta.relativePath.startsWith("/")) {
@@ -15656,9 +15656,9 @@ function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "",
 			routesMeta
 		});
 	};
-	routes.forEach((route, index) => {
-		if (route.path === "" || !route.path?.includes("?")) flattenRoute(route, index);
-		else for (let exploded of explodeOptionalSegments(route.path)) flattenRoute(route, index, true, exploded);
+	routes.forEach((route, index$1) => {
+		if (route.path === "" || !route.path?.includes("?")) flattenRoute(route, index$1);
+		else for (let exploded of explodeOptionalSegments(route.path)) flattenRoute(route, index$1, true, exploded);
 	});
 	return branches;
 }
@@ -15685,11 +15685,11 @@ var emptySegmentValue = 1;
 var staticSegmentValue = 10;
 var splatPenalty = -2;
 var isSplat = (s) => s === "*";
-function computeScore(path, index) {
+function computeScore(path, index$1) {
 	let segments = path.split("/");
 	let initialScore = segments.length;
 	if (segments.some(isSplat)) initialScore += splatPenalty;
-	if (index) initialScore += indexRouteValue;
+	if (index$1) initialScore += indexRouteValue;
 	return segments.filter((s) => !isSplat(s)).reduce((score, segment) => score + (paramRe.test(segment) ? dynamicSegmentValue : segment === "" ? emptySegmentValue : staticSegmentValue), initialScore);
 }
 function compareIndexes(a, b) {
@@ -15740,12 +15740,12 @@ function matchPath(pattern, pathname) {
 	let pathnameBase = matchedPathname.replace(/(.)\/+$/, "$1");
 	let captureGroups = match.slice(1);
 	return {
-		params: compiledParams.reduce((memo2, { paramName, isOptional }, index) => {
+		params: compiledParams.reduce((memo2, { paramName, isOptional }, index$1) => {
 			if (paramName === "*") {
-				let splatValue = captureGroups[index] || "";
+				let splatValue = captureGroups[index$1] || "";
 				pathnameBase = matchedPathname.slice(0, matchedPathname.length - splatValue.length).replace(/(.)\/+$/, "$1");
 			}
-			const value = captureGroups[index];
+			const value = captureGroups[index$1];
 			if (isOptional && !value) memo2[paramName] = void 0;
 			else memo2[paramName] = (value || "").replace(/%2F/g, "/");
 			return memo2;
@@ -15758,13 +15758,13 @@ function matchPath(pattern, pathname) {
 function compilePath(path, caseSensitive = false, end = true) {
 	warning(path === "*" || !path.endsWith("*") || path.endsWith("/*"), `Route path "${path}" will be treated as if it were "${path.replace(/\*$/, "/*")}" because the \`*\` character must always follow a \`/\` in the pattern. To get rid of this warning, please change the route path to "${path.replace(/\*$/, "/*")}".`);
 	let params = [];
-	let regexpSource = "^" + path.replace(/\/*\*?$/, "").replace(/^\/*/, "/").replace(/[\\.*+^${}|()[\]]/g, "\\$&").replace(/\/:([\w-]+)(\?)?/g, (match, paramName, isOptional, index, str) => {
+	let regexpSource = "^" + path.replace(/\/*\*?$/, "").replace(/^\/*/, "/").replace(/[\\.*+^${}|()[\]]/g, "\\$&").replace(/\/:([\w-]+)(\?)?/g, (match, paramName, isOptional, index$1, str) => {
 		params.push({
 			paramName,
 			isOptional: isOptional != null
 		});
 		if (isOptional) {
-			let nextChar = str.charAt(index + match.length);
+			let nextChar = str.charAt(index$1 + match.length);
 			if (nextChar && nextChar !== "/") return "/([^\\/]*)";
 			return "(?:/([^\\/]*))?";
 		}
@@ -15821,7 +15821,7 @@ function getInvalidPathError(char, field, dest, path) {
 	return `Cannot include a '${char}' character in a manually specified \`to.${field}\` field [${JSON.stringify(path)}].  Please separate it out to the \`to.${dest}\` field. Alternatively you may provide the full path as a string in <Link to="..."> and the router will parse it for you.`;
 }
 function getPathContributingMatches(matches) {
-	return matches.filter((match, index) => index === 0 || match.route.path && match.route.path.length > 0);
+	return matches.filter((match, index$1) => index$1 === 0 || match.route.path && match.route.path.length > 0);
 }
 function getResolveToMatches(matches) {
 	let pathMatches = getPathContributingMatches(matches);
@@ -16206,7 +16206,7 @@ function _renderMatches(matches, parentMatches = [], dataRouterOpts) {
 			errorInfo
 		});
 	} : void 0;
-	return renderedMatches.reduceRight((outlet, match, index) => {
+	return renderedMatches.reduceRight((outlet, match, index$1) => {
 		let error;
 		let shouldRenderHydrateFallback = false;
 		let errorElement = null;
@@ -16215,17 +16215,17 @@ function _renderMatches(matches, parentMatches = [], dataRouterOpts) {
 			error = errors && match.route.id ? errors[match.route.id] : void 0;
 			errorElement = match.route.errorElement || defaultErrorElement;
 			if (renderFallback) {
-				if (fallbackIndex < 0 && index === 0) {
+				if (fallbackIndex < 0 && index$1 === 0) {
 					warningOnce("route-fallback", false, "No `HydrateFallback` element provided to render during initial hydration");
 					shouldRenderHydrateFallback = true;
 					hydrateFallbackElement = null;
-				} else if (fallbackIndex === index) {
+				} else if (fallbackIndex === index$1) {
 					shouldRenderHydrateFallback = true;
 					hydrateFallbackElement = match.route.hydrateFallbackElement || null;
 				}
 			}
 		}
-		let matches2 = parentMatches.concat(renderedMatches.slice(0, index + 1));
+		let matches2 = parentMatches.concat(renderedMatches.slice(0, index$1 + 1));
 		let getChildren = () => {
 			let children;
 			if (error) children = errorElement;
@@ -16243,7 +16243,7 @@ function _renderMatches(matches, parentMatches = [], dataRouterOpts) {
 				children
 			});
 		};
-		return dataRouterState && (match.route.ErrorBoundary || match.route.errorElement || index === 0) ? /* @__PURE__ */ import_react.createElement(RenderErrorBoundary, {
+		return dataRouterState && (match.route.ErrorBoundary || match.route.errorElement || index$1 === 0) ? /* @__PURE__ */ import_react.createElement(RenderErrorBoundary, {
 			location: dataRouterState.location,
 			revalidation: dataRouterState.revalidation,
 			component: errorElement,
@@ -16392,9 +16392,9 @@ function Routes({ children, location }) {
 }
 function createRoutesFromChildren(children, parentPath = []) {
 	let routes = [];
-	import_react.Children.forEach(children, (element, index) => {
+	import_react.Children.forEach(children, (element, index$1) => {
 		if (!import_react.isValidElement(element)) return;
-		let treePath = [...parentPath, index];
+		let treePath = [...parentPath, index$1];
 		if (element.type === import_react.Fragment) {
 			routes.push.apply(routes, createRoutesFromChildren(element.props.children, treePath));
 			return;
@@ -16582,18 +16582,18 @@ async function getKeyedPrefetchLinks(matches, manifest, routeModules) {
 	}));
 }
 function getNewMatchesForLinks(page, nextMatches, currentMatches, manifest, location, mode) {
-	let isNew = (match, index) => {
-		if (!currentMatches[index]) return true;
-		return match.route.id !== currentMatches[index].route.id;
+	let isNew = (match, index$1) => {
+		if (!currentMatches[index$1]) return true;
+		return match.route.id !== currentMatches[index$1].route.id;
 	};
-	let matchPathChanged = (match, index) => {
-		return currentMatches[index].pathname !== match.pathname || currentMatches[index].route.path?.endsWith("*") && currentMatches[index].params["*"] !== match.params["*"];
+	let matchPathChanged = (match, index$1) => {
+		return currentMatches[index$1].pathname !== match.pathname || currentMatches[index$1].route.path?.endsWith("*") && currentMatches[index$1].params["*"] !== match.params["*"];
 	};
-	if (mode === "assets") return nextMatches.filter((match, index) => isNew(match, index) || matchPathChanged(match, index));
-	if (mode === "data") return nextMatches.filter((match, index) => {
+	if (mode === "assets") return nextMatches.filter((match, index$1) => isNew(match, index$1) || matchPathChanged(match, index$1));
+	if (mode === "data") return nextMatches.filter((match, index$1) => {
 		let manifestRoute = manifest.routes[match.route.id];
 		if (!manifestRoute || !manifestRoute.hasLoader) return false;
-		if (isNew(match, index) || matchPathChanged(match, index)) return true;
+		if (isNew(match, index$1) || matchPathChanged(match, index$1)) return true;
 		if (match.route.shouldRevalidate) {
 			let routeChoice = match.route.shouldRevalidate({
 				currentUrl: new URL(location.pathname + location.search + location.hash, window.origin),
@@ -17255,7 +17255,735 @@ function useViewTransitionState(to, { relative } = {}) {
 	let nextPath = stripBasename(vtContext.nextLocation.pathname, basename) || vtContext.nextLocation.pathname;
 	return matchPath(path.pathname, nextPath) != null || matchPath(path.pathname, currentPath) != null;
 }
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var mergeClasses = (...classes) => classes.filter((className, index$1, array) => {
+	return Boolean(className) && className.trim() !== "" && array.indexOf(className) === index$1;
+}).join(" ").trim();
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var toCamelCase = (string) => string.replace(/^([A-Z])|[\s-_]+(\w)/g, (match, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase());
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var toPascalCase = (string) => {
+	const camelCase = toCamelCase(string);
+	return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+};
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var defaultAttributes = {
+	xmlns: "http://www.w3.org/2000/svg",
+	width: 24,
+	height: 24,
+	viewBox: "0 0 24 24",
+	fill: "none",
+	stroke: "currentColor",
+	strokeWidth: 2,
+	strokeLinecap: "round",
+	strokeLinejoin: "round"
+};
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var hasA11yProp = (props) => {
+	for (const prop in props) if (prop.startsWith("aria-") || prop === "role" || prop === "title") return true;
+	return false;
+};
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var Icon = (0, import_react.forwardRef)(({ color = "currentColor", size: size$3 = 24, strokeWidth = 2, absoluteStrokeWidth, className = "", children, iconNode, ...rest }, ref) => (0, import_react.createElement)("svg", {
+	ref,
+	...defaultAttributes,
+	width: size$3,
+	height: size$3,
+	stroke: color,
+	strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size$3) : strokeWidth,
+	className: mergeClasses("lucide", className),
+	...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
+	...rest
+}, [...iconNode.map(([tag, attrs]) => (0, import_react.createElement)(tag, attrs)), ...Array.isArray(children) ? children : [children]]));
+/**
+* @license lucide-react v0.575.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var createLucideIcon = (iconName, iconNode) => {
+	const Component = (0, import_react.forwardRef)(({ className, ...props }, ref) => (0, import_react.createElement)(Icon, {
+		ref,
+		iconNode,
+		className: mergeClasses(`lucide-${toKebabCase(toPascalCase(iconName))}`, `lucide-${iconName}`, className),
+		...props
+	}));
+	Component.displayName = toPascalCase(iconName);
+	return Component;
+};
+var ArrowLeft = createLucideIcon("arrow-left", [["path", {
+	d: "m12 19-7-7 7-7",
+	key: "1l729n"
+}], ["path", {
+	d: "M19 12H5",
+	key: "x3x0zl"
+}]]);
+var Bell = createLucideIcon("bell", [["path", {
+	d: "M10.268 21a2 2 0 0 0 3.464 0",
+	key: "vwvbt9"
+}], ["path", {
+	d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
+	key: "11g9vi"
+}]]);
+var Briefcase = createLucideIcon("briefcase", [["path", {
+	d: "M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16",
+	key: "jecpp"
+}], ["rect", {
+	width: "20",
+	height: "14",
+	x: "2",
+	y: "6",
+	rx: "2",
+	key: "i6l2r4"
+}]]);
+var Calendar = createLucideIcon("calendar", [
+	["path", {
+		d: "M8 2v4",
+		key: "1cmpym"
+	}],
+	["path", {
+		d: "M16 2v4",
+		key: "4m81vk"
+	}],
+	["rect", {
+		width: "18",
+		height: "18",
+		x: "3",
+		y: "4",
+		rx: "2",
+		key: "1hopcy"
+	}],
+	["path", {
+		d: "M3 10h18",
+		key: "8toen8"
+	}]
+]);
+var Check = createLucideIcon("check", [["path", {
+	d: "M20 6 9 17l-5-5",
+	key: "1gmf2c"
+}]]);
+var CircleAlert = createLucideIcon("circle-alert", [
+	["circle", {
+		cx: "12",
+		cy: "12",
+		r: "10",
+		key: "1mglay"
+	}],
+	["line", {
+		x1: "12",
+		x2: "12",
+		y1: "8",
+		y2: "12",
+		key: "1pkeuh"
+	}],
+	["line", {
+		x1: "12",
+		x2: "12.01",
+		y1: "16",
+		y2: "16",
+		key: "4dfq90"
+	}]
+]);
+var CircleUser = createLucideIcon("circle-user", [
+	["circle", {
+		cx: "12",
+		cy: "12",
+		r: "10",
+		key: "1mglay"
+	}],
+	["circle", {
+		cx: "12",
+		cy: "10",
+		r: "3",
+		key: "ilqhr7"
+	}],
+	["path", {
+		d: "M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662",
+		key: "154egf"
+	}]
+]);
+var DollarSign = createLucideIcon("dollar-sign", [["line", {
+	x1: "12",
+	x2: "12",
+	y1: "2",
+	y2: "22",
+	key: "7eqyqh"
+}], ["path", {
+	d: "M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+	key: "1b0p4s"
+}]]);
+var Download = createLucideIcon("download", [
+	["path", {
+		d: "M12 15V3",
+		key: "m9g1x1"
+	}],
+	["path", {
+		d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+		key: "ih7n3h"
+	}],
+	["path", {
+		d: "m7 10 5 5 5-5",
+		key: "brsn70"
+	}]
+]);
+var FileText = createLucideIcon("file-text", [
+	["path", {
+		d: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
+		key: "1oefj6"
+	}],
+	["path", {
+		d: "M14 2v5a1 1 0 0 0 1 1h5",
+		key: "wfsgrz"
+	}],
+	["path", {
+		d: "M10 9H8",
+		key: "b1mrlr"
+	}],
+	["path", {
+		d: "M16 13H8",
+		key: "t4e002"
+	}],
+	["path", {
+		d: "M16 17H8",
+		key: "z1uh3a"
+	}]
+]);
+var LayoutDashboard = createLucideIcon("layout-dashboard", [
+	["rect", {
+		width: "7",
+		height: "9",
+		x: "3",
+		y: "3",
+		rx: "1",
+		key: "10lvy0"
+	}],
+	["rect", {
+		width: "7",
+		height: "5",
+		x: "14",
+		y: "3",
+		rx: "1",
+		key: "16une8"
+	}],
+	["rect", {
+		width: "7",
+		height: "9",
+		x: "14",
+		y: "12",
+		rx: "1",
+		key: "1hutg5"
+	}],
+	["rect", {
+		width: "7",
+		height: "5",
+		x: "3",
+		y: "16",
+		rx: "1",
+		key: "ldoo1y"
+	}]
+]);
+var ListTodo = createLucideIcon("list-todo", [
+	["path", {
+		d: "M13 5h8",
+		key: "a7qcls"
+	}],
+	["path", {
+		d: "M13 12h8",
+		key: "h98zly"
+	}],
+	["path", {
+		d: "M13 19h8",
+		key: "c3s6r1"
+	}],
+	["path", {
+		d: "m3 17 2 2 4-4",
+		key: "1jhpwq"
+	}],
+	["rect", {
+		x: "3",
+		y: "4",
+		width: "6",
+		height: "6",
+		rx: "1",
+		key: "cif1o7"
+	}]
+]);
+var Mail = createLucideIcon("mail", [["path", {
+	d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7",
+	key: "132q7q"
+}], ["rect", {
+	x: "2",
+	y: "4",
+	width: "20",
+	height: "16",
+	rx: "2",
+	key: "izxlao"
+}]]);
+var PackageOpen = createLucideIcon("package-open", [
+	["path", {
+		d: "M12 22v-9",
+		key: "x3hkom"
+	}],
+	["path", {
+		d: "M15.17 2.21a1.67 1.67 0 0 1 1.63 0L21 4.57a1.93 1.93 0 0 1 0 3.36L8.82 14.79a1.655 1.655 0 0 1-1.64 0L3 12.43a1.93 1.93 0 0 1 0-3.36z",
+		key: "2ntwy6"
+	}],
+	["path", {
+		d: "M20 13v3.87a2.06 2.06 0 0 1-1.11 1.83l-6 3.08a1.93 1.93 0 0 1-1.78 0l-6-3.08A2.06 2.06 0 0 1 4 16.87V13",
+		key: "1pmm1c"
+	}],
+	["path", {
+		d: "M21 12.43a1.93 1.93 0 0 0 0-3.36L8.83 2.2a1.64 1.64 0 0 0-1.63 0L3 4.57a1.93 1.93 0 0 0 0 3.36l12.18 6.86a1.636 1.636 0 0 0 1.63 0z",
+		key: "12ttoo"
+	}]
+]);
+var Package = createLucideIcon("package", [
+	["path", {
+		d: "M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z",
+		key: "1a0edw"
+	}],
+	["path", {
+		d: "M12 22V12",
+		key: "d0xqtd"
+	}],
+	["polyline", {
+		points: "3.29 7 12 12 20.71 7",
+		key: "ousv84"
+	}],
+	["path", {
+		d: "m7.5 4.27 9 5.15",
+		key: "1c824w"
+	}]
+]);
+var PanelLeft = createLucideIcon("panel-left", [["rect", {
+	width: "18",
+	height: "18",
+	x: "3",
+	y: "3",
+	rx: "2",
+	key: "afitv7"
+}], ["path", {
+	d: "M9 3v18",
+	key: "fh3hqa"
+}]]);
+var Phone = createLucideIcon("phone", [["path", {
+	d: "M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384",
+	key: "9njp5v"
+}]]);
+var Plus = createLucideIcon("plus", [["path", {
+	d: "M5 12h14",
+	key: "1ays0h"
+}], ["path", {
+	d: "M12 5v14",
+	key: "s699le"
+}]]);
+var Search = createLucideIcon("search", [["path", {
+	d: "m21 21-4.34-4.34",
+	key: "14j7rj"
+}], ["circle", {
+	cx: "11",
+	cy: "11",
+	r: "8",
+	key: "4ej97u"
+}]]);
+var TrendingDown = createLucideIcon("trending-down", [["path", {
+	d: "M16 17h6v-6",
+	key: "t6n2it"
+}], ["path", {
+	d: "m22 17-8.5-8.5-5 5L2 7",
+	key: "x473p"
+}]]);
+var User = createLucideIcon("user", [["path", {
+	d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2",
+	key: "975kel"
+}], ["circle", {
+	cx: "12",
+	cy: "7",
+	r: "4",
+	key: "17ys0d"
+}]]);
+var Users = createLucideIcon("users", [
+	["path", {
+		d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2",
+		key: "1yyitq"
+	}],
+	["path", {
+		d: "M16 3.128a4 4 0 0 1 0 7.744",
+		key: "16gr8j"
+	}],
+	["path", {
+		d: "M22 21v-2a4 4 0 0 0-3-3.87",
+		key: "kshegd"
+	}],
+	["circle", {
+		cx: "9",
+		cy: "7",
+		r: "4",
+		key: "nufk8"
+	}]
+]);
+var X = createLucideIcon("x", [["path", {
+	d: "M18 6 6 18",
+	key: "1bl5f8"
+}], ["path", {
+	d: "m6 6 12 12",
+	key: "d8bk6v"
+}]]);
 var import_client = require_client();
+var nuvia_logo__horizontal_by_souza_filho_original_5cc4a_default = "/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a-ClEs4yqt.png";
+function setRef(ref, value) {
+	if (typeof ref === "function") return ref(value);
+	else if (ref !== null && ref !== void 0) ref.current = value;
+}
+function composeRefs(...refs) {
+	return (node) => {
+		let hasCleanup = false;
+		const cleanups = refs.map((ref) => {
+			const cleanup = setRef(ref, node);
+			if (!hasCleanup && typeof cleanup == "function") hasCleanup = true;
+			return cleanup;
+		});
+		if (hasCleanup) return () => {
+			for (let i = 0; i < cleanups.length; i++) {
+				const cleanup = cleanups[i];
+				if (typeof cleanup == "function") cleanup();
+				else setRef(refs[i], null);
+			}
+		};
+	};
+}
+function useComposedRefs(...refs) {
+	return import_react.useCallback(composeRefs(...refs), refs);
+}
+/**
+* @license React
+* react-jsx-runtime.development.js
+*
+* Copyright (c) Meta Platforms, Inc. and affiliates.
+*
+* This source code is licensed under the MIT license found in the
+* LICENSE file in the root directory of this source tree.
+*/
+var require_react_jsx_runtime_development = /* @__PURE__ */ __commonJSMin(((exports) => {
+	(function() {
+		function getComponentNameFromType(type) {
+			if (null == type) return null;
+			if ("function" === typeof type) return type.$$typeof === REACT_CLIENT_REFERENCE ? null : type.displayName || type.name || null;
+			if ("string" === typeof type) return type;
+			switch (type) {
+				case REACT_FRAGMENT_TYPE: return "Fragment";
+				case REACT_PROFILER_TYPE: return "Profiler";
+				case REACT_STRICT_MODE_TYPE: return "StrictMode";
+				case REACT_SUSPENSE_TYPE: return "Suspense";
+				case REACT_SUSPENSE_LIST_TYPE: return "SuspenseList";
+				case REACT_ACTIVITY_TYPE: return "Activity";
+			}
+			if ("object" === typeof type) switch ("number" === typeof type.tag && console.error("Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue."), type.$$typeof) {
+				case REACT_PORTAL_TYPE: return "Portal";
+				case REACT_CONTEXT_TYPE: return type.displayName || "Context";
+				case REACT_CONSUMER_TYPE: return (type._context.displayName || "Context") + ".Consumer";
+				case REACT_FORWARD_REF_TYPE:
+					var innerType = type.render;
+					type = type.displayName;
+					type || (type = innerType.displayName || innerType.name || "", type = "" !== type ? "ForwardRef(" + type + ")" : "ForwardRef");
+					return type;
+				case REACT_MEMO_TYPE: return innerType = type.displayName || null, null !== innerType ? innerType : getComponentNameFromType(type.type) || "Memo";
+				case REACT_LAZY_TYPE$1:
+					innerType = type._payload;
+					type = type._init;
+					try {
+						return getComponentNameFromType(type(innerType));
+					} catch (x) {}
+			}
+			return null;
+		}
+		function testStringCoercion(value) {
+			return "" + value;
+		}
+		function checkKeyStringCoercion(value) {
+			try {
+				testStringCoercion(value);
+				var JSCompiler_inline_result = !1;
+			} catch (e) {
+				JSCompiler_inline_result = !0;
+			}
+			if (JSCompiler_inline_result) {
+				JSCompiler_inline_result = console;
+				var JSCompiler_temp_const = JSCompiler_inline_result.error;
+				var JSCompiler_inline_result$jscomp$0 = "function" === typeof Symbol && Symbol.toStringTag && value[Symbol.toStringTag] || value.constructor.name || "Object";
+				JSCompiler_temp_const.call(JSCompiler_inline_result, "The provided key is an unsupported type %s. This value must be coerced to a string before using it here.", JSCompiler_inline_result$jscomp$0);
+				return testStringCoercion(value);
+			}
+		}
+		function getTaskName(type) {
+			if (type === REACT_FRAGMENT_TYPE) return "<>";
+			if ("object" === typeof type && null !== type && type.$$typeof === REACT_LAZY_TYPE$1) return "<...>";
+			try {
+				var name = getComponentNameFromType(type);
+				return name ? "<" + name + ">" : "<...>";
+			} catch (x) {
+				return "<...>";
+			}
+		}
+		function getOwner() {
+			var dispatcher = ReactSharedInternals.A;
+			return null === dispatcher ? null : dispatcher.getOwner();
+		}
+		function UnknownOwner() {
+			return Error("react-stack-top-frame");
+		}
+		function hasValidKey(config) {
+			if (hasOwnProperty.call(config, "key")) {
+				var getter = Object.getOwnPropertyDescriptor(config, "key").get;
+				if (getter && getter.isReactWarning) return !1;
+			}
+			return void 0 !== config.key;
+		}
+		function defineKeyPropWarningGetter(props, displayName) {
+			function warnAboutAccessingKey() {
+				specialPropKeyWarningShown || (specialPropKeyWarningShown = !0, console.error("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://react.dev/link/special-props)", displayName));
+			}
+			warnAboutAccessingKey.isReactWarning = !0;
+			Object.defineProperty(props, "key", {
+				get: warnAboutAccessingKey,
+				configurable: !0
+			});
+		}
+		function elementRefGetterWithDeprecationWarning() {
+			var componentName = getComponentNameFromType(this.type);
+			didWarnAboutElementRef[componentName] || (didWarnAboutElementRef[componentName] = !0, console.error("Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release."));
+			componentName = this.props.ref;
+			return void 0 !== componentName ? componentName : null;
+		}
+		function ReactElement(type, key, props, owner, debugStack, debugTask) {
+			var refProp = props.ref;
+			type = {
+				$$typeof: REACT_ELEMENT_TYPE,
+				type,
+				key,
+				props,
+				_owner: owner
+			};
+			null !== (void 0 !== refProp ? refProp : null) ? Object.defineProperty(type, "ref", {
+				enumerable: !1,
+				get: elementRefGetterWithDeprecationWarning
+			}) : Object.defineProperty(type, "ref", {
+				enumerable: !1,
+				value: null
+			});
+			type._store = {};
+			Object.defineProperty(type._store, "validated", {
+				configurable: !1,
+				enumerable: !1,
+				writable: !0,
+				value: 0
+			});
+			Object.defineProperty(type, "_debugInfo", {
+				configurable: !1,
+				enumerable: !1,
+				writable: !0,
+				value: null
+			});
+			Object.defineProperty(type, "_debugStack", {
+				configurable: !1,
+				enumerable: !1,
+				writable: !0,
+				value: debugStack
+			});
+			Object.defineProperty(type, "_debugTask", {
+				configurable: !1,
+				enumerable: !1,
+				writable: !0,
+				value: debugTask
+			});
+			Object.freeze && (Object.freeze(type.props), Object.freeze(type));
+			return type;
+		}
+		function jsxDEVImpl(type, config, maybeKey, isStaticChildren, debugStack, debugTask) {
+			var children = config.children;
+			if (void 0 !== children) if (isStaticChildren) if (isArrayImpl(children)) {
+				for (isStaticChildren = 0; isStaticChildren < children.length; isStaticChildren++) validateChildKeys(children[isStaticChildren]);
+				Object.freeze && Object.freeze(children);
+			} else console.error("React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead.");
+			else validateChildKeys(children);
+			if (hasOwnProperty.call(config, "key")) {
+				children = getComponentNameFromType(type);
+				var keys = Object.keys(config).filter(function(k) {
+					return "key" !== k;
+				});
+				isStaticChildren = 0 < keys.length ? "{key: someKey, " + keys.join(": ..., ") + ": ...}" : "{key: someKey}";
+				didWarnAboutKeySpread[children + isStaticChildren] || (keys = 0 < keys.length ? "{" + keys.join(": ..., ") + ": ...}" : "{}", console.error("A props object containing a \"key\" prop is being spread into JSX:\n  let props = %s;\n  <%s {...props} />\nReact keys must be passed directly to JSX without using spread:\n  let props = %s;\n  <%s key={someKey} {...props} />", isStaticChildren, children, keys, children), didWarnAboutKeySpread[children + isStaticChildren] = !0);
+			}
+			children = null;
+			void 0 !== maybeKey && (checkKeyStringCoercion(maybeKey), children = "" + maybeKey);
+			hasValidKey(config) && (checkKeyStringCoercion(config.key), children = "" + config.key);
+			if ("key" in config) {
+				maybeKey = {};
+				for (var propName in config) "key" !== propName && (maybeKey[propName] = config[propName]);
+			} else maybeKey = config;
+			children && defineKeyPropWarningGetter(maybeKey, "function" === typeof type ? type.displayName || type.name || "Unknown" : type);
+			return ReactElement(type, children, maybeKey, getOwner(), debugStack, debugTask);
+		}
+		function validateChildKeys(node) {
+			isValidElement(node) ? node._store && (node._store.validated = 1) : "object" === typeof node && null !== node && node.$$typeof === REACT_LAZY_TYPE$1 && ("fulfilled" === node._payload.status ? isValidElement(node._payload.value) && node._payload.value._store && (node._payload.value._store.validated = 1) : node._store && (node._store.validated = 1));
+		}
+		function isValidElement(object) {
+			return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
+		}
+		var React$2 = require_react(), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE$1 = Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = React$2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
+			return null;
+		};
+		React$2 = { react_stack_bottom_frame: function(callStackForError) {
+			return callStackForError();
+		} };
+		var specialPropKeyWarningShown;
+		var didWarnAboutElementRef = {};
+		var unknownOwnerDebugStack = React$2.react_stack_bottom_frame.bind(React$2, UnknownOwner)();
+		var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
+		var didWarnAboutKeySpread = {};
+		exports.Fragment = REACT_FRAGMENT_TYPE;
+		exports.jsx = function(type, config, maybeKey) {
+			var trackActualOwner = 1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
+			return jsxDEVImpl(type, config, maybeKey, !1, trackActualOwner ? Error("react-stack-top-frame") : unknownOwnerDebugStack, trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask);
+		};
+		exports.jsxs = function(type, config, maybeKey) {
+			var trackActualOwner = 1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
+			return jsxDEVImpl(type, config, maybeKey, !0, trackActualOwner ? Error("react-stack-top-frame") : unknownOwnerDebugStack, trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask);
+		};
+	})();
+}));
+var import_jsx_runtime = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
+	module.exports = require_react_jsx_runtime_development();
+})))(), 1);
+var REACT_LAZY_TYPE = Symbol.for("react.lazy");
+var use = import_react[" use ".trim().toString()];
+function isPromiseLike(value) {
+	return typeof value === "object" && value !== null && "then" in value;
+}
+function isLazyComponent(element) {
+	return element != null && typeof element === "object" && "$$typeof" in element && element.$$typeof === REACT_LAZY_TYPE && "_payload" in element && isPromiseLike(element._payload);
+}
+/* @__NO_SIDE_EFFECTS__ */
+function createSlot$1(ownerName) {
+	const SlotClone = /* @__PURE__ */ createSlotClone$1(ownerName);
+	const Slot2 = import_react.forwardRef((props, forwardedRef) => {
+		let { children, ...slotProps } = props;
+		if (isLazyComponent(children) && typeof use === "function") children = use(children._payload);
+		const childrenArray = import_react.Children.toArray(children);
+		const slottable = childrenArray.find(isSlottable$1);
+		if (slottable) {
+			const newElement = slottable.props.children;
+			const newChildren = childrenArray.map((child) => {
+				if (child === slottable) {
+					if (import_react.Children.count(newElement) > 1) return import_react.Children.only(null);
+					return import_react.isValidElement(newElement) ? newElement.props.children : null;
+				} else return child;
+			});
+			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlotClone, {
+				...slotProps,
+				ref: forwardedRef,
+				children: import_react.isValidElement(newElement) ? import_react.cloneElement(newElement, void 0, newChildren) : null
+			});
+		}
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlotClone, {
+			...slotProps,
+			ref: forwardedRef,
+			children
+		});
+	});
+	Slot2.displayName = `${ownerName}.Slot`;
+	return Slot2;
+}
+var Slot = /* @__PURE__ */ createSlot$1("Slot");
+/* @__NO_SIDE_EFFECTS__ */
+function createSlotClone$1(ownerName) {
+	const SlotClone = import_react.forwardRef((props, forwardedRef) => {
+		let { children, ...slotProps } = props;
+		if (isLazyComponent(children) && typeof use === "function") children = use(children._payload);
+		if (import_react.isValidElement(children)) {
+			const childrenRef = getElementRef$2(children);
+			const props2 = mergeProps$1(slotProps, children.props);
+			if (children.type !== import_react.Fragment) props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
+			return import_react.cloneElement(children, props2);
+		}
+		return import_react.Children.count(children) > 1 ? import_react.Children.only(null) : null;
+	});
+	SlotClone.displayName = `${ownerName}.SlotClone`;
+	return SlotClone;
+}
+var SLOTTABLE_IDENTIFIER$1 = Symbol("radix.slottable");
+function isSlottable$1(child) {
+	return import_react.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER$1;
+}
+function mergeProps$1(slotProps, childProps) {
+	const overrideProps = { ...childProps };
+	for (const propName in childProps) {
+		const slotPropValue = slotProps[propName];
+		const childPropValue = childProps[propName];
+		if (/^on[A-Z]/.test(propName)) {
+			if (slotPropValue && childPropValue) overrideProps[propName] = (...args) => {
+				const result = childPropValue(...args);
+				slotPropValue(...args);
+				return result;
+			};
+			else if (slotPropValue) overrideProps[propName] = slotPropValue;
+		} else if (propName === "style") overrideProps[propName] = {
+			...slotPropValue,
+			...childPropValue
+		};
+		else if (propName === "className") overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
+	}
+	return {
+		...slotProps,
+		...overrideProps
+	};
+}
+function getElementRef$2(element) {
+	let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
+	let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+	if (mayWarn) return element.ref;
+	getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
+	mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+	if (mayWarn) return element.props.ref;
+	return element.props.ref || element.ref;
+}
 function r(e) {
 	var t, f, n = "";
 	if ("string" == typeof e || "number" == typeof e) n += e;
@@ -17269,6 +17997,43 @@ function clsx() {
 	for (var e, t, f = 0, n = "", o = arguments.length; f < o; f++) (e = arguments[f]) && (t = r(e)) && (n && (n += " "), n += t);
 	return n;
 }
+var falsyToString = (value) => typeof value === "boolean" ? `${value}` : value === 0 ? "0" : value;
+const cx = clsx;
+const cva = (base, config) => (props) => {
+	var _config_compoundVariants;
+	if ((config === null || config === void 0 ? void 0 : config.variants) == null) return cx(base, props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
+	const { variants, defaultVariants } = config;
+	const getVariantClassNames = Object.keys(variants).map((variant) => {
+		const variantProp = props === null || props === void 0 ? void 0 : props[variant];
+		const defaultVariantProp = defaultVariants === null || defaultVariants === void 0 ? void 0 : defaultVariants[variant];
+		if (variantProp === null) return null;
+		const variantKey = falsyToString(variantProp) || falsyToString(defaultVariantProp);
+		return variants[variant][variantKey];
+	});
+	const propsWithoutUndefined = props && Object.entries(props).reduce((acc, param) => {
+		let [key, value] = param;
+		if (value === void 0) return acc;
+		acc[key] = value;
+		return acc;
+	}, {});
+	return cx(base, getVariantClassNames, config === null || config === void 0 ? void 0 : (_config_compoundVariants = config.compoundVariants) === null || _config_compoundVariants === void 0 ? void 0 : _config_compoundVariants.reduce((acc, param) => {
+		let { class: cvClass, className: cvClassName, ...compoundVariantOptions } = param;
+		return Object.entries(compoundVariantOptions).every((param$1) => {
+			let [key, value] = param$1;
+			return Array.isArray(value) ? value.includes({
+				...defaultVariants,
+				...propsWithoutUndefined
+			}[key]) : {
+				...defaultVariants,
+				...propsWithoutUndefined
+			}[key] === value;
+		}) ? [
+			...acc,
+			cvClass,
+			cvClassName
+		] : acc;
+	}, []), props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
+};
 var CLASS_PART_SEPARATOR = "-";
 var createClassGroupUtils = (config) => {
 	const classMap = createClassMap(config);
@@ -17405,16 +18170,16 @@ var createParseClassName = (config) => {
 		let bracketDepth = 0;
 		let modifierStart = 0;
 		let postfixModifierPosition;
-		for (let index = 0; index < className.length; index++) {
-			let currentCharacter = className[index];
+		for (let index$1 = 0; index$1 < className.length; index$1++) {
+			let currentCharacter = className[index$1];
 			if (bracketDepth === 0) {
-				if (currentCharacter === firstSeparatorCharacter && (isSeparatorSingleCharacter || className.slice(index, index + separatorLength) === separator)) {
-					modifiers.push(className.slice(modifierStart, index));
-					modifierStart = index + separatorLength;
+				if (currentCharacter === firstSeparatorCharacter && (isSeparatorSingleCharacter || className.slice(index$1, index$1 + separatorLength) === separator)) {
+					modifiers.push(className.slice(modifierStart, index$1));
+					modifierStart = index$1 + separatorLength;
 					continue;
 				}
 				if (currentCharacter === "/") {
-					postfixModifierPosition = index;
+					postfixModifierPosition = index$1;
 					continue;
 				}
 			}
@@ -17460,8 +18225,8 @@ var mergeClassList = (classList, configUtils) => {
 	const classGroupsInConflict = [];
 	const classNames = classList.trim().split(SPLIT_CLASSES_REGEX);
 	let result = "";
-	for (let index = classNames.length - 1; index >= 0; index -= 1) {
-		const originalClassName = classNames[index];
+	for (let index$1 = classNames.length - 1; index$1 >= 0; index$1 -= 1) {
+		const originalClassName = classNames[index$1];
 		const { modifiers, hasImportantModifier, baseClassName, maybePostfixModifierPosition } = parseClassName(originalClassName);
 		let hasPostfixModifier = Boolean(maybePostfixModifierPosition);
 		let classGroupId = getClassGroupId(hasPostfixModifier ? baseClassName.substring(0, maybePostfixModifierPosition) : baseClassName);
@@ -17492,11 +18257,11 @@ var mergeClassList = (classList, configUtils) => {
 	return result;
 };
 function twJoin() {
-	let index = 0;
+	let index$1 = 0;
 	let argument;
 	let resolvedValue;
 	let string = "";
-	while (index < arguments.length) if (argument = arguments[index++]) {
+	while (index$1 < arguments.length) if (argument = arguments[index$1++]) {
 		if (resolvedValue = toValue(argument)) {
 			string && (string += " ");
 			string += resolvedValue;
@@ -18657,851 +19422,6 @@ var twMerge = /* @__PURE__ */ createTailwindMerge(getDefaultConfig);
 function cn(...inputs) {
 	return twMerge(clsx(inputs));
 }
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var mergeClasses = (...classes) => classes.filter((className, index, array) => {
-	return Boolean(className) && className.trim() !== "" && array.indexOf(className) === index;
-}).join(" ").trim();
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var toCamelCase = (string) => string.replace(/^([A-Z])|[\s-_]+(\w)/g, (match, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase());
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var toPascalCase = (string) => {
-	const camelCase = toCamelCase(string);
-	return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
-};
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var defaultAttributes = {
-	xmlns: "http://www.w3.org/2000/svg",
-	width: 24,
-	height: 24,
-	viewBox: "0 0 24 24",
-	fill: "none",
-	stroke: "currentColor",
-	strokeWidth: 2,
-	strokeLinecap: "round",
-	strokeLinejoin: "round"
-};
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var hasA11yProp = (props) => {
-	for (const prop in props) if (prop.startsWith("aria-") || prop === "role" || prop === "title") return true;
-	return false;
-};
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var Icon = (0, import_react.forwardRef)(({ color = "currentColor", size = 24, strokeWidth = 2, absoluteStrokeWidth, className = "", children, iconNode, ...rest }, ref) => (0, import_react.createElement)("svg", {
-	ref,
-	...defaultAttributes,
-	width: size,
-	height: size,
-	stroke: color,
-	strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
-	className: mergeClasses("lucide", className),
-	...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
-	...rest
-}, [...iconNode.map(([tag, attrs]) => (0, import_react.createElement)(tag, attrs)), ...Array.isArray(children) ? children : [children]]));
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var createLucideIcon = (iconName, iconNode) => {
-	const Component = (0, import_react.forwardRef)(({ className, ...props }, ref) => (0, import_react.createElement)(Icon, {
-		ref,
-		iconNode,
-		className: mergeClasses(`lucide-${toKebabCase(toPascalCase(iconName))}`, `lucide-${iconName}`, className),
-		...props
-	}));
-	Component.displayName = toPascalCase(iconName);
-	return Component;
-};
-var Bell = createLucideIcon("bell", [["path", {
-	d: "M10.268 21a2 2 0 0 0 3.464 0",
-	key: "vwvbt9"
-}], ["path", {
-	d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
-	key: "11g9vi"
-}]]);
-var Briefcase = createLucideIcon("briefcase", [["path", {
-	d: "M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16",
-	key: "jecpp"
-}], ["rect", {
-	width: "20",
-	height: "14",
-	x: "2",
-	y: "6",
-	rx: "2",
-	key: "i6l2r4"
-}]]);
-var CalendarClock = createLucideIcon("calendar-clock", [
-	["path", {
-		d: "M16 14v2.2l1.6 1",
-		key: "fo4ql5"
-	}],
-	["path", {
-		d: "M16 2v4",
-		key: "4m81vk"
-	}],
-	["path", {
-		d: "M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5",
-		key: "1osxxc"
-	}],
-	["path", {
-		d: "M3 10h5",
-		key: "r794hk"
-	}],
-	["path", {
-		d: "M8 2v4",
-		key: "1cmpym"
-	}],
-	["circle", {
-		cx: "16",
-		cy: "16",
-		r: "6",
-		key: "qoo3c4"
-	}]
-]);
-var Check = createLucideIcon("check", [["path", {
-	d: "M20 6 9 17l-5-5",
-	key: "1gmf2c"
-}]]);
-var CircleAlert = createLucideIcon("circle-alert", [
-	["circle", {
-		cx: "12",
-		cy: "12",
-		r: "10",
-		key: "1mglay"
-	}],
-	["line", {
-		x1: "12",
-		x2: "12",
-		y1: "8",
-		y2: "12",
-		key: "1pkeuh"
-	}],
-	["line", {
-		x1: "12",
-		x2: "12.01",
-		y1: "16",
-		y2: "16",
-		key: "4dfq90"
-	}]
-]);
-var CircleDollarSign = createLucideIcon("circle-dollar-sign", [
-	["circle", {
-		cx: "12",
-		cy: "12",
-		r: "10",
-		key: "1mglay"
-	}],
-	["path", {
-		d: "M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8",
-		key: "1h4pet"
-	}],
-	["path", {
-		d: "M12 18V6",
-		key: "zqpxq5"
-	}]
-]);
-var CirclePlus = createLucideIcon("circle-plus", [
-	["circle", {
-		cx: "12",
-		cy: "12",
-		r: "10",
-		key: "1mglay"
-	}],
-	["path", {
-		d: "M8 12h8",
-		key: "1wcyev"
-	}],
-	["path", {
-		d: "M12 8v8",
-		key: "napkw2"
-	}]
-]);
-var Copy = createLucideIcon("copy", [["rect", {
-	width: "14",
-	height: "14",
-	x: "8",
-	y: "8",
-	rx: "2",
-	ry: "2",
-	key: "17jyea"
-}], ["path", {
-	d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2",
-	key: "zix9uf"
-}]]);
-var Download = createLucideIcon("download", [
-	["path", {
-		d: "M12 15V3",
-		key: "m9g1x1"
-	}],
-	["path", {
-		d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
-		key: "ih7n3h"
-	}],
-	["path", {
-		d: "m7 10 5 5 5-5",
-		key: "brsn70"
-	}]
-]);
-var EyeOff = createLucideIcon("eye-off", [
-	["path", {
-		d: "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49",
-		key: "ct8e1f"
-	}],
-	["path", {
-		d: "M14.084 14.158a3 3 0 0 1-4.242-4.242",
-		key: "151rxh"
-	}],
-	["path", {
-		d: "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143",
-		key: "13bj9a"
-	}],
-	["path", {
-		d: "m2 2 20 20",
-		key: "1ooewy"
-	}]
-]);
-var Eye = createLucideIcon("eye", [["path", {
-	d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
-	key: "1nclc0"
-}], ["circle", {
-	cx: "12",
-	cy: "12",
-	r: "3",
-	key: "1v7zrd"
-}]]);
-var FileText = createLucideIcon("file-text", [
-	["path", {
-		d: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
-		key: "1oefj6"
-	}],
-	["path", {
-		d: "M14 2v5a1 1 0 0 0 1 1h5",
-		key: "wfsgrz"
-	}],
-	["path", {
-		d: "M10 9H8",
-		key: "b1mrlr"
-	}],
-	["path", {
-		d: "M16 13H8",
-		key: "t4e002"
-	}],
-	["path", {
-		d: "M16 17H8",
-		key: "z1uh3a"
-	}]
-]);
-var KeyRound = createLucideIcon("key-round", [["path", {
-	d: "M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z",
-	key: "1s6t7t"
-}], ["circle", {
-	cx: "16.5",
-	cy: "7.5",
-	r: ".5",
-	fill: "currentColor",
-	key: "w0ekpg"
-}]]);
-var LayoutDashboard = createLucideIcon("layout-dashboard", [
-	["rect", {
-		width: "7",
-		height: "9",
-		x: "3",
-		y: "3",
-		rx: "1",
-		key: "10lvy0"
-	}],
-	["rect", {
-		width: "7",
-		height: "5",
-		x: "14",
-		y: "3",
-		rx: "1",
-		key: "16une8"
-	}],
-	["rect", {
-		width: "7",
-		height: "9",
-		x: "14",
-		y: "12",
-		rx: "1",
-		key: "1hutg5"
-	}],
-	["rect", {
-		width: "7",
-		height: "5",
-		x: "3",
-		y: "16",
-		rx: "1",
-		key: "ldoo1y"
-	}]
-]);
-var ListTodo = createLucideIcon("list-todo", [
-	["path", {
-		d: "M13 5h8",
-		key: "a7qcls"
-	}],
-	["path", {
-		d: "M13 12h8",
-		key: "h98zly"
-	}],
-	["path", {
-		d: "M13 19h8",
-		key: "c3s6r1"
-	}],
-	["path", {
-		d: "m3 17 2 2 4-4",
-		key: "1jhpwq"
-	}],
-	["rect", {
-		x: "3",
-		y: "4",
-		width: "6",
-		height: "6",
-		rx: "1",
-		key: "cif1o7"
-	}]
-]);
-var LogOut = createLucideIcon("log-out", [
-	["path", {
-		d: "m16 17 5-5-5-5",
-		key: "1bji2h"
-	}],
-	["path", {
-		d: "M21 12H9",
-		key: "dn1m92"
-	}],
-	["path", {
-		d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4",
-		key: "1uf3rs"
-	}]
-]);
-var Menu = createLucideIcon("menu", [
-	["path", {
-		d: "M4 5h16",
-		key: "1tepv9"
-	}],
-	["path", {
-		d: "M4 12h16",
-		key: "1lakjw"
-	}],
-	["path", {
-		d: "M4 19h16",
-		key: "1djgab"
-	}]
-]);
-var Search = createLucideIcon("search", [["path", {
-	d: "m21 21-4.34-4.34",
-	key: "14j7rj"
-}], ["circle", {
-	cx: "11",
-	cy: "11",
-	r: "8",
-	key: "4ej97u"
-}]]);
-var Stethoscope = createLucideIcon("stethoscope", [
-	["path", {
-		d: "M11 2v2",
-		key: "1539x4"
-	}],
-	["path", {
-		d: "M5 2v2",
-		key: "1yf1q8"
-	}],
-	["path", {
-		d: "M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1",
-		key: "rb5t3r"
-	}],
-	["path", {
-		d: "M8 15a6 6 0 0 0 12 0v-3",
-		key: "x18d4x"
-	}],
-	["circle", {
-		cx: "20",
-		cy: "10",
-		r: "2",
-		key: "ts1r5v"
-	}]
-]);
-var Target = createLucideIcon("target", [
-	["circle", {
-		cx: "12",
-		cy: "12",
-		r: "10",
-		key: "1mglay"
-	}],
-	["circle", {
-		cx: "12",
-		cy: "12",
-		r: "6",
-		key: "1vlfrh"
-	}],
-	["circle", {
-		cx: "12",
-		cy: "12",
-		r: "2",
-		key: "1c9p78"
-	}]
-]);
-var TrendingUp = createLucideIcon("trending-up", [["path", {
-	d: "M16 7h6v6",
-	key: "box55l"
-}], ["path", {
-	d: "m22 7-8.5 8.5-5-5L2 17",
-	key: "1t1m79"
-}]]);
-var UserPlus = createLucideIcon("user-plus", [
-	["path", {
-		d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2",
-		key: "1yyitq"
-	}],
-	["circle", {
-		cx: "9",
-		cy: "7",
-		r: "4",
-		key: "nufk8"
-	}],
-	["line", {
-		x1: "19",
-		x2: "19",
-		y1: "8",
-		y2: "14",
-		key: "1bvyxn"
-	}],
-	["line", {
-		x1: "22",
-		x2: "16",
-		y1: "11",
-		y2: "11",
-		key: "1shjgl"
-	}]
-]);
-var User = createLucideIcon("user", [["path", {
-	d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2",
-	key: "975kel"
-}], ["circle", {
-	cx: "12",
-	cy: "7",
-	r: "4",
-	key: "17ys0d"
-}]]);
-var Users = createLucideIcon("users", [
-	["path", {
-		d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2",
-		key: "1yyitq"
-	}],
-	["path", {
-		d: "M16 3.128a4 4 0 0 1 0 7.744",
-		key: "16gr8j"
-	}],
-	["path", {
-		d: "M22 21v-2a4 4 0 0 0-3-3.87",
-		key: "kshegd"
-	}],
-	["circle", {
-		cx: "9",
-		cy: "7",
-		r: "4",
-		key: "nufk8"
-	}]
-]);
-var X = createLucideIcon("x", [["path", {
-	d: "M18 6 6 18",
-	key: "1bl5f8"
-}], ["path", {
-	d: "m6 6 12 12",
-	key: "d8bk6v"
-}]]);
-function setRef(ref, value) {
-	if (typeof ref === "function") return ref(value);
-	else if (ref !== null && ref !== void 0) ref.current = value;
-}
-function composeRefs(...refs) {
-	return (node) => {
-		let hasCleanup = false;
-		const cleanups = refs.map((ref) => {
-			const cleanup = setRef(ref, node);
-			if (!hasCleanup && typeof cleanup == "function") hasCleanup = true;
-			return cleanup;
-		});
-		if (hasCleanup) return () => {
-			for (let i = 0; i < cleanups.length; i++) {
-				const cleanup = cleanups[i];
-				if (typeof cleanup == "function") cleanup();
-				else setRef(refs[i], null);
-			}
-		};
-	};
-}
-function useComposedRefs(...refs) {
-	return import_react.useCallback(composeRefs(...refs), refs);
-}
-/**
-* @license React
-* react-jsx-runtime.development.js
-*
-* Copyright (c) Meta Platforms, Inc. and affiliates.
-*
-* This source code is licensed under the MIT license found in the
-* LICENSE file in the root directory of this source tree.
-*/
-var require_react_jsx_runtime_development = /* @__PURE__ */ __commonJSMin(((exports) => {
-	(function() {
-		function getComponentNameFromType(type) {
-			if (null == type) return null;
-			if ("function" === typeof type) return type.$$typeof === REACT_CLIENT_REFERENCE ? null : type.displayName || type.name || null;
-			if ("string" === typeof type) return type;
-			switch (type) {
-				case REACT_FRAGMENT_TYPE: return "Fragment";
-				case REACT_PROFILER_TYPE: return "Profiler";
-				case REACT_STRICT_MODE_TYPE: return "StrictMode";
-				case REACT_SUSPENSE_TYPE: return "Suspense";
-				case REACT_SUSPENSE_LIST_TYPE: return "SuspenseList";
-				case REACT_ACTIVITY_TYPE: return "Activity";
-			}
-			if ("object" === typeof type) switch ("number" === typeof type.tag && console.error("Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue."), type.$$typeof) {
-				case REACT_PORTAL_TYPE: return "Portal";
-				case REACT_CONTEXT_TYPE: return type.displayName || "Context";
-				case REACT_CONSUMER_TYPE: return (type._context.displayName || "Context") + ".Consumer";
-				case REACT_FORWARD_REF_TYPE:
-					var innerType = type.render;
-					type = type.displayName;
-					type || (type = innerType.displayName || innerType.name || "", type = "" !== type ? "ForwardRef(" + type + ")" : "ForwardRef");
-					return type;
-				case REACT_MEMO_TYPE: return innerType = type.displayName || null, null !== innerType ? innerType : getComponentNameFromType(type.type) || "Memo";
-				case REACT_LAZY_TYPE$1:
-					innerType = type._payload;
-					type = type._init;
-					try {
-						return getComponentNameFromType(type(innerType));
-					} catch (x) {}
-			}
-			return null;
-		}
-		function testStringCoercion(value) {
-			return "" + value;
-		}
-		function checkKeyStringCoercion(value) {
-			try {
-				testStringCoercion(value);
-				var JSCompiler_inline_result = !1;
-			} catch (e) {
-				JSCompiler_inline_result = !0;
-			}
-			if (JSCompiler_inline_result) {
-				JSCompiler_inline_result = console;
-				var JSCompiler_temp_const = JSCompiler_inline_result.error;
-				var JSCompiler_inline_result$jscomp$0 = "function" === typeof Symbol && Symbol.toStringTag && value[Symbol.toStringTag] || value.constructor.name || "Object";
-				JSCompiler_temp_const.call(JSCompiler_inline_result, "The provided key is an unsupported type %s. This value must be coerced to a string before using it here.", JSCompiler_inline_result$jscomp$0);
-				return testStringCoercion(value);
-			}
-		}
-		function getTaskName(type) {
-			if (type === REACT_FRAGMENT_TYPE) return "<>";
-			if ("object" === typeof type && null !== type && type.$$typeof === REACT_LAZY_TYPE$1) return "<...>";
-			try {
-				var name = getComponentNameFromType(type);
-				return name ? "<" + name + ">" : "<...>";
-			} catch (x) {
-				return "<...>";
-			}
-		}
-		function getOwner() {
-			var dispatcher = ReactSharedInternals.A;
-			return null === dispatcher ? null : dispatcher.getOwner();
-		}
-		function UnknownOwner() {
-			return Error("react-stack-top-frame");
-		}
-		function hasValidKey(config) {
-			if (hasOwnProperty.call(config, "key")) {
-				var getter = Object.getOwnPropertyDescriptor(config, "key").get;
-				if (getter && getter.isReactWarning) return !1;
-			}
-			return void 0 !== config.key;
-		}
-		function defineKeyPropWarningGetter(props, displayName) {
-			function warnAboutAccessingKey() {
-				specialPropKeyWarningShown || (specialPropKeyWarningShown = !0, console.error("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://react.dev/link/special-props)", displayName));
-			}
-			warnAboutAccessingKey.isReactWarning = !0;
-			Object.defineProperty(props, "key", {
-				get: warnAboutAccessingKey,
-				configurable: !0
-			});
-		}
-		function elementRefGetterWithDeprecationWarning() {
-			var componentName = getComponentNameFromType(this.type);
-			didWarnAboutElementRef[componentName] || (didWarnAboutElementRef[componentName] = !0, console.error("Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release."));
-			componentName = this.props.ref;
-			return void 0 !== componentName ? componentName : null;
-		}
-		function ReactElement(type, key, props, owner, debugStack, debugTask) {
-			var refProp = props.ref;
-			type = {
-				$$typeof: REACT_ELEMENT_TYPE,
-				type,
-				key,
-				props,
-				_owner: owner
-			};
-			null !== (void 0 !== refProp ? refProp : null) ? Object.defineProperty(type, "ref", {
-				enumerable: !1,
-				get: elementRefGetterWithDeprecationWarning
-			}) : Object.defineProperty(type, "ref", {
-				enumerable: !1,
-				value: null
-			});
-			type._store = {};
-			Object.defineProperty(type._store, "validated", {
-				configurable: !1,
-				enumerable: !1,
-				writable: !0,
-				value: 0
-			});
-			Object.defineProperty(type, "_debugInfo", {
-				configurable: !1,
-				enumerable: !1,
-				writable: !0,
-				value: null
-			});
-			Object.defineProperty(type, "_debugStack", {
-				configurable: !1,
-				enumerable: !1,
-				writable: !0,
-				value: debugStack
-			});
-			Object.defineProperty(type, "_debugTask", {
-				configurable: !1,
-				enumerable: !1,
-				writable: !0,
-				value: debugTask
-			});
-			Object.freeze && (Object.freeze(type.props), Object.freeze(type));
-			return type;
-		}
-		function jsxDEVImpl(type, config, maybeKey, isStaticChildren, debugStack, debugTask) {
-			var children = config.children;
-			if (void 0 !== children) if (isStaticChildren) if (isArrayImpl(children)) {
-				for (isStaticChildren = 0; isStaticChildren < children.length; isStaticChildren++) validateChildKeys(children[isStaticChildren]);
-				Object.freeze && Object.freeze(children);
-			} else console.error("React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead.");
-			else validateChildKeys(children);
-			if (hasOwnProperty.call(config, "key")) {
-				children = getComponentNameFromType(type);
-				var keys = Object.keys(config).filter(function(k) {
-					return "key" !== k;
-				});
-				isStaticChildren = 0 < keys.length ? "{key: someKey, " + keys.join(": ..., ") + ": ...}" : "{key: someKey}";
-				didWarnAboutKeySpread[children + isStaticChildren] || (keys = 0 < keys.length ? "{" + keys.join(": ..., ") + ": ...}" : "{}", console.error("A props object containing a \"key\" prop is being spread into JSX:\n  let props = %s;\n  <%s {...props} />\nReact keys must be passed directly to JSX without using spread:\n  let props = %s;\n  <%s key={someKey} {...props} />", isStaticChildren, children, keys, children), didWarnAboutKeySpread[children + isStaticChildren] = !0);
-			}
-			children = null;
-			void 0 !== maybeKey && (checkKeyStringCoercion(maybeKey), children = "" + maybeKey);
-			hasValidKey(config) && (checkKeyStringCoercion(config.key), children = "" + config.key);
-			if ("key" in config) {
-				maybeKey = {};
-				for (var propName in config) "key" !== propName && (maybeKey[propName] = config[propName]);
-			} else maybeKey = config;
-			children && defineKeyPropWarningGetter(maybeKey, "function" === typeof type ? type.displayName || type.name || "Unknown" : type);
-			return ReactElement(type, children, maybeKey, getOwner(), debugStack, debugTask);
-		}
-		function validateChildKeys(node) {
-			isValidElement(node) ? node._store && (node._store.validated = 1) : "object" === typeof node && null !== node && node.$$typeof === REACT_LAZY_TYPE$1 && ("fulfilled" === node._payload.status ? isValidElement(node._payload.value) && node._payload.value._store && (node._payload.value._store.validated = 1) : node._store && (node._store.validated = 1));
-		}
-		function isValidElement(object) {
-			return "object" === typeof object && null !== object && object.$$typeof === REACT_ELEMENT_TYPE;
-		}
-		var React$2 = require_react(), REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = Symbol.for("react.memo"), REACT_LAZY_TYPE$1 = Symbol.for("react.lazy"), REACT_ACTIVITY_TYPE = Symbol.for("react.activity"), REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"), ReactSharedInternals = React$2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, hasOwnProperty = Object.prototype.hasOwnProperty, isArrayImpl = Array.isArray, createTask = console.createTask ? console.createTask : function() {
-			return null;
-		};
-		React$2 = { react_stack_bottom_frame: function(callStackForError) {
-			return callStackForError();
-		} };
-		var specialPropKeyWarningShown;
-		var didWarnAboutElementRef = {};
-		var unknownOwnerDebugStack = React$2.react_stack_bottom_frame.bind(React$2, UnknownOwner)();
-		var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
-		var didWarnAboutKeySpread = {};
-		exports.Fragment = REACT_FRAGMENT_TYPE;
-		exports.jsx = function(type, config, maybeKey) {
-			var trackActualOwner = 1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
-			return jsxDEVImpl(type, config, maybeKey, !1, trackActualOwner ? Error("react-stack-top-frame") : unknownOwnerDebugStack, trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask);
-		};
-		exports.jsxs = function(type, config, maybeKey) {
-			var trackActualOwner = 1e4 > ReactSharedInternals.recentlyCreatedOwnerStacks++;
-			return jsxDEVImpl(type, config, maybeKey, !0, trackActualOwner ? Error("react-stack-top-frame") : unknownOwnerDebugStack, trackActualOwner ? createTask(getTaskName(type)) : unknownOwnerDebugTask);
-		};
-	})();
-}));
-var import_jsx_runtime = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
-	module.exports = require_react_jsx_runtime_development();
-})))(), 1);
-var REACT_LAZY_TYPE = Symbol.for("react.lazy");
-var use = import_react[" use ".trim().toString()];
-function isPromiseLike(value) {
-	return typeof value === "object" && value !== null && "then" in value;
-}
-function isLazyComponent(element) {
-	return element != null && typeof element === "object" && "$$typeof" in element && element.$$typeof === REACT_LAZY_TYPE && "_payload" in element && isPromiseLike(element._payload);
-}
-/* @__NO_SIDE_EFFECTS__ */
-function createSlot(ownerName) {
-	const SlotClone = /* @__PURE__ */ createSlotClone$1(ownerName);
-	const Slot2 = import_react.forwardRef((props, forwardedRef) => {
-		let { children, ...slotProps } = props;
-		if (isLazyComponent(children) && typeof use === "function") children = use(children._payload);
-		const childrenArray = import_react.Children.toArray(children);
-		const slottable = childrenArray.find(isSlottable$1);
-		if (slottable) {
-			const newElement = slottable.props.children;
-			const newChildren = childrenArray.map((child) => {
-				if (child === slottable) {
-					if (import_react.Children.count(newElement) > 1) return import_react.Children.only(null);
-					return import_react.isValidElement(newElement) ? newElement.props.children : null;
-				} else return child;
-			});
-			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlotClone, {
-				...slotProps,
-				ref: forwardedRef,
-				children: import_react.isValidElement(newElement) ? import_react.cloneElement(newElement, void 0, newChildren) : null
-			});
-		}
-		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SlotClone, {
-			...slotProps,
-			ref: forwardedRef,
-			children
-		});
-	});
-	Slot2.displayName = `${ownerName}.Slot`;
-	return Slot2;
-}
-var Slot$1 = /* @__PURE__ */ createSlot("Slot");
-/* @__NO_SIDE_EFFECTS__ */
-function createSlotClone$1(ownerName) {
-	const SlotClone = import_react.forwardRef((props, forwardedRef) => {
-		let { children, ...slotProps } = props;
-		if (isLazyComponent(children) && typeof use === "function") children = use(children._payload);
-		if (import_react.isValidElement(children)) {
-			const childrenRef = getElementRef$2(children);
-			const props2 = mergeProps$1(slotProps, children.props);
-			if (children.type !== import_react.Fragment) props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
-			return import_react.cloneElement(children, props2);
-		}
-		return import_react.Children.count(children) > 1 ? import_react.Children.only(null) : null;
-	});
-	SlotClone.displayName = `${ownerName}.SlotClone`;
-	return SlotClone;
-}
-var SLOTTABLE_IDENTIFIER$1 = Symbol("radix.slottable");
-function isSlottable$1(child) {
-	return import_react.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER$1;
-}
-function mergeProps$1(slotProps, childProps) {
-	const overrideProps = { ...childProps };
-	for (const propName in childProps) {
-		const slotPropValue = slotProps[propName];
-		const childPropValue = childProps[propName];
-		if (/^on[A-Z]/.test(propName)) {
-			if (slotPropValue && childPropValue) overrideProps[propName] = (...args) => {
-				const result = childPropValue(...args);
-				slotPropValue(...args);
-				return result;
-			};
-			else if (slotPropValue) overrideProps[propName] = slotPropValue;
-		} else if (propName === "style") overrideProps[propName] = {
-			...slotPropValue,
-			...childPropValue
-		};
-		else if (propName === "className") overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
-	}
-	return {
-		...slotProps,
-		...overrideProps
-	};
-}
-function getElementRef$2(element) {
-	let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
-	let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-	if (mayWarn) return element.ref;
-	getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
-	mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-	if (mayWarn) return element.props.ref;
-	return element.props.ref || element.ref;
-}
-var falsyToString = (value) => typeof value === "boolean" ? `${value}` : value === 0 ? "0" : value;
-const cx = clsx;
-const cva = (base, config) => (props) => {
-	var _config_compoundVariants;
-	if ((config === null || config === void 0 ? void 0 : config.variants) == null) return cx(base, props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
-	const { variants, defaultVariants } = config;
-	const getVariantClassNames = Object.keys(variants).map((variant) => {
-		const variantProp = props === null || props === void 0 ? void 0 : props[variant];
-		const defaultVariantProp = defaultVariants === null || defaultVariants === void 0 ? void 0 : defaultVariants[variant];
-		if (variantProp === null) return null;
-		const variantKey = falsyToString(variantProp) || falsyToString(defaultVariantProp);
-		return variants[variant][variantKey];
-	});
-	const propsWithoutUndefined = props && Object.entries(props).reduce((acc, param) => {
-		let [key, value] = param;
-		if (value === void 0) return acc;
-		acc[key] = value;
-		return acc;
-	}, {});
-	return cx(base, getVariantClassNames, config === null || config === void 0 ? void 0 : (_config_compoundVariants = config.compoundVariants) === null || _config_compoundVariants === void 0 ? void 0 : _config_compoundVariants.reduce((acc, param) => {
-		let { class: cvClass, className: cvClassName, ...compoundVariantOptions } = param;
-		return Object.entries(compoundVariantOptions).every((param$1) => {
-			let [key, value] = param$1;
-			return Array.isArray(value) ? value.includes({
-				...defaultVariants,
-				...propsWithoutUndefined
-			}[key]) : {
-				...defaultVariants,
-				...propsWithoutUndefined
-			}[key] === value;
-		}) ? [
-			...acc,
-			cvClass,
-			cvClassName
-		] : acc;
-	}, []), props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
-};
 var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0", {
 	variants: {
 		variant: {
@@ -19524,11 +19444,11 @@ var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespa
 		size: "default"
 	}
 });
-var Button = import_react.forwardRef(({ className, variant, size, asChild = false, ...props }, ref) => {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(asChild ? Slot$1 : "button", {
+var Button = import_react.forwardRef(({ className, variant, size: size$3, asChild = false, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(asChild ? Slot : "button", {
 		className: cn(buttonVariants({
 			variant,
-			size,
+			size: size$3,
 			className
 		})),
 		ref,
@@ -19545,6 +19465,87 @@ var Input = import_react.forwardRef(({ className, type, ...props }, ref) => {
 	});
 });
 Input.displayName = "Input";
+var MOBILE_BREAKPOINT = 768;
+function useIsMobile() {
+	const [isMobile, setIsMobile] = import_react.useState(void 0);
+	import_react.useEffect(() => {
+		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+		const onChange = () => {
+			setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+		};
+		mql.addEventListener("change", onChange);
+		setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+		return () => mql.removeEventListener("change", onChange);
+	}, []);
+	return !!isMobile;
+}
+require_react_dom();
+var Primitive = [
+	"a",
+	"button",
+	"div",
+	"form",
+	"h2",
+	"h3",
+	"img",
+	"input",
+	"label",
+	"li",
+	"nav",
+	"ol",
+	"p",
+	"select",
+	"span",
+	"svg",
+	"ul"
+].reduce((primitive, node) => {
+	const Slot$2 = /* @__PURE__ */ createSlot$1(`Primitive.${node}`);
+	const Node$1 = import_react.forwardRef((props, forwardedRef) => {
+		const { asChild, ...primitiveProps } = props;
+		const Comp = asChild ? Slot$2 : node;
+		if (typeof window !== "undefined") window[Symbol.for("radix-ui")] = true;
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Comp, {
+			...primitiveProps,
+			ref: forwardedRef
+		});
+	});
+	Node$1.displayName = `Primitive.${node}`;
+	return {
+		...primitive,
+		[node]: Node$1
+	};
+}, {});
+var NAME$3 = "Separator";
+var DEFAULT_ORIENTATION = "horizontal";
+var ORIENTATIONS = ["horizontal", "vertical"];
+var Separator$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { decorative, orientation: orientationProp = DEFAULT_ORIENTATION, ...domProps } = props;
+	const orientation = isValidOrientation(orientationProp) ? orientationProp : DEFAULT_ORIENTATION;
+	const ariaOrientation = orientation === "vertical" ? orientation : void 0;
+	const semanticProps = decorative ? { role: "none" } : {
+		"aria-orientation": ariaOrientation,
+		role: "separator"
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		"data-orientation": orientation,
+		...semanticProps,
+		...domProps,
+		ref: forwardedRef
+	});
+});
+Separator$1.displayName = NAME$3;
+function isValidOrientation(orientation) {
+	return ORIENTATIONS.includes(orientation);
+}
+var Root$6 = Separator$1;
+var Separator = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
+	ref,
+	decorative,
+	orientation,
+	className: cn("shrink-0 bg-border", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
+	...props
+}));
+Separator.displayName = Root$6.displayName;
 typeof window !== "undefined" && window.document && window.document.createElement;
 function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
 	return function handleEvent(event) {
@@ -19554,7 +19555,7 @@ function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForD
 }
 function createContext2(rootComponentName, defaultContext) {
 	const Context = import_react.createContext(defaultContext);
-	const Provider = (props) => {
+	const Provider$1 = (props) => {
 		const { children, ...context } = props;
 		const value = import_react.useMemo(() => context, Object.values(context));
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Context.Provider, {
@@ -19562,39 +19563,39 @@ function createContext2(rootComponentName, defaultContext) {
 			children
 		});
 	};
-	Provider.displayName = rootComponentName + "Provider";
+	Provider$1.displayName = rootComponentName + "Provider";
 	function useContext2(consumerName) {
 		const context = import_react.useContext(Context);
 		if (context) return context;
 		if (defaultContext !== void 0) return defaultContext;
 		throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
 	}
-	return [Provider, useContext2];
+	return [Provider$1, useContext2];
 }
 function createContextScope(scopeName, createContextScopeDeps = []) {
 	let defaultContexts = [];
 	function createContext3(rootComponentName, defaultContext) {
 		const BaseContext = import_react.createContext(defaultContext);
-		const index = defaultContexts.length;
+		const index$1 = defaultContexts.length;
 		defaultContexts = [...defaultContexts, defaultContext];
-		const Provider = (props) => {
+		const Provider$1 = (props) => {
 			const { scope, children, ...context } = props;
-			const Context = scope?.[scopeName]?.[index] || BaseContext;
+			const Context = scope?.[scopeName]?.[index$1] || BaseContext;
 			const value = import_react.useMemo(() => context, Object.values(context));
 			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Context.Provider, {
 				value,
 				children
 			});
 		};
-		Provider.displayName = rootComponentName + "Provider";
+		Provider$1.displayName = rootComponentName + "Provider";
 		function useContext2(consumerName, scope) {
-			const Context = scope?.[scopeName]?.[index] || BaseContext;
+			const Context = scope?.[scopeName]?.[index$1] || BaseContext;
 			const context = import_react.useContext(Context);
 			if (context) return context;
 			if (defaultContext !== void 0) return defaultContext;
 			throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
 		}
-		return [Provider, useContext2];
+		return [Provider$1, useContext2];
 	}
 	const createScope = () => {
 		const scopeContexts = defaultContexts.map((defaultContext) => {
@@ -19697,9 +19698,8 @@ function useUncontrolledState({ defaultProp, onChange }) {
 function isFunction$1(value) {
 	return typeof value === "function";
 }
-var import_react_dom$2 = /* @__PURE__ */ __toESM(require_react_dom(), 1);
 /* @__NO_SIDE_EFFECTS__ */
-function createSlot$1(ownerName) {
+function createSlot(ownerName) {
 	const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
 	const Slot2 = import_react.forwardRef((props, forwardedRef) => {
 		const { children, ...slotProps } = props;
@@ -19744,6 +19744,15 @@ function createSlotClone(ownerName) {
 	return SlotClone;
 }
 var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
+/* @__NO_SIDE_EFFECTS__ */
+function createSlottable(ownerName) {
+	const Slottable2 = ({ children }) => {
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
+	};
+	Slottable2.displayName = `${ownerName}.Slottable`;
+	Slottable2.__radixId = SLOTTABLE_IDENTIFIER;
+	return Slottable2;
+}
 function isSlottable(child) {
 	return import_react.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
 }
@@ -19779,7 +19788,8 @@ function getElementRef$1(element) {
 	if (mayWarn) return element.props.ref;
 	return element.props.ref || element.ref;
 }
-var Primitive = [
+var import_react_dom$2 = /* @__PURE__ */ __toESM(require_react_dom(), 1);
+var Primitive$1 = [
 	"a",
 	"button",
 	"div",
@@ -19798,7 +19808,7 @@ var Primitive = [
 	"svg",
 	"ul"
 ].reduce((primitive, node) => {
-	const Slot$2 = /* @__PURE__ */ createSlot$1(`Primitive.${node}`);
+	const Slot$2 = /* @__PURE__ */ createSlot(`Primitive.${node}`);
 	const Node$1 = import_react.forwardRef((props, forwardedRef) => {
 		const { asChild, ...primitiveProps } = props;
 		const Comp = asChild ? Slot$2 : node;
@@ -19854,9 +19864,9 @@ var DismissableLayer = import_react.forwardRef((props, forwardedRef) => {
 	const layers = Array.from(context.layers);
 	const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
 	const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
-	const index = node ? layers.indexOf(node) : -1;
+	const index$1 = node ? layers.indexOf(node) : -1;
 	const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
-	const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
+	const isPointerEventsEnabled = index$1 >= highestLayerWithOutsidePointerEventsDisabledIndex;
 	const pointerDownOutside = usePointerDownOutside((event) => {
 		const target = event.target;
 		const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
@@ -19873,7 +19883,7 @@ var DismissableLayer = import_react.forwardRef((props, forwardedRef) => {
 		if (!event.defaultPrevented) onDismiss?.();
 	}, ownerDocument);
 	useEscapeKeydown((event) => {
-		if (!(index === context.layers.size - 1)) return;
+		if (!(index$1 === context.layers.size - 1)) return;
 		onEscapeKeyDown?.(event);
 		if (!event.defaultPrevented && onDismiss) {
 			event.preventDefault();
@@ -19913,7 +19923,7 @@ var DismissableLayer = import_react.forwardRef((props, forwardedRef) => {
 		document.addEventListener(CONTEXT_UPDATE, handleUpdate);
 		return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
 	}, []);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 		...layerProps,
 		ref: composedRefs,
 		style: {
@@ -19940,7 +19950,7 @@ var DismissableLayerBranch = import_react.forwardRef((props, forwardedRef) => {
 			};
 		}
 	}, [context.branches]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 		...props,
 		ref: composedRefs
 	});
@@ -20117,7 +20127,7 @@ var FocusScope = import_react.forwardRef((props, forwardedRef) => {
 		trapped,
 		focusScope.paused
 	]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 		tabIndex: -1,
 		...scopeProps,
 		ref: composedRefs,
@@ -20186,26 +20196,26 @@ function createFocusScopesStack() {
 }
 function arrayRemove(array, item) {
 	const updatedArray = [...array];
-	const index = updatedArray.indexOf(item);
-	if (index !== -1) updatedArray.splice(index, 1);
+	const index$1 = updatedArray.indexOf(item);
+	if (index$1 !== -1) updatedArray.splice(index$1, 1);
 	return updatedArray;
 }
 function removeLinks(items) {
 	return items.filter((item) => item.tagName !== "A");
 }
 var import_react_dom$1 = /* @__PURE__ */ __toESM(require_react_dom(), 1);
-var PORTAL_NAME$1 = "Portal";
+var PORTAL_NAME$2 = "Portal";
 var Portal = import_react.forwardRef((props, forwardedRef) => {
 	const { container: containerProp, ...portalProps } = props;
 	const [mounted, setMounted] = import_react.useState(false);
 	useLayoutEffect2(() => setMounted(true), []);
 	const container = containerProp || mounted && globalThis?.document?.body;
-	return container ? import_react_dom$1.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+	return container ? import_react_dom$1.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 		...portalProps,
 		ref: forwardedRef
 	}), container) : null;
 });
-Portal.displayName = PORTAL_NAME$1;
+Portal.displayName = PORTAL_NAME$2;
 function useStateMachine(initialState, machine) {
 	return import_react.useReducer((state, event) => {
 		return machine[state][event] ?? state;
@@ -20490,9 +20500,9 @@ function createSidecarMedium(options$1) {
 var SideCar = function(_a) {
 	var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
 	if (!sideCar) throw new Error("Sidecar: please provide `sideCar` property to import the right car");
-	var Target$1 = sideCar.read();
-	if (!Target$1) throw new Error("Sidecar medium not found");
-	return import_react.createElement(Target$1, __assign({}, rest));
+	var Target = sideCar.read();
+	if (!Target) throw new Error("Sidecar medium not found");
+	return import_react.createElement(Target, __assign({}, rest));
 };
 SideCar.isSideCarExport = true;
 function exportSidecar(medium, exported) {
@@ -21046,12 +21056,12 @@ var Dialog$1 = (props) => {
 	});
 };
 Dialog$1.displayName = DIALOG_NAME;
-var TRIGGER_NAME$2 = "DialogTrigger";
+var TRIGGER_NAME$3 = "DialogTrigger";
 var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...triggerProps } = props;
-	const context = useDialogContext(TRIGGER_NAME$2, __scopeDialog);
+	const context = useDialogContext(TRIGGER_NAME$3, __scopeDialog);
 	const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
 		type: "button",
 		"aria-haspopup": "dialog",
 		"aria-expanded": context.open,
@@ -21062,13 +21072,13 @@ var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
 	});
 });
-DialogTrigger$1.displayName = TRIGGER_NAME$2;
-var PORTAL_NAME = "DialogPortal";
-var [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME, { forceMount: void 0 });
+DialogTrigger$1.displayName = TRIGGER_NAME$3;
+var PORTAL_NAME$1 = "DialogPortal";
+var [PortalProvider$1, usePortalContext$1] = createDialogContext(PORTAL_NAME$1, { forceMount: void 0 });
 var DialogPortal$1 = (props) => {
 	const { __scopeDialog, forceMount, children, container } = props;
-	const context = useDialogContext(PORTAL_NAME, __scopeDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider, {
+	const context = useDialogContext(PORTAL_NAME$1, __scopeDialog);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider$1, {
 		scope: __scopeDialog,
 		forceMount,
 		children: import_react.Children.map(children, (child) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
@@ -21081,10 +21091,10 @@ var DialogPortal$1 = (props) => {
 		}))
 	});
 };
-DialogPortal$1.displayName = PORTAL_NAME;
+DialogPortal$1.displayName = PORTAL_NAME$1;
 var OVERLAY_NAME = "DialogOverlay";
 var DialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext(OVERLAY_NAME, props.__scopeDialog);
+	const portalContext = usePortalContext$1(OVERLAY_NAME, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...overlayProps } = props;
 	const context = useDialogContext(OVERLAY_NAME, props.__scopeDialog);
 	return context.modal ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
@@ -21096,15 +21106,15 @@ var DialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
 	}) : null;
 });
 DialogOverlay$1.displayName = OVERLAY_NAME;
-var Slot = /* @__PURE__ */ createSlot$1("DialogOverlay.RemoveScroll");
+var Slot$1 = /* @__PURE__ */ createSlot("DialogOverlay.RemoveScroll");
 var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...overlayProps } = props;
 	const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Combination_default, {
-		as: Slot,
+		as: Slot$1,
 		allowPinchZoom: true,
 		shards: [context.contentRef],
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 			"data-state": getState$1(context.open),
 			...overlayProps,
 			ref: forwardedRef,
@@ -21115,11 +21125,11 @@ var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-var CONTENT_NAME$1 = "DialogContent";
+var CONTENT_NAME$3 = "DialogContent";
 var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext(CONTENT_NAME$1, props.__scopeDialog);
+	const portalContext = usePortalContext$1(CONTENT_NAME$3, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$1, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$3, props.__scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: context.modal ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentModal, {
@@ -21131,9 +21141,9 @@ var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-DialogContent$1.displayName = CONTENT_NAME$1;
+DialogContent$1.displayName = CONTENT_NAME$3;
 var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$1, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$3, props.__scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
 	import_react.useEffect(() => {
@@ -21158,7 +21168,7 @@ var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$1, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$3, props.__scopeDialog);
 	const hasInteractedOutsideRef = import_react.useRef(false);
 	const hasPointerDownOutsideRef = import_react.useRef(false);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentImpl, {
@@ -21189,7 +21199,7 @@ var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
 });
 var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$1, __scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$3, __scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, contentRef);
 	useFocusGuards();
@@ -21218,7 +21228,7 @@ var TITLE_NAME = "DialogTitle";
 var DialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...titleProps } = props;
 	const context = useDialogContext(TITLE_NAME, __scopeDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.h2, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.h2, {
 		id: context.titleId,
 		...titleProps,
 		ref: forwardedRef
@@ -21229,7 +21239,7 @@ var DESCRIPTION_NAME = "DialogDescription";
 var DialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...descriptionProps } = props;
 	const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.p, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.p, {
 		id: context.descriptionId,
 		...descriptionProps,
 		ref: forwardedRef
@@ -21240,7 +21250,7 @@ var CLOSE_NAME = "DialogClose";
 var DialogClose$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...closeProps } = props;
 	const context = useDialogContext(CLOSE_NAME, __scopeDialog);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
 		type: "button",
 		...closeProps,
 		ref: forwardedRef,
@@ -21253,7 +21263,7 @@ function getState$1(open) {
 }
 var TITLE_WARNING_NAME = "DialogTitleWarning";
 var [WarningProvider, useWarningContext] = createContext2(TITLE_WARNING_NAME, {
-	contentName: CONTENT_NAME$1,
+	contentName: CONTENT_NAME$3,
 	titleName: TITLE_NAME,
 	docsSlug: "dialog"
 });
@@ -21286,16 +21296,15 @@ var DescriptionWarning = ({ contentRef, descriptionId }) => {
 	]);
 	return null;
 };
-var Root$2 = Dialog$1;
-var Trigger$1 = DialogTrigger$1;
+var Root$5 = Dialog$1;
+var Trigger$2 = DialogTrigger$1;
 var Portal$1 = DialogPortal$1;
 var Overlay = DialogOverlay$1;
-var Content$1 = DialogContent$1;
+var Content$2 = DialogContent$1;
 var Title = DialogTitle$1;
 var Description = DialogDescription$1;
 var Close = DialogClose$1;
-var Sheet = Root$2;
-var SheetTrigger = Trigger$1;
+var Sheet = Root$5;
 var SheetPortal = Portal$1;
 var SheetOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
 	className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
@@ -21312,7 +21321,7 @@ var sheetVariants = cva("fixed z-50 gap-4 bg-background p-6 shadow-lg transition
 	} },
 	defaultVariants: { side: "right" }
 });
-var SheetContent = import_react.forwardRef(({ side = "right", className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SheetPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
+var SheetContent = import_react.forwardRef(({ side = "right", className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SheetPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$2, {
 	ref,
 	className: cn(sheetVariants({ side }), className),
 	...props,
@@ -21324,7 +21333,7 @@ var SheetContent = import_react.forwardRef(({ side = "right", className, childre
 		})]
 	})]
 })] }));
-SheetContent.displayName = Content$1.displayName;
+SheetContent.displayName = Content$2.displayName;
 var SheetHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	className: cn("flex flex-col space-y-2 text-center sm:text-left", className),
 	...props
@@ -21347,7 +21356,2673 @@ var SheetDescription = import_react.forwardRef(({ className, ...props }, ref) =>
 	...props
 }));
 SheetDescription.displayName = Description.displayName;
-var nuvia_logo__horizontal_by_souza_filho_original_5cc4a_default = "/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a-ClEs4yqt.png";
+function Skeleton({ className, ...props }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: cn("animate-pulse rounded-md bg-muted", className),
+		...props
+	});
+}
+var sides = [
+	"top",
+	"right",
+	"bottom",
+	"left"
+];
+var min = Math.min;
+var max = Math.max;
+var round = Math.round;
+var floor = Math.floor;
+var createCoords = (v) => ({
+	x: v,
+	y: v
+});
+var oppositeSideMap = {
+	left: "right",
+	right: "left",
+	bottom: "top",
+	top: "bottom"
+};
+var oppositeAlignmentMap = {
+	start: "end",
+	end: "start"
+};
+function clamp(start, value, end) {
+	return max(start, min(value, end));
+}
+function evaluate(value, param) {
+	return typeof value === "function" ? value(param) : value;
+}
+function getSide(placement) {
+	return placement.split("-")[0];
+}
+function getAlignment(placement) {
+	return placement.split("-")[1];
+}
+function getOppositeAxis(axis) {
+	return axis === "x" ? "y" : "x";
+}
+function getAxisLength(axis) {
+	return axis === "y" ? "height" : "width";
+}
+var yAxisSides = /* @__PURE__ */ new Set(["top", "bottom"]);
+function getSideAxis(placement) {
+	return yAxisSides.has(getSide(placement)) ? "y" : "x";
+}
+function getAlignmentAxis(placement) {
+	return getOppositeAxis(getSideAxis(placement));
+}
+function getAlignmentSides(placement, rects, rtl) {
+	if (rtl === void 0) rtl = false;
+	const alignment = getAlignment(placement);
+	const alignmentAxis = getAlignmentAxis(placement);
+	const length = getAxisLength(alignmentAxis);
+	let mainAlignmentSide = alignmentAxis === "x" ? alignment === (rtl ? "end" : "start") ? "right" : "left" : alignment === "start" ? "bottom" : "top";
+	if (rects.reference[length] > rects.floating[length]) mainAlignmentSide = getOppositePlacement(mainAlignmentSide);
+	return [mainAlignmentSide, getOppositePlacement(mainAlignmentSide)];
+}
+function getExpandedPlacements(placement) {
+	const oppositePlacement = getOppositePlacement(placement);
+	return [
+		getOppositeAlignmentPlacement(placement),
+		oppositePlacement,
+		getOppositeAlignmentPlacement(oppositePlacement)
+	];
+}
+function getOppositeAlignmentPlacement(placement) {
+	return placement.replace(/start|end/g, (alignment) => oppositeAlignmentMap[alignment]);
+}
+var lrPlacement = ["left", "right"];
+var rlPlacement = ["right", "left"];
+var tbPlacement = ["top", "bottom"];
+var btPlacement = ["bottom", "top"];
+function getSideList(side, isStart, rtl) {
+	switch (side) {
+		case "top":
+		case "bottom":
+			if (rtl) return isStart ? rlPlacement : lrPlacement;
+			return isStart ? lrPlacement : rlPlacement;
+		case "left":
+		case "right": return isStart ? tbPlacement : btPlacement;
+		default: return [];
+	}
+}
+function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
+	const alignment = getAlignment(placement);
+	let list = getSideList(getSide(placement), direction === "start", rtl);
+	if (alignment) {
+		list = list.map((side) => side + "-" + alignment);
+		if (flipAlignment) list = list.concat(list.map(getOppositeAlignmentPlacement));
+	}
+	return list;
+}
+function getOppositePlacement(placement) {
+	return placement.replace(/left|right|bottom|top/g, (side) => oppositeSideMap[side]);
+}
+function expandPaddingObject(padding) {
+	return {
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+		...padding
+	};
+}
+function getPaddingObject(padding) {
+	return typeof padding !== "number" ? expandPaddingObject(padding) : {
+		top: padding,
+		right: padding,
+		bottom: padding,
+		left: padding
+	};
+}
+function rectToClientRect(rect) {
+	const { x, y, width, height } = rect;
+	return {
+		width,
+		height,
+		top: y,
+		left: x,
+		right: x + width,
+		bottom: y + height,
+		x,
+		y
+	};
+}
+function computeCoordsFromPlacement(_ref, placement, rtl) {
+	let { reference, floating } = _ref;
+	const sideAxis = getSideAxis(placement);
+	const alignmentAxis = getAlignmentAxis(placement);
+	const alignLength = getAxisLength(alignmentAxis);
+	const side = getSide(placement);
+	const isVertical = sideAxis === "y";
+	const commonX = reference.x + reference.width / 2 - floating.width / 2;
+	const commonY = reference.y + reference.height / 2 - floating.height / 2;
+	const commonAlign = reference[alignLength] / 2 - floating[alignLength] / 2;
+	let coords;
+	switch (side) {
+		case "top":
+			coords = {
+				x: commonX,
+				y: reference.y - floating.height
+			};
+			break;
+		case "bottom":
+			coords = {
+				x: commonX,
+				y: reference.y + reference.height
+			};
+			break;
+		case "right":
+			coords = {
+				x: reference.x + reference.width,
+				y: commonY
+			};
+			break;
+		case "left":
+			coords = {
+				x: reference.x - floating.width,
+				y: commonY
+			};
+			break;
+		default: coords = {
+			x: reference.x,
+			y: reference.y
+		};
+	}
+	switch (getAlignment(placement)) {
+		case "start":
+			coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
+			break;
+		case "end":
+			coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
+			break;
+	}
+	return coords;
+}
+async function detectOverflow$1(state, options$1) {
+	var _await$platform$isEle;
+	if (options$1 === void 0) options$1 = {};
+	const { x, y, platform: platform$1, rects, elements, strategy } = state;
+	const { boundary = "clippingAncestors", rootBoundary = "viewport", elementContext = "floating", altBoundary = false, padding = 0 } = evaluate(options$1, state);
+	const paddingObject = getPaddingObject(padding);
+	const element = elements[altBoundary ? elementContext === "floating" ? "reference" : "floating" : elementContext];
+	const clippingClientRect = rectToClientRect(await platform$1.getClippingRect({
+		element: ((_await$platform$isEle = await (platform$1.isElement == null ? void 0 : platform$1.isElement(element))) != null ? _await$platform$isEle : true) ? element : element.contextElement || await (platform$1.getDocumentElement == null ? void 0 : platform$1.getDocumentElement(elements.floating)),
+		boundary,
+		rootBoundary,
+		strategy
+	}));
+	const rect = elementContext === "floating" ? {
+		x,
+		y,
+		width: rects.floating.width,
+		height: rects.floating.height
+	} : rects.reference;
+	const offsetParent = await (platform$1.getOffsetParent == null ? void 0 : platform$1.getOffsetParent(elements.floating));
+	const offsetScale = await (platform$1.isElement == null ? void 0 : platform$1.isElement(offsetParent)) ? await (platform$1.getScale == null ? void 0 : platform$1.getScale(offsetParent)) || {
+		x: 1,
+		y: 1
+	} : {
+		x: 1,
+		y: 1
+	};
+	const elementClientRect = rectToClientRect(platform$1.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform$1.convertOffsetParentRelativeRectToViewportRelativeRect({
+		elements,
+		rect,
+		offsetParent,
+		strategy
+	}) : rect);
+	return {
+		top: (clippingClientRect.top - elementClientRect.top + paddingObject.top) / offsetScale.y,
+		bottom: (elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom) / offsetScale.y,
+		left: (clippingClientRect.left - elementClientRect.left + paddingObject.left) / offsetScale.x,
+		right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
+	};
+}
+var computePosition$1 = async (reference, floating, config) => {
+	const { placement = "bottom", strategy = "absolute", middleware = [], platform: platform$1 } = config;
+	const validMiddleware = middleware.filter(Boolean);
+	const rtl = await (platform$1.isRTL == null ? void 0 : platform$1.isRTL(floating));
+	let rects = await platform$1.getElementRects({
+		reference,
+		floating,
+		strategy
+	});
+	let { x, y } = computeCoordsFromPlacement(rects, placement, rtl);
+	let statefulPlacement = placement;
+	let middlewareData = {};
+	let resetCount = 0;
+	for (let i = 0; i < validMiddleware.length; i++) {
+		var _platform$detectOverf;
+		const { name, fn } = validMiddleware[i];
+		const { x: nextX, y: nextY, data, reset } = await fn({
+			x,
+			y,
+			initialPlacement: placement,
+			placement: statefulPlacement,
+			strategy,
+			middlewareData,
+			rects,
+			platform: {
+				...platform$1,
+				detectOverflow: (_platform$detectOverf = platform$1.detectOverflow) != null ? _platform$detectOverf : detectOverflow$1
+			},
+			elements: {
+				reference,
+				floating
+			}
+		});
+		x = nextX != null ? nextX : x;
+		y = nextY != null ? nextY : y;
+		middlewareData = {
+			...middlewareData,
+			[name]: {
+				...middlewareData[name],
+				...data
+			}
+		};
+		if (reset && resetCount <= 50) {
+			resetCount++;
+			if (typeof reset === "object") {
+				if (reset.placement) statefulPlacement = reset.placement;
+				if (reset.rects) rects = reset.rects === true ? await platform$1.getElementRects({
+					reference,
+					floating,
+					strategy
+				}) : reset.rects;
+				({x, y} = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
+			}
+			i = -1;
+		}
+	}
+	return {
+		x,
+		y,
+		placement: statefulPlacement,
+		strategy,
+		middlewareData
+	};
+};
+var arrow$2 = (options$1) => ({
+	name: "arrow",
+	options: options$1,
+	async fn(state) {
+		const { x, y, placement, rects, platform: platform$1, elements, middlewareData } = state;
+		const { element, padding = 0 } = evaluate(options$1, state) || {};
+		if (element == null) return {};
+		const paddingObject = getPaddingObject(padding);
+		const coords = {
+			x,
+			y
+		};
+		const axis = getAlignmentAxis(placement);
+		const length = getAxisLength(axis);
+		const arrowDimensions = await platform$1.getDimensions(element);
+		const isYAxis = axis === "y";
+		const minProp = isYAxis ? "top" : "left";
+		const maxProp = isYAxis ? "bottom" : "right";
+		const clientProp = isYAxis ? "clientHeight" : "clientWidth";
+		const endDiff = rects.reference[length] + rects.reference[axis] - coords[axis] - rects.floating[length];
+		const startDiff = coords[axis] - rects.reference[axis];
+		const arrowOffsetParent = await (platform$1.getOffsetParent == null ? void 0 : platform$1.getOffsetParent(element));
+		let clientSize = arrowOffsetParent ? arrowOffsetParent[clientProp] : 0;
+		if (!clientSize || !await (platform$1.isElement == null ? void 0 : platform$1.isElement(arrowOffsetParent))) clientSize = elements.floating[clientProp] || rects.floating[length];
+		const centerToReference = endDiff / 2 - startDiff / 2;
+		const largestPossiblePadding = clientSize / 2 - arrowDimensions[length] / 2 - 1;
+		const minPadding = min(paddingObject[minProp], largestPossiblePadding);
+		const maxPadding = min(paddingObject[maxProp], largestPossiblePadding);
+		const min$1 = minPadding;
+		const max$1 = clientSize - arrowDimensions[length] - maxPadding;
+		const center = clientSize / 2 - arrowDimensions[length] / 2 + centerToReference;
+		const offset$3 = clamp(min$1, center, max$1);
+		const shouldAddOffset = !middlewareData.arrow && getAlignment(placement) != null && center !== offset$3 && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
+		const alignmentOffset = shouldAddOffset ? center < min$1 ? center - min$1 : center - max$1 : 0;
+		return {
+			[axis]: coords[axis] + alignmentOffset,
+			data: {
+				[axis]: offset$3,
+				centerOffset: center - offset$3 - alignmentOffset,
+				...shouldAddOffset && { alignmentOffset }
+			},
+			reset: shouldAddOffset
+		};
+	}
+});
+var flip$2 = function(options$1) {
+	if (options$1 === void 0) options$1 = {};
+	return {
+		name: "flip",
+		options: options$1,
+		async fn(state) {
+			var _middlewareData$arrow, _middlewareData$flip;
+			const { placement, middlewareData, rects, initialPlacement, platform: platform$1, elements } = state;
+			const { mainAxis: checkMainAxis = true, crossAxis: checkCrossAxis = true, fallbackPlacements: specifiedFallbackPlacements, fallbackStrategy = "bestFit", fallbackAxisSideDirection = "none", flipAlignment = true, ...detectOverflowOptions } = evaluate(options$1, state);
+			if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) return {};
+			const side = getSide(placement);
+			const initialSideAxis = getSideAxis(initialPlacement);
+			const isBasePlacement = getSide(initialPlacement) === initialPlacement;
+			const rtl = await (platform$1.isRTL == null ? void 0 : platform$1.isRTL(elements.floating));
+			const fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipAlignment ? [getOppositePlacement(initialPlacement)] : getExpandedPlacements(initialPlacement));
+			const hasFallbackAxisSideDirection = fallbackAxisSideDirection !== "none";
+			if (!specifiedFallbackPlacements && hasFallbackAxisSideDirection) fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
+			const placements$1 = [initialPlacement, ...fallbackPlacements];
+			const overflow = await platform$1.detectOverflow(state, detectOverflowOptions);
+			const overflows = [];
+			let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? void 0 : _middlewareData$flip.overflows) || [];
+			if (checkMainAxis) overflows.push(overflow[side]);
+			if (checkCrossAxis) {
+				const sides$1 = getAlignmentSides(placement, rects, rtl);
+				overflows.push(overflow[sides$1[0]], overflow[sides$1[1]]);
+			}
+			overflowsData = [...overflowsData, {
+				placement,
+				overflows
+			}];
+			if (!overflows.every((side$1) => side$1 <= 0)) {
+				var _middlewareData$flip2, _overflowsData$filter;
+				const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? void 0 : _middlewareData$flip2.index) || 0) + 1;
+				const nextPlacement = placements$1[nextIndex];
+				if (nextPlacement) {
+					if (!(checkCrossAxis === "alignment" ? initialSideAxis !== getSideAxis(nextPlacement) : false) || overflowsData.every((d) => getSideAxis(d.placement) === initialSideAxis ? d.overflows[0] > 0 : true)) return {
+						data: {
+							index: nextIndex,
+							overflows: overflowsData
+						},
+						reset: { placement: nextPlacement }
+					};
+				}
+				let resetPlacement = (_overflowsData$filter = overflowsData.filter((d) => d.overflows[0] <= 0).sort((a, b) => a.overflows[1] - b.overflows[1])[0]) == null ? void 0 : _overflowsData$filter.placement;
+				if (!resetPlacement) switch (fallbackStrategy) {
+					case "bestFit": {
+						var _overflowsData$filter2;
+						const placement$1 = (_overflowsData$filter2 = overflowsData.filter((d) => {
+							if (hasFallbackAxisSideDirection) {
+								const currentSideAxis = getSideAxis(d.placement);
+								return currentSideAxis === initialSideAxis || currentSideAxis === "y";
+							}
+							return true;
+						}).map((d) => [d.placement, d.overflows.filter((overflow$1) => overflow$1 > 0).reduce((acc, overflow$1) => acc + overflow$1, 0)]).sort((a, b) => a[1] - b[1])[0]) == null ? void 0 : _overflowsData$filter2[0];
+						if (placement$1) resetPlacement = placement$1;
+						break;
+					}
+					case "initialPlacement":
+						resetPlacement = initialPlacement;
+						break;
+				}
+				if (placement !== resetPlacement) return { reset: { placement: resetPlacement } };
+			}
+			return {};
+		}
+	};
+};
+function getSideOffsets(overflow, rect) {
+	return {
+		top: overflow.top - rect.height,
+		right: overflow.right - rect.width,
+		bottom: overflow.bottom - rect.height,
+		left: overflow.left - rect.width
+	};
+}
+function isAnySideFullyClipped(overflow) {
+	return sides.some((side) => overflow[side] >= 0);
+}
+var hide$2 = function(options$1) {
+	if (options$1 === void 0) options$1 = {};
+	return {
+		name: "hide",
+		options: options$1,
+		async fn(state) {
+			const { rects, platform: platform$1 } = state;
+			const { strategy = "referenceHidden", ...detectOverflowOptions } = evaluate(options$1, state);
+			switch (strategy) {
+				case "referenceHidden": {
+					const offsets = getSideOffsets(await platform$1.detectOverflow(state, {
+						...detectOverflowOptions,
+						elementContext: "reference"
+					}), rects.reference);
+					return { data: {
+						referenceHiddenOffsets: offsets,
+						referenceHidden: isAnySideFullyClipped(offsets)
+					} };
+				}
+				case "escaped": {
+					const offsets = getSideOffsets(await platform$1.detectOverflow(state, {
+						...detectOverflowOptions,
+						altBoundary: true
+					}), rects.floating);
+					return { data: {
+						escapedOffsets: offsets,
+						escaped: isAnySideFullyClipped(offsets)
+					} };
+				}
+				default: return {};
+			}
+		}
+	};
+};
+var originSides = /* @__PURE__ */ new Set(["left", "top"]);
+async function convertValueToCoords(state, options$1) {
+	const { placement, platform: platform$1, elements } = state;
+	const rtl = await (platform$1.isRTL == null ? void 0 : platform$1.isRTL(elements.floating));
+	const side = getSide(placement);
+	const alignment = getAlignment(placement);
+	const isVertical = getSideAxis(placement) === "y";
+	const mainAxisMulti = originSides.has(side) ? -1 : 1;
+	const crossAxisMulti = rtl && isVertical ? -1 : 1;
+	const rawValue = evaluate(options$1, state);
+	let { mainAxis, crossAxis, alignmentAxis } = typeof rawValue === "number" ? {
+		mainAxis: rawValue,
+		crossAxis: 0,
+		alignmentAxis: null
+	} : {
+		mainAxis: rawValue.mainAxis || 0,
+		crossAxis: rawValue.crossAxis || 0,
+		alignmentAxis: rawValue.alignmentAxis
+	};
+	if (alignment && typeof alignmentAxis === "number") crossAxis = alignment === "end" ? alignmentAxis * -1 : alignmentAxis;
+	return isVertical ? {
+		x: crossAxis * crossAxisMulti,
+		y: mainAxis * mainAxisMulti
+	} : {
+		x: mainAxis * mainAxisMulti,
+		y: crossAxis * crossAxisMulti
+	};
+}
+var offset$2 = function(options$1) {
+	if (options$1 === void 0) options$1 = 0;
+	return {
+		name: "offset",
+		options: options$1,
+		async fn(state) {
+			var _middlewareData$offse, _middlewareData$arrow;
+			const { x, y, placement, middlewareData } = state;
+			const diffCoords = await convertValueToCoords(state, options$1);
+			if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) return {};
+			return {
+				x: x + diffCoords.x,
+				y: y + diffCoords.y,
+				data: {
+					...diffCoords,
+					placement
+				}
+			};
+		}
+	};
+};
+var shift$2 = function(options$1) {
+	if (options$1 === void 0) options$1 = {};
+	return {
+		name: "shift",
+		options: options$1,
+		async fn(state) {
+			const { x, y, placement, platform: platform$1 } = state;
+			const { mainAxis: checkMainAxis = true, crossAxis: checkCrossAxis = false, limiter = { fn: (_ref) => {
+				let { x: x$1, y: y$1 } = _ref;
+				return {
+					x: x$1,
+					y: y$1
+				};
+			} }, ...detectOverflowOptions } = evaluate(options$1, state);
+			const coords = {
+				x,
+				y
+			};
+			const overflow = await platform$1.detectOverflow(state, detectOverflowOptions);
+			const crossAxis = getSideAxis(getSide(placement));
+			const mainAxis = getOppositeAxis(crossAxis);
+			let mainAxisCoord = coords[mainAxis];
+			let crossAxisCoord = coords[crossAxis];
+			if (checkMainAxis) {
+				const minSide = mainAxis === "y" ? "top" : "left";
+				const maxSide = mainAxis === "y" ? "bottom" : "right";
+				const min$1 = mainAxisCoord + overflow[minSide];
+				const max$1 = mainAxisCoord - overflow[maxSide];
+				mainAxisCoord = clamp(min$1, mainAxisCoord, max$1);
+			}
+			if (checkCrossAxis) {
+				const minSide = crossAxis === "y" ? "top" : "left";
+				const maxSide = crossAxis === "y" ? "bottom" : "right";
+				const min$1 = crossAxisCoord + overflow[minSide];
+				const max$1 = crossAxisCoord - overflow[maxSide];
+				crossAxisCoord = clamp(min$1, crossAxisCoord, max$1);
+			}
+			const limitedCoords = limiter.fn({
+				...state,
+				[mainAxis]: mainAxisCoord,
+				[crossAxis]: crossAxisCoord
+			});
+			return {
+				...limitedCoords,
+				data: {
+					x: limitedCoords.x - x,
+					y: limitedCoords.y - y,
+					enabled: {
+						[mainAxis]: checkMainAxis,
+						[crossAxis]: checkCrossAxis
+					}
+				}
+			};
+		}
+	};
+};
+var limitShift$2 = function(options$1) {
+	if (options$1 === void 0) options$1 = {};
+	return {
+		options: options$1,
+		fn(state) {
+			const { x, y, placement, rects, middlewareData } = state;
+			const { offset: offset$3 = 0, mainAxis: checkMainAxis = true, crossAxis: checkCrossAxis = true } = evaluate(options$1, state);
+			const coords = {
+				x,
+				y
+			};
+			const crossAxis = getSideAxis(placement);
+			const mainAxis = getOppositeAxis(crossAxis);
+			let mainAxisCoord = coords[mainAxis];
+			let crossAxisCoord = coords[crossAxis];
+			const rawOffset = evaluate(offset$3, state);
+			const computedOffset = typeof rawOffset === "number" ? {
+				mainAxis: rawOffset,
+				crossAxis: 0
+			} : {
+				mainAxis: 0,
+				crossAxis: 0,
+				...rawOffset
+			};
+			if (checkMainAxis) {
+				const len = mainAxis === "y" ? "height" : "width";
+				const limitMin = rects.reference[mainAxis] - rects.floating[len] + computedOffset.mainAxis;
+				const limitMax = rects.reference[mainAxis] + rects.reference[len] - computedOffset.mainAxis;
+				if (mainAxisCoord < limitMin) mainAxisCoord = limitMin;
+				else if (mainAxisCoord > limitMax) mainAxisCoord = limitMax;
+			}
+			if (checkCrossAxis) {
+				var _middlewareData$offse, _middlewareData$offse2;
+				const len = mainAxis === "y" ? "width" : "height";
+				const isOriginSide = originSides.has(getSide(placement));
+				const limitMin = rects.reference[crossAxis] - rects.floating[len] + (isOriginSide ? ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse[crossAxis]) || 0 : 0) + (isOriginSide ? 0 : computedOffset.crossAxis);
+				const limitMax = rects.reference[crossAxis] + rects.reference[len] + (isOriginSide ? 0 : ((_middlewareData$offse2 = middlewareData.offset) == null ? void 0 : _middlewareData$offse2[crossAxis]) || 0) - (isOriginSide ? computedOffset.crossAxis : 0);
+				if (crossAxisCoord < limitMin) crossAxisCoord = limitMin;
+				else if (crossAxisCoord > limitMax) crossAxisCoord = limitMax;
+			}
+			return {
+				[mainAxis]: mainAxisCoord,
+				[crossAxis]: crossAxisCoord
+			};
+		}
+	};
+};
+var size$2 = function(options$1) {
+	if (options$1 === void 0) options$1 = {};
+	return {
+		name: "size",
+		options: options$1,
+		async fn(state) {
+			var _state$middlewareData, _state$middlewareData2;
+			const { placement, rects, platform: platform$1, elements } = state;
+			const { apply = () => {}, ...detectOverflowOptions } = evaluate(options$1, state);
+			const overflow = await platform$1.detectOverflow(state, detectOverflowOptions);
+			const side = getSide(placement);
+			const alignment = getAlignment(placement);
+			const isYAxis = getSideAxis(placement) === "y";
+			const { width, height } = rects.floating;
+			let heightSide;
+			let widthSide;
+			if (side === "top" || side === "bottom") {
+				heightSide = side;
+				widthSide = alignment === (await (platform$1.isRTL == null ? void 0 : platform$1.isRTL(elements.floating)) ? "start" : "end") ? "left" : "right";
+			} else {
+				widthSide = side;
+				heightSide = alignment === "end" ? "top" : "bottom";
+			}
+			const maximumClippingHeight = height - overflow.top - overflow.bottom;
+			const maximumClippingWidth = width - overflow.left - overflow.right;
+			const overflowAvailableHeight = min(height - overflow[heightSide], maximumClippingHeight);
+			const overflowAvailableWidth = min(width - overflow[widthSide], maximumClippingWidth);
+			const noShift = !state.middlewareData.shift;
+			let availableHeight = overflowAvailableHeight;
+			let availableWidth = overflowAvailableWidth;
+			if ((_state$middlewareData = state.middlewareData.shift) != null && _state$middlewareData.enabled.x) availableWidth = maximumClippingWidth;
+			if ((_state$middlewareData2 = state.middlewareData.shift) != null && _state$middlewareData2.enabled.y) availableHeight = maximumClippingHeight;
+			if (noShift && !alignment) {
+				const xMin = max(overflow.left, 0);
+				const xMax = max(overflow.right, 0);
+				const yMin = max(overflow.top, 0);
+				const yMax = max(overflow.bottom, 0);
+				if (isYAxis) availableWidth = width - 2 * (xMin !== 0 || xMax !== 0 ? xMin + xMax : max(overflow.left, overflow.right));
+				else availableHeight = height - 2 * (yMin !== 0 || yMax !== 0 ? yMin + yMax : max(overflow.top, overflow.bottom));
+			}
+			await apply({
+				...state,
+				availableWidth,
+				availableHeight
+			});
+			const nextDimensions = await platform$1.getDimensions(elements.floating);
+			if (width !== nextDimensions.width || height !== nextDimensions.height) return { reset: { rects: true } };
+			return {};
+		}
+	};
+};
+function hasWindow() {
+	return typeof window !== "undefined";
+}
+function getNodeName(node) {
+	if (isNode(node)) return (node.nodeName || "").toLowerCase();
+	return "#document";
+}
+function getWindow(node) {
+	var _node$ownerDocument;
+	return (node == null || (_node$ownerDocument = node.ownerDocument) == null ? void 0 : _node$ownerDocument.defaultView) || window;
+}
+function getDocumentElement(node) {
+	var _ref;
+	return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? void 0 : _ref.documentElement;
+}
+function isNode(value) {
+	if (!hasWindow()) return false;
+	return value instanceof Node || value instanceof getWindow(value).Node;
+}
+function isElement(value) {
+	if (!hasWindow()) return false;
+	return value instanceof Element || value instanceof getWindow(value).Element;
+}
+function isHTMLElement(value) {
+	if (!hasWindow()) return false;
+	return value instanceof HTMLElement || value instanceof getWindow(value).HTMLElement;
+}
+function isShadowRoot(value) {
+	if (!hasWindow() || typeof ShadowRoot === "undefined") return false;
+	return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
+}
+var invalidOverflowDisplayValues = /* @__PURE__ */ new Set(["inline", "contents"]);
+function isOverflowElement(element) {
+	const { overflow, overflowX, overflowY, display } = getComputedStyle$1(element);
+	return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !invalidOverflowDisplayValues.has(display);
+}
+var tableElements = /* @__PURE__ */ new Set([
+	"table",
+	"td",
+	"th"
+]);
+function isTableElement(element) {
+	return tableElements.has(getNodeName(element));
+}
+var topLayerSelectors = [":popover-open", ":modal"];
+function isTopLayer(element) {
+	return topLayerSelectors.some((selector) => {
+		try {
+			return element.matches(selector);
+		} catch (_e) {
+			return false;
+		}
+	});
+}
+var transformProperties = [
+	"transform",
+	"translate",
+	"scale",
+	"rotate",
+	"perspective"
+];
+var willChangeValues = [
+	"transform",
+	"translate",
+	"scale",
+	"rotate",
+	"perspective",
+	"filter"
+];
+var containValues = [
+	"paint",
+	"layout",
+	"strict",
+	"content"
+];
+function isContainingBlock(elementOrCss) {
+	const webkit = isWebKit();
+	const css = isElement(elementOrCss) ? getComputedStyle$1(elementOrCss) : elementOrCss;
+	return transformProperties.some((value) => css[value] ? css[value] !== "none" : false) || (css.containerType ? css.containerType !== "normal" : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== "none" : false) || !webkit && (css.filter ? css.filter !== "none" : false) || willChangeValues.some((value) => (css.willChange || "").includes(value)) || containValues.some((value) => (css.contain || "").includes(value));
+}
+function getContainingBlock(element) {
+	let currentNode = getParentNode(element);
+	while (isHTMLElement(currentNode) && !isLastTraversableNode(currentNode)) {
+		if (isContainingBlock(currentNode)) return currentNode;
+		else if (isTopLayer(currentNode)) return null;
+		currentNode = getParentNode(currentNode);
+	}
+	return null;
+}
+function isWebKit() {
+	if (typeof CSS === "undefined" || !CSS.supports) return false;
+	return CSS.supports("-webkit-backdrop-filter", "none");
+}
+var lastTraversableNodeNames = /* @__PURE__ */ new Set([
+	"html",
+	"body",
+	"#document"
+]);
+function isLastTraversableNode(node) {
+	return lastTraversableNodeNames.has(getNodeName(node));
+}
+function getComputedStyle$1(element) {
+	return getWindow(element).getComputedStyle(element);
+}
+function getNodeScroll(element) {
+	if (isElement(element)) return {
+		scrollLeft: element.scrollLeft,
+		scrollTop: element.scrollTop
+	};
+	return {
+		scrollLeft: element.scrollX,
+		scrollTop: element.scrollY
+	};
+}
+function getParentNode(node) {
+	if (getNodeName(node) === "html") return node;
+	const result = node.assignedSlot || node.parentNode || isShadowRoot(node) && node.host || getDocumentElement(node);
+	return isShadowRoot(result) ? result.host : result;
+}
+function getNearestOverflowAncestor(node) {
+	const parentNode = getParentNode(node);
+	if (isLastTraversableNode(parentNode)) return node.ownerDocument ? node.ownerDocument.body : node.body;
+	if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) return parentNode;
+	return getNearestOverflowAncestor(parentNode);
+}
+function getOverflowAncestors(node, list, traverseIframes) {
+	var _node$ownerDocument2;
+	if (list === void 0) list = [];
+	if (traverseIframes === void 0) traverseIframes = true;
+	const scrollableAncestor = getNearestOverflowAncestor(node);
+	const isBody = scrollableAncestor === ((_node$ownerDocument2 = node.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
+	const win = getWindow(scrollableAncestor);
+	if (isBody) {
+		const frameElement = getFrameElement(win);
+		return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
+	}
+	return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
+}
+function getFrameElement(win) {
+	return win.parent && Object.getPrototypeOf(win.parent) ? win.frameElement : null;
+}
+function getCssDimensions(element) {
+	const css = getComputedStyle$1(element);
+	let width = parseFloat(css.width) || 0;
+	let height = parseFloat(css.height) || 0;
+	const hasOffset = isHTMLElement(element);
+	const offsetWidth = hasOffset ? element.offsetWidth : width;
+	const offsetHeight = hasOffset ? element.offsetHeight : height;
+	const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
+	if (shouldFallback) {
+		width = offsetWidth;
+		height = offsetHeight;
+	}
+	return {
+		width,
+		height,
+		$: shouldFallback
+	};
+}
+function unwrapElement(element) {
+	return !isElement(element) ? element.contextElement : element;
+}
+function getScale(element) {
+	const domElement = unwrapElement(element);
+	if (!isHTMLElement(domElement)) return createCoords(1);
+	const rect = domElement.getBoundingClientRect();
+	const { width, height, $ } = getCssDimensions(domElement);
+	let x = ($ ? round(rect.width) : rect.width) / width;
+	let y = ($ ? round(rect.height) : rect.height) / height;
+	if (!x || !Number.isFinite(x)) x = 1;
+	if (!y || !Number.isFinite(y)) y = 1;
+	return {
+		x,
+		y
+	};
+}
+var noOffsets = /* @__PURE__ */ createCoords(0);
+function getVisualOffsets(element) {
+	const win = getWindow(element);
+	if (!isWebKit() || !win.visualViewport) return noOffsets;
+	return {
+		x: win.visualViewport.offsetLeft,
+		y: win.visualViewport.offsetTop
+	};
+}
+function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
+	if (isFixed === void 0) isFixed = false;
+	if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) return false;
+	return isFixed;
+}
+function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
+	if (includeScale === void 0) includeScale = false;
+	if (isFixedStrategy === void 0) isFixedStrategy = false;
+	const clientRect = element.getBoundingClientRect();
+	const domElement = unwrapElement(element);
+	let scale = createCoords(1);
+	if (includeScale) if (offsetParent) {
+		if (isElement(offsetParent)) scale = getScale(offsetParent);
+	} else scale = getScale(element);
+	const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
+	let x = (clientRect.left + visualOffsets.x) / scale.x;
+	let y = (clientRect.top + visualOffsets.y) / scale.y;
+	let width = clientRect.width / scale.x;
+	let height = clientRect.height / scale.y;
+	if (domElement) {
+		const win = getWindow(domElement);
+		const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
+		let currentWin = win;
+		let currentIFrame = getFrameElement(currentWin);
+		while (currentIFrame && offsetParent && offsetWin !== currentWin) {
+			const iframeScale = getScale(currentIFrame);
+			const iframeRect = currentIFrame.getBoundingClientRect();
+			const css = getComputedStyle$1(currentIFrame);
+			const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css.paddingLeft)) * iframeScale.x;
+			const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css.paddingTop)) * iframeScale.y;
+			x *= iframeScale.x;
+			y *= iframeScale.y;
+			width *= iframeScale.x;
+			height *= iframeScale.y;
+			x += left;
+			y += top;
+			currentWin = getWindow(currentIFrame);
+			currentIFrame = getFrameElement(currentWin);
+		}
+	}
+	return rectToClientRect({
+		width,
+		height,
+		x,
+		y
+	});
+}
+function getWindowScrollBarX(element, rect) {
+	const leftScroll = getNodeScroll(element).scrollLeft;
+	if (!rect) return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
+	return rect.left + leftScroll;
+}
+function getHTMLOffset(documentElement, scroll) {
+	const htmlRect = documentElement.getBoundingClientRect();
+	return {
+		x: htmlRect.left + scroll.scrollLeft - getWindowScrollBarX(documentElement, htmlRect),
+		y: htmlRect.top + scroll.scrollTop
+	};
+}
+function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
+	let { elements, rect, offsetParent, strategy } = _ref;
+	const isFixed = strategy === "fixed";
+	const documentElement = getDocumentElement(offsetParent);
+	const topLayer = elements ? isTopLayer(elements.floating) : false;
+	if (offsetParent === documentElement || topLayer && isFixed) return rect;
+	let scroll = {
+		scrollLeft: 0,
+		scrollTop: 0
+	};
+	let scale = createCoords(1);
+	const offsets = createCoords(0);
+	const isOffsetParentAnElement = isHTMLElement(offsetParent);
+	if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+		if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) scroll = getNodeScroll(offsetParent);
+		if (isHTMLElement(offsetParent)) {
+			const offsetRect = getBoundingClientRect(offsetParent);
+			scale = getScale(offsetParent);
+			offsets.x = offsetRect.x + offsetParent.clientLeft;
+			offsets.y = offsetRect.y + offsetParent.clientTop;
+		}
+	}
+	const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
+	return {
+		width: rect.width * scale.x,
+		height: rect.height * scale.y,
+		x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x + htmlOffset.x,
+		y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y + htmlOffset.y
+	};
+}
+function getClientRects(element) {
+	return Array.from(element.getClientRects());
+}
+function getDocumentRect(element) {
+	const html = getDocumentElement(element);
+	const scroll = getNodeScroll(element);
+	const body = element.ownerDocument.body;
+	const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
+	const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
+	let x = -scroll.scrollLeft + getWindowScrollBarX(element);
+	const y = -scroll.scrollTop;
+	if (getComputedStyle$1(body).direction === "rtl") x += max(html.clientWidth, body.clientWidth) - width;
+	return {
+		width,
+		height,
+		x,
+		y
+	};
+}
+var SCROLLBAR_MAX = 25;
+function getViewportRect(element, strategy) {
+	const win = getWindow(element);
+	const html = getDocumentElement(element);
+	const visualViewport = win.visualViewport;
+	let width = html.clientWidth;
+	let height = html.clientHeight;
+	let x = 0;
+	let y = 0;
+	if (visualViewport) {
+		width = visualViewport.width;
+		height = visualViewport.height;
+		const visualViewportBased = isWebKit();
+		if (!visualViewportBased || visualViewportBased && strategy === "fixed") {
+			x = visualViewport.offsetLeft;
+			y = visualViewport.offsetTop;
+		}
+	}
+	const windowScrollbarX = getWindowScrollBarX(html);
+	if (windowScrollbarX <= 0) {
+		const doc = html.ownerDocument;
+		const body = doc.body;
+		const bodyStyles = getComputedStyle(body);
+		const bodyMarginInline = doc.compatMode === "CSS1Compat" ? parseFloat(bodyStyles.marginLeft) + parseFloat(bodyStyles.marginRight) || 0 : 0;
+		const clippingStableScrollbarWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
+		if (clippingStableScrollbarWidth <= SCROLLBAR_MAX) width -= clippingStableScrollbarWidth;
+	} else if (windowScrollbarX <= SCROLLBAR_MAX) width += windowScrollbarX;
+	return {
+		width,
+		height,
+		x,
+		y
+	};
+}
+var absoluteOrFixed = /* @__PURE__ */ new Set(["absolute", "fixed"]);
+function getInnerBoundingClientRect(element, strategy) {
+	const clientRect = getBoundingClientRect(element, true, strategy === "fixed");
+	const top = clientRect.top + element.clientTop;
+	const left = clientRect.left + element.clientLeft;
+	const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
+	return {
+		width: element.clientWidth * scale.x,
+		height: element.clientHeight * scale.y,
+		x: left * scale.x,
+		y: top * scale.y
+	};
+}
+function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
+	let rect;
+	if (clippingAncestor === "viewport") rect = getViewportRect(element, strategy);
+	else if (clippingAncestor === "document") rect = getDocumentRect(getDocumentElement(element));
+	else if (isElement(clippingAncestor)) rect = getInnerBoundingClientRect(clippingAncestor, strategy);
+	else {
+		const visualOffsets = getVisualOffsets(element);
+		rect = {
+			x: clippingAncestor.x - visualOffsets.x,
+			y: clippingAncestor.y - visualOffsets.y,
+			width: clippingAncestor.width,
+			height: clippingAncestor.height
+		};
+	}
+	return rectToClientRect(rect);
+}
+function hasFixedPositionAncestor(element, stopNode) {
+	const parentNode = getParentNode(element);
+	if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) return false;
+	return getComputedStyle$1(parentNode).position === "fixed" || hasFixedPositionAncestor(parentNode, stopNode);
+}
+function getClippingElementAncestors(element, cache) {
+	const cachedResult = cache.get(element);
+	if (cachedResult) return cachedResult;
+	let result = getOverflowAncestors(element, [], false).filter((el) => isElement(el) && getNodeName(el) !== "body");
+	let currentContainingBlockComputedStyle = null;
+	const elementIsFixed = getComputedStyle$1(element).position === "fixed";
+	let currentNode = elementIsFixed ? getParentNode(element) : element;
+	while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
+		const computedStyle = getComputedStyle$1(currentNode);
+		const currentNodeIsContaining = isContainingBlock(currentNode);
+		if (!currentNodeIsContaining && computedStyle.position === "fixed") currentContainingBlockComputedStyle = null;
+		if (elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === "static" && !!currentContainingBlockComputedStyle && absoluteOrFixed.has(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode)) result = result.filter((ancestor) => ancestor !== currentNode);
+		else currentContainingBlockComputedStyle = computedStyle;
+		currentNode = getParentNode(currentNode);
+	}
+	cache.set(element, result);
+	return result;
+}
+function getClippingRect(_ref) {
+	let { element, boundary, rootBoundary, strategy } = _ref;
+	const clippingAncestors = [...boundary === "clippingAncestors" ? isTopLayer(element) ? [] : getClippingElementAncestors(element, this._c) : [].concat(boundary), rootBoundary];
+	const firstClippingAncestor = clippingAncestors[0];
+	const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
+		const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
+		accRect.top = max(rect.top, accRect.top);
+		accRect.right = min(rect.right, accRect.right);
+		accRect.bottom = min(rect.bottom, accRect.bottom);
+		accRect.left = max(rect.left, accRect.left);
+		return accRect;
+	}, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
+	return {
+		width: clippingRect.right - clippingRect.left,
+		height: clippingRect.bottom - clippingRect.top,
+		x: clippingRect.left,
+		y: clippingRect.top
+	};
+}
+function getDimensions(element) {
+	const { width, height } = getCssDimensions(element);
+	return {
+		width,
+		height
+	};
+}
+function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
+	const isOffsetParentAnElement = isHTMLElement(offsetParent);
+	const documentElement = getDocumentElement(offsetParent);
+	const isFixed = strategy === "fixed";
+	const rect = getBoundingClientRect(element, true, isFixed, offsetParent);
+	let scroll = {
+		scrollLeft: 0,
+		scrollTop: 0
+	};
+	const offsets = createCoords(0);
+	function setLeftRTLScrollbarOffset() {
+		offsets.x = getWindowScrollBarX(documentElement);
+	}
+	if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+		if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) scroll = getNodeScroll(offsetParent);
+		if (isOffsetParentAnElement) {
+			const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
+			offsets.x = offsetRect.x + offsetParent.clientLeft;
+			offsets.y = offsetRect.y + offsetParent.clientTop;
+		} else if (documentElement) setLeftRTLScrollbarOffset();
+	}
+	if (isFixed && !isOffsetParentAnElement && documentElement) setLeftRTLScrollbarOffset();
+	const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
+	return {
+		x: rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x,
+		y: rect.top + scroll.scrollTop - offsets.y - htmlOffset.y,
+		width: rect.width,
+		height: rect.height
+	};
+}
+function isStaticPositioned(element) {
+	return getComputedStyle$1(element).position === "static";
+}
+function getTrueOffsetParent(element, polyfill) {
+	if (!isHTMLElement(element) || getComputedStyle$1(element).position === "fixed") return null;
+	if (polyfill) return polyfill(element);
+	let rawOffsetParent = element.offsetParent;
+	if (getDocumentElement(element) === rawOffsetParent) rawOffsetParent = rawOffsetParent.ownerDocument.body;
+	return rawOffsetParent;
+}
+function getOffsetParent(element, polyfill) {
+	const win = getWindow(element);
+	if (isTopLayer(element)) return win;
+	if (!isHTMLElement(element)) {
+		let svgOffsetParent = getParentNode(element);
+		while (svgOffsetParent && !isLastTraversableNode(svgOffsetParent)) {
+			if (isElement(svgOffsetParent) && !isStaticPositioned(svgOffsetParent)) return svgOffsetParent;
+			svgOffsetParent = getParentNode(svgOffsetParent);
+		}
+		return win;
+	}
+	let offsetParent = getTrueOffsetParent(element, polyfill);
+	while (offsetParent && isTableElement(offsetParent) && isStaticPositioned(offsetParent)) offsetParent = getTrueOffsetParent(offsetParent, polyfill);
+	if (offsetParent && isLastTraversableNode(offsetParent) && isStaticPositioned(offsetParent) && !isContainingBlock(offsetParent)) return win;
+	return offsetParent || getContainingBlock(element) || win;
+}
+var getElementRects = async function(data) {
+	const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
+	const getDimensionsFn = this.getDimensions;
+	const floatingDimensions = await getDimensionsFn(data.floating);
+	return {
+		reference: getRectRelativeToOffsetParent(data.reference, await getOffsetParentFn(data.floating), data.strategy),
+		floating: {
+			x: 0,
+			y: 0,
+			width: floatingDimensions.width,
+			height: floatingDimensions.height
+		}
+	};
+};
+function isRTL(element) {
+	return getComputedStyle$1(element).direction === "rtl";
+}
+var platform = {
+	convertOffsetParentRelativeRectToViewportRelativeRect,
+	getDocumentElement,
+	getClippingRect,
+	getOffsetParent,
+	getElementRects,
+	getClientRects,
+	getDimensions,
+	getScale,
+	isElement,
+	isRTL
+};
+function rectsAreEqual(a, b) {
+	return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+}
+function observeMove(element, onMove) {
+	let io = null;
+	let timeoutId;
+	const root = getDocumentElement(element);
+	function cleanup() {
+		var _io;
+		clearTimeout(timeoutId);
+		(_io = io) == null || _io.disconnect();
+		io = null;
+	}
+	function refresh(skip, threshold) {
+		if (skip === void 0) skip = false;
+		if (threshold === void 0) threshold = 1;
+		cleanup();
+		const elementRectForRootMargin = element.getBoundingClientRect();
+		const { left, top, width, height } = elementRectForRootMargin;
+		if (!skip) onMove();
+		if (!width || !height) return;
+		const insetTop = floor(top);
+		const insetRight = floor(root.clientWidth - (left + width));
+		const insetBottom = floor(root.clientHeight - (top + height));
+		const insetLeft = floor(left);
+		const options$1 = {
+			rootMargin: -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px",
+			threshold: max(0, min(1, threshold)) || 1
+		};
+		let isFirstUpdate = true;
+		function handleObserve(entries) {
+			const ratio = entries[0].intersectionRatio;
+			if (ratio !== threshold) {
+				if (!isFirstUpdate) return refresh();
+				if (!ratio) timeoutId = setTimeout(() => {
+					refresh(false, 1e-7);
+				}, 1e3);
+				else refresh(false, ratio);
+			}
+			if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) refresh();
+			isFirstUpdate = false;
+		}
+		try {
+			io = new IntersectionObserver(handleObserve, {
+				...options$1,
+				root: root.ownerDocument
+			});
+		} catch (_e) {
+			io = new IntersectionObserver(handleObserve, options$1);
+		}
+		io.observe(element);
+	}
+	refresh(true);
+	return cleanup;
+}
+function autoUpdate(reference, floating, update, options$1) {
+	if (options$1 === void 0) options$1 = {};
+	const { ancestorScroll = true, ancestorResize = true, elementResize = typeof ResizeObserver === "function", layoutShift = typeof IntersectionObserver === "function", animationFrame = false } = options$1;
+	const referenceEl = unwrapElement(reference);
+	const ancestors = ancestorScroll || ancestorResize ? [...referenceEl ? getOverflowAncestors(referenceEl) : [], ...getOverflowAncestors(floating)] : [];
+	ancestors.forEach((ancestor) => {
+		ancestorScroll && ancestor.addEventListener("scroll", update, { passive: true });
+		ancestorResize && ancestor.addEventListener("resize", update);
+	});
+	const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
+	let reobserveFrame = -1;
+	let resizeObserver = null;
+	if (elementResize) {
+		resizeObserver = new ResizeObserver((_ref) => {
+			let [firstEntry] = _ref;
+			if (firstEntry && firstEntry.target === referenceEl && resizeObserver) {
+				resizeObserver.unobserve(floating);
+				cancelAnimationFrame(reobserveFrame);
+				reobserveFrame = requestAnimationFrame(() => {
+					var _resizeObserver;
+					(_resizeObserver = resizeObserver) == null || _resizeObserver.observe(floating);
+				});
+			}
+			update();
+		});
+		if (referenceEl && !animationFrame) resizeObserver.observe(referenceEl);
+		resizeObserver.observe(floating);
+	}
+	let frameId;
+	let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
+	if (animationFrame) frameLoop();
+	function frameLoop() {
+		const nextRefRect = getBoundingClientRect(reference);
+		if (prevRefRect && !rectsAreEqual(prevRefRect, nextRefRect)) update();
+		prevRefRect = nextRefRect;
+		frameId = requestAnimationFrame(frameLoop);
+	}
+	update();
+	return () => {
+		var _resizeObserver2;
+		ancestors.forEach((ancestor) => {
+			ancestorScroll && ancestor.removeEventListener("scroll", update);
+			ancestorResize && ancestor.removeEventListener("resize", update);
+		});
+		cleanupIo?.();
+		(_resizeObserver2 = resizeObserver) == null || _resizeObserver2.disconnect();
+		resizeObserver = null;
+		if (animationFrame) cancelAnimationFrame(frameId);
+	};
+}
+var offset$1 = offset$2;
+var shift$1 = shift$2;
+var flip$1 = flip$2;
+var size$1 = size$2;
+var hide$1 = hide$2;
+var arrow$1 = arrow$2;
+var limitShift$1 = limitShift$2;
+var computePosition = (reference, floating, options$1) => {
+	const cache = /* @__PURE__ */ new Map();
+	const mergedOptions = {
+		platform,
+		...options$1
+	};
+	const platformWithCache = {
+		...mergedOptions.platform,
+		_c: cache
+	};
+	return computePosition$1(reference, floating, {
+		...mergedOptions,
+		platform: platformWithCache
+	});
+};
+var import_react_dom = /* @__PURE__ */ __toESM(require_react_dom(), 1);
+var index = typeof document !== "undefined" ? import_react.useLayoutEffect : function noop() {};
+function deepEqual(a, b) {
+	if (a === b) return true;
+	if (typeof a !== typeof b) return false;
+	if (typeof a === "function" && a.toString() === b.toString()) return true;
+	let length;
+	let i;
+	let keys;
+	if (a && b && typeof a === "object") {
+		if (Array.isArray(a)) {
+			length = a.length;
+			if (length !== b.length) return false;
+			for (i = length; i-- !== 0;) if (!deepEqual(a[i], b[i])) return false;
+			return true;
+		}
+		keys = Object.keys(a);
+		length = keys.length;
+		if (length !== Object.keys(b).length) return false;
+		for (i = length; i-- !== 0;) if (!{}.hasOwnProperty.call(b, keys[i])) return false;
+		for (i = length; i-- !== 0;) {
+			const key = keys[i];
+			if (key === "_owner" && a.$$typeof) continue;
+			if (!deepEqual(a[key], b[key])) return false;
+		}
+		return true;
+	}
+	return a !== a && b !== b;
+}
+function getDPR(element) {
+	if (typeof window === "undefined") return 1;
+	return (element.ownerDocument.defaultView || window).devicePixelRatio || 1;
+}
+function roundByDPR(element, value) {
+	const dpr = getDPR(element);
+	return Math.round(value * dpr) / dpr;
+}
+function useLatestRef(value) {
+	const ref = import_react.useRef(value);
+	index(() => {
+		ref.current = value;
+	});
+	return ref;
+}
+function useFloating(options$1) {
+	if (options$1 === void 0) options$1 = {};
+	const { placement = "bottom", strategy = "absolute", middleware = [], platform: platform$1, elements: { reference: externalReference, floating: externalFloating } = {}, transform = true, whileElementsMounted, open } = options$1;
+	const [data, setData] = import_react.useState({
+		x: 0,
+		y: 0,
+		strategy,
+		placement,
+		middlewareData: {},
+		isPositioned: false
+	});
+	const [latestMiddleware, setLatestMiddleware] = import_react.useState(middleware);
+	if (!deepEqual(latestMiddleware, middleware)) setLatestMiddleware(middleware);
+	const [_reference, _setReference] = import_react.useState(null);
+	const [_floating, _setFloating] = import_react.useState(null);
+	const setReference = import_react.useCallback((node) => {
+		if (node !== referenceRef.current) {
+			referenceRef.current = node;
+			_setReference(node);
+		}
+	}, []);
+	const setFloating = import_react.useCallback((node) => {
+		if (node !== floatingRef.current) {
+			floatingRef.current = node;
+			_setFloating(node);
+		}
+	}, []);
+	const referenceEl = externalReference || _reference;
+	const floatingEl = externalFloating || _floating;
+	const referenceRef = import_react.useRef(null);
+	const floatingRef = import_react.useRef(null);
+	const dataRef = import_react.useRef(data);
+	const hasWhileElementsMounted = whileElementsMounted != null;
+	const whileElementsMountedRef = useLatestRef(whileElementsMounted);
+	const platformRef = useLatestRef(platform$1);
+	const openRef = useLatestRef(open);
+	const update = import_react.useCallback(() => {
+		if (!referenceRef.current || !floatingRef.current) return;
+		const config = {
+			placement,
+			strategy,
+			middleware: latestMiddleware
+		};
+		if (platformRef.current) config.platform = platformRef.current;
+		computePosition(referenceRef.current, floatingRef.current, config).then((data$1) => {
+			const fullData = {
+				...data$1,
+				isPositioned: openRef.current !== false
+			};
+			if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
+				dataRef.current = fullData;
+				import_react_dom.flushSync(() => {
+					setData(fullData);
+				});
+			}
+		});
+	}, [
+		latestMiddleware,
+		placement,
+		strategy,
+		platformRef,
+		openRef
+	]);
+	index(() => {
+		if (open === false && dataRef.current.isPositioned) {
+			dataRef.current.isPositioned = false;
+			setData((data$1) => ({
+				...data$1,
+				isPositioned: false
+			}));
+		}
+	}, [open]);
+	const isMountedRef = import_react.useRef(false);
+	index(() => {
+		isMountedRef.current = true;
+		return () => {
+			isMountedRef.current = false;
+		};
+	}, []);
+	index(() => {
+		if (referenceEl) referenceRef.current = referenceEl;
+		if (floatingEl) floatingRef.current = floatingEl;
+		if (referenceEl && floatingEl) {
+			if (whileElementsMountedRef.current) return whileElementsMountedRef.current(referenceEl, floatingEl, update);
+			update();
+		}
+	}, [
+		referenceEl,
+		floatingEl,
+		update,
+		whileElementsMountedRef,
+		hasWhileElementsMounted
+	]);
+	const refs = import_react.useMemo(() => ({
+		reference: referenceRef,
+		floating: floatingRef,
+		setReference,
+		setFloating
+	}), [setReference, setFloating]);
+	const elements = import_react.useMemo(() => ({
+		reference: referenceEl,
+		floating: floatingEl
+	}), [referenceEl, floatingEl]);
+	const floatingStyles = import_react.useMemo(() => {
+		const initialStyles = {
+			position: strategy,
+			left: 0,
+			top: 0
+		};
+		if (!elements.floating) return initialStyles;
+		const x = roundByDPR(elements.floating, data.x);
+		const y = roundByDPR(elements.floating, data.y);
+		if (transform) return {
+			...initialStyles,
+			transform: "translate(" + x + "px, " + y + "px)",
+			...getDPR(elements.floating) >= 1.5 && { willChange: "transform" }
+		};
+		return {
+			position: strategy,
+			left: x,
+			top: y
+		};
+	}, [
+		strategy,
+		transform,
+		elements.floating,
+		data.x,
+		data.y
+	]);
+	return import_react.useMemo(() => ({
+		...data,
+		update,
+		refs,
+		elements,
+		floatingStyles
+	}), [
+		data,
+		update,
+		refs,
+		elements,
+		floatingStyles
+	]);
+}
+var arrow$1$1 = (options$1) => {
+	function isRef(value) {
+		return {}.hasOwnProperty.call(value, "current");
+	}
+	return {
+		name: "arrow",
+		options: options$1,
+		fn(state) {
+			const { element, padding } = typeof options$1 === "function" ? options$1(state) : options$1;
+			if (element && isRef(element)) {
+				if (element.current != null) return arrow$1({
+					element: element.current,
+					padding
+				}).fn(state);
+				return {};
+			}
+			if (element) return arrow$1({
+				element,
+				padding
+			}).fn(state);
+			return {};
+		}
+	};
+};
+var offset = (options$1, deps) => ({
+	...offset$1(options$1),
+	options: [options$1, deps]
+});
+var shift = (options$1, deps) => ({
+	...shift$1(options$1),
+	options: [options$1, deps]
+});
+var limitShift = (options$1, deps) => ({
+	...limitShift$1(options$1),
+	options: [options$1, deps]
+});
+var flip = (options$1, deps) => ({
+	...flip$1(options$1),
+	options: [options$1, deps]
+});
+var size = (options$1, deps) => ({
+	...size$1(options$1),
+	options: [options$1, deps]
+});
+var hide = (options$1, deps) => ({
+	...hide$1(options$1),
+	options: [options$1, deps]
+});
+var arrow = (options$1, deps) => ({
+	...arrow$1$1(options$1),
+	options: [options$1, deps]
+});
+var NAME$2 = "Arrow";
+var Arrow$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { children, width = 10, height = 5, ...arrowProps } = props;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.svg, {
+		...arrowProps,
+		ref: forwardedRef,
+		width,
+		height,
+		viewBox: "0 0 30 10",
+		preserveAspectRatio: "none",
+		children: props.asChild ? children : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("polygon", { points: "0,0 30,0 15,10" })
+	});
+});
+Arrow$1.displayName = NAME$2;
+var Root$4 = Arrow$1;
+function useSize(element) {
+	const [size$3, setSize] = import_react.useState(void 0);
+	useLayoutEffect2(() => {
+		if (element) {
+			setSize({
+				width: element.offsetWidth,
+				height: element.offsetHeight
+			});
+			const resizeObserver = new ResizeObserver((entries) => {
+				if (!Array.isArray(entries)) return;
+				if (!entries.length) return;
+				const entry = entries[0];
+				let width;
+				let height;
+				if ("borderBoxSize" in entry) {
+					const borderSizeEntry = entry["borderBoxSize"];
+					const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
+					width = borderSize["inlineSize"];
+					height = borderSize["blockSize"];
+				} else {
+					width = element.offsetWidth;
+					height = element.offsetHeight;
+				}
+				setSize({
+					width,
+					height
+				});
+			});
+			resizeObserver.observe(element, { box: "border-box" });
+			return () => resizeObserver.unobserve(element);
+		} else setSize(void 0);
+	}, [element]);
+	return size$3;
+}
+var POPPER_NAME = "Popper";
+var [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
+var [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
+var Popper = (props) => {
+	const { __scopePopper, children } = props;
+	const [anchor, setAnchor] = import_react.useState(null);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopperProvider, {
+		scope: __scopePopper,
+		anchor,
+		onAnchorChange: setAnchor,
+		children
+	});
+};
+Popper.displayName = POPPER_NAME;
+var ANCHOR_NAME = "PopperAnchor";
+var PopperAnchor = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopePopper, virtualRef, ...anchorProps } = props;
+	const context = usePopperContext(ANCHOR_NAME, __scopePopper);
+	const ref = import_react.useRef(null);
+	const composedRefs = useComposedRefs(forwardedRef, ref);
+	const anchorRef = import_react.useRef(null);
+	import_react.useEffect(() => {
+		const previousAnchor = anchorRef.current;
+		anchorRef.current = virtualRef?.current || ref.current;
+		if (previousAnchor !== anchorRef.current) context.onAnchorChange(anchorRef.current);
+	});
+	return virtualRef ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		...anchorProps,
+		ref: composedRefs
+	});
+});
+PopperAnchor.displayName = ANCHOR_NAME;
+var CONTENT_NAME$2 = "PopperContent";
+var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$2);
+var PopperContent = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopePopper, side = "bottom", sideOffset = 0, align = "center", alignOffset = 0, arrowPadding = 0, avoidCollisions = true, collisionBoundary = [], collisionPadding: collisionPaddingProp = 0, sticky = "partial", hideWhenDetached = false, updatePositionStrategy = "optimized", onPlaced, ...contentProps } = props;
+	const context = usePopperContext(CONTENT_NAME$2, __scopePopper);
+	const [content, setContent] = import_react.useState(null);
+	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
+	const [arrow$3, setArrow] = import_react.useState(null);
+	const arrowSize = useSize(arrow$3);
+	const arrowWidth = arrowSize?.width ?? 0;
+	const arrowHeight = arrowSize?.height ?? 0;
+	const desiredPlacement = side + (align !== "center" ? "-" + align : "");
+	const collisionPadding = typeof collisionPaddingProp === "number" ? collisionPaddingProp : {
+		top: 0,
+		right: 0,
+		bottom: 0,
+		left: 0,
+		...collisionPaddingProp
+	};
+	const boundary = Array.isArray(collisionBoundary) ? collisionBoundary : [collisionBoundary];
+	const hasExplicitBoundaries = boundary.length > 0;
+	const detectOverflowOptions = {
+		padding: collisionPadding,
+		boundary: boundary.filter(isNotNull),
+		altBoundary: hasExplicitBoundaries
+	};
+	const { refs, floatingStyles, placement, isPositioned, middlewareData } = useFloating({
+		strategy: "fixed",
+		placement: desiredPlacement,
+		whileElementsMounted: (...args) => {
+			return autoUpdate(...args, { animationFrame: updatePositionStrategy === "always" });
+		},
+		elements: { reference: context.anchor },
+		middleware: [
+			offset({
+				mainAxis: sideOffset + arrowHeight,
+				alignmentAxis: alignOffset
+			}),
+			avoidCollisions && shift({
+				mainAxis: true,
+				crossAxis: false,
+				limiter: sticky === "partial" ? limitShift() : void 0,
+				...detectOverflowOptions
+			}),
+			avoidCollisions && flip({ ...detectOverflowOptions }),
+			size({
+				...detectOverflowOptions,
+				apply: ({ elements, rects, availableWidth, availableHeight }) => {
+					const { width: anchorWidth, height: anchorHeight } = rects.reference;
+					const contentStyle = elements.floating.style;
+					contentStyle.setProperty("--radix-popper-available-width", `${availableWidth}px`);
+					contentStyle.setProperty("--radix-popper-available-height", `${availableHeight}px`);
+					contentStyle.setProperty("--radix-popper-anchor-width", `${anchorWidth}px`);
+					contentStyle.setProperty("--radix-popper-anchor-height", `${anchorHeight}px`);
+				}
+			}),
+			arrow$3 && arrow({
+				element: arrow$3,
+				padding: arrowPadding
+			}),
+			transformOrigin({
+				arrowWidth,
+				arrowHeight
+			}),
+			hideWhenDetached && hide({
+				strategy: "referenceHidden",
+				...detectOverflowOptions
+			})
+		]
+	});
+	const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
+	const handlePlaced = useCallbackRef(onPlaced);
+	useLayoutEffect2(() => {
+		if (isPositioned) handlePlaced?.();
+	}, [isPositioned, handlePlaced]);
+	const arrowX = middlewareData.arrow?.x;
+	const arrowY = middlewareData.arrow?.y;
+	const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
+	const [contentZIndex, setContentZIndex] = import_react.useState();
+	useLayoutEffect2(() => {
+		if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
+	}, [content]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		ref: refs.setFloating,
+		"data-radix-popper-content-wrapper": "",
+		style: {
+			...floatingStyles,
+			transform: isPositioned ? floatingStyles.transform : "translate(0, -200%)",
+			minWidth: "max-content",
+			zIndex: contentZIndex,
+			["--radix-popper-transform-origin"]: [middlewareData.transformOrigin?.x, middlewareData.transformOrigin?.y].join(" "),
+			...middlewareData.hide?.referenceHidden && {
+				visibility: "hidden",
+				pointerEvents: "none"
+			}
+		},
+		dir: props.dir,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopperContentProvider, {
+			scope: __scopePopper,
+			placedSide,
+			onArrowChange: setArrow,
+			arrowX,
+			arrowY,
+			shouldHideArrow: cannotCenterArrow,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+				"data-side": placedSide,
+				"data-align": placedAlign,
+				...contentProps,
+				ref: composedRefs,
+				style: {
+					...contentProps.style,
+					animation: !isPositioned ? "none" : void 0
+				}
+			})
+		})
+	});
+});
+PopperContent.displayName = CONTENT_NAME$2;
+var ARROW_NAME$1 = "PopperArrow";
+var OPPOSITE_SIDE = {
+	top: "bottom",
+	right: "left",
+	bottom: "top",
+	left: "right"
+};
+var PopperArrow = import_react.forwardRef(function PopperArrow2(props, forwardedRef) {
+	const { __scopePopper, ...arrowProps } = props;
+	const contentContext = useContentContext(ARROW_NAME$1, __scopePopper);
+	const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		ref: contentContext.onArrowChange,
+		style: {
+			position: "absolute",
+			left: contentContext.arrowX,
+			top: contentContext.arrowY,
+			[baseSide]: 0,
+			transformOrigin: {
+				top: "",
+				right: "0 0",
+				bottom: "center 0",
+				left: "100% 0"
+			}[contentContext.placedSide],
+			transform: {
+				top: "translateY(100%)",
+				right: "translateY(50%) rotate(90deg) translateX(-50%)",
+				bottom: `rotate(180deg)`,
+				left: "translateY(50%) rotate(-90deg) translateX(50%)"
+			}[contentContext.placedSide],
+			visibility: contentContext.shouldHideArrow ? "hidden" : void 0
+		},
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$4, {
+			...arrowProps,
+			ref: forwardedRef,
+			style: {
+				...arrowProps.style,
+				display: "block"
+			}
+		})
+	});
+});
+PopperArrow.displayName = ARROW_NAME$1;
+function isNotNull(value) {
+	return value !== null;
+}
+var transformOrigin = (options$1) => ({
+	name: "transformOrigin",
+	options: options$1,
+	fn(data) {
+		const { placement, rects, middlewareData } = data;
+		const isArrowHidden = middlewareData.arrow?.centerOffset !== 0;
+		const arrowWidth = isArrowHidden ? 0 : options$1.arrowWidth;
+		const arrowHeight = isArrowHidden ? 0 : options$1.arrowHeight;
+		const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
+		const noArrowAlign = {
+			start: "0%",
+			center: "50%",
+			end: "100%"
+		}[placedAlign];
+		const arrowXCenter = (middlewareData.arrow?.x ?? 0) + arrowWidth / 2;
+		const arrowYCenter = (middlewareData.arrow?.y ?? 0) + arrowHeight / 2;
+		let x = "";
+		let y = "";
+		if (placedSide === "bottom") {
+			x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
+			y = `${-arrowHeight}px`;
+		} else if (placedSide === "top") {
+			x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
+			y = `${rects.floating.height + arrowHeight}px`;
+		} else if (placedSide === "right") {
+			x = `${-arrowHeight}px`;
+			y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
+		} else if (placedSide === "left") {
+			x = `${rects.floating.width + arrowHeight}px`;
+			y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
+		}
+		return { data: {
+			x,
+			y
+		} };
+	}
+});
+function getSideAndAlignFromPlacement(placement) {
+	const [side, align = "center"] = placement.split("-");
+	return [side, align];
+}
+var Root2$1 = Popper;
+var Anchor = PopperAnchor;
+var Content$1 = PopperContent;
+var Arrow = PopperArrow;
+var VISUALLY_HIDDEN_STYLES = Object.freeze({
+	position: "absolute",
+	border: 0,
+	width: 1,
+	height: 1,
+	padding: 0,
+	margin: -1,
+	overflow: "hidden",
+	clip: "rect(0, 0, 0, 0)",
+	whiteSpace: "nowrap",
+	wordWrap: "normal"
+});
+var NAME$1 = "VisuallyHidden";
+var VisuallyHidden = import_react.forwardRef((props, forwardedRef) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
+		...props,
+		ref: forwardedRef,
+		style: {
+			...VISUALLY_HIDDEN_STYLES,
+			...props.style
+		}
+	});
+});
+VisuallyHidden.displayName = NAME$1;
+var Root$3 = VisuallyHidden;
+var [createTooltipContext, createTooltipScope] = createContextScope("Tooltip", [createPopperScope]);
+var usePopperScope = createPopperScope();
+var PROVIDER_NAME = "TooltipProvider";
+var DEFAULT_DELAY_DURATION = 700;
+var TOOLTIP_OPEN = "tooltip.open";
+var [TooltipProviderContextProvider, useTooltipProviderContext] = createTooltipContext(PROVIDER_NAME);
+var TooltipProvider$1 = (props) => {
+	const { __scopeTooltip, delayDuration = DEFAULT_DELAY_DURATION, skipDelayDuration = 300, disableHoverableContent = false, children } = props;
+	const isOpenDelayedRef = import_react.useRef(true);
+	const isPointerInTransitRef = import_react.useRef(false);
+	const skipDelayTimerRef = import_react.useRef(0);
+	import_react.useEffect(() => {
+		const skipDelayTimer = skipDelayTimerRef.current;
+		return () => window.clearTimeout(skipDelayTimer);
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipProviderContextProvider, {
+		scope: __scopeTooltip,
+		isOpenDelayedRef,
+		delayDuration,
+		onOpen: import_react.useCallback(() => {
+			window.clearTimeout(skipDelayTimerRef.current);
+			isOpenDelayedRef.current = false;
+		}, []),
+		onClose: import_react.useCallback(() => {
+			window.clearTimeout(skipDelayTimerRef.current);
+			skipDelayTimerRef.current = window.setTimeout(() => isOpenDelayedRef.current = true, skipDelayDuration);
+		}, [skipDelayDuration]),
+		isPointerInTransitRef,
+		onPointerInTransitChange: import_react.useCallback((inTransit) => {
+			isPointerInTransitRef.current = inTransit;
+		}, []),
+		disableHoverableContent,
+		children
+	});
+};
+TooltipProvider$1.displayName = PROVIDER_NAME;
+var TOOLTIP_NAME = "Tooltip";
+var [TooltipContextProvider, useTooltipContext] = createTooltipContext(TOOLTIP_NAME);
+var Tooltip$1 = (props) => {
+	const { __scopeTooltip, children, open: openProp, defaultOpen, onOpenChange, disableHoverableContent: disableHoverableContentProp, delayDuration: delayDurationProp } = props;
+	const providerContext = useTooltipProviderContext(TOOLTIP_NAME, props.__scopeTooltip);
+	const popperScope = usePopperScope(__scopeTooltip);
+	const [trigger, setTrigger] = import_react.useState(null);
+	const contentId = useId();
+	const openTimerRef = import_react.useRef(0);
+	const disableHoverableContent = disableHoverableContentProp ?? providerContext.disableHoverableContent;
+	const delayDuration = delayDurationProp ?? providerContext.delayDuration;
+	const wasOpenDelayedRef = import_react.useRef(false);
+	const [open, setOpen] = useControllableState({
+		prop: openProp,
+		defaultProp: defaultOpen ?? false,
+		onChange: (open2) => {
+			if (open2) {
+				providerContext.onOpen();
+				document.dispatchEvent(new CustomEvent(TOOLTIP_OPEN));
+			} else providerContext.onClose();
+			onOpenChange?.(open2);
+		},
+		caller: TOOLTIP_NAME
+	});
+	const stateAttribute = import_react.useMemo(() => {
+		return open ? wasOpenDelayedRef.current ? "delayed-open" : "instant-open" : "closed";
+	}, [open]);
+	const handleOpen = import_react.useCallback(() => {
+		window.clearTimeout(openTimerRef.current);
+		openTimerRef.current = 0;
+		wasOpenDelayedRef.current = false;
+		setOpen(true);
+	}, [setOpen]);
+	const handleClose = import_react.useCallback(() => {
+		window.clearTimeout(openTimerRef.current);
+		openTimerRef.current = 0;
+		setOpen(false);
+	}, [setOpen]);
+	const handleDelayedOpen = import_react.useCallback(() => {
+		window.clearTimeout(openTimerRef.current);
+		openTimerRef.current = window.setTimeout(() => {
+			wasOpenDelayedRef.current = true;
+			setOpen(true);
+			openTimerRef.current = 0;
+		}, delayDuration);
+	}, [delayDuration, setOpen]);
+	import_react.useEffect(() => {
+		return () => {
+			if (openTimerRef.current) {
+				window.clearTimeout(openTimerRef.current);
+				openTimerRef.current = 0;
+			}
+		};
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$1, {
+		...popperScope,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContextProvider, {
+			scope: __scopeTooltip,
+			contentId,
+			open,
+			stateAttribute,
+			trigger,
+			onTriggerChange: setTrigger,
+			onTriggerEnter: import_react.useCallback(() => {
+				if (providerContext.isOpenDelayedRef.current) handleDelayedOpen();
+				else handleOpen();
+			}, [
+				providerContext.isOpenDelayedRef,
+				handleDelayedOpen,
+				handleOpen
+			]),
+			onTriggerLeave: import_react.useCallback(() => {
+				if (disableHoverableContent) handleClose();
+				else {
+					window.clearTimeout(openTimerRef.current);
+					openTimerRef.current = 0;
+				}
+			}, [handleClose, disableHoverableContent]),
+			onOpen: handleOpen,
+			onClose: handleClose,
+			disableHoverableContent,
+			children
+		})
+	});
+};
+Tooltip$1.displayName = TOOLTIP_NAME;
+var TRIGGER_NAME$2 = "TooltipTrigger";
+var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTooltip, ...triggerProps } = props;
+	const context = useTooltipContext(TRIGGER_NAME$2, __scopeTooltip);
+	const providerContext = useTooltipProviderContext(TRIGGER_NAME$2, __scopeTooltip);
+	const popperScope = usePopperScope(__scopeTooltip);
+	const composedRefs = useComposedRefs(forwardedRef, import_react.useRef(null), context.onTriggerChange);
+	const isPointerDownRef = import_react.useRef(false);
+	const hasPointerMoveOpenedRef = import_react.useRef(false);
+	const handlePointerUp = import_react.useCallback(() => isPointerDownRef.current = false, []);
+	import_react.useEffect(() => {
+		return () => document.removeEventListener("pointerup", handlePointerUp);
+	}, [handlePointerUp]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Anchor, {
+		asChild: true,
+		...popperScope,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+			"aria-describedby": context.open ? context.contentId : void 0,
+			"data-state": context.stateAttribute,
+			...triggerProps,
+			ref: composedRefs,
+			onPointerMove: composeEventHandlers(props.onPointerMove, (event) => {
+				if (event.pointerType === "touch") return;
+				if (!hasPointerMoveOpenedRef.current && !providerContext.isPointerInTransitRef.current) {
+					context.onTriggerEnter();
+					hasPointerMoveOpenedRef.current = true;
+				}
+			}),
+			onPointerLeave: composeEventHandlers(props.onPointerLeave, () => {
+				context.onTriggerLeave();
+				hasPointerMoveOpenedRef.current = false;
+			}),
+			onPointerDown: composeEventHandlers(props.onPointerDown, () => {
+				if (context.open) context.onClose();
+				isPointerDownRef.current = true;
+				document.addEventListener("pointerup", handlePointerUp, { once: true });
+			}),
+			onFocus: composeEventHandlers(props.onFocus, () => {
+				if (!isPointerDownRef.current) context.onOpen();
+			}),
+			onBlur: composeEventHandlers(props.onBlur, context.onClose),
+			onClick: composeEventHandlers(props.onClick, context.onClose)
+		})
+	});
+});
+TooltipTrigger$1.displayName = TRIGGER_NAME$2;
+var PORTAL_NAME = "TooltipPortal";
+var [PortalProvider, usePortalContext] = createTooltipContext(PORTAL_NAME, { forceMount: void 0 });
+var TooltipPortal = (props) => {
+	const { __scopeTooltip, forceMount, children, container } = props;
+	const context = useTooltipContext(PORTAL_NAME, __scopeTooltip);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider, {
+		scope: __scopeTooltip,
+		forceMount,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+			present: forceMount || context.open,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Portal, {
+				asChild: true,
+				container,
+				children
+			})
+		})
+	});
+};
+TooltipPortal.displayName = PORTAL_NAME;
+var CONTENT_NAME$1 = "TooltipContent";
+var TooltipContent$1 = import_react.forwardRef((props, forwardedRef) => {
+	const portalContext = usePortalContext(CONTENT_NAME$1, props.__scopeTooltip);
+	const { forceMount = portalContext.forceMount, side = "top", ...contentProps } = props;
+	const context = useTooltipContext(CONTENT_NAME$1, props.__scopeTooltip);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+		present: forceMount || context.open,
+		children: context.disableHoverableContent ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContentImpl, {
+			side,
+			...contentProps,
+			ref: forwardedRef
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContentHoverable, {
+			side,
+			...contentProps,
+			ref: forwardedRef
+		})
+	});
+});
+var TooltipContentHoverable = import_react.forwardRef((props, forwardedRef) => {
+	const context = useTooltipContext(CONTENT_NAME$1, props.__scopeTooltip);
+	const providerContext = useTooltipProviderContext(CONTENT_NAME$1, props.__scopeTooltip);
+	const ref = import_react.useRef(null);
+	const composedRefs = useComposedRefs(forwardedRef, ref);
+	const [pointerGraceArea, setPointerGraceArea] = import_react.useState(null);
+	const { trigger, onClose } = context;
+	const content = ref.current;
+	const { onPointerInTransitChange } = providerContext;
+	const handleRemoveGraceArea = import_react.useCallback(() => {
+		setPointerGraceArea(null);
+		onPointerInTransitChange(false);
+	}, [onPointerInTransitChange]);
+	const handleCreateGraceArea = import_react.useCallback((event, hoverTarget) => {
+		const currentTarget = event.currentTarget;
+		const exitPoint = {
+			x: event.clientX,
+			y: event.clientY
+		};
+		const paddedExitPoints = getPaddedExitPoints(exitPoint, getExitSideFromRect(exitPoint, currentTarget.getBoundingClientRect()));
+		const hoverTargetPoints = getPointsFromRect(hoverTarget.getBoundingClientRect());
+		setPointerGraceArea(getHull([...paddedExitPoints, ...hoverTargetPoints]));
+		onPointerInTransitChange(true);
+	}, [onPointerInTransitChange]);
+	import_react.useEffect(() => {
+		return () => handleRemoveGraceArea();
+	}, [handleRemoveGraceArea]);
+	import_react.useEffect(() => {
+		if (trigger && content) {
+			const handleTriggerLeave = (event) => handleCreateGraceArea(event, content);
+			const handleContentLeave = (event) => handleCreateGraceArea(event, trigger);
+			trigger.addEventListener("pointerleave", handleTriggerLeave);
+			content.addEventListener("pointerleave", handleContentLeave);
+			return () => {
+				trigger.removeEventListener("pointerleave", handleTriggerLeave);
+				content.removeEventListener("pointerleave", handleContentLeave);
+			};
+		}
+	}, [
+		trigger,
+		content,
+		handleCreateGraceArea,
+		handleRemoveGraceArea
+	]);
+	import_react.useEffect(() => {
+		if (pointerGraceArea) {
+			const handleTrackPointerGrace = (event) => {
+				const target = event.target;
+				const pointerPosition = {
+					x: event.clientX,
+					y: event.clientY
+				};
+				const hasEnteredTarget = trigger?.contains(target) || content?.contains(target);
+				const isPointerOutsideGraceArea = !isPointInPolygon(pointerPosition, pointerGraceArea);
+				if (hasEnteredTarget) handleRemoveGraceArea();
+				else if (isPointerOutsideGraceArea) {
+					handleRemoveGraceArea();
+					onClose();
+				}
+			};
+			document.addEventListener("pointermove", handleTrackPointerGrace);
+			return () => document.removeEventListener("pointermove", handleTrackPointerGrace);
+		}
+	}, [
+		trigger,
+		content,
+		pointerGraceArea,
+		onClose,
+		handleRemoveGraceArea
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContentImpl, {
+		...props,
+		ref: composedRefs
+	});
+});
+var [VisuallyHiddenContentContextProvider, useVisuallyHiddenContentContext] = createTooltipContext(TOOLTIP_NAME, { isInside: false });
+var Slottable = /* @__PURE__ */ createSlottable("TooltipContent");
+var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTooltip, children, "aria-label": ariaLabel, onEscapeKeyDown, onPointerDownOutside, ...contentProps } = props;
+	const context = useTooltipContext(CONTENT_NAME$1, __scopeTooltip);
+	const popperScope = usePopperScope(__scopeTooltip);
+	const { onClose } = context;
+	import_react.useEffect(() => {
+		document.addEventListener(TOOLTIP_OPEN, onClose);
+		return () => document.removeEventListener(TOOLTIP_OPEN, onClose);
+	}, [onClose]);
+	import_react.useEffect(() => {
+		if (context.trigger) {
+			const handleScroll$1 = (event) => {
+				if (event.target?.contains(context.trigger)) onClose();
+			};
+			window.addEventListener("scroll", handleScroll$1, { capture: true });
+			return () => window.removeEventListener("scroll", handleScroll$1, { capture: true });
+		}
+	}, [context.trigger, onClose]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DismissableLayer, {
+		asChild: true,
+		disableOutsidePointerEvents: false,
+		onEscapeKeyDown,
+		onPointerDownOutside,
+		onFocusOutside: (event) => event.preventDefault(),
+		onDismiss: onClose,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
+			"data-state": context.stateAttribute,
+			...popperScope,
+			...contentProps,
+			ref: forwardedRef,
+			style: {
+				...contentProps.style,
+				"--radix-tooltip-content-transform-origin": "var(--radix-popper-transform-origin)",
+				"--radix-tooltip-content-available-width": "var(--radix-popper-available-width)",
+				"--radix-tooltip-content-available-height": "var(--radix-popper-available-height)",
+				"--radix-tooltip-trigger-width": "var(--radix-popper-anchor-width)",
+				"--radix-tooltip-trigger-height": "var(--radix-popper-anchor-height)"
+			},
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
+				scope: __scopeTooltip,
+				isInside: true,
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
+					id: context.contentId,
+					role: "tooltip",
+					children: ariaLabel || children
+				})
+			})]
+		})
+	});
+});
+TooltipContent$1.displayName = CONTENT_NAME$1;
+var ARROW_NAME = "TooltipArrow";
+var TooltipArrow = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTooltip, ...arrowProps } = props;
+	const popperScope = usePopperScope(__scopeTooltip);
+	return useVisuallyHiddenContentContext(ARROW_NAME, __scopeTooltip).isInside ? null : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Arrow, {
+		...popperScope,
+		...arrowProps,
+		ref: forwardedRef
+	});
+});
+TooltipArrow.displayName = ARROW_NAME;
+function getExitSideFromRect(point, rect) {
+	const top = Math.abs(rect.top - point.y);
+	const bottom = Math.abs(rect.bottom - point.y);
+	const right = Math.abs(rect.right - point.x);
+	const left = Math.abs(rect.left - point.x);
+	switch (Math.min(top, bottom, right, left)) {
+		case left: return "left";
+		case right: return "right";
+		case top: return "top";
+		case bottom: return "bottom";
+		default: throw new Error("unreachable");
+	}
+}
+function getPaddedExitPoints(exitPoint, exitSide, padding = 5) {
+	const paddedExitPoints = [];
+	switch (exitSide) {
+		case "top":
+			paddedExitPoints.push({
+				x: exitPoint.x - padding,
+				y: exitPoint.y + padding
+			}, {
+				x: exitPoint.x + padding,
+				y: exitPoint.y + padding
+			});
+			break;
+		case "bottom":
+			paddedExitPoints.push({
+				x: exitPoint.x - padding,
+				y: exitPoint.y - padding
+			}, {
+				x: exitPoint.x + padding,
+				y: exitPoint.y - padding
+			});
+			break;
+		case "left":
+			paddedExitPoints.push({
+				x: exitPoint.x + padding,
+				y: exitPoint.y - padding
+			}, {
+				x: exitPoint.x + padding,
+				y: exitPoint.y + padding
+			});
+			break;
+		case "right":
+			paddedExitPoints.push({
+				x: exitPoint.x - padding,
+				y: exitPoint.y - padding
+			}, {
+				x: exitPoint.x - padding,
+				y: exitPoint.y + padding
+			});
+			break;
+	}
+	return paddedExitPoints;
+}
+function getPointsFromRect(rect) {
+	const { top, right, bottom, left } = rect;
+	return [
+		{
+			x: left,
+			y: top
+		},
+		{
+			x: right,
+			y: top
+		},
+		{
+			x: right,
+			y: bottom
+		},
+		{
+			x: left,
+			y: bottom
+		}
+	];
+}
+function isPointInPolygon(point, polygon) {
+	const { x, y } = point;
+	let inside = false;
+	for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+		const ii = polygon[i];
+		const jj = polygon[j];
+		const xi = ii.x;
+		const yi = ii.y;
+		const xj = jj.x;
+		const yj = jj.y;
+		if (yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+	}
+	return inside;
+}
+function getHull(points) {
+	const newPoints = points.slice();
+	newPoints.sort((a, b) => {
+		if (a.x < b.x) return -1;
+		else if (a.x > b.x) return 1;
+		else if (a.y < b.y) return -1;
+		else if (a.y > b.y) return 1;
+		else return 0;
+	});
+	return getHullPresorted(newPoints);
+}
+function getHullPresorted(points) {
+	if (points.length <= 1) return points.slice();
+	const upperHull = [];
+	for (let i = 0; i < points.length; i++) {
+		const p = points[i];
+		while (upperHull.length >= 2) {
+			const q = upperHull[upperHull.length - 1];
+			const r$1 = upperHull[upperHull.length - 2];
+			if ((q.x - r$1.x) * (p.y - r$1.y) >= (q.y - r$1.y) * (p.x - r$1.x)) upperHull.pop();
+			else break;
+		}
+		upperHull.push(p);
+	}
+	upperHull.pop();
+	const lowerHull = [];
+	for (let i = points.length - 1; i >= 0; i--) {
+		const p = points[i];
+		while (lowerHull.length >= 2) {
+			const q = lowerHull[lowerHull.length - 1];
+			const r$1 = lowerHull[lowerHull.length - 2];
+			if ((q.x - r$1.x) * (p.y - r$1.y) >= (q.y - r$1.y) * (p.x - r$1.x)) lowerHull.pop();
+			else break;
+		}
+		lowerHull.push(p);
+	}
+	lowerHull.pop();
+	if (upperHull.length === 1 && lowerHull.length === 1 && upperHull[0].x === lowerHull[0].x && upperHull[0].y === lowerHull[0].y) return upperHull;
+	else return upperHull.concat(lowerHull);
+}
+var Provider = TooltipProvider$1;
+var Root3 = Tooltip$1;
+var Trigger$1 = TooltipTrigger$1;
+var Content2 = TooltipContent$1;
+var TooltipProvider = Provider;
+var Tooltip = Root3;
+var TooltipTrigger = Trigger$1;
+var TooltipContent = import_react.forwardRef(({ className, sideOffset = 4, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2, {
+	ref,
+	sideOffset,
+	className: cn("z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-tooltip-content-transform-origin]", className),
+	...props
+}));
+TooltipContent.displayName = Content2.displayName;
+var SIDEBAR_COOKIE_NAME = "sidebar_state";
+var SIDEBAR_COOKIE_MAX_AGE = 3600 * 24 * 7;
+var SIDEBAR_WIDTH = "16rem";
+var SIDEBAR_WIDTH_MOBILE = "18rem";
+var SIDEBAR_WIDTH_ICON = "3rem";
+var SIDEBAR_KEYBOARD_SHORTCUT = "b";
+var SidebarContext = import_react.createContext(null);
+function useSidebar() {
+	const context = import_react.useContext(SidebarContext);
+	if (!context) throw new Error("useSidebar must be used within a SidebarProvider.");
+	return context;
+}
+var SidebarProvider = import_react.forwardRef(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
+	const isMobile = useIsMobile();
+	const [openMobile, setOpenMobile] = import_react.useState(false);
+	const [_open, _setOpen] = import_react.useState(defaultOpen);
+	const open = openProp ?? _open;
+	const setOpen = import_react.useCallback((value) => {
+		const openState = typeof value === "function" ? value(open) : value;
+		if (setOpenProp) setOpenProp(openState);
+		else _setOpen(openState);
+		document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+	}, [setOpenProp, open]);
+	const toggleSidebar = import_react.useCallback(() => {
+		return isMobile ? setOpenMobile((open$1) => !open$1) : setOpen((open$1) => !open$1);
+	}, [
+		isMobile,
+		setOpen,
+		setOpenMobile
+	]);
+	import_react.useEffect(() => {
+		const handleKeyDown = (event) => {
+			if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
+				event.preventDefault();
+				toggleSidebar();
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [toggleSidebar]);
+	const state = open ? "expanded" : "collapsed";
+	const contextValue = import_react.useMemo(() => ({
+		state,
+		open,
+		setOpen,
+		isMobile,
+		openMobile,
+		setOpenMobile,
+		toggleSidebar
+	}), [
+		state,
+		open,
+		setOpen,
+		isMobile,
+		openMobile,
+		setOpenMobile,
+		toggleSidebar
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContext.Provider, {
+		value: contextValue,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipProvider, {
+			delayDuration: 0,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				style: {
+					"--sidebar-width": SIDEBAR_WIDTH,
+					"--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+					...style
+				},
+				className: cn("group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar", className),
+				ref,
+				...props,
+				children
+			})
+		})
+	});
+});
+SidebarProvider.displayName = "SidebarProvider";
+var Sidebar = import_react.forwardRef(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
+	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+	if (collapsible === "none") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: cn("flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground", className),
+		ref,
+		...props,
+		children
+	});
+	if (isMobile) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Sheet, {
+		open: openMobile,
+		onOpenChange: setOpenMobile,
+		...props,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SheetContent, {
+			"data-sidebar": "sidebar",
+			"data-mobile": "true",
+			className: "w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden",
+			style: { "--sidebar-width": SIDEBAR_WIDTH_MOBILE },
+			side,
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SheetHeader, {
+				className: "sr-only",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetTitle, { children: "Sidebar" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetDescription, { children: "Displays the mobile sidebar." })]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "flex h-full w-full flex-col",
+				children
+			})]
+		})
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		ref,
+		className: "group peer hidden text-sidebar-foreground md:block",
+		"data-state": state,
+		"data-collapsible": state === "collapsed" ? collapsible : "",
+		"data-variant": variant,
+		"data-side": side,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: cn("relative w-[--sidebar-width] bg-transparent transition-[width] duration-200 ease-linear", "group-data-[collapsible=offcanvas]:w-0", "group-data-[side=right]:rotate-180", variant === "floating" || variant === "inset" ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]" : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]") }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: cn("fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] duration-200 ease-linear md:flex", side === "left" ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]" : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]", variant === "floating" || variant === "inset" ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]" : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l", className),
+			...props,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-sidebar": "sidebar",
+				className: "flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow",
+				children
+			})
+		})]
+	});
+});
+Sidebar.displayName = "Sidebar";
+var SidebarTrigger = import_react.forwardRef(({ className, onClick, ...props }, ref) => {
+	const { toggleSidebar } = useSidebar();
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+		ref,
+		"data-sidebar": "trigger",
+		variant: "ghost",
+		size: "icon",
+		className: cn("h-7 w-7", className),
+		onClick: (event) => {
+			onClick?.(event);
+			toggleSidebar();
+		},
+		...props,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PanelLeft, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "sr-only",
+			children: "Toggle Sidebar"
+		})] })
+	});
+});
+SidebarTrigger.displayName = "SidebarTrigger";
+var SidebarRail = import_react.forwardRef(({ className, ...props }, ref) => {
+	const { toggleSidebar } = useSidebar();
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+		ref,
+		"data-sidebar": "rail",
+		"aria-label": "Toggle Sidebar",
+		tabIndex: -1,
+		onClick: toggleSidebar,
+		title: "Toggle Sidebar",
+		className: cn("absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex", "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize", "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize", "group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full group-data-[collapsible=offcanvas]:hover:bg-sidebar", "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2", "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2", className),
+		...props
+	});
+});
+SidebarRail.displayName = "SidebarRail";
+var SidebarInset = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", {
+		ref,
+		className: cn("relative flex w-full flex-1 flex-col bg-background", "md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow", className),
+		...props
+	});
+});
+SidebarInset.displayName = "SidebarInset";
+var SidebarInput = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+		ref,
+		"data-sidebar": "input",
+		className: cn("h-8 w-full bg-background shadow-none focus-visible:ring-2 focus-visible:ring-sidebar-ring", className),
+		...props
+	});
+});
+SidebarInput.displayName = "SidebarInput";
+var SidebarHeader = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		ref,
+		"data-sidebar": "header",
+		className: cn("flex flex-col gap-2 p-2", className),
+		...props
+	});
+});
+SidebarHeader.displayName = "SidebarHeader";
+var SidebarFooter = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		ref,
+		"data-sidebar": "footer",
+		className: cn("flex flex-col gap-2 p-2", className),
+		...props
+	});
+});
+SidebarFooter.displayName = "SidebarFooter";
+var SidebarSeparator = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Separator, {
+		ref,
+		"data-sidebar": "separator",
+		className: cn("mx-2 w-auto bg-sidebar-border", className),
+		...props
+	});
+});
+SidebarSeparator.displayName = "SidebarSeparator";
+var SidebarContent = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		ref,
+		"data-sidebar": "content",
+		className: cn("flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden", className),
+		...props
+	});
+});
+SidebarContent.displayName = "SidebarContent";
+var SidebarGroup = import_react.forwardRef(({ className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		ref,
+		"data-sidebar": "group",
+		className: cn("relative flex w-full min-w-0 flex-col p-2", className),
+		...props
+	});
+});
+SidebarGroup.displayName = "SidebarGroup";
+var SidebarGroupLabel = import_react.forwardRef(({ className, asChild = false, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(asChild ? Slot : "div", {
+		ref,
+		"data-sidebar": "group-label",
+		className: cn("flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0", "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0", className),
+		...props
+	});
+});
+SidebarGroupLabel.displayName = "SidebarGroupLabel";
+var SidebarGroupAction = import_react.forwardRef(({ className, asChild = false, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(asChild ? Slot : "button", {
+		ref,
+		"data-sidebar": "group-action",
+		className: cn("absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0", "after:absolute after:-inset-2 after:md:hidden", "group-data-[collapsible=icon]:hidden", className),
+		...props
+	});
+});
+SidebarGroupAction.displayName = "SidebarGroupAction";
+var SidebarGroupContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	"data-sidebar": "group-content",
+	className: cn("w-full text-sm", className),
+	...props
+}));
+SidebarGroupContent.displayName = "SidebarGroupContent";
+var SidebarMenu = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+	ref,
+	"data-sidebar": "menu",
+	className: cn("flex w-full min-w-0 flex-col gap-1", className),
+	...props
+}));
+SidebarMenu.displayName = "SidebarMenu";
+var SidebarMenuItem = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", {
+	ref,
+	"data-sidebar": "menu-item",
+	className: cn("group/menu-item relative", className),
+	...props
+}));
+SidebarMenuItem.displayName = "SidebarMenuItem";
+var sidebarMenuButtonVariants = cva("peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0", {
+	variants: {
+		variant: {
+			default: "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+			outline: "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]"
+		},
+		size: {
+			default: "h-8 text-sm",
+			sm: "h-7 text-xs",
+			lg: "h-12 text-sm group-data-[collapsible=icon]:!p-0"
+		}
+	},
+	defaultVariants: {
+		variant: "default",
+		size: "default"
+	}
+});
+var SidebarMenuButton = import_react.forwardRef(({ asChild = false, isActive = false, variant = "default", size: size$3 = "default", tooltip, className, ...props }, ref) => {
+	const Comp = asChild ? Slot : "button";
+	const { isMobile, state } = useSidebar();
+	const button = /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Comp, {
+		ref,
+		"data-sidebar": "menu-button",
+		"data-size": size$3,
+		"data-active": isActive,
+		className: cn(sidebarMenuButtonVariants({
+			variant,
+			size: size$3
+		}), className),
+		...props
+	});
+	if (!tooltip) return button;
+	if (typeof tooltip === "string") tooltip = { children: tooltip };
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tooltip, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipTrigger, {
+		asChild: true,
+		children: button
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContent, {
+		side: "right",
+		align: "center",
+		hidden: state !== "collapsed" || isMobile,
+		...tooltip
+	})] });
+});
+SidebarMenuButton.displayName = "SidebarMenuButton";
+var SidebarMenuAction = import_react.forwardRef(({ className, asChild = false, showOnHover = false, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(asChild ? Slot : "button", {
+		ref,
+		"data-sidebar": "menu-action",
+		className: cn("absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-none ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 peer-hover/menu-button:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0", "after:absolute after:-inset-2 after:md:hidden", "peer-data-[size=sm]/menu-button:top-1", "peer-data-[size=default]/menu-button:top-1.5", "peer-data-[size=lg]/menu-button:top-2.5", "group-data-[collapsible=icon]:hidden", showOnHover && "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0", className),
+		...props
+	});
+});
+SidebarMenuAction.displayName = "SidebarMenuAction";
+var SidebarMenuBadge = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	ref,
+	"data-sidebar": "menu-badge",
+	className: cn("pointer-events-none absolute right-1 flex h-5 min-w-5 select-none items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums text-sidebar-foreground", "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground", "peer-data-[size=sm]/menu-button:top-1", "peer-data-[size=default]/menu-button:top-1.5", "peer-data-[size=lg]/menu-button:top-2.5", "group-data-[collapsible=icon]:hidden", className),
+	...props
+}));
+SidebarMenuBadge.displayName = "SidebarMenuBadge";
+var SidebarMenuSkeleton = import_react.forwardRef(({ className, showIcon = false, ...props }, ref) => {
+	const width = import_react.useMemo(() => {
+		return `${Math.floor(Math.random() * 40) + 50}%`;
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		ref,
+		"data-sidebar": "menu-skeleton",
+		className: cn("flex h-8 items-center gap-2 rounded-md px-2", className),
+		...props,
+		children: [showIcon && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Skeleton, {
+			className: "size-4 rounded-md",
+			"data-sidebar": "menu-skeleton-icon"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Skeleton, {
+			className: "h-4 max-w-[--skeleton-width] flex-1",
+			"data-sidebar": "menu-skeleton-text",
+			style: { "--skeleton-width": width }
+		})]
+	});
+});
+SidebarMenuSkeleton.displayName = "SidebarMenuSkeleton";
+var SidebarMenuSub = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+	ref,
+	"data-sidebar": "menu-sub",
+	className: cn("mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5", "group-data-[collapsible=icon]:hidden", className),
+	...props
+}));
+SidebarMenuSub.displayName = "SidebarMenuSub";
+var SidebarMenuSubItem = import_react.forwardRef(({ ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", {
+	ref,
+	...props
+}));
+SidebarMenuSubItem.displayName = "SidebarMenuSubItem";
+var SidebarMenuSubButton = import_react.forwardRef(({ asChild = false, size: size$3 = "md", isActive, className, ...props }, ref) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(asChild ? Slot : "a", {
+		ref,
+		"data-sidebar": "menu-sub-button",
+		"data-size": size$3,
+		"data-active": isActive,
+		className: cn("flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground", "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground", size$3 === "sm" && "text-xs", size$3 === "md" && "text-sm", "group-data-[collapsible=icon]:hidden", className),
+		...props
+	});
+});
+SidebarMenuSubButton.displayName = "SidebarMenuSubButton";
 var navItems = [
 	{
 		href: "/",
@@ -21355,152 +24030,106 @@ var navItems = [
 		icon: LayoutDashboard
 	},
 	{
-		href: "/departamento/operacional",
-		label: "Operacional",
-		icon: Stethoscope
+		href: "/rh",
+		label: "RH",
+		icon: Users
 	},
 	{
-		href: "/departamento/administrativo",
-		label: "Administrativo",
-		icon: Briefcase
-	},
-	{
-		href: "/departamento/estrategico",
-		label: "Estratégico",
-		icon: Target
-	},
-	{
-		href: "/departamento/financeiro",
-		label: "Financeiro",
-		icon: CircleDollarSign
-	},
-	{
-		href: "/onboarding",
-		label: "Onboarding",
-		icon: UserPlus
+		href: "/estoque",
+		label: "Estoque",
+		icon: Package
 	}
 ];
-function SidebarNav({ className }) {
+function AppSidebar() {
 	const location = useLocation();
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {
-		className: cn("flex flex-col gap-2 p-4", className),
-		children: navItems.map((item) => {
-			const isActive = location.pathname === item.href;
-			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-				to: item.href,
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					variant: isActive ? "secondary" : "ghost",
-					className: cn("w-full justify-start", isActive ? "bg-primary/10 text-primary hover:bg-primary/20" : ""),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, { className: "mr-2 h-4 w-4" }), item.label]
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
+		collapsible: "icon",
+		variant: "sidebar",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarHeader, {
+				className: "p-4 flex items-center justify-center h-16 border-b",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+					src: nuvia_logo__horizontal_by_souza_filho_original_5cc4a_default,
+					alt: "Nuvia Odontologia",
+					className: "h-8 w-auto object-contain group-data-[collapsible=icon]:hidden"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "font-bold text-xl text-primary hidden group-data-[collapsible=icon]:block",
+					children: "N"
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
+				className: "p-2 pt-4",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, { children: navItems.map((item) => {
+					return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
+						asChild: true,
+						isActive: location.pathname === item.href || item.href !== "/" && location.pathname.startsWith(item.href),
+						tooltip: item.label,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							to: item.href,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, { className: "h-4 w-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: item.label })]
+						})
+					}) }, item.href);
+				}) })
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarFooter, {
+				className: "border-t p-4",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-3 overflow-hidden",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "h-8 w-8 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, { size: 16 })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex flex-col min-w-0 group-data-[collapsible=icon]:hidden",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "text-sm font-medium truncate",
+							children: "Dr. Souza Filho"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "text-xs text-muted-foreground truncate",
+							children: "Administrador"
+						})]
+					})]
 				})
-			}, item.href);
-		})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarRail, {})
+		]
 	});
 }
 function Layout() {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "flex min-h-screen w-full bg-background",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("aside", {
-			className: "hidden w-64 flex-col border-r bg-card md:flex",
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarProvider, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppSidebar, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarInset, {
+		className: "flex flex-col flex-1 overflow-hidden",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+			className: "flex h-16 shrink-0 items-center gap-4 border-b bg-card px-4 md:px-6 shadow-sm z-10",
 			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarTrigger, { className: "-ml-2" }),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "p-6",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-						src: nuvia_logo__horizontal_by_souza_filho_original_5cc4a_default,
-						alt: "Nuvia Odontologia",
-						className: "h-12 w-auto object-contain"
+					className: "flex flex-1 items-center gap-4 md:gap-8",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "relative flex-1 max-w-md hidden sm:block",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { className: "absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							type: "search",
+							placeholder: "Buscar no sistema Nuvia...",
+							className: "pl-8 bg-muted/50 w-full"
+						})]
 					})
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarNav, { className: "flex-1" }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "border-t p-4",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "flex items-center gap-3 mb-4 px-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, { size: 16 })
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex flex-col",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "text-sm font-medium",
-								children: "Dr. Souza Filho"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "text-xs text-muted-foreground",
-								children: "Administrador"
-							})]
-						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "flex items-center gap-4",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 						variant: "ghost",
-						className: "w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, { className: "mr-2 h-4 w-4" }), "Sair do Sistema"]
-					})]
+						size: "icon",
+						className: "relative",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Bell, { className: "h-5 w-5 text-foreground" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive border-2 border-card" })]
+					})
 				})
 			]
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "flex flex-1 flex-col",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-				className: "flex h-16 items-center gap-4 border-b bg-card px-6 shadow-sm",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sheet, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetTrigger, {
-						asChild: true,
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-							variant: "outline",
-							size: "icon",
-							className: "md:hidden",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Menu, { className: "h-5 w-5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "sr-only",
-								children: "Toggle navigation menu"
-							})]
-						})
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SheetContent, {
-						side: "left",
-						className: "w-64 p-0 flex flex-col",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetTitle, {
-								className: "sr-only",
-								children: "Menu de Navegação"
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "p-6 border-b",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-									src: nuvia_logo__horizontal_by_souza_filho_original_5cc4a_default,
-									alt: "Nuvia Odontologia",
-									className: "h-10 w-auto"
-								})
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarNav, { className: "flex-1" })
-						]
-					})] }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "flex flex-1 items-center gap-4 md:gap-8",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "relative flex-1 max-w-md hidden sm:block",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Search, { className: "absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								type: "search",
-								placeholder: "Buscar documentos, colaboradores...",
-								className: "pl-8 bg-muted/50 w-full"
-							})]
-						})
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "flex items-center gap-4",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-							variant: "ghost",
-							size: "icon",
-							className: "relative",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Bell, { className: "h-5 w-5 text-foreground" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" })]
-						})
-					})
-				]
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", {
-				className: "flex-1 overflow-auto p-4 md:p-8",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "mx-auto max-w-6xl",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {})
-				})
-			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", {
+			className: "flex-1 overflow-auto bg-background p-4 md:p-8",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "mx-auto max-w-6xl",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {})
+			})
 		})]
-	});
+	})] });
 }
 var Card = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	ref,
@@ -21543,56 +24172,40 @@ var mockEmployees = [
 		id: "1",
 		name: "Ana Silva",
 		role: "Dentista Clínica",
-		department: "Operacional",
+		department: "Odontologia",
 		status: "Ativo",
 		hireDate: "2023-01-15",
 		salary: "R$ 8.500",
 		vacationDaysTaken: 10,
-		vacationDaysTotal: 30
+		vacationDaysTotal: 30,
+		email: "ana.silva@nuvia.com",
+		phone: "(11) 98765-4321"
 	},
 	{
 		id: "2",
 		name: "Carlos Santos",
 		role: "Ortodontista",
-		department: "Operacional",
+		department: "Odontologia",
 		status: "Férias",
 		hireDate: "2022-06-10",
 		salary: "R$ 12.000",
 		vacationDaysTaken: 30,
-		vacationDaysTotal: 30
+		vacationDaysTotal: 30,
+		email: "carlos.santos@nuvia.com",
+		phone: "(11) 99999-8888"
 	},
 	{
 		id: "3",
 		name: "Mariana Costa",
 		role: "Recepcionista",
-		department: "Administrativo",
+		department: "Atendimento",
 		status: "Ativo",
 		hireDate: "2024-02-01",
 		salary: "R$ 2.500",
 		vacationDaysTaken: 0,
-		vacationDaysTotal: 30
-	},
-	{
-		id: "4",
-		name: "João Mendes",
-		role: "Gerente Financeiro",
-		department: "Financeiro",
-		status: "Ativo",
-		hireDate: "2021-11-20",
-		salary: "R$ 9.000",
-		vacationDaysTaken: 15,
-		vacationDaysTotal: 30
-	},
-	{
-		id: "5",
-		name: "Patricia Leme",
-		role: "Diretora Estratégica",
-		department: "Estratégico",
-		status: "Ativo",
-		hireDate: "2020-03-05",
-		salary: "R$ 18.000",
-		vacationDaysTaken: 25,
-		vacationDaysTotal: 30
+		vacationDaysTotal: 30,
+		email: "mariana.costa@nuvia.com",
+		phone: "(11) 97777-6666"
 	}
 ];
 var mockOnboarding = [{
@@ -21623,32 +24236,70 @@ var mockOnboarding = [{
 		}
 	]
 }];
+var mockInventory = [
+	{
+		id: "1",
+		name: "Resina Composta",
+		category: "Materiais Clínicos",
+		quantity: 15,
+		unit: "Seringas",
+		threshold: 10,
+		lastRestocked: "2026-02-20"
+	},
+	{
+		id: "2",
+		name: "Luvas de Procedimento (M)",
+		category: "EPIs",
+		quantity: 5,
+		unit: "Caixas",
+		threshold: 20,
+		lastRestocked: "2026-03-01"
+	},
+	{
+		id: "3",
+		name: "Agulha Gengival",
+		category: "Descartáveis",
+		quantity: 150,
+		unit: "Unidades",
+		threshold: 100,
+		lastRestocked: "2026-02-15"
+	}
+];
 var StoreContext = (0, import_react.createContext)(void 0);
 function AppProvider({ children }) {
 	const [employees] = (0, import_react.useState)(mockEmployees);
-	const [alerts] = (0, import_react.useState)([
-		"Carlos Santos: Retorna de férias em 2 dias.",
-		"Mariana Costa: Vencimento do período aquisitivo de férias no próximo mês.",
-		"Novo colaborador: Fernanda Lima inicia o onboarding na próxima segunda."
-	]);
+	const [alerts] = (0, import_react.useState)(["Carlos Santos: Retorna de férias em 2 dias.", "Mariana Costa: Vencimento do período aquisitivo de férias no próximo mês."]);
 	const [onboarding, setOnboarding] = (0, import_react.useState)(mockOnboarding);
+	const [inventory, setInventory] = (0, import_react.useState)(mockInventory);
 	const toggleTask = (candidateId, taskId) => {
-		setOnboarding((prev) => prev.map((c) => {
-			if (c.id === candidateId) return {
-				...c,
-				tasks: c.tasks.map((t) => t.id === taskId ? {
-					...t,
-					completed: !t.completed
-				} : t)
-			};
-			return c;
-		}));
+		setOnboarding((prev) => prev.map((c) => c.id === candidateId ? {
+			...c,
+			tasks: c.tasks.map((t) => t.id === taskId ? {
+				...t,
+				completed: !t.completed
+			} : t)
+		} : c));
+	};
+	const addInventoryItem = (item) => {
+		setInventory((prev) => [...prev, {
+			...item,
+			id: Math.random().toString(36).substr(2, 9)
+		}]);
+	};
+	const updateInventoryQuantity = (id, newQuantity) => {
+		setInventory((prev) => prev.map((i) => i.id === id ? {
+			...i,
+			quantity: newQuantity
+		} : i));
 	};
 	return import_react.createElement(StoreContext.Provider, { value: {
 		employees,
 		alerts,
 		onboarding,
-		toggleTask
+		inventory,
+		toggleTask,
+		addInventoryItem,
+		updateInventoryQuantity
 	} }, children);
 }
 function useAppStore() {
@@ -21683,10 +24334,10 @@ var AlertDescription = import_react.forwardRef(({ className, ...props }, ref) =>
 }));
 AlertDescription.displayName = "AlertDescription";
 function Index() {
-	const { employees, alerts, onboarding } = useAppStore();
+	const { employees, alerts, onboarding, inventory } = useAppStore();
 	const activeEmployees = employees.filter((e) => e.status === "Ativo").length;
-	const vacationAlerts = employees.filter((e) => e.status === "Férias").length;
 	const pendingOnboarding = onboarding.length;
+	const lowStockItems = inventory.filter((i) => i.quantity <= i.threshold).length;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-8 animate-fade-in",
 		children: [
@@ -21695,36 +24346,23 @@ function Index() {
 				children: "Dashboard Nuvia"
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-muted-foreground mt-1",
-				children: "Visão geral da gestão clínica e administrativa."
+				children: "Visão geral da gestão de recursos humanos e estoque clínico."
 			})] }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "grid gap-4 md:grid-cols-2 lg:grid-cols-4",
+				className: "grid gap-4 md:grid-cols-3",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
 						className: "flex flex-row items-center justify-between space-y-0 pb-2",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
 							className: "text-sm font-medium",
-							children: "Colaboradores Ativos"
+							children: "Equipe Ativa"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { className: "h-4 w-4 text-primary" })]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "text-2xl font-bold",
 						children: activeEmployees
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 						className: "text-xs text-muted-foreground mt-1",
-						children: ["De um total de ", employees.length]
-					})] })] }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-						className: "flex flex-row items-center justify-between space-y-0 pb-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-							className: "text-sm font-medium",
-							children: "Alertas de Férias"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarClock, { className: "h-4 w-4 text-amber-500" })]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "text-2xl font-bold",
-						children: vacationAlerts
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: "text-xs text-muted-foreground mt-1",
-						children: "Colaboradores afastados"
+						children: ["Colaboradores de um total de ", employees.length]
 					})] })] }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
 						className: "flex flex-row items-center justify-between space-y-0 pb-2",
@@ -21737,21 +24375,24 @@ function Index() {
 						children: pendingOnboarding
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-xs text-muted-foreground mt-1",
-						children: "Processos em andamento"
+						children: "Processos em andamento (RH)"
 					})] })] }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-						className: "flex flex-row items-center justify-between space-y-0 pb-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-							className: "text-sm font-medium",
-							children: "Resumo Financeiro"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingUp, { className: "h-4 w-4 text-emerald-500" })]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "text-2xl font-bold",
-						children: "Saudável"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: "text-xs text-muted-foreground mt-1",
-						children: "Consulte o painel financeiro"
-					})] })] })
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+						className: lowStockItems > 0 ? "border-destructive/30 bg-destructive/5" : "",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+							className: "flex flex-row items-center justify-between space-y-0 pb-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
+								className: "text-sm font-medium",
+								children: "Avisos de Estoque"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingDown, { className: cn("h-4 w-4", lowStockItems > 0 ? "text-destructive" : "text-emerald-500") })]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: cn("text-2xl font-bold", lowStockItems > 0 ? "text-destructive" : ""),
+							children: lowStockItems
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "text-xs text-muted-foreground mt-1",
+							children: "Itens precisam de reposição"
+						})] })]
+					})
 				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -21760,10 +24401,10 @@ function Index() {
 					className: "md:col-span-5",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
 						className: "flex items-center gap-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-5 w-5 text-destructive" }), "Avisos e Alertas (RH)"]
-					}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-5 w-5 text-destructive" }), "Central de Alertas Operacionais"]
+					}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 						className: "space-y-4",
-						children: alerts.map((alert, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+						children: [alerts.map((alert, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
 							variant: idx === 0 ? "destructive" : "default",
 							className: cn(idx !== 0 && "border-amber-200 bg-amber-50 text-amber-900"),
 							children: [
@@ -21771,27 +24412,50 @@ function Index() {
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: idx === 0 ? "Urgente" : "Atenção" }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDescription, { children: alert })
 							]
-						}, idx))
+						}, idx)), lowStockItems > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+							variant: "destructive",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "Estoque Crítico" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AlertDescription, { children: [
+									"Existem ",
+									lowStockItems,
+									" itens com estoque abaixo do limite no inventário clínico. Reposição necessária."
+								] })
+							]
+						})]
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 					className: "md:col-span-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Ações Rápidas" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 						className: "space-y-3",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-								className: "w-full justify-start",
-								variant: "outline",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CirclePlus, { className: "mr-2 h-4 w-4" }), " Novo Colaborador"]
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/rh",
+								className: "w-full block",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+									className: "w-full justify-start",
+									variant: "outline",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, { className: "mr-2 h-4 w-4" }), " Gestão de Equipe (RH)"]
+								})
 							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-								className: "w-full justify-start",
-								variant: "outline",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { className: "mr-2 h-4 w-4" }), " Adicionar Documento"]
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/estoque",
+								className: "w-full block",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+									className: "w-full justify-start",
+									variant: "outline",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "mr-2 h-4 w-4" }), " Atualizar Estoque"]
+								})
 							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-								className: "w-full justify-start",
-								variant: "outline",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(KeyRound, { className: "mr-2 h-4 w-4" }), " Acessar Senhas"]
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+								to: "/rh",
+								className: "w-full block",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+									className: "w-full justify-start",
+									variant: "outline",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { className: "mr-2 h-4 w-4" }), " Rotinas e Manuais"]
+								})
 							})
 						]
 					})]
@@ -21801,9 +24465,9 @@ function Index() {
 	});
 }
 function createCollection(name) {
-	const PROVIDER_NAME = name + "CollectionProvider";
-	const [createCollectionContext, createCollectionScope$1] = createContextScope(PROVIDER_NAME);
-	const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(PROVIDER_NAME, {
+	const PROVIDER_NAME$1 = name + "CollectionProvider";
+	const [createCollectionContext, createCollectionScope$1] = createContextScope(PROVIDER_NAME$1);
+	const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(PROVIDER_NAME$1, {
 		collectionRef: { current: null },
 		itemMap: /* @__PURE__ */ new Map()
 	});
@@ -21818,9 +24482,9 @@ function createCollection(name) {
 			children
 		});
 	};
-	CollectionProvider.displayName = PROVIDER_NAME;
+	CollectionProvider.displayName = PROVIDER_NAME$1;
 	const COLLECTION_SLOT_NAME = name + "CollectionSlot";
-	const CollectionSlotImpl = /* @__PURE__ */ createSlot$1(COLLECTION_SLOT_NAME);
+	const CollectionSlotImpl = /* @__PURE__ */ createSlot(COLLECTION_SLOT_NAME);
 	const CollectionSlot = import_react.forwardRef((props, forwardedRef) => {
 		const { scope, children } = props;
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CollectionSlotImpl, {
@@ -21831,7 +24495,7 @@ function createCollection(name) {
 	CollectionSlot.displayName = COLLECTION_SLOT_NAME;
 	const ITEM_SLOT_NAME = name + "CollectionItemSlot";
 	const ITEM_DATA_ATTR = "data-radix-collection-item";
-	const CollectionItemSlotImpl = /* @__PURE__ */ createSlot$1(ITEM_SLOT_NAME);
+	const CollectionItemSlotImpl = /* @__PURE__ */ createSlot(ITEM_SLOT_NAME);
 	const CollectionItemSlot = import_react.forwardRef((props, forwardedRef) => {
 		const { scope, children, ...itemData } = props;
 		const ref = import_react.useRef(null);
@@ -21930,7 +24594,7 @@ var RovingFocusGroupImpl = import_react.forwardRef((props, forwardedRef) => {
 		onItemShiftTab: import_react.useCallback(() => setIsTabbingBackOut(true), []),
 		onFocusableItemAdd: import_react.useCallback(() => setFocusableItemsCount((prevCount) => prevCount + 1), []),
 		onFocusableItemRemove: import_react.useCallback(() => setFocusableItemsCount((prevCount) => prevCount - 1), []),
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 			tabIndex: isTabbingBackOut || focusableItemsCount === 0 ? -1 : 0,
 			"data-orientation": orientation,
 			...groupProps,
@@ -21986,7 +24650,7 @@ var RovingFocusGroupItem = import_react.forwardRef((props, forwardedRef) => {
 		id,
 		focusable,
 		active,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.span, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
 			tabIndex: isCurrentTabStop ? 0 : -1,
 			"data-orientation": context.orientation,
 			...itemProps,
@@ -22053,9 +24717,9 @@ function focusFirst(candidates, preventScroll = false) {
 	}
 }
 function wrapArray(array, startIndex) {
-	return array.map((_, index) => array[(startIndex + index) % array.length]);
+	return array.map((_, index$1) => array[(startIndex + index$1) % array.length]);
 }
-var Root$1 = RovingFocusGroup;
+var Root$2 = RovingFocusGroup;
 var Item = RovingFocusGroupItem;
 var TABS_NAME = "Tabs";
 var [createTabsContext, createTabsScope] = createContextScope(TABS_NAME, [createRovingFocusGroupScope]);
@@ -22078,7 +24742,7 @@ var Tabs$1 = import_react.forwardRef((props, forwardedRef) => {
 		orientation,
 		dir: direction,
 		activationMode,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 			dir: direction,
 			"data-orientation": orientation,
 			...tabsProps,
@@ -22092,13 +24756,13 @@ var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTabs, loop = true, ...listProps } = props;
 	const context = useTabsContext(TAB_LIST_NAME, __scopeTabs);
 	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
 		asChild: true,
 		...rovingFocusGroupScope,
 		orientation: context.orientation,
 		dir: context.dir,
 		loop,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 			role: "tablist",
 			"aria-orientation": context.orientation,
 			...listProps,
@@ -22120,7 +24784,7 @@ var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		...rovingFocusGroupScope,
 		focusable: !disabled,
 		active: isSelected,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
 			type: "button",
 			role: "tab",
 			"aria-selected": isSelected,
@@ -22160,7 +24824,7 @@ var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	}, []);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || isSelected,
-		children: ({ present }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		children: ({ present }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 			"data-state": isSelected ? "active" : "inactive",
 			"data-orientation": context.orientation,
 			role: "tabpanel",
@@ -22208,57 +24872,6 @@ var TabsContent = import_react.forwardRef(({ className, ...props }, ref) => /* @
 	...props
 }));
 TabsContent.displayName = Content.displayName;
-var Table = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: "relative w-full overflow-auto",
-	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("table", {
-		ref,
-		className: cn("w-full caption-bottom text-sm", className),
-		...props
-	})
-}));
-Table.displayName = "Table";
-var TableHeader = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", {
-	ref,
-	className: cn("[&_tr]:border-b", className),
-	...props
-}));
-TableHeader.displayName = "TableHeader";
-var TableBody = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
-	ref,
-	className: cn("[&_tr:last-child]:border-0", className),
-	...props
-}));
-TableBody.displayName = "TableBody";
-var TableFooter = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tfoot", {
-	ref,
-	className: cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
-	...props
-}));
-TableFooter.displayName = "TableFooter";
-var TableRow = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", {
-	ref,
-	className: cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
-	...props
-}));
-TableRow.displayName = "TableRow";
-var TableHead = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
-	ref,
-	className: cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
-	...props
-}));
-TableHead.displayName = "TableHead";
-var TableCell = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-	ref,
-	className: cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
-	...props
-}));
-TableCell.displayName = "TableCell";
-var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("caption", {
-	ref,
-	className: cn("mt-4 text-sm text-muted-foreground", className),
-	...props
-}));
-TableCaption.displayName = "TableCaption";
 var badgeVariants = cva("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", {
 	variants: { variant: {
 		default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
@@ -22274,74 +24887,85 @@ function Badge({ className, variant, ...props }) {
 		...props
 	});
 }
-var Dialog = Root$2;
-var DialogPortal = Portal$1;
-var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
-	ref,
-	className: cn("fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
-	...props
-}));
-DialogOverlay.displayName = Overlay.displayName;
-var DialogContent = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
-	ref,
-	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-y-auto max-h-screen", className),
-	...props,
-	children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Close, {
-		className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "h-4 w-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-			className: "sr-only",
-			children: "Close"
-		})]
-	})]
-})] }));
-DialogContent.displayName = Content$1.displayName;
-var DialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
-	...props
-});
-DialogHeader.displayName = "DialogHeader";
-var DialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
-	...props
-});
-DialogFooter.displayName = "DialogFooter";
-var DialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
-	ref,
-	className: cn("text-lg font-semibold leading-none tracking-tight", className),
-	...props
-}));
-DialogTitle.displayName = Title.displayName;
-var DialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
-	ref,
-	className: cn("text-sm text-muted-foreground", className),
-	...props
-}));
-DialogDescription.displayName = Description.displayName;
+function EmployeeTable({ employees }) {
+	const navigate = useNavigate();
+	const getStatusColor = (status) => {
+		switch (status) {
+			case "Ativo": return "bg-emerald-500 hover:bg-emerald-600";
+			case "Férias": return "bg-amber-500 hover:bg-amber-600";
+			case "Aviso Prévio": return "bg-destructive hover:bg-destructive";
+			default: return "bg-gray-500";
+		}
+	};
+	if (employees.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "text-center py-8 text-muted-foreground border border-dashed rounded-lg bg-card",
+		children: "Nenhum colaborador encontrado no momento."
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "flex flex-col gap-3",
+		children: employees.map((emp) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			onClick: () => navigate(`/rh/colaborador/${emp.id}`),
+			className: "flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:border-primary/50 cursor-pointer transition-all gap-4 shadow-sm",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex items-center gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleUser, { className: "h-6 w-6" })
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+					className: "font-semibold text-foreground",
+					children: emp.name
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "text-sm text-muted-foreground",
+					children: [
+						emp.role,
+						" • ",
+						emp.department
+					]
+				})] })]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex items-center gap-4 sm:gap-8 border-t sm:border-0 pt-3 sm:pt-0",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "text-sm text-right hidden md:block",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-muted-foreground text-xs",
+						children: "Admissão"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "font-medium",
+						children: new Date(emp.hireDate).toLocaleDateString("pt-BR")
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+					className: cn("text-white whitespace-nowrap", getStatusColor(emp.status)),
+					children: emp.status
+				})]
+			})]
+		}, emp.id))
+	});
+}
 function createContextScope$1(scopeName, createContextScopeDeps = []) {
 	let defaultContexts = [];
 	function createContext3(rootComponentName, defaultContext) {
 		const BaseContext = import_react.createContext(defaultContext);
 		BaseContext.displayName = rootComponentName + "Context";
-		const index = defaultContexts.length;
+		const index$1 = defaultContexts.length;
 		defaultContexts = [...defaultContexts, defaultContext];
-		const Provider = (props) => {
+		const Provider$1 = (props) => {
 			const { scope, children, ...context } = props;
-			const Context = scope?.[scopeName]?.[index] || BaseContext;
+			const Context = scope?.[scopeName]?.[index$1] || BaseContext;
 			const value = import_react.useMemo(() => context, Object.values(context));
 			return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Context.Provider, {
 				value,
 				children
 			});
 		};
-		Provider.displayName = rootComponentName + "Provider";
+		Provider$1.displayName = rootComponentName + "Provider";
 		function useContext2(consumerName, scope) {
-			const Context = scope?.[scopeName]?.[index] || BaseContext;
+			const Context = scope?.[scopeName]?.[index$1] || BaseContext;
 			const context = import_react.useContext(Context);
 			if (context) return context;
 			if (defaultContext !== void 0) return defaultContext;
 			throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
 		}
-		return [Provider, useContext2];
+		return [Provider$1, useContext2];
 	}
 	const createScope = () => {
 		const scopeContexts = defaultContexts.map((defaultContext) => {
@@ -22380,42 +25004,6 @@ function composeContextScopes(...scopes) {
 	createScope.scopeName = baseScope.scopeName;
 	return createScope;
 }
-require_react_dom();
-var Primitive$1 = [
-	"a",
-	"button",
-	"div",
-	"form",
-	"h2",
-	"h3",
-	"img",
-	"input",
-	"label",
-	"li",
-	"nav",
-	"ol",
-	"p",
-	"select",
-	"span",
-	"svg",
-	"ul"
-].reduce((primitive, node) => {
-	const Slot$2 = /* @__PURE__ */ createSlot(`Primitive.${node}`);
-	const Node$1 = import_react.forwardRef((props, forwardedRef) => {
-		const { asChild, ...primitiveProps } = props;
-		const Comp = asChild ? Slot$2 : node;
-		if (typeof window !== "undefined") window[Symbol.for("radix-ui")] = true;
-		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Comp, {
-			...primitiveProps,
-			ref: forwardedRef
-		});
-	});
-	Node$1.displayName = `Primitive.${node}`;
-	return {
-		...primitive,
-		[node]: Node$1
-	};
-}, {});
 var PROGRESS_NAME = "Progress";
 var DEFAULT_MAX = 100;
 var [createProgressContext, createProgressScope] = createContextScope$1(PROGRESS_NAME);
@@ -22423,23 +25011,23 @@ var [ProgressProvider, useProgressContext] = createProgressContext(PROGRESS_NAME
 var Progress$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeProgress, value: valueProp = null, max: maxProp, getValueLabel = defaultGetValueLabel, ...progressProps } = props;
 	if ((maxProp || maxProp === 0) && !isValidMaxNumber(maxProp)) console.error(getInvalidMaxError(`${maxProp}`, "Progress"));
-	const max = isValidMaxNumber(maxProp) ? maxProp : DEFAULT_MAX;
-	if (valueProp !== null && !isValidValueNumber(valueProp, max)) console.error(getInvalidValueError(`${valueProp}`, "Progress"));
-	const value = isValidValueNumber(valueProp, max) ? valueProp : null;
-	const valueLabel = isNumber(value) ? getValueLabel(value, max) : void 0;
+	const max$1 = isValidMaxNumber(maxProp) ? maxProp : DEFAULT_MAX;
+	if (valueProp !== null && !isValidValueNumber(valueProp, max$1)) console.error(getInvalidValueError(`${valueProp}`, "Progress"));
+	const value = isValidValueNumber(valueProp, max$1) ? valueProp : null;
+	const valueLabel = isNumber(value) ? getValueLabel(value, max$1) : void 0;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProgressProvider, {
 		scope: __scopeProgress,
 		value,
-		max,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
-			"aria-valuemax": max,
+		max: max$1,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+			"aria-valuemax": max$1,
 			"aria-valuemin": 0,
 			"aria-valuenow": isNumber(value) ? value : void 0,
 			"aria-valuetext": valueLabel,
 			role: "progressbar",
-			"data-state": getProgressState(value, max),
+			"data-state": getProgressState(value, max$1),
 			"data-value": value ?? void 0,
-			"data-max": max,
+			"data-max": max$1,
 			...progressProps,
 			ref: forwardedRef
 		})
@@ -22450,7 +25038,7 @@ var INDICATOR_NAME$1 = "ProgressIndicator";
 var ProgressIndicator = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeProgress, ...indicatorProps } = props;
 	const context = useProgressContext(INDICATOR_NAME$1, __scopeProgress);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
 		"data-state": getProgressState(context.value, context.max),
 		"data-value": context.value ?? void 0,
 		"data-max": context.max,
@@ -22459,8 +25047,8 @@ var ProgressIndicator = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 ProgressIndicator.displayName = INDICATOR_NAME$1;
-function defaultGetValueLabel(value, max) {
-	return `${Math.round(value / max * 100)}%`;
+function defaultGetValueLabel(value, max$1) {
+	return `${Math.round(value / max$1 * 100)}%`;
 }
 function getProgressState(value, maxValue) {
 	return value == null ? "indeterminate" : value === maxValue ? "complete" : "loading";
@@ -22468,11 +25056,11 @@ function getProgressState(value, maxValue) {
 function isNumber(value) {
 	return typeof value === "number";
 }
-function isValidMaxNumber(max) {
-	return isNumber(max) && !isNaN(max) && max > 0;
+function isValidMaxNumber(max$1) {
+	return isNumber(max$1) && !isNaN(max$1) && max$1 > 0;
 }
-function isValidValueNumber(value, max) {
-	return isNumber(value) && !isNaN(value) && value <= max && value >= 0;
+function isValidValueNumber(value, max$1) {
+	return isNumber(value) && !isNaN(value) && value <= max$1 && value >= 0;
 }
 function getInvalidMaxError(propValue, componentName) {
 	return `Invalid prop \`max\` of value \`${propValue}\` supplied to \`${componentName}\`. Only numbers greater than 0 are valid max values. Defaulting to \`${DEFAULT_MAX}\`.`;
@@ -22485,9 +25073,9 @@ function getInvalidValueError(propValue, componentName) {
 
 Defaulting to \`null\`.`;
 }
-var Root = Progress$1;
+var Root$1 = Progress$1;
 var Indicator = ProgressIndicator;
-var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
+var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
 	ref,
 	className: cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
 	...props,
@@ -22496,276 +25084,7 @@ var Progress = import_react.forwardRef(({ className, value, ...props }, ref) => 
 		style: { transform: `translateX(-${100 - (value || 0)}%)` }
 	})
 }));
-Progress.displayName = Root.displayName;
-function EmployeeTable({ employees }) {
-	const [selectedEmp, setSelectedEmp] = (0, import_react.useState)(null);
-	const getStatusColor = (status) => {
-		switch (status) {
-			case "Ativo": return "bg-emerald-500 hover:bg-emerald-600";
-			case "Férias": return "bg-amber-500 hover:bg-amber-600";
-			case "Aviso Prévio": return "bg-destructive hover:bg-destructive";
-			default: return "bg-gray-500";
-		}
-	};
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "rounded-md border bg-card",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Nome" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Função" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Data de Admissão" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Salário Base" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-				className: "text-right",
-				children: "Status"
-			})
-		] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, { children: employees.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-			colSpan: 5,
-			className: "text-center py-6 text-muted-foreground",
-			children: "Nenhum colaborador encontrado."
-		}) }) : employees.map((emp) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-			className: "cursor-pointer hover:bg-muted/50 transition-colors",
-			onClick: () => setSelectedEmp(emp),
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-					className: "font-medium",
-					children: emp.name
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: emp.role }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: new Date(emp.hireDate).toLocaleDateString("pt-BR") }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: emp.salary }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-					className: "text-right",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-						className: cn("text-white", getStatusColor(emp.status)),
-						children: emp.status
-					})
-				})
-			]
-		}, emp.id)) })] })
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		open: !!selectedEmp,
-		onOpenChange: (open) => !open && setSelectedEmp(null),
-		children: selectedEmp && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			className: "sm:max-w-md",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Detalhes do Colaborador" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogDescription, { children: ["Informações completas de ", selectedEmp.name] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "space-y-6 pt-4",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "grid grid-cols-2 gap-4 text-sm",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "text-muted-foreground block mb-1",
-							children: "Departamento"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "font-medium",
-							children: selectedEmp.department
-						})] }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "text-muted-foreground block mb-1",
-							children: "Função"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "font-medium",
-							children: selectedEmp.role
-						})] }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "text-muted-foreground block mb-1",
-							children: "Admissão"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "font-medium",
-							children: new Date(selectedEmp.hireDate).toLocaleDateString("pt-BR")
-						})] }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "text-muted-foreground block mb-1",
-							children: "Status Atual"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-							className: cn("text-white mt-1", getStatusColor(selectedEmp.status)),
-							children: selectedEmp.status
-						})] })
-					]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "space-y-2 border-t pt-4",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-							className: "font-medium text-sm",
-							children: "Controle de Férias"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex justify-between text-xs text-muted-foreground",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [selectedEmp.vacationDaysTaken, " dias gozados"] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
-								"Total: ",
-								selectedEmp.vacationDaysTotal,
-								" dias"
-							] })]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
-							value: selectedEmp.vacationDaysTaken / selectedEmp.vacationDaysTotal * 100,
-							className: "h-2"
-						})
-					]
-				})]
-			})]
-		})
-	})] });
-}
-var mockVault = [
-	{
-		id: 1,
-		service: "Sistema Nuvia (Admin)",
-		username: "admin@nuvia.com.br",
-		pass: "Nuvia@2026!"
-	},
-	{
-		id: 2,
-		service: "Portal de Exames",
-		username: "contato@nuvia.com.br",
-		pass: "Exames123#"
-	},
-	{
-		id: 3,
-		service: "Fornecedor Dental",
-		username: "compras@nuvia.com.br",
-		pass: "Dental!Buy26"
-	}
-];
-function PasswordVault() {
-	const [visibleRows, setVisibleRows] = (0, import_react.useState)({});
-	const [copied, setCopied] = (0, import_react.useState)(null);
-	const toggleVisibility = (id) => {
-		setVisibleRows((prev) => ({
-			...prev,
-			[id]: !prev[id]
-		}));
-	};
-	const handleCopy = (id, text) => {
-		navigator.clipboard.writeText(text);
-		setCopied(id);
-		setTimeout(() => setCopied(null), 2e3);
-	};
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "rounded-md border bg-card",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Serviço/Plataforma" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Usuário" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Senha" }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-				className: "text-right",
-				children: "Ações"
-			})
-		] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, { children: mockVault.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-				className: "font-medium",
-				children: item.service
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: item.username }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-				className: "font-mono text-sm",
-				children: visibleRows[item.id] ? item.pass : "••••••••••••"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-				className: "text-right space-x-2",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					variant: "ghost",
-					size: "icon",
-					onClick: () => toggleVisibility(item.id),
-					children: visibleRows[item.id] ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EyeOff, { className: "h-4 w-4" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-4 w-4" })
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					variant: "ghost",
-					size: "icon",
-					onClick: () => handleCopy(item.id, item.pass),
-					children: copied === item.id ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { className: "h-4 w-4 text-emerald-500" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Copy, { className: "h-4 w-4" })
-				})]
-			})
-		] }, item.id)) })] })
-	});
-}
-var mockDocuments = [
-	{
-		id: 1,
-		name: "POP - Atendimento Inicial.pdf",
-		date: "10/01/2026"
-	},
-	{
-		id: 2,
-		name: "Manual de Biossugurança v2.pdf",
-		date: "15/02/2026"
-	},
-	{
-		id: 3,
-		name: "Regulamento Interno Nuvia.pdf",
-		date: "05/03/2026"
-	}
-];
-function Department() {
-	const { id } = useParams();
-	const { employees } = useAppStore();
-	const deptName = id ? id.charAt(0).toUpperCase() + id.slice(1) : "Departamento";
-	const deptEmployees = employees.filter((e) => e.department.toLowerCase() === id?.toLowerCase());
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "space-y-6 animate-fade-in-up",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
-			className: "text-3xl font-bold tracking-tight text-nuvia-navy",
-			children: ["Setor ", deptName]
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-			className: "text-muted-foreground mt-1",
-			children: "Gestão de equipe, rotinas e acessos do setor."
-		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
-			defaultValue: "equipe",
-			className: "w-full",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
-					className: "grid w-full grid-cols-3 max-w-md",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							value: "equipe",
-							children: "Equipe"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							value: "rotinas",
-							children: "Rotinas / POPs"
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							value: "acessos",
-							children: "Cofre de Acessos"
-						})
-					]
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					value: "equipe",
-					className: "mt-6",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Membros da Equipe" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Gerencie os colaboradores alocados neste departamento." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmployeeTable, { employees: deptEmployees }) })] })
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					value: "rotinas",
-					className: "mt-6",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Documentos Operacionais" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Manuais e Procedimentos Operacionais Padrão (POPs)." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-						className: "space-y-4",
-						children: mockDocuments.map((doc) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center justify-between p-4 border rounded-lg bg-muted/30",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-center gap-3",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { className: "h-5 w-5 text-primary" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									className: "font-medium text-sm",
-									children: doc.name
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-									className: "text-xs text-muted-foreground",
-									children: ["Atualizado em ", doc.date]
-								})] })]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-								variant: "outline",
-								size: "sm",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "h-4 w-4 mr-2" }), " Baixar"]
-							})]
-						}, doc.id))
-					})] })
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					value: "acessos",
-					className: "mt-6",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Cofre de Senhas" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Credenciais seguras e compartilhadas da clínica." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PasswordVault, {}) })] })
-				})
-			]
-		})]
-	});
-}
+Progress.displayName = Root$1.displayName;
 function usePrevious(value) {
 	const ref = import_react.useRef({
 		value,
@@ -22778,40 +25097,6 @@ function usePrevious(value) {
 		}
 		return ref.current.previous;
 	}, [value]);
-}
-function useSize(element) {
-	const [size, setSize] = import_react.useState(void 0);
-	useLayoutEffect2(() => {
-		if (element) {
-			setSize({
-				width: element.offsetWidth,
-				height: element.offsetHeight
-			});
-			const resizeObserver = new ResizeObserver((entries) => {
-				if (!Array.isArray(entries)) return;
-				if (!entries.length) return;
-				const entry = entries[0];
-				let width;
-				let height;
-				if ("borderBoxSize" in entry) {
-					const borderSizeEntry = entry["borderBoxSize"];
-					const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
-					width = borderSize["inlineSize"];
-					height = borderSize["blockSize"];
-				} else {
-					width = element.offsetWidth;
-					height = element.offsetHeight;
-				}
-				setSize({
-					width,
-					height
-				});
-			});
-			resizeObserver.observe(element, { box: "border-box" });
-			return () => resizeObserver.unobserve(element);
-		} else setSize(void 0);
-	}, [element]);
-	return size;
 }
 var CHECKBOX_NAME = "Checkbox";
 var [createCheckboxContext, createCheckboxScope] = createContextScope(CHECKBOX_NAME);
@@ -22863,7 +25148,7 @@ var CheckboxTrigger = import_react.forwardRef(({ __scopeCheckbox, onKeyDown, onC
 			return () => form.removeEventListener("reset", reset);
 		}
 	}, [control, setChecked]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.button, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
 		type: "button",
 		role: "checkbox",
 		"aria-checked": isIndeterminate(checked) ? "mixed" : checked,
@@ -22913,7 +25198,7 @@ var CheckboxIndicator = import_react.forwardRef((props, forwardedRef) => {
 	const context = useCheckboxContext(INDICATOR_NAME, __scopeCheckbox);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || isIndeterminate(context.checked) || context.checked === true,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.span, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
 			"data-state": getState(context.checked),
 			"data-disabled": context.disabled ? "" : void 0,
 			...indicatorProps,
@@ -22951,7 +25236,7 @@ var CheckboxBubbleInput = import_react.forwardRef(({ __scopeCheckbox, ...props }
 		hasConsumerStoppedPropagationRef
 	]);
 	const defaultCheckedRef = import_react.useRef(isIndeterminate(checked) ? false : checked);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.input, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.input, {
 		type: "checkbox",
 		"aria-hidden": true,
 		defaultChecked: defaultChecked ?? defaultCheckedRef.current,
@@ -22994,84 +25279,591 @@ var Checkbox = import_react.forwardRef(({ className, ...props }, ref) => /* @__P
 	})
 }));
 Checkbox.displayName = Checkbox$1.displayName;
-function Onboarding() {
-	const { onboarding, toggleTask } = useAppStore();
+function RH() {
+	const { employees, onboarding, toggleTask } = useAppStore();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-6 animate-fade-in-up",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 			className: "text-3xl font-bold tracking-tight text-nuvia-navy",
-			children: "Onboarding & Integração"
+			children: "Recursos Humanos"
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 			className: "text-muted-foreground mt-1",
-			children: "Acompanhe a trilha de entrada dos novos colaboradores."
-		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "grid gap-6 md:grid-cols-2",
-			children: [onboarding.map((candidate) => {
-				const completedTasks = candidate.tasks.filter((t) => t.completed).length;
-				const totalTasks = candidate.tasks.length;
-				const progress = totalTasks === 0 ? 0 : completedTasks / totalTasks * 100;
-				const isFinished = progress === 100;
-				return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-					className: isFinished ? "border-emerald-200" : "",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
-						className: "pb-4",
+			children: "Gestão consolidada de equipe, integrações de onboarding e rotinas operacionais."
+		})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
+			defaultValue: "equipe",
+			className: "w-full",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
+					className: "grid w-full grid-cols-3 max-w-md",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							value: "equipe",
+							children: "Equipe Nuvia"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							value: "onboarding",
+							children: "Onboarding"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							value: "rotinas",
+							children: "Rotinas / POPs"
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					value: "equipe",
+					className: "mt-6",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmployeeTable, { employees })
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					value: "onboarding",
+					className: "mt-6",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid gap-6 md:grid-cols-2",
+						children: [onboarding.map((candidate) => {
+							const completed = candidate.tasks.filter((t) => t.completed).length;
+							const total = candidate.tasks.length;
+							const progress = total === 0 ? 0 : completed / total * 100;
+							const isFinished = progress === 100;
+							return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+								className: isFinished ? "border-emerald-200" : "",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
+									className: "pb-4",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "flex justify-between items-start",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
+											className: "text-lg",
+											children: candidate.name
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardDescription, { children: [
+											candidate.role,
+											" • ",
+											candidate.department
+										] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+											variant: isFinished ? "default" : "secondary",
+											className: isFinished ? "bg-emerald-500" : "",
+											children: isFinished ? "Concluído" : "Em Andamento"
+										})]
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+									className: "space-y-5",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										className: "space-y-2",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
+											value: progress,
+											className: "h-2"
+										})
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "space-y-3 pt-2",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+											className: "text-sm font-medium text-foreground mb-3",
+											children: "Checklist de Tarefas"
+										}), candidate.tasks.map((task) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "flex items-center space-x-3 rounded-md border p-3 hover:bg-muted/50 transition-colors",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Checkbox, {
+												id: `task-${candidate.id}-${task.id}`,
+												checked: task.completed,
+												onCheckedChange: () => toggleTask(candidate.id, task.id)
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+												htmlFor: `task-${candidate.id}-${task.id}`,
+												className: `text-sm font-medium leading-none cursor-pointer ${task.completed ? "line-through text-muted-foreground" : ""}`,
+												children: task.title
+											})]
+										}, task.id))]
+									})]
+								})]
+							}, candidate.id);
+						}), onboarding.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "col-span-2 py-12 text-center text-muted-foreground border border-dashed rounded-lg",
+							children: "Nenhum processo de onboarding em andamento no momento."
+						})]
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					value: "rotinas",
+					className: "mt-6",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Documentos e Normativas" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, { children: "Manuais e Procedimentos Operacionais Padrão (POPs) do RH." })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+						className: "space-y-4",
+						children: [{
+							id: 1,
+							name: "POP - Onboarding e Admissão v2.pdf",
+							date: "10/01/2026"
+						}, {
+							id: 2,
+							name: "Manual de Conduta Nuvia.pdf",
+							date: "15/02/2026"
+						}].map((doc) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-muted/30 transition-colors",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-center gap-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileText, { className: "h-5 w-5 text-primary" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "font-medium text-sm",
+									children: doc.name
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+									className: "text-xs text-muted-foreground",
+									children: ["Atualizado em ", doc.date]
+								})] })]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+								variant: "outline",
+								size: "sm",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "h-4 w-4 mr-2" }), " Baixar"]
+							})]
+						}, doc.id))
+					})] })
+				})
+			]
+		})]
+	});
+}
+function EmployeeProfile() {
+	const { id } = useParams();
+	const { employees } = useAppStore();
+	const employee = employees.find((e) => e.id === id);
+	if (!employee) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "flex flex-col items-center justify-center py-20 text-center space-y-4",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+			className: "text-2xl font-bold text-nuvia-navy",
+			children: "Colaborador não encontrado"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+			to: "/rh",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "outline",
+				children: "Voltar para o RH"
+			})
+		})]
+	});
+	const isVacationNear = employee.vacationDaysTotal - employee.vacationDaysTaken < 10;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-6 animate-fade-in-up",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "flex flex-col sm:flex-row sm:items-center gap-4",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+				to: "/rh",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					variant: "outline",
+					size: "icon",
+					className: "shrink-0",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowLeft, { className: "h-4 w-4" })
+				})
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+				className: "text-3xl font-bold tracking-tight text-nuvia-navy",
+				children: employee.name
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "text-muted-foreground flex items-center gap-2 mt-1",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Briefcase, { className: "h-4 w-4" }),
+					" ",
+					employee.role,
+					" • ",
+					employee.department
+				]
+			})] })]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "grid gap-6 md:grid-cols-3",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+				className: "md:col-span-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Dados Cadastrais" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+					className: "grid gap-6 sm:grid-cols-2",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center gap-3",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Mail, { className: "h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm font-medium",
+								children: "Email Profissional"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm text-muted-foreground",
+								children: employee.email
+							})] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center gap-3",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm font-medium",
+								children: "Telefone"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm text-muted-foreground",
+								children: employee.phone
+							})] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center gap-3",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm font-medium",
+								children: "Data de Admissão"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm text-muted-foreground",
+								children: new Date(employee.hireDate).toLocaleDateString("pt-BR")
+							})] })]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center gap-3",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DollarSign, { className: "h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm font-medium",
+								children: "Salário Base"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "text-sm text-muted-foreground",
+								children: employee.salary
+							})] })]
+						})
+					]
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Controle de Férias" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+				className: "space-y-6",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex justify-between text-sm mb-2 font-medium",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+						"Gozados: ",
+						employee.vacationDaysTaken,
+						" dias"
+					] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "text-muted-foreground",
+						children: [
+							"Total: ",
+							employee.vacationDaysTotal,
+							" dias"
+						]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
+					value: employee.vacationDaysTaken / employee.vacationDaysTotal * 100,
+					className: "h-2"
+				})] }), isVacationNear && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert, {
+					variant: "destructive",
+					className: "bg-destructive/5",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-4 w-4" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: "Alerta RH" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDescription, { children: "O período aquisitivo de férias está próximo do vencimento ou do limite." })
+					]
+				})]
+			})] })]
+		})]
+	});
+}
+var Table = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: "relative w-full overflow-auto",
+	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("table", {
+		ref,
+		className: cn("w-full caption-bottom text-sm", className),
+		...props
+	})
+}));
+Table.displayName = "Table";
+var TableHeader = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", {
+	ref,
+	className: cn("[&_tr]:border-b", className),
+	...props
+}));
+TableHeader.displayName = "TableHeader";
+var TableBody = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
+	ref,
+	className: cn("[&_tr:last-child]:border-0", className),
+	...props
+}));
+TableBody.displayName = "TableBody";
+var TableFooter = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tfoot", {
+	ref,
+	className: cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
+	...props
+}));
+TableFooter.displayName = "TableFooter";
+var TableRow = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", {
+	ref,
+	className: cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
+	...props
+}));
+TableRow.displayName = "TableRow";
+var TableHead = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+	ref,
+	className: cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
+	...props
+}));
+TableHead.displayName = "TableHead";
+var TableCell = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+	ref,
+	className: cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
+	...props
+}));
+TableCell.displayName = "TableCell";
+var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("caption", {
+	ref,
+	className: cn("mt-4 text-sm text-muted-foreground", className),
+	...props
+}));
+TableCaption.displayName = "TableCaption";
+var Dialog = Root$5;
+var DialogTrigger = Trigger$2;
+var DialogPortal = Portal$1;
+var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
+	ref,
+	className: cn("fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+	...props
+}));
+DialogOverlay.displayName = Overlay.displayName;
+var DialogContent = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$2, {
+	ref,
+	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-y-auto max-h-screen", className),
+	...props,
+	children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Close, {
+		className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "h-4 w-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "sr-only",
+			children: "Close"
+		})]
+	})]
+})] }));
+DialogContent.displayName = Content$2.displayName;
+var DialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
+	...props
+});
+DialogHeader.displayName = "DialogHeader";
+var DialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+	...props
+});
+DialogFooter.displayName = "DialogFooter";
+var DialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
+	ref,
+	className: cn("text-lg font-semibold leading-none tracking-tight", className),
+	...props
+}));
+DialogTitle.displayName = Title.displayName;
+var DialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
+	ref,
+	className: cn("text-sm text-muted-foreground", className),
+	...props
+}));
+DialogDescription.displayName = Description.displayName;
+var NAME = "Label";
+var Label$1 = import_react.forwardRef((props, forwardedRef) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.label, {
+		...props,
+		ref: forwardedRef,
+		onMouseDown: (event) => {
+			if (event.target.closest("button, input, select, textarea")) return;
+			props.onMouseDown?.(event);
+			if (!event.defaultPrevented && event.detail > 1) event.preventDefault();
+		}
+	});
+});
+Label$1.displayName = NAME;
+var Root = Label$1;
+var labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
+var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
+	ref,
+	className: cn(labelVariants(), className),
+	...props
+}));
+Label.displayName = Root.displayName;
+function Inventory() {
+	const { inventory, updateInventoryQuantity, addInventoryItem } = useAppStore();
+	const [search, setSearch] = (0, import_react.useState)("");
+	const [isAdding, setIsAdding] = (0, import_react.useState)(false);
+	const [newItem, setNewItem] = (0, import_react.useState)({
+		name: "",
+		category: "",
+		quantity: 0,
+		unit: "",
+		threshold: 0
+	});
+	const handleAdd = (e) => {
+		e.preventDefault();
+		addInventoryItem({
+			...newItem,
+			lastRestocked: (/* @__PURE__ */ new Date()).toISOString().split("T")[0]
+		});
+		setIsAdding(false);
+		setNewItem({
+			name: "",
+			category: "",
+			quantity: 0,
+			unit: "",
+			threshold: 0
+		});
+	};
+	const filteredInventory = inventory.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()) || item.category.toLowerCase().includes(search.toLowerCase()));
+	const lowStockItems = inventory.filter((i) => i.quantity <= i.threshold);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "space-y-6 animate-fade-in-up",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+					className: "text-3xl font-bold tracking-tight text-nuvia-navy",
+					children: "Estoque Clínico"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-muted-foreground mt-1",
+					children: "Gestão de materiais, níveis e reposição."
+				})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, {
+					open: isAdding,
+					onOpenChange: setIsAdding,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
+						asChild: true,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "mr-2 h-4 w-4" }), " Novo Item"] })
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Adicionar Item ao Estoque" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+						onSubmit: handleAdd,
+						className: "space-y-4 pt-4",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "grid gap-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Nome do Produto" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									required: true,
+									value: newItem.name,
+									onChange: (e) => setNewItem({
+										...newItem,
+										name: e.target.value
+									})
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "grid gap-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Categoria" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									required: true,
+									value: newItem.category,
+									onChange: (e) => setNewItem({
+										...newItem,
+										category: e.target.value
+									})
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "grid grid-cols-2 gap-4",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "grid gap-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Quantidade Inicial" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										type: "number",
+										required: true,
+										min: "0",
+										value: newItem.quantity,
+										onChange: (e) => setNewItem({
+											...newItem,
+											quantity: parseInt(e.target.value)
+										})
+									})]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "grid gap-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Unidade (ex: Caixas)" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										required: true,
+										value: newItem.unit,
+										onChange: (e) => setNewItem({
+											...newItem,
+											unit: e.target.value
+										})
+									})]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "grid gap-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, { children: "Alerta de Estoque Baixo (Qtd)" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									type: "number",
+									required: true,
+									min: "0",
+									value: newItem.threshold,
+									onChange: (e) => setNewItem({
+										...newItem,
+										threshold: parseInt(e.target.value)
+									})
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								type: "submit",
+								className: "w-full",
+								children: "Salvar Item"
+							})
+						]
+					})] })]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "grid gap-4 md:grid-cols-3",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+					className: "flex flex-row items-center justify-between pb-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
+						className: "text-sm font-medium",
+						children: "Total de Itens Cadastrados"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PackageOpen, { className: "h-4 w-4 text-muted-foreground" })]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "text-2xl font-bold",
+					children: inventory.length
+				}) })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+					className: lowStockItems.length > 0 ? "border-destructive/50 bg-destructive/5" : "",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+						className: "flex flex-row items-center justify-between pb-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
+							className: "text-sm font-medium",
+							children: "Estoque Crítico"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingDown, { className: lowStockItems.length > 0 ? "h-4 w-4 text-destructive" : "h-4 w-4 text-muted-foreground" })]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "text-2xl font-bold text-destructive",
+						children: lowStockItems.length
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs text-muted-foreground mt-1",
+						children: "Abaixo do limite de segurança"
+					})] })]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, { children: "Inventário Consolidado" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+					placeholder: "Buscar itens...",
+					className: "max-w-xs",
+					value: search,
+					onChange: (e) => setSearch(e.target.value)
+				})]
+			}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Produto" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Categoria" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Estoque Atual" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Status" }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+					className: "text-right",
+					children: "Ações Rápidas"
+				})
+			] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, { children: [filteredInventory.map((item) => {
+				const isLow = item.quantity <= item.threshold;
+				return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+						className: "font-medium",
+						children: item.name
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: item.category }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [
+						item.quantity,
+						" ",
+						item.unit
+					] }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: isLow ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
+						variant: "destructive",
+						className: "gap-1",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleAlert, { className: "h-3 w-3" }), " Repor"]
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+						variant: "secondary",
+						className: "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20",
+						children: "Adequado"
+					}) }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+						className: "text-right",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex justify-between items-start",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-								className: "text-lg",
-								children: candidate.name
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardDescription, { children: [
-								candidate.role,
-								" • ",
-								candidate.department
-							] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-								variant: isFinished ? "default" : "secondary",
-								className: isFinished ? "bg-emerald-500" : "",
-								children: isFinished ? "Concluído" : "Em Andamento"
+							className: "flex items-center justify-end gap-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								variant: "outline",
+								size: "sm",
+								onClick: () => updateInventoryQuantity(item.id, Math.max(0, item.quantity - 1)),
+								children: "-"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								variant: "outline",
+								size: "sm",
+								onClick: () => updateInventoryQuantity(item.id, item.quantity + 1),
+								children: "+"
 							})]
 						})
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-						className: "space-y-6",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "space-y-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex justify-between text-sm",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "font-medium text-muted-foreground",
-									children: "Progresso"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "font-medium",
-									children: [Math.round(progress), "%"]
-								})]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Progress, {
-								value: progress,
-								className: "h-2"
-							})]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "space-y-3 pt-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-								className: "text-sm font-medium mb-3",
-								children: "Checklist de Tarefas"
-							}), candidate.tasks.map((task) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-center space-x-3 rounded-md border p-3 hover:bg-muted/50 transition-colors",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Checkbox, {
-									id: `task-${candidate.id}-${task.id}`,
-									checked: task.completed,
-									onCheckedChange: () => toggleTask(candidate.id, task.id)
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-									htmlFor: `task-${candidate.id}-${task.id}`,
-									className: `text-sm font-medium leading-none cursor-pointer ${task.completed ? "line-through text-muted-foreground" : ""}`,
-									children: task.title
-								})]
-							}, task.id))]
-						})]
-					})]
-				}, candidate.id);
-			}), onboarding.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "col-span-2 py-12 text-center text-muted-foreground bg-card rounded-lg border border-dashed",
-				children: "Nenhum processo de onboarding em andamento no momento."
-			})]
-		})]
+					})
+				] }, item.id);
+			}), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+				colSpan: 5,
+				className: "text-center py-8 text-muted-foreground",
+				children: "Nenhum item de estoque encontrado."
+			}) })] })] }) })] })
+		]
 	});
 }
 function NotFound() {
@@ -23110,12 +25902,16 @@ function App() {
 				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-				path: "departamento/:id",
-				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Department, {})
+				path: "rh",
+				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RH, {})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-				path: "onboarding",
-				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Onboarding, {})
+				path: "rh/colaborador/:id",
+				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmployeeProfile, {})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+				path: "estoque",
+				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Inventory, {})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 				path: "*",
@@ -23126,4 +25922,4 @@ function App() {
 }
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 
-//# sourceMappingURL=index-DHBSX_dL.js.map
+//# sourceMappingURL=index-PoGxGjGM.js.map
