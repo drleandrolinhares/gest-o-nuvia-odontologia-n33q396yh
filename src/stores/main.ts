@@ -31,7 +31,7 @@ export type Employee = {
   phone: string
   agendaAccess: AgendaAccess
   permissions?: PermissionsMap
-  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO'
+  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO' | 'MASTER'
   rg?: string
   cpf?: string
   birthDate?: string
@@ -103,7 +103,7 @@ export type AccessItem = {
   login: string
   pass: string
   instructions: string
-  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO'
+  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO' | 'MASTER'
 }
 export type Supplier = {
   id: string
@@ -368,7 +368,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const me = employees.find((e) => e.user_id === user?.id)
-    setIsAdmin(me?.accessLevel === 'ESTRATEGICO')
+    setIsAdmin(me?.accessLevel === 'ESTRATEGICO' || me?.accessLevel === 'MASTER')
     setCurrentUserId(me?.id || null)
   }, [employees, user])
 
@@ -394,7 +394,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!storeRef.current.user) return false
     const me = storeRef.current.employees.find((e) => e.user_id === storeRef.current.user?.id)
     if (!me) return false
-    if (me.accessLevel === 'ESTRATEGICO') return true
+    if (me.accessLevel === 'ESTRATEGICO' || me.accessLevel === 'MASTER') return true
     return me.permissions?.[module]?.includes(action) ?? false
   }, [])
 

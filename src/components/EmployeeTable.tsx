@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import useAppStore, { Employee } from '@/stores/main'
+import { cn } from '@/lib/utils'
 
 export function EmployeeTable({ employees }: { employees: Employee[] }) {
   const { deleteEmployee, isAdmin, can } = useAppStore()
@@ -50,7 +51,14 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                 <div className="text-xs text-muted-foreground uppercase">{emp.department}</div>
               </TableCell>
               <TableCell>
-                <span className="text-xs font-bold bg-muted px-2 py-1 rounded text-muted-foreground uppercase">
+                <span
+                  className={cn(
+                    'text-xs font-bold px-2 py-1 rounded uppercase',
+                    emp.accessLevel === 'MASTER'
+                      ? 'bg-amber-100 text-amber-700 border border-amber-200 shadow-sm tracking-wider'
+                      : 'bg-muted text-muted-foreground',
+                  )}
+                >
                   {emp.accessLevel || 'OPERACIONAL'}
                 </span>
               </TableCell>

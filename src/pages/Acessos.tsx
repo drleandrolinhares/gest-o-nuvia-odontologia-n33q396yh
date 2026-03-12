@@ -35,9 +35,9 @@ export default function Acessos() {
   const [login, setLogin] = useState('')
   const [pass, setPass] = useState('')
   const [instructions, setInstructions] = useState('')
-  const [accessLevel, setAccessLevel] = useState<'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO'>(
-    'OPERACIONAL',
-  )
+  const [accessLevel, setAccessLevel] = useState<
+    'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO' | 'MASTER'
+  >('OPERACIONAL')
 
   const sortedAcessos = [...acessos].sort((a, b) => a.platform.localeCompare(b.platform))
 
@@ -61,7 +61,8 @@ export default function Acessos() {
       setPass(item.pass)
       setInstructions(item.instructions || '')
       setAccessLevel(
-        (item.accessLevel as 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO') || 'OPERACIONAL',
+        (item.accessLevel as 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO' | 'MASTER') ||
+          'OPERACIONAL',
       )
     } else {
       setEditingId(null)
@@ -243,6 +244,7 @@ export default function Acessos() {
                     <SelectItem value="OPERACIONAL">OPERACIONAL</SelectItem>
                     <SelectItem value="GERENCIAL">GERENCIAL</SelectItem>
                     <SelectItem value="ESTRATEGICO">ESTRATEGICO</SelectItem>
+                    <SelectItem value="MASTER">MASTER</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

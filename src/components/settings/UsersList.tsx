@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 
 export function UsersList() {
   const { employees, can, isAdmin } = useAppStore()
@@ -90,19 +91,32 @@ export function UsersList() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredEmployees.map((emp) => (
-          <Card key={emp.id} className="overflow-hidden hover:shadow-md transition-shadow relative">
+          <Card
+            key={emp.id}
+            className={cn(
+              'overflow-hidden hover:shadow-md transition-shadow relative',
+              emp.accessLevel === 'MASTER' ? 'border-amber-400 bg-amber-50/20' : '',
+            )}
+          >
             <CardContent className="p-0">
               <div className="p-5 pb-4">
                 <div className="flex justify-between items-start mb-4">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
-                      emp.status === 'Ativo'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}
-                  >
-                    {emp.status === 'Ativo' ? 'Ativo' : 'Inativo'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
+                        emp.status === 'Ativo'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                    >
+                      {emp.status === 'Ativo' ? 'Ativo' : 'Inativo'}
+                    </span>
+                    {emp.accessLevel === 'MASTER' && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-black bg-amber-100 text-amber-700 border border-amber-200 tracking-wider shadow-sm">
+                        MASTER
+                      </span>
+                    )}
+                  </div>
                   {canEdit && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -124,15 +138,33 @@ export function UsersList() {
                 </div>
 
                 <div className="flex flex-col items-center text-center space-y-3 mb-6">
-                  <Avatar className="h-16 w-16 bg-orange-50 border-2 border-orange-100">
-                    <AvatarFallback className="bg-orange-100 text-[#f26522]">
+                  <Avatar
+                    className={cn(
+                      'h-16 w-16 border-2',
+                      emp.accessLevel === 'MASTER'
+                        ? 'bg-amber-100 border-amber-200'
+                        : 'bg-orange-50 border-orange-100',
+                    )}
+                  >
+                    <AvatarFallback
+                      className={
+                        emp.accessLevel === 'MASTER'
+                          ? 'bg-amber-200 text-amber-600'
+                          : 'bg-orange-100 text-[#f26522]'
+                      }
+                    >
                       <UserIcon className="h-8 w-8" />
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="font-bold text-foreground leading-tight px-2">{emp.name}</h3>
                 </div>
 
-                <div className="space-y-2 bg-muted/30 p-3 rounded-lg text-sm">
+                <div
+                  className={cn(
+                    'space-y-2 p-3 rounded-lg text-sm',
+                    emp.accessLevel === 'MASTER' ? 'bg-amber-100/50' : 'bg-muted/30',
+                  )}
+                >
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Briefcase className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{emp.role || 'Não informado'}</span>
@@ -153,7 +185,12 @@ export function UsersList() {
                   </div>
                 </div>
               </div>
-              <div className="bg-muted/10 border-t px-5 py-3 text-xs text-muted-foreground font-medium flex items-center">
+              <div
+                className={cn(
+                  'border-t px-5 py-3 text-xs text-muted-foreground font-medium flex items-center',
+                  emp.accessLevel === 'MASTER' ? 'bg-amber-100/30' : 'bg-muted/10',
+                )}
+              >
                 <span className="mr-1">🕒</span> Último acesso em:{' '}
                 {formatLastAccess(emp.lastAccess)}
               </div>

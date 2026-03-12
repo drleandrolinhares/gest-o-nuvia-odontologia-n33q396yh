@@ -42,7 +42,7 @@ const formSchema = z.object({
   salary: z.string().min(1, 'OBRIGATÓRIO'),
   hireDate: z.string().min(1, 'OBRIGATÓRIO'),
   vacationDueDate: z.string().min(1, 'OBRIGATÓRIO'),
-  accessLevel: z.enum(['OPERACIONAL', 'GERENCIAL', 'ESTRATEGICO']),
+  accessLevel: z.enum(['OPERACIONAL', 'GERENCIAL', 'ESTRATEGICO', 'MASTER']),
   contractDetails: z.string().optional(),
 })
 type FormValues = z.infer<typeof formSchema>
@@ -282,6 +282,7 @@ export function AddEmployeeDialog({
                             <SelectItem value="OPERACIONAL">OPERACIONAL</SelectItem>
                             <SelectItem value="GERENCIAL">GERENCIAL</SelectItem>
                             <SelectItem value="ESTRATEGICO">ESTRATEGICO</SelectItem>
+                            <SelectItem value="MASTER">MASTER</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

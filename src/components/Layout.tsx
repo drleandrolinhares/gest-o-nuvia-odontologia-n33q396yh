@@ -94,7 +94,12 @@ export default function Layout() {
             <p className="text-sm font-black text-foreground truncate uppercase leading-tight">
               {currentUser?.name || 'ADMINISTRADOR'}
             </p>
-            <p className="text-xs font-bold text-primary uppercase mt-0.5">
+            <p
+              className={cn(
+                'text-xs font-bold uppercase mt-0.5',
+                currentUser?.accessLevel === 'MASTER' ? 'text-amber-500' : 'text-primary',
+              )}
+            >
               {currentUser?.accessLevel || 'ESTRATEGICO'}
             </p>
           </div>
@@ -135,7 +140,12 @@ export default function Layout() {
                   <p className="text-sm font-black text-foreground truncate uppercase leading-tight">
                     {currentUser?.name || 'ADMINISTRADOR'}
                   </p>
-                  <p className="text-xs font-bold text-primary uppercase mt-0.5">
+                  <p
+                    className={cn(
+                      'text-xs font-bold uppercase mt-0.5',
+                      currentUser?.accessLevel === 'MASTER' ? 'text-amber-500' : 'text-primary',
+                    )}
+                  >
                     {currentUser?.accessLevel || 'ESTRATEGICO'}
                   </p>
                 </div>
