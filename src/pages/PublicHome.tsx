@@ -3,8 +3,12 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { ChevronRight, ArrowRight, BookOpen, Stethoscope } from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { cn } from '@/lib/utils'
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer'
 
 export default function PublicHome() {
+  const heroSection = useIntersectionObserver({ threshold: 0.1 })
+  const blogSection = useIntersectionObserver({ threshold: 0.1 })
+
   return (
     <div className="min-h-screen bg-background flex flex-col uppercase font-sans">
       <header className="h-20 border-b flex items-center justify-between px-6 md:px-12 bg-card sticky top-0 z-50">
@@ -32,7 +36,13 @@ export default function PublicHome() {
       </header>
 
       <main className="flex-1">
-        <section className="py-24 px-6 md:px-12 bg-gradient-to-b from-blue-50/50 to-background flex flex-col items-center text-center space-y-8 animate-fade-in-up">
+        <section
+          ref={heroSection.ref}
+          className={cn(
+            'py-24 px-6 md:px-12 bg-gradient-to-b from-blue-50/50 to-background flex flex-col items-center text-center space-y-8',
+            heroSection.isIntersecting && 'animate-fade-in-up',
+          )}
+        >
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-nuvia-navy max-w-4xl leading-tight">
             EXCELÊNCIA CLÍNICA E PRECISÃO CIENTÍFICA
           </h1>
@@ -50,7 +60,14 @@ export default function PublicHome() {
           </div>
         </section>
 
-        <section id="blog" className="py-24 bg-muted/30 px-6 md:px-12 border-t">
+        <section
+          id="blog"
+          ref={blogSection.ref}
+          className={cn(
+            'py-24 bg-muted/30 px-6 md:px-12 border-t',
+            blogSection.isIntersecting && 'animate-fade-in-up',
+          )}
+        >
           <div className="max-w-7xl mx-auto space-y-16">
             <div className="text-center space-y-4 flex flex-col items-center">
               <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-2">
