@@ -10,9 +10,7 @@ import {
   ChevronRight,
   ChevronLeft,
 } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
-import { useState } from 'react'
-import { cn } from '@/lib/utils'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from '@/components/ui/sheet'
 
 const NuviaLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 350 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -56,8 +54,6 @@ const NuviaLogo = ({ className }: { className?: string }) => (
 )
 
 export default function PublicHome() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
   const navItems = [
     { label: 'HOME', href: '#' },
     { label: 'ATELIÊ ORAL', href: '#' },
@@ -100,16 +96,17 @@ export default function PublicHome() {
           <div className="w-auto xl:w-1/4 flex justify-end">
             {/* Desktop CTA */}
             <div className="hidden xl:flex items-center mt-2">
-              <Link to="/login">
-                <Button className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all">
-                  Acesso Restrito
-                </Button>
-              </Link>
+              <Button
+                asChild
+                className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all"
+              >
+                <Link to="/login">Acesso Restrito</Link>
+              </Button>
             </div>
 
             {/* Mobile Navigation Toggle */}
             <div className="xl:hidden flex items-center mt-2">
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                     <Menu className="h-8 w-8" />
@@ -123,23 +120,26 @@ export default function PublicHome() {
                     </div>
                     <div className="flex-1 overflow-y-auto px-4 space-y-1">
                       {navItems.map((item) => (
-                        <a
-                          key={item.label}
-                          href={item.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center justify-between w-full p-4 text-xs font-semibold tracking-[0.2em] text-slate-300 hover:text-[#C69B56] hover:bg-white/5 rounded-lg transition-colors uppercase"
-                        >
-                          {item.label}
-                          <ChevronRight className="h-4 w-4 opacity-50" />
-                        </a>
+                        <SheetClose asChild key={item.label}>
+                          <a
+                            href={item.href}
+                            className="flex items-center justify-between w-full p-4 text-xs font-semibold tracking-[0.2em] text-slate-300 hover:text-[#C69B56] hover:bg-white/5 rounded-lg transition-colors uppercase"
+                          >
+                            {item.label}
+                            <ChevronRight className="h-4 w-4 opacity-50" />
+                          </a>
+                        </SheetClose>
                       ))}
                     </div>
                     <div className="p-8 border-t border-slate-800 mt-auto">
-                      <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                        <Button className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none">
-                          Acesso Restrito
+                      <SheetClose asChild>
+                        <Button
+                          asChild
+                          className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none"
+                        >
+                          <Link to="/login">Acesso Restrito</Link>
                         </Button>
-                      </Link>
+                      </SheetClose>
                     </div>
                   </div>
                 </SheetContent>
