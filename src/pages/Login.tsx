@@ -49,7 +49,7 @@ export default function Login() {
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-nuvia-gold to-transparent"></div>
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-4xl lg:text-5xl font-serif text-nuvia-gold leading-tight">
-            Porque sorrir, para Nuvia, é mais que mostrar dentes é revelar quem se é, com verdade e
+            Porque sorrir para Nuvia, é mais que mostrar dentes, é revelar quem se é, com verdade e
             elegância.
           </h1>
         </div>
@@ -72,7 +72,7 @@ export default function Login() {
 
         <div className="w-full max-w-sm space-y-8 animate-fade-in-up">
           <div className="flex flex-col items-center text-center space-y-6">
-            <img src={logoUrl} alt="Nuvia Odontologia" className="h-16 object-contain" />
+            <img src={logoUrl} alt="Nuvia Odontologia" className="h-24 md:h-32 object-contain" />
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-nuvia-navy uppercase tracking-widest">
                 ÁREA RESTRITA
