@@ -1,132 +1,190 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import logoImg from '@/assets/img_3243-2f960.jpg'
-import { MapPin, Phone, Mail, Clock, Instagram, Facebook } from 'lucide-react'
+import { MapPin, Phone, Clock, Instagram, Facebook, Menu, ChevronRight } from 'lucide-react'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { useState } from 'react'
 
 export default function PublicHome() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const navItems = [
+    { label: 'HOME', href: '#' },
+    { label: 'CLÍNICA NUVIA', href: '#clinica' },
+    { label: 'LENTES DE CONTATO', href: '#lentes' },
+    { label: 'TRATAMENTOS', href: '#tratamentos' },
+    { label: 'CLIENTES', href: '#clientes' },
+    { label: 'MAIS SOBRE NÓS', href: '#sobre' },
+    { label: 'CONTATO', href: '#contato' },
+  ]
+
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-[#0A192F]">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+      <header className="absolute top-0 left-0 w-full z-50 bg-[#0A192F] border-b border-white/10">
+        <div className="container mx-auto px-4 lg:px-8 h-24 flex items-center justify-between">
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+            {/*
+              Using mix-blend-screen and invert to simulate a transparent, light-colored logo 
+              from a standard black-on-white or white-background JPG 
+            */}
             <img
               src={logoImg}
               alt="Nuvia Odontologia"
-              className="h-10 md:h-14 w-auto rounded-sm object-contain shadow-sm"
+              className="h-16 md:h-20 w-auto object-contain mix-blend-screen invert sepia-[.3] hue-rotate-[10deg] saturate-[200%]"
             />
           </Link>
-          <nav className="hidden md:flex gap-6 items-center">
-            <a
-              href="#servicos"
-              className="text-sm font-medium text-slate-300 hover:text-[#D4AF37] transition-colors"
-            >
-              Tratamentos
-            </a>
-            <a
-              href="#equipe"
-              className="text-sm font-medium text-slate-300 hover:text-[#D4AF37] transition-colors"
-            >
-              Corpo Clínico
-            </a>
-            <a
-              href="#contato"
-              className="text-sm font-medium text-slate-300 hover:text-[#D4AF37] transition-colors"
-            >
-              Contato
-            </a>
-            <Link to="/login">
-              <Button
-                variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-white/10 hover:text-white"
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex gap-6 xl:gap-8 items-center">
+            {navItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className="text-[11px] xl:text-xs font-semibold tracking-[0.15em] text-white hover:text-[#D4AF37] transition-colors uppercase"
               >
-                Área do Paciente
-              </Button>
-            </Link>
-            <Button className="bg-[#D4AF37] text-[#0A192F] hover:bg-[#C5A028] font-bold">
-              Agendar Consulta
-            </Button>
+                {item.label}
+              </a>
+            ))}
           </nav>
+
+          {/* Mobile Navigation Toggle */}
+          <div className="lg:hidden flex items-center">
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <Menu className="h-8 w-8" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-[#0A192F] border-l-slate-800 p-0 w-80">
+                <div className="flex flex-col h-full py-8">
+                  <div className="px-8 mb-12">
+                    <img
+                      src={logoImg}
+                      alt="Nuvia Odontologia"
+                      className="h-12 w-auto object-contain mix-blend-screen invert sepia-[.3] hue-rotate-[10deg] saturate-[200%]"
+                    />
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-4">
+                    {navItems.map((item) => (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center justify-between w-full p-4 text-sm font-semibold tracking-widest text-slate-300 hover:text-[#D4AF37] hover:bg-white/5 rounded-lg transition-colors uppercase"
+                      >
+                        {item.label}
+                        <ChevronRight className="h-4 w-4 opacity-50" />
+                      </a>
+                    ))}
+                  </div>
+                  <div className="p-8 border-t border-slate-800">
+                    <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                      <Button className="w-full bg-[#D4AF37] text-[#0A192F] hover:bg-[#C5A028] font-bold tracking-widest uppercase">
+                        Acesso Restrito
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative py-20 md:py-32 bg-[#0A192F] overflow-hidden flex items-center justify-center min-h-[80vh]">
-          <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
-            <div className="mb-10 inline-block animate-fade-in-up">
-              <img
-                src={logoImg}
-                alt="Nuvia Odontologia"
-                className="h-20 md:h-28 w-auto rounded-lg shadow-2xl border border-white/10 object-contain"
-              />
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 max-w-3xl leading-tight animate-fade-in-up delay-100">
-              Excelência em Odontologia <span className="text-[#D4AF37]">Avançada</span>
-            </h1>
-            <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl animate-fade-in-up delay-200">
-              Transformando sorrisos com tecnologia de ponta e atendimento humanizado. Descubra o
-              padrão Nuvia de cuidado odontológico.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up delay-300">
-              <Button
-                size="lg"
-                className="bg-[#D4AF37] text-[#0A192F] font-bold hover:bg-[#C5A028] text-lg px-8"
-              >
-                Agendar Avaliação
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-white border-white hover:bg-white hover:text-[#0A192F] text-lg px-8"
-              >
-                Conheça a Clínica
-              </Button>
-            </div>
+        {/* Hero Section aligned with the reference */}
+        <section className="relative pt-40 pb-48 md:pt-48 md:pb-64 bg-[#0A192F] flex items-center justify-center overflow-hidden">
+          {/* Background Decorative Elements */}
+          <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D4AF37] rounded-full blur-[150px]"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#D4AF37] rounded-full blur-[200px]"></div>
           </div>
-          {/* Decorative elements */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
-            <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#D4AF37] rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-[#D4AF37] rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
+
+          <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
+            <p className="text-[#D4AF37] tracking-[0.4em] text-xs md:text-sm mb-6 uppercase font-semibold">
+              Made By
+            </p>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-light text-white tracking-[0.2em] uppercase mb-16 leading-tight">
+              N u v i a<br />O d o n t o l o g i a
+            </h1>
+
+            <div className="flex items-center justify-center gap-6 md:gap-10">
+              <div className="text-[#D4AF37] text-8xl md:text-[10rem] font-serif leading-none">
+                N
+              </div>
+              <div className="text-left flex flex-col justify-center border-l border-white/20 pl-6 md:pl-10 h-full py-4">
+                <div className="text-[#D4AF37] text-3xl md:text-5xl font-light tracking-widest mb-1">
+                  15
+                </div>
+                <div className="text-white text-xs md:text-sm tracking-[0.2em] uppercase leading-relaxed font-light">
+                  Anos de
+                  <br />
+                  História
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[#D4AF37] tracking-[0.4em] text-xs md:text-sm mt-16 uppercase font-semibold">
+              Since 2009
+            </p>
           </div>
         </section>
 
-        {/* Info Section */}
-        <section id="contato" className="py-20 bg-slate-50">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 bg-[#0A192F]/5 rounded-full flex items-center justify-center mb-6">
-                  <MapPin className="w-7 h-7 text-[#0A192F]" />
+        {/* Horizontal Infobar - Overlapping Hero */}
+        <section className="relative z-20 -mt-20 md:-mt-24 mb-20 px-4">
+          <div className="container mx-auto max-w-6xl">
+            <div className="bg-[#fcfcfc] shadow-2xl flex flex-col md:flex-row items-stretch overflow-hidden rounded-sm relative">
+              {/* Subtle background texture/pattern simulation */}
+              <div className="absolute inset-0 opacity-30 pointer-events-none bg-[url('https://img.usecurling.com/p/800/200?q=marble&color=white')] bg-cover bg-center mix-blend-multiply"></div>
+
+              {/* Box 1 */}
+              <div className="flex-1 p-8 md:p-10 flex items-center gap-5 md:gap-6 border-b md:border-b-0 md:border-r border-slate-200/60 relative z-10 bg-white/80 backdrop-blur-sm hover:bg-white transition-colors">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border border-[#D4AF37]/50 flex items-center justify-center shrink-0 shadow-sm bg-white">
+                  <Clock className="w-5 h-5 md:w-6 md:h-6 text-[#D4AF37]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0A192F] mb-3">Localização</h3>
-                <p className="text-slate-600">
-                  Av. das Américas, 3500
-                  <br />
-                  Barra da Tijuca, RJ
-                </p>
+                <div>
+                  <h3 className="text-base md:text-lg font-serif text-slate-800 leading-snug">
+                    Segunda - Sexta:
+                    <br />
+                    08h - 18h
+                  </h3>
+                  <p className="text-xs md:text-sm text-slate-500 mt-1.5 font-light">
+                    Sábado e Domingo - Fechado
+                  </p>
+                </div>
               </div>
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 bg-[#0A192F]/5 rounded-full flex items-center justify-center mb-6">
-                  <Clock className="w-7 h-7 text-[#0A192F]" />
+
+              {/* Box 2 */}
+              <div className="flex-1 p-8 md:p-10 flex items-center gap-5 md:gap-6 border-b md:border-b-0 md:border-r border-slate-200/60 relative z-10 bg-white/80 backdrop-blur-sm hover:bg-white transition-colors">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border border-[#D4AF37]/50 flex items-center justify-center shrink-0 shadow-sm bg-white">
+                  <Phone className="w-5 h-5 md:w-6 md:h-6 text-[#D4AF37]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0A192F] mb-3">Horário</h3>
-                <p className="text-slate-600">
-                  Seg a Sex: 08h às 19h
-                  <br />
-                  Sábados: 08h às 13h
-                </p>
+                <div>
+                  <h3 className="text-base md:text-lg font-serif text-slate-800 leading-snug">
+                    (11) 96172-9130
+                  </h3>
+                  <p className="text-xs md:text-sm text-slate-500 mt-1.5 font-light">
+                    (11) 3040-8884
+                  </p>
+                </div>
               </div>
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 bg-[#0A192F]/5 rounded-full flex items-center justify-center mb-6">
-                  <Phone className="w-7 h-7 text-[#0A192F]" />
+
+              {/* Box 3 */}
+              <div className="flex-1 p-8 md:p-10 flex items-center gap-5 md:gap-6 relative z-10 bg-white/80 backdrop-blur-sm hover:bg-white transition-colors">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border border-[#D4AF37]/50 flex items-center justify-center shrink-0 shadow-sm bg-white">
+                  <MapPin className="w-5 h-5 md:w-6 md:h-6 text-[#D4AF37]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0A192F] mb-3">Contato</h3>
-                <p className="text-slate-600">
-                  (21) 99999-9999
-                  <br />
-                  contato@nuvia.com.br
-                </p>
+                <div>
+                  <h3 className="text-base md:text-lg font-serif text-slate-800 leading-snug">
+                    Endereço
+                  </h3>
+                  <p className="text-xs md:text-sm text-slate-500 mt-1.5 font-light">
+                    Rua Tabapuã, 50 - Cj. 302 - 3º andar
+                    <br />
+                    Itaim Bibi, São Paulo
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -142,88 +200,91 @@ export default function PublicHome() {
                 <img
                   src={logoImg}
                   alt="Nuvia Odontologia"
-                  className="h-14 md:h-16 w-auto rounded mb-6 opacity-90 object-contain"
+                  className="h-14 md:h-16 w-auto rounded mb-6 object-contain mix-blend-screen invert sepia-[.3] hue-rotate-[10deg] saturate-[200%]"
                 />
               </Link>
-              <p className="text-slate-400 max-w-sm mb-6">
+              <p className="text-slate-400 max-w-sm mb-6 font-light leading-relaxed">
                 Referência em odontologia estética e reabilitadora. Trazendo o que há de mais
                 moderno para o seu sorriso.
               </p>
               <div className="flex gap-4">
                 <a
                   href="#"
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#D4AF37] hover:text-[#0A192F] transition-colors"
+                  className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-[#0A192F] transition-all"
                 >
-                  <Instagram className="w-5 h-5" />
+                  <Instagram className="w-4 h-4" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#D4AF37] hover:text-[#0A192F] transition-colors"
+                  className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#D4AF37] hover:border-[#D4AF37] hover:text-[#0A192F] transition-all"
                 >
-                  <Facebook className="w-5 h-5" />
+                  <Facebook className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
             <div>
-              <h4 className="text-white font-bold mb-6 text-lg">Links Rápidos</h4>
-              <ul className="space-y-3">
+              <h4 className="text-white font-serif mb-6 text-lg tracking-wider">Links Rápidos</h4>
+              <ul className="space-y-3 font-light text-sm">
                 <li>
-                  <a href="#" className="hover:text-[#D4AF37] transition-colors">
+                  <a href="#sobre" className="hover:text-[#D4AF37] transition-colors">
                     Sobre a Clínica
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#D4AF37] transition-colors">
+                  <a href="#tratamentos" className="hover:text-[#D4AF37] transition-colors">
                     Nossos Tratamentos
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#D4AF37] transition-colors">
+                  <a href="#clinica" className="hover:text-[#D4AF37] transition-colors">
                     Corpo Clínico
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-[#D4AF37] transition-colors">
+                  <a href="#contato" className="hover:text-[#D4AF37] transition-colors">
                     Agende sua Consulta
                   </a>
+                </li>
+                <li className="pt-4 mt-4 border-t border-white/10">
+                  <Link
+                    to="/login"
+                    className="text-[#D4AF37] font-semibold hover:text-white transition-colors tracking-widest uppercase text-xs"
+                  >
+                    Acesso ao Sistema
+                  </Link>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h4 className="text-white font-bold mb-6 text-lg">Contato</h4>
-              <ul className="space-y-4">
+              <h4 className="text-white font-serif mb-6 text-lg tracking-wider">Contato</h4>
+              <ul className="space-y-4 font-light text-sm">
                 <li className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#D4AF37] shrink-0 mt-1" />
+                  <MapPin className="w-4 h-4 text-[#D4AF37] shrink-0 mt-1" />
                   <span>
-                    Av. das Américas, 3500 - Sala 123
+                    Rua Tabapuã, 50 - Cj. 302
                     <br />
-                    Barra da Tijuca, RJ
+                    Itaim Bibi, São Paulo
                   </span>
                 </li>
                 <li className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-[#D4AF37] shrink-0" />
-                  <span>(21) 99999-9999</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-[#D4AF37] shrink-0" />
-                  <span>contato@nuvia.com.br</span>
+                  <Phone className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                  <span>(11) 96172-9130</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+          <div className="border-t border-slate-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 font-light">
             <p>
-              &copy; {new Date().getFullYear()} Nuvia Odontologia by Souza Filho. Todos os direitos
-              reservados.
+              &copy; {new Date().getFullYear()} Nuvia Odontologia. Todos os direitos reservados.
             </p>
-            <div className="flex gap-4 mt-4 md:mt-0">
-              <a href="#" className="hover:text-white transition-colors">
+            <div className="flex gap-6 mt-4 md:mt-0">
+              <a href="#" className="hover:text-[#D4AF37] transition-colors">
                 Política de Privacidade
               </a>
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="#" className="hover:text-[#D4AF37] transition-colors">
                 Termos de Uso
               </a>
             </div>
