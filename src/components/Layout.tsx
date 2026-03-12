@@ -26,7 +26,7 @@ const navigation = [
   { name: 'Configurações', href: '/settings', icon: Settings },
 ]
 
-export default function Layout() {
+export function Layout() {
   const { signOut, user } = useAuth()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
