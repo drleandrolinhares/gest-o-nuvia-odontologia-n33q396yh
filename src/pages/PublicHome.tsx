@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
   MapPin,
@@ -9,8 +10,19 @@ import {
   Menu,
   ChevronRight,
   ChevronLeft,
+  User,
+  Loader2,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from '@/components/ui/sheet'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { useAuth } from '@/hooks/use-auth'
+import useAppStore from '@/stores/main'
 
 const NuviaLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 350 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -53,7 +65,90 @@ const NuviaLogo = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export default function PublicHome() {
+// Implementing an Error Boundary to prevent white screens on unexpected crashes
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('PublicHome ErrorBoundary caught an error:', error, info)
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 text-center p-4">
+          <div className="space-y-4 bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+            <h2 className="text-2xl font-bold text-red-600 uppercase">Erro na Aplicação</h2>
+            <p className="text-slate-600">
+              Ocorreu um erro inesperado ao carregar esta página. Por favor, tente recarregar.
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-[#C69B56] hover:bg-[#b58c49] text-white w-full uppercase tracking-widest font-bold"
+            >
+              Recarregar Página
+            </Button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+function PublicHomeContent() {
+  const { user, loading: authLoading } = useAuth()
+  const { employees } = useAppStore()
+  const navigate = useNavigate()
+
+  const [showProfileSelector, setShowProfileSelector] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+
+  // Safely find the current employee matching the authenticated user
+  const currentEmployee = employees.find((e) => e.user_id === user?.id)
+
+  // Event handler for accessing the system.
+  // We avoid useEffect here to prevent React recursive update loops (Maximum update depth exceeded).
+  const handleAccessClick = useCallback(
+    (e?: React.MouseEvent) => {
+      if (e) e.preventDefault()
+      if (authLoading) return
+
+      if (!user) {
+        navigate('/login')
+        return
+      }
+
+      // Check if employee has multiple system profiles configured in the DB
+      const profiles = currentEmployee?.systemProfiles || []
+
+      if (profiles.length > 0) {
+        // Only trigger state update to show selector as a direct result of user action
+        setShowProfileSelector(true)
+      } else {
+        // Fallback: Proceed directly to admin if no specific profiles are found
+        navigate('/admin')
+      }
+    },
+    [user, authLoading, currentEmployee, navigate],
+  )
+
+  const handleProfileSelect = useCallback(
+    (profile: string) => {
+      // Small timeout ensures the Dialog close animation registers cleanly before navigating
+      setTimeout(() => {
+        localStorage.setItem('nuvia_active_profile', profile)
+        setShowProfileSelector(false)
+        navigate('/admin')
+      }, 0)
+    },
+    [navigate],
+  )
+
   const navItems = [
     { label: 'HOME', href: '#' },
     { label: 'ATELIÊ ORAL', href: '#' },
@@ -63,6 +158,26 @@ export default function PublicHome() {
     { label: 'MAIS SOBRE NÓS', href: '#' },
     { label: 'CONTATO', href: '#' },
   ]
+
+  const heroImages = [
+    'https://img.usecurling.com/p/1600/900?q=smiling%20older%20man',
+    'https://img.usecurling.com/p/1600/900?q=dentist%20office',
+    'https://img.usecurling.com/p/1600/900?q=perfect%20smile',
+  ]
+
+  const nextImage = useCallback(() => {
+    setActiveImageIndex((prev) => (prev + 1) % heroImages.length)
+  }, [heroImages.length])
+
+  const prevImage = useCallback(() => {
+    setActiveImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)
+  }, [heroImages.length])
+
+  // Optional: Auto-rotate hero images securely
+  useEffect(() => {
+    const timer = setInterval(nextImage, 6000)
+    return () => clearInterval(timer)
+  }, [nextImage])
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
@@ -97,10 +212,17 @@ export default function PublicHome() {
             {/* Desktop CTA */}
             <div className="hidden xl:flex items-center mt-2">
               <Button
-                asChild
+                onClick={handleAccessClick}
+                disabled={authLoading}
                 className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all"
               >
-                <Link to="/login">Acesso Restrito</Link>
+                {authLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : user ? (
+                  'Acessar Sistema'
+                ) : (
+                  'Acesso Restrito'
+                )}
               </Button>
             </div>
 
@@ -133,12 +255,19 @@ export default function PublicHome() {
                     </div>
                     <div className="p-8 border-t border-slate-800 mt-auto">
                       <SheetClose asChild>
-                        <Link
-                          to="/login"
-                          className="inline-flex items-center justify-center w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
+                        <Button
+                          onClick={handleAccessClick}
+                          disabled={authLoading}
+                          className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
                         >
-                          Acesso Restrito
-                        </Link>
+                          {authLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : user ? (
+                            'Acessar Sistema'
+                          ) : (
+                            'Acesso Restrito'
+                          )}
+                        </Button>
                       </SheetClose>
                     </div>
                   </div>
@@ -152,27 +281,34 @@ export default function PublicHome() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative w-full pt-40 pb-56 md:pt-48 md:pb-64 flex items-center bg-[#0A192F] min-h-[700px] lg:min-h-[850px] overflow-hidden">
-          {/* Background Image */}
+          {/* Background Image Carousel */}
           <div className="absolute inset-0 z-0">
             <img
-              src="https://img.usecurling.com/p/1600/900?q=smiling%20older%20man"
+              key={activeImageIndex}
+              src={heroImages[activeImageIndex]}
               alt="Cliente sorrindo"
-              className="w-full h-full object-cover object-center opacity-70"
+              className="w-full h-full object-cover object-center opacity-70 animate-fade-in"
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#0A192F]/95 via-[#0A192F]/70 to-[#0A192F]/20"></div>
           </div>
 
           {/* Carousel Arrows */}
-          <button className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/40 hover:bg-black/70 text-white rounded-full items-center justify-center backdrop-blur-sm transition-colors z-20">
+          <button
+            onClick={prevImage}
+            className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/40 hover:bg-black/70 text-white rounded-full items-center justify-center backdrop-blur-sm transition-colors z-20"
+          >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <button className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/40 hover:bg-black/70 text-white rounded-full items-center justify-center backdrop-blur-sm transition-colors z-20">
+          <button
+            onClick={nextImage}
+            className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/40 hover:bg-black/70 text-white rounded-full items-center justify-center backdrop-blur-sm transition-colors z-20"
+          >
             <ChevronRight className="w-6 h-6" />
           </button>
 
           <div className="container mx-auto px-4 md:px-16 lg:px-24 relative z-10 text-white w-full">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl animate-slide-up">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif mb-6 leading-[1.1] drop-shadow-xl">
                 CONHEÇA ALGUNS DE
                 <br />
@@ -182,15 +318,18 @@ export default function PublicHome() {
                 Descubra por eles sobre a durabilidade das nossas porcelanas e qual impacto este
                 tratamento pode causar na sua vida
               </p>
-              <Button className="bg-[#C69B56] hover:bg-[#b58c49] text-white text-base font-semibold px-10 py-6 rounded-none tracking-widest transition-all shadow-xl">
+              <Button className="bg-[#C69B56] hover:bg-[#b58c49] text-white text-base font-semibold px-10 py-6 rounded-none tracking-widest transition-all shadow-xl uppercase">
                 Saiba Mais
               </Button>
             </div>
           </div>
         </section>
 
-        {/* Horizontal Infobar - Overlapping Hero */}
-        <section className="relative z-20 -mt-24 md:-mt-32 px-4 mb-20">
+        {/* Horizontal Infobar */}
+        <section
+          className="relative z-20 -mt-24 md:-mt-32 px-4 mb-20 animate-fade-in-up"
+          style={{ animationDelay: '200ms' }}
+        >
           <div className="container mx-auto max-w-6xl">
             <div className="bg-white/95 backdrop-blur-md shadow-2xl flex flex-col md:flex-row items-stretch border border-slate-100/50">
               {/* Box 1 */}
@@ -291,12 +430,12 @@ export default function PublicHome() {
                   </li>
                 ))}
                 <li className="pt-4 mt-4 border-t border-white/10">
-                  <Link
-                    to="/login"
+                  <button
+                    onClick={handleAccessClick}
                     className="text-[#C69B56] font-semibold hover:text-white transition-colors tracking-widest uppercase text-xs"
                   >
                     Acesso ao Sistema
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -335,6 +474,57 @@ export default function PublicHome() {
           </div>
         </div>
       </footer>
+
+      {/* Profile Selector Dialog (Stable Rendering) */}
+      <Dialog open={showProfileSelector} onOpenChange={setShowProfileSelector}>
+        <DialogContent className="sm:max-w-md uppercase border-slate-200">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-[#0A192F] flex items-center gap-2 font-serif">
+              <User className="h-5 w-5 text-[#C69B56]" /> SELECIONE SEU PERFIL
+            </DialogTitle>
+            <DialogDescription className="text-slate-500">
+              VOCÊ POSSUI MÚLTIPLOS PERFIS DE ACESSO. SELECIONE COM QUAL DESEJA ENTRAR NO SISTEMA.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
+            {currentEmployee?.systemProfiles?.map((profile, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="h-auto py-4 px-6 justify-start text-left border-slate-200 hover:bg-[#C69B56]/5 hover:border-[#C69B56] transition-colors shadow-sm"
+                onClick={() => handleProfileSelect(profile)}
+              >
+                <div className="flex items-center gap-4 w-full">
+                  <div className="h-12 w-12 shrink-0 rounded-full bg-[#0A192F] flex items-center justify-center text-[#C69B56] font-serif font-bold text-xl shadow-inner">
+                    {profile.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-base text-[#0A192F] truncate">{profile}</div>
+                    <div className="text-[10px] text-slate-500 mt-1 font-semibold tracking-widest truncate">
+                      ACESSAR AMBIENTE
+                    </div>
+                  </div>
+                  <ChevronRight className="ml-auto h-5 w-5 text-slate-300 shrink-0" />
+                </div>
+              </Button>
+            ))}
+
+            {(!currentEmployee?.systemProfiles || currentEmployee.systemProfiles.length === 0) && (
+              <div className="text-center py-8 text-slate-500 text-sm">
+                NENHUM PERFIL ESPECÍFICO ENCONTRADO. ACESSANDO MÓDULO PADRÃO...
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+  )
+}
+
+export default function PublicHome() {
+  return (
+    <ErrorBoundary>
+      <PublicHomeContent />
+    </ErrorBoundary>
   )
 }
