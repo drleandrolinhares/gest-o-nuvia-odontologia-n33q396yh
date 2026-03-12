@@ -32,7 +32,7 @@ export default function PublicHome() {
       </header>
 
       <main className="flex-1">
-        <section className="py-24 px-6 md:px-12 bg-gradient-to-b from-blue-50/50 to-background flex flex-col items-center text-center space-y-8">
+        <section className="py-24 px-6 md:px-12 bg-gradient-to-b from-blue-50/50 to-background flex flex-col items-center text-center space-y-8 animate-fade-in-up">
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-nuvia-navy max-w-4xl leading-tight">
             EXCELÊNCIA CLÍNICA E PRECISÃO CIENTÍFICA
           </h1>
