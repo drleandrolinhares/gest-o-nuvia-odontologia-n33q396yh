@@ -9,6 +9,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import useAppStore, { Employee } from '@/stores/main'
 
 export function EmployeeTable({ employees }: { employees: Employee[] }) {
@@ -21,6 +22,7 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
         <TableHeader>
           <TableRow className="bg-muted/30 uppercase">
             <TableHead className="font-semibold">COLABORADOR</TableHead>
+            <TableHead className="font-semibold">CATEGORIA</TableHead>
             <TableHead className="font-semibold">FUNÇÃO / SETOR</TableHead>
             <TableHead className="font-semibold">NÍVEL ACESSO</TableHead>
             <TableHead className="font-semibold">STATUS</TableHead>
@@ -31,10 +33,17 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
           {employees.map((emp) => (
             <TableRow key={emp.id} className="hover:bg-muted/10 transition-colors">
               <TableCell>
-                <div className="font-bold text-foreground uppercase">{emp.name}</div>
-                <div className="text-xs text-muted-foreground uppercase">
-                  {emp.email || 'SEM EMAIL'}
-                </div>
+                <Link to={`/admin/rh/colaborador/${emp.id}`} className="hover:underline">
+                  <div className="font-bold text-foreground uppercase">{emp.name}</div>
+                  <div className="text-xs text-muted-foreground uppercase">
+                    {emp.email || 'SEM EMAIL'}
+                  </div>
+                </Link>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" className="uppercase bg-background">
+                  {emp.teamCategory || 'COLABORADOR'}
+                </Badge>
               </TableCell>
               <TableCell>
                 <div className="font-medium uppercase text-sm">{emp.role}</div>
@@ -71,7 +80,7 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
           {employees.length === 0 && (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={6}
                 className="text-center py-10 uppercase text-muted-foreground font-semibold"
               >
                 NENHUM COLABORADOR ENCONTRADO.

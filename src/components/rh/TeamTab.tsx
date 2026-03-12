@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { EmployeeTable } from '@/components/EmployeeTable'
 import { AddEmployeeDialog } from './AddEmployeeDialog'
 import useAppStore from '@/stores/main'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -12,7 +13,8 @@ import {
 
 export function TeamTab() {
   const { employees, can, isAdmin } = useAppStore()
-  const [statusFilter, setStatusFilter] = useState('TODOS')
+  const [statusFilter, setStatusFilter] = useState('ATIVOS')
+  const [categoryFilter, setCategoryFilter] = useState('TIME TOTAL')
 
   const canView = isAdmin || can('colaboradores', 'visualizar_lista')
   const canAdd = isAdmin || can('colaboradores', 'criar_colaborador')
@@ -26,9 +28,17 @@ export function TeamTab() {
   }
 
   const filteredEmployees = employees.filter((e) => {
-    if (statusFilter === 'ATIVOS') return e.status !== 'Desligado'
-    if (statusFilter === 'DESLIGADOS') return e.status === 'Desligado'
-    return true
+    const matchStatus =
+      statusFilter === 'TODOS' ||
+      (statusFilter === 'ATIVOS' && e.status !== 'Desligado') ||
+      (statusFilter === 'DESLIGADOS' && e.status === 'Desligado')
+
+    const matchCategory =
+      categoryFilter === 'TIME TOTAL' ||
+      (categoryFilter === 'COLABORADOR' && (!e.teamCategory || e.teamCategory === 'COLABORADOR')) ||
+      e.teamCategory === categoryFilter
+
+    return matchStatus && matchCategory
   })
 
   return (
@@ -49,7 +59,7 @@ export function TeamTab() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="TODOS" className="uppercase">
-                TODOS OS COLABORADORES
+                TODOS OS REGISTROS
               </SelectItem>
               <SelectItem value="ATIVOS" className="uppercase">
                 SOMENTE ATIVOS
@@ -62,6 +72,15 @@ export function TeamTab() {
           {canAdd && <AddEmployeeDialog />}
         </div>
       </div>
+
+      <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="w-full">
+        <TabsList className="w-full md:w-auto grid grid-cols-2 md:inline-flex md:grid-cols-4 mb-4">
+          <TabsTrigger value="TIME TOTAL">TIME TOTAL</TabsTrigger>
+          <TabsTrigger value="SÓCIO">SÓCIOS</TabsTrigger>
+          <TabsTrigger value="DENTISTA">DENTISTAS</TabsTrigger>
+          <TabsTrigger value="COLABORADOR">COLABORADORES</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <EmployeeTable employees={filteredEmployees} />
     </div>

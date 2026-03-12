@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Form,
   FormControl,
@@ -19,7 +20,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import useAppStore, { Employee } from '@/stores/main'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { User, Phone, Mail, Search, Key, Shield, Eye, EyeOff } from 'lucide-react'
+import { User, Phone, Mail, Search, Key, Shield, Eye, EyeOff, Briefcase } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -100,7 +101,7 @@ const PROFILES_DEF = [
   {
     id: 'Gestor de Relacionamento',
     title: 'Gestor de Relacionamento',
-    desc: 'Monitorar a experiência dos pacientes e promover ações de engajamento. Acesso a ferramentas de comunicação e indicadores.',
+    desc: 'Monitorar a experiência dos pacientes e promover actions de engajamento. Acesso a ferramentas de comunicação e indicadores.',
   },
   {
     id: 'Profissional',
@@ -134,6 +135,8 @@ const formSchema = z
     permissions: z.record(z.array(z.string())).optional(),
     newPassword: z.string().optional(),
     confirmPassword: z.string().optional(),
+    teamCategory: z.enum(['SÓCIO', 'DENTISTA', 'COLABORADOR']).optional(),
+    contractDetails: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -200,6 +203,8 @@ export function EditEmployeeDialog({
       permissions: {},
       newPassword: '',
       confirmPassword: '',
+      teamCategory: 'COLABORADOR',
+      contractDetails: '',
     },
   })
 
@@ -228,6 +233,8 @@ export function EditEmployeeDialog({
           permissions: employee.permissions || {},
           newPassword: '',
           confirmPassword: '',
+          teamCategory: employee.teamCategory || 'COLABORADOR',
+          contractDetails: employee.contractDetails || '',
         })
         setIsEditingData(false)
         setActiveTab(defaultTab)
@@ -237,7 +244,6 @@ export function EditEmployeeDialog({
     } else {
       setIsEditingData(true)
     }
-    // Depend on employee?.id instead of employee to prevent infinite loops when store updates
   }, [open, employee?.id, defaultTab, form])
 
   const onSubmit = async (v: FormValues) => {
@@ -343,7 +349,7 @@ export function EditEmployeeDialog({
                     value="dados"
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
                   >
-                    Dados Pessoais
+                    Dados Pessoais e Contrato
                   </TabsTrigger>
                   {canManagePerms && (
                     <TabsTrigger
@@ -442,6 +448,58 @@ export function EditEmployeeDialog({
                             </FormItem>
                           )}
                         />
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                      <SectionTitle title="Relações e Acordos com a Empresa" icon={Briefcase} />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="teamCategory"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Categoria Profissional</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={!isEditingData}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-background">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="SÓCIO">SÓCIO</SelectItem>
+                                  <SelectItem value="DENTISTA">DENTISTA</SelectItem>
+                                  <SelectItem value="COLABORADOR">COLABORADOR</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="md:col-span-3">
+                          <FormField
+                            control={form.control}
+                            name="contractDetails"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Detalhes de Contrato / Acordos Específicos</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    disabled={!isEditingData}
+                                    className="bg-background min-h-[120px]"
+                                    placeholder="Informações sobre vínculos, comissões, participações e outros acordos com a empresa..."
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
                     </div>
 

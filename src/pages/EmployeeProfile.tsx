@@ -15,6 +15,7 @@ import {
   CalendarDays,
   UserX,
   Key,
+  FileText,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -84,6 +85,11 @@ export default function EmployeeProfile() {
                   DESLIGADO DA EMPRESA
                 </Badge>
               )}
+              {employee.status !== 'Desligado' && (
+                <Badge variant="outline" className="border-primary/50 text-primary bg-primary/5">
+                  {employee.teamCategory || 'COLABORADOR'}
+                </Badge>
+              )}
             </h1>
             <p className="text-muted-foreground flex items-center gap-2 mt-1">
               <Briefcase className="h-4 w-4" /> {employee.role} • {employee.department}
@@ -99,17 +105,27 @@ export default function EmployeeProfile() {
             >
               <Key className="h-4 w-4 mr-2" /> REDEFINIR ACESSO
             </Button>
+            <Button
+              variant="outline"
+              className="border-primary text-primary hover:bg-primary/10"
+              onClick={() => {
+                setEditTab('dados')
+                setIsEditOpen(true)
+              }}
+            >
+              EDITAR DADOS
+            </Button>
             {employee.status !== 'Desligado' && (
               <Button
                 variant="outline"
                 className="text-stone-700 border-stone-500 hover:bg-stone-100 hover:text-stone-900"
                 onClick={handleInactivate}
               >
-                <UserX className="h-4 w-4 mr-2" /> DESLIGADO DA EMPRESA
+                <UserX className="h-4 w-4 mr-2" /> DESLIGAR
               </Button>
             )}
             <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 className="h-4 w-4 mr-2" /> REMOVER COLABORADOR
+              <Trash2 className="h-4 w-4 mr-2" /> REMOVER
             </Button>
           </div>
         )}
@@ -125,14 +141,16 @@ export default function EmployeeProfile() {
               <Mail className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
                 <p className="text-sm font-medium">EMAIL PROFISSIONAL</p>
-                <p className="text-sm text-muted-foreground lowercase">{employee.email}</p>
+                <p className="text-sm text-muted-foreground lowercase">
+                  {employee.email || 'NÃO INFORMADO'}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
                 <p className="text-sm font-medium">TELEFONE</p>
-                <p className="text-sm text-muted-foreground">{employee.phone}</p>
+                <p className="text-sm text-muted-foreground">{employee.phone || 'NÃO INFORMADO'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -140,7 +158,9 @@ export default function EmployeeProfile() {
               <div>
                 <p className="text-sm font-medium">DATA DE ADMISSÃO</p>
                 <p className="text-sm text-muted-foreground">
-                  {new Date(employee.hireDate).toLocaleDateString('pt-BR')}
+                  {employee.hireDate
+                    ? new Date(employee.hireDate).toLocaleDateString('pt-BR')
+                    : 'NÃO INFORMADA'}
                 </p>
               </div>
             </div>
@@ -148,7 +168,9 @@ export default function EmployeeProfile() {
               <DollarSign className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
                 <p className="text-sm font-medium">SALÁRIO BASE</p>
-                <p className="text-sm text-muted-foreground">{employee.salary}</p>
+                <p className="text-sm text-muted-foreground">
+                  {employee.salary || 'NÃO INFORMADO'}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 sm:col-span-2">
@@ -191,6 +213,25 @@ export default function EmployeeProfile() {
                   O PERÍODO AQUISITIVO DE FÉRIAS ESTÁ PRÓXIMO DO VENCIMENTO OU DO LIMITE.
                 </AlertDescription>
               </Alert>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-nuvia-navy" /> RELAÇÕES E ACORDOS COM A EMPRESA
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {employee.contractDetails ? (
+              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed p-4 bg-muted/30 rounded-md border">
+                {employee.contractDetails}
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground uppercase text-center py-6 border border-dashed rounded-md bg-card/50">
+                NENHUMA INFORMAÇÃO SOBRE ACORDOS REGISTRADA PARA ESTE PERFIL.
+              </p>
             )}
           </CardContent>
         </Card>

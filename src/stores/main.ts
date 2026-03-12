@@ -44,6 +44,8 @@ export type Employee = {
   accessSchedule?: boolean
   systemProfiles?: string[]
   lastAccess?: string
+  teamCategory?: 'SÓCIO' | 'DENTISTA' | 'COLABORADOR'
+  contractDetails?: string
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
 export type OnboardingCandidate = {
@@ -216,6 +218,8 @@ const mEmp = (d: any): Employee => {
     accessSchedule: d.access_schedule,
     systemProfiles: d.system_profiles || [],
     lastAccess: d.last_access,
+    teamCategory: d.team_category || 'COLABORADOR',
+    contractDetails: d.contract_details || '',
   }
 }
 const mInv = (d: any): InventoryItem => ({
@@ -630,6 +634,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             state: e.state,
             access_schedule: e.accessSchedule,
             system_profiles: e.systemProfiles || [],
+            team_category: e.teamCategory || 'COLABORADOR',
+            contract_details: e.contractDetails || '',
           },
         ])
         .select()
@@ -669,6 +675,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.state !== undefined) payload.state = e.state
       if (e.accessSchedule !== undefined) payload.access_schedule = e.accessSchedule
       if (e.systemProfiles !== undefined) payload.system_profiles = e.systemProfiles
+      if (e.teamCategory !== undefined) payload.team_category = e.teamCategory
+      if (e.contractDetails !== undefined) payload.contract_details = e.contractDetails
 
       const { error } = await supabase.from('employees').update(payload).eq('id', id)
 

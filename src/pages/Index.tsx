@@ -8,6 +8,9 @@ import {
   FileText,
   DollarSign,
   Boxes,
+  UserCheck,
+  Stethoscope,
+  Briefcase,
 } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Button } from '@/components/ui/button'
@@ -19,7 +22,14 @@ export default function Index() {
   const { employees, alerts, onboarding, inventory } = useAppStore()
   const navigate = useNavigate()
 
-  const activeEmployees = employees.filter((e) => e.status === 'Ativo').length
+  const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
+  const countSocios = activeEmployees.filter((e) => e.teamCategory === 'SÓCIO').length
+  const countDentistas = activeEmployees.filter((e) => e.teamCategory === 'DENTISTA').length
+  const countColaboradores = activeEmployees.filter(
+    (e) => e.teamCategory === 'COLABORADOR' || !e.teamCategory,
+  ).length
+  const totalTeam = activeEmployees.length
+
   const pendingOnboarding = onboarding.length
   const lowStockItems = inventory.filter((i) => i.quantity <= i.minStock).length
   const totalItemsInStock = inventory.reduce((acc, item) => acc + item.quantity, 0)
@@ -50,23 +60,65 @@ export default function Index() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card
-          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
           onClick={() => navigate('/admin/rh')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">EQUIPE ATIVA</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium">SÓCIOS</CardTitle>
+            <Briefcase className="h-4 w-4 text-nuvia-navy" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeEmployees}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              COLABORADORES DE UM TOTAL DE {employees.length}
-            </p>
+            <div className="text-3xl font-bold text-nuvia-navy">{countSocios}</div>
+            <p className="text-xs text-muted-foreground mt-1">SÓCIOS ATIVOS NA CLÍNICA</p>
           </CardContent>
         </Card>
 
+        <Card
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
+          onClick={() => navigate('/admin/rh')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">DENTISTAS</CardTitle>
+            <Stethoscope className="h-4 w-4 text-nuvia-navy" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-nuvia-navy">{countDentistas}</div>
+            <p className="text-xs text-muted-foreground mt-1">PROFISSIONAIS CLÍNICOS</p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
+          onClick={() => navigate('/admin/rh')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">COLABORADORES</CardTitle>
+            <UserCheck className="h-4 w-4 text-nuvia-navy" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-nuvia-navy">{countColaboradores}</div>
+            <p className="text-xs text-muted-foreground mt-1">EQUIPE DE APOIO E GESTÃO</p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-primary/5 border-primary/20"
+          onClick={() => navigate('/admin/rh')}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">TIME TOTAL</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-primary">{totalTeam}</div>
+            <p className="text-xs text-muted-foreground mt-1">TOTAL DE PESSOAS ATIVAS</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
           onClick={() => navigate('/admin/rh')}
