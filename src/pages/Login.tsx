@@ -43,21 +43,10 @@ export default function Login() {
       const { error } = await signIn(email, password)
 
       if (error) {
-        let errorMessage = error.message || 'Verifique suas credenciais e tente novamente.'
-
-        // Proactive error messaging translation and mapping
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'E-mail ou senha incorretos. Verifique suas credenciais.'
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Por favor, confirme seu e-mail antes de fazer login.'
-        } else if (error.message.includes('user not found')) {
-          errorMessage = 'Usuário não encontrado em nossa base de dados.'
-        }
-
         toast({
           variant: 'destructive',
           title: 'Erro de Autenticação',
-          description: errorMessage,
+          description: 'Erro ao acessar: Verifique suas credenciais ou se sua conta foi ativada.',
         })
         return
       }

@@ -37,7 +37,8 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import useAppStore from '@/stores/main'
-import { Plus, Check, ChevronsUpDown } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { Plus, Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const formSchema = z.object({
@@ -65,7 +66,10 @@ export function AddEmployeeDialog({
   customTrigger?: React.ReactNode
 }) {
   const { addEmployee, departments } = useAppStore()
+  const { toast } = useToast()
   const [open, setOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -87,8 +91,9 @@ export function AddEmployeeDialog({
     },
   })
 
-  const onSubmit = (v: FormValues) => {
-    addEmployee({
+  const onSubmit = async (v: FormValues) => {
+    setIsLoading(true)
+    const res = await addEmployee({
       ...v,
       status: 'Ativo',
       vacationDaysTaken: 0,
@@ -97,8 +102,19 @@ export function AddEmployeeDialog({
       permissions: {},
       systemProfiles: [],
     })
-    setOpen(false)
-    form.reset()
+    setIsLoading(false)
+
+    if (res.success) {
+      toast({ title: 'Sucesso', description: 'Colaborador e conta de acesso criados com sucesso!' })
+      setOpen(false)
+      form.reset()
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: res.error?.message || 'Falha ao registrar colaborador.',
+      })
+    }
   }
 
   return (
@@ -136,7 +152,7 @@ export function AddEmployeeDialog({
                     <FormItem className="md:col-span-2">
                       <FormLabel>NOME COMPLETO</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -154,6 +170,7 @@ export function AddEmployeeDialog({
                             <Button
                               variant="outline"
                               role="combobox"
+                              disabled={isLoading}
                               className={cn(
                                 'w-full justify-between',
                                 !field.value?.length && 'text-muted-foreground',
@@ -207,7 +224,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel>FUNÇÃO</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -219,7 +236,11 @@ export function AddEmployeeDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>DEPARTAMENTO</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={isLoading}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="SELECIONE..." />
@@ -244,7 +265,7 @@ export function AddEmployeeDialog({
                     <FormItem>
                       <FormLabel>SALÁRIO / REMUNERAÇÃO</FormLabel>
                       <FormControl>
-                        <Input placeholder="R$" {...field} />
+                        <Input placeholder="R$" {...field} disabled={isLoading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -260,6 +281,7 @@ export function AddEmployeeDialog({
                         <Textarea
                           placeholder="INFORMAÇÕES SOBRE CONTRATOS, COMISSÕES E ACORDOS ESPECÍFICOS..."
                           {...field}
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <FormMessage />
@@ -280,7 +302,7 @@ export function AddEmployeeDialog({
                       <FormItem>
                         <FormLabel>E-MAIL</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input type="email" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -293,7 +315,7 @@ export function AddEmployeeDialog({
                       <FormItem>
                         <FormLabel>NOME DE USUÁRIO</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -306,7 +328,7 @@ export function AddEmployeeDialog({
                       <FormItem>
                         <FormLabel>SENHA PROVISÓRIA</FormLabel>
                         <FormControl>
-                          <Input type="text" {...field} />
+                          <Input type="text" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -318,7 +340,11 @@ export function AddEmployeeDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>NÍVEL DE ACESSO</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          disabled={isLoading}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="SELECIONE..." />
@@ -342,7 +368,7 @@ export function AddEmployeeDialog({
                       <FormItem>
                         <FormLabel>TELEFONE</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -355,7 +381,7 @@ export function AddEmployeeDialog({
                       <FormItem>
                         <FormLabel>ADMISSÃO / INÍCIO</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -365,10 +391,18 @@ export function AddEmployeeDialog({
               </div>
             </div>
             <div className="px-6 py-4 border-t bg-background shrink-0 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={isLoading}
+              >
                 CANCELAR
               </Button>
-              <Button type="submit">SALVAR COLABORADOR</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                SALVAR COLABORADOR
+              </Button>
             </div>
           </form>
         </Form>

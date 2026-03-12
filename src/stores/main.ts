@@ -149,7 +149,9 @@ interface AppStore {
   updateInventoryQuantity: (id: string, q: number) => void
   deleteInventoryItem: (id: string) => void
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
-  addEmployee: (e: Omit<Employee, 'id'>) => void
+  addEmployee: (
+    e: Omit<Employee, 'id'> & { password?: string },
+  ) => Promise<{ success: boolean; error?: any }>
   updateEmployee: (id: string, e: Partial<Employee>) => Promise<{ success: boolean; error?: any }>
   updateEmployeePassword: (
     userId: string,
@@ -160,6 +162,12 @@ interface AppStore {
   updateEmployeeLevel: (id: string, l: Employee['accessLevel']) => void
   updateEmployeeAgendaAccess: (id: string, a: AgendaAccess) => void
   updateEmployeePermissions: (id: string, p: PermissionsMap) => void
+  generateEmployeeAccess: (
+    id: string,
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<{ success: boolean; error?: any }>
   addOnboardingTask: (c: string, t: string) => void
   removeOnboardingTask: (c: string, t: string) => void
   addDocument: (n: string) => void
@@ -607,8 +615,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addEmployee = useCallback(
-    (e: Omit<Employee, 'id'>) => {
-      supabase
+    async (e: Omit<Employee, 'id'> & { password?: string }) => {
+      let userId = undefined
+
+      if (e.password && e.email) {
+        const { data, error } = await supabase.functions.invoke('admin-create-user', {
+          body: { email: e.email, password: e.password, name: e.name },
+        })
+
+        if (error || !data?.id) {
+          return {
+            success: false,
+            error: error || new Error('Erro ao criar usuário na autenticação'),
+          }
+        }
+        userId = data.id
+      }
+
+      const { data: empData, error: empError } = await supabase
         .from('employees')
         .insert([
           {
@@ -640,16 +664,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
             system_profiles: e.systemProfiles || [],
             team_category: e.teamCategory || ['COLABORADOR'],
             contract_details: e.contractDetails || '',
+            user_id: userId,
           },
         ])
         .select()
         .single()
-        .then(({ data }) => {
-          if (data) {
-            setEmployees((p) => [...p, mEmp(data)])
-            logAction(`CRIOU COLABORADOR: ${e.name}`)
-          }
-        })
+
+      if (empError) {
+        return { success: false, error: empError }
+      }
+
+      if (empData) {
+        setEmployees((p) => [...p, mEmp(empData)])
+        logAction(`CRIOU COLABORADOR: ${e.name}`)
+        return { success: true }
+      }
+
+      return { success: false, error: new Error('Unknown error') }
+    },
+    [logAction],
+  )
+
+  const generateEmployeeAccess = useCallback(
+    async (id: string, email: string, password: string, name: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: { email, password, name },
+      })
+
+      if (error || !data?.id) {
+        return {
+          success: false,
+          error: error || new Error('Erro ao criar usuário na autenticação'),
+        }
+      }
+
+      const userId = data.id
+
+      const { error: updateError } = await supabase
+        .from('employees')
+        .update({ user_id: userId, email })
+        .eq('id', id)
+
+      if (updateError) {
+        return { success: false, error: updateError }
+      }
+
+      setEmployees((p) => p.map((e) => (e.id === id ? { ...e, user_id: userId, email } : e)))
+      logAction(`GEROU ACESSO PARA COLABORADOR ID: ${id}`)
+
+      return { success: true }
     },
     [logAction],
   )
@@ -1010,6 +1073,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateEmployeeLevel,
       updateEmployeeAgendaAccess,
       updateEmployeePermissions,
+      generateEmployeeAccess,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,
@@ -1062,6 +1126,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateEmployeeLevel,
       updateEmployeeAgendaAccess,
       updateEmployeePermissions,
+      generateEmployeeAccess,
       addOnboardingTask,
       removeOnboardingTask,
       addDocument,
