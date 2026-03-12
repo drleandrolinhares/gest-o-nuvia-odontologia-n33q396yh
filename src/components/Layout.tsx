@@ -15,15 +15,15 @@ import { useAuth } from '@/hooks/use-auth'
 import logoImg from '@/assets/img_3243-2f960.jpg'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 
 const navigation = [
-  { name: 'Agenda', href: '/agenda', icon: Calendar },
-  { name: 'Recursos Humanos', href: '/rh', icon: Users },
-  { name: 'Estoque', href: '/inventory', icon: Package },
-  { name: 'Acessos', href: '/acessos', icon: Shield },
-  { name: 'Logs', href: '/audit-log', icon: FileText },
-  { name: 'Configurações', href: '/settings', icon: Settings },
+  { name: 'Agenda', href: '/admin/agenda', icon: Calendar },
+  { name: 'Recursos Humanos', href: '/admin/rh', icon: Users },
+  { name: 'Estoque', href: '/admin/estoque', icon: Package },
+  { name: 'Acessos', href: '/admin/acessos', icon: Shield },
+  { name: 'Logs', href: '/admin/auditoria', icon: FileText },
+  { name: 'Configurações', href: '/admin/configuracoes', icon: Settings },
 ]
 
 export function Layout() {
@@ -33,19 +33,19 @@ export function Layout() {
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
-      <div className="p-6 flex items-center justify-center border-b border-slate-800 bg-[#0A192F]">
-        <Link to="/" className="block w-full text-center hover:opacity-90 transition-opacity">
+      <div className="p-6 flex items-center justify-center border-b border-white/5 bg-[#0A192F]">
+        <Link to="/" className="block w-full text-center hover:opacity-80 transition-opacity">
           <img
             src={logoImg}
             alt="Nuvia Odontologia"
-            className="h-12 w-auto mx-auto rounded-md shadow-lg border border-white/10 object-contain"
+            className="h-12 w-auto mx-auto object-contain mix-blend-screen invert grayscale contrast-150"
           />
         </Link>
       </div>
 
       <div className="flex-1 overflow-y-auto py-6 px-4">
         <div className="space-y-1">
-          <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
+          <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">
             Gestão Integrada
           </p>
           {navigation.map((item) => {
@@ -59,7 +59,7 @@ export function Layout() {
                   'group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors',
                   isActive
                     ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                    : 'text-slate-300 hover:bg-white/5 hover:text-white',
                 )}
               >
                 <item.icon
@@ -76,7 +76,7 @@ export function Layout() {
         </div>
       </div>
 
-      <div className="p-4 border-t border-slate-800 bg-[#0A192F]">
+      <div className="p-4 border-t border-white/5 bg-[#0A192F]">
         <div className="flex items-center mb-4 px-2">
           <div className="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#0A192F] font-bold text-sm">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
@@ -88,7 +88,7 @@ export function Layout() {
         </div>
         <Button
           variant="ghost"
-          className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-800"
+          className="w-full justify-start text-slate-300 hover:text-white hover:bg-white/5"
           onClick={() => signOut()}
         >
           <LogOut className="mr-3 h-5 w-5 text-slate-400" />
@@ -101,12 +101,12 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-slate-800">
-        <Link to="/">
+      <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
+        <Link to="/" className="hover:opacity-80 transition-opacity">
           <img
             src={logoImg}
             alt="Nuvia Odontologia"
-            className="h-8 w-auto rounded shadow-sm object-contain border border-white/10"
+            className="h-8 w-auto object-contain mix-blend-screen invert grayscale contrast-150"
           />
         </Link>
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -116,6 +116,7 @@ export function Layout() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-72 bg-[#0A192F] border-r-slate-800">
+            <SheetTitle className="sr-only">Menu Principal</SheetTitle>
             <SidebarContent />
           </SheetContent>
         </Sheet>
@@ -133,7 +134,7 @@ export function Layout() {
             <Home className="w-4 h-4" />
             <span>/</span>
             <span className="font-medium text-slate-900 capitalize">
-              {location.pathname.split('/')[1] || 'Dashboard'}
+              {location.pathname.split('/')[2] || 'Dashboard'}
             </span>
           </div>
           <div className="flex items-center gap-4">
