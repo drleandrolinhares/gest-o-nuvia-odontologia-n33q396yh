@@ -19,11 +19,14 @@ export default function PublicHome() {
             BLOG CIENTÍFICO
           </a>
         </nav>
-        <Link to="/login">
-          <Button className="bg-[#D81B84] hover:bg-[#B71770] text-white font-bold tracking-wider">
+        <Button
+          asChild
+          className="bg-[#D81B84] hover:bg-[#B71770] text-white font-bold tracking-wider"
+        >
+          <Link to="/login">
             ÁREA RESTRITA <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </header>
 
       <main className="flex-1">

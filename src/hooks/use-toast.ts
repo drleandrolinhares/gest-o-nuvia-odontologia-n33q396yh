@@ -1,6 +1,3 @@
-/* Custom toast hook - used to display toasts - from shadcn/ui (exposes useToast, toast) */
-
-// Inspired by react-hot-toast library
 import * as React from 'react'
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast'
@@ -15,7 +12,7 @@ type ToasterToast = ToastProps & {
   action?: ToastActionElement
 }
 
-const _actionTypes = {
+const actionTypes = {
   ADD_TOAST: 'ADD_TOAST',
   UPDATE_TOAST: 'UPDATE_TOAST',
   DISMISS_TOAST: 'DISMISS_TOAST',
@@ -29,7 +26,7 @@ function genId() {
   return count.toString()
 }
 
-type ActionType = typeof _actionTypes
+type ActionType = typeof actionTypes
 
 type Action =
   | {
@@ -88,8 +85,6 @@ export const reducer = (state: State, action: Action): State => {
     case 'DISMISS_TOAST': {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -135,7 +130,7 @@ function dispatch(action: Action) {
   })
 }
 
-type Toast = Omit<ToasterToast, 'id'>
+interface Toast extends Omit<ToasterToast, 'id'> {}
 
 function toast({ ...props }: Toast) {
   const id = genId()

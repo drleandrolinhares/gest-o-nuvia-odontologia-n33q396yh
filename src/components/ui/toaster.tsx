@@ -1,4 +1,3 @@
-/* Toaster Component - A component that displays a toaster (a component that displays a toast) - from shadcn/ui (exposes Toaster) */
 import { useToast } from '@/hooks/use-toast'
 import {
   Toast,
