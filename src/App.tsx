@@ -10,10 +10,12 @@ import Agenda from '@/pages/Agenda'
 import Acessos from '@/pages/Acessos'
 import PublicHome from '@/pages/PublicHome'
 import Login from '@/pages/Login'
+import Chat from '@/pages/Chat'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
+import { ChatProvider } from '@/stores/chat'
 import { Toaster } from '@/components/ui/toaster'
 
 export default function App() {
@@ -28,12 +30,15 @@ export default function App() {
               path="/admin"
               element={
                 <ProtectedRoute>
-                  <Layout />
+                  <ChatProvider>
+                    <Layout />
+                  </ChatProvider>
                 </ProtectedRoute>
               }
             >
               <Route index element={<Index />} />
               <Route path="agenda" element={<Agenda />} />
+              <Route path="chat" element={<Chat />} />
               <Route path="acessos" element={<Acessos />} />
               <Route path="rh" element={<RH />} />
               <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />

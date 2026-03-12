@@ -10,6 +10,7 @@ import {
   Shield,
   Home,
   LayoutDashboard,
+  MessageCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -17,10 +18,12 @@ import logoImg from '@/assets/img_3243-2f960.jpg'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
+import { useChatStore } from '@/stores/chat'
 
 const navigation = [
   { name: 'DASH NUVIA', href: '/admin', icon: LayoutDashboard, exact: true },
   { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
+  { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
   { name: 'Recursos Humanos', href: '/admin/rh', icon: Users },
   { name: 'Estoque', href: '/admin/estoque', icon: Package },
   { name: 'Acessos', href: '/admin/acessos', icon: Shield },
@@ -32,6 +35,9 @@ export function Layout() {
   const { signOut, user } = useAuth()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { unreadCounts } = useChatStore()
+
+  const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
@@ -74,6 +80,11 @@ export function Layout() {
                   aria-hidden="true"
                 />
                 {item.name}
+                {item.name === 'MENSAGENS' && totalUnread > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {totalUnread > 99 ? '99+' : totalUnread}
+                  </span>
+                )}
               </Link>
             )
           })}
@@ -115,8 +126,11 @@ export function Layout() {
         </Link>
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 relative">
               <Menu className="h-6 w-6" />
+              {totalUnread > 0 && (
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+              )}
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-72 bg-[#0A192F] border-r-slate-800">
@@ -154,7 +168,7 @@ export function Layout() {
         </header>
 
         <div className="flex-1 p-4 md:p-8 overflow-auto">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-7xl h-full">
             <Outlet />
           </div>
         </div>
