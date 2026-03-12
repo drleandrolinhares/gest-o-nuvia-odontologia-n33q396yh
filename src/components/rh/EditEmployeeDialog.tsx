@@ -19,7 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import useAppStore, { Employee } from '@/stores/main'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { User, Phone, Mail, Search } from 'lucide-react'
+import { User, Phone, Mail, Search, Key, Shield, Eye, EyeOff } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -85,53 +85,68 @@ const PROFILES_DEF = [
   {
     id: 'Administrador',
     title: 'Administrador',
-    desc: 'Este perfil é responsável por coordenar as operações diárias da clínica, organizando a equipe e configurando o sistema. Possui permissões para gerenciar usuários, agendas, fluxos internos e relatórios operacionais.',
+    desc: 'Coordenar as operações diárias da clínica, organizando a equipe e configurando o sistema. Gerenciar usuários, agendas, fluxos e relatórios.',
   },
   {
     id: 'Auxiliar Técnico',
     title: 'Auxiliar Técnico',
-    desc: 'Este perfil é voltado para apoiar os profissionais durante os atendimentos, organizar materiais, gerenciar o estoque e preparar o ambiente clínico. Possui acesso restrito a informações de pacientes.',
+    desc: 'Apoiar os profissionais, organizar materiais, gerenciar o estoque e preparar o ambiente clínico. Acesso restrito a informações de pacientes.',
   },
   {
     id: 'Financeiro',
     title: 'Financeiro',
-    desc: 'Este perfil é responsável por controlar as receitas, despesas e o faturamento da clínica. Com foco nas operações financeiras, tem acesso exclusivo a relatórios financeiros e monitoramento de cobranças.',
+    desc: 'Controlar as receitas, despesas e o faturamento. Acesso exclusivo a relatórios financeiros e monitoramento de cobranças.',
   },
   {
     id: 'Gestor de Relacionamento',
     title: 'Gestor de Relacionamento',
-    desc: 'Este perfil é responsável por monitorar a experiência dos pacientes, promovendo ações de engajamento e fidelização. Possui acesso a ferramentas de comunicação e indicadores de satisfação.',
+    desc: 'Monitorar a experiência dos pacientes e promover ações de engajamento. Acesso a ferramentas de comunicação e indicadores.',
   },
   {
     id: 'Profissional',
     title: 'Profissional',
-    desc: 'Este perfil é voltado para os responsáveis pelos atendimentos clínicos, elaboração de diagnósticos e acompanhamento da evolução dos pacientes. Possui acesso a prontuários e agenda.',
+    desc: 'Responsáveis pelos atendimentos clínicos, elaboração de diagnósticos e acompanhamento. Possui acesso a prontuários e agenda.',
   },
   {
     id: 'Recepcionista',
     title: 'Recepcionista',
-    desc: 'Este perfil é responsável por recepcionar pacientes, organizar agendas e realizar confirmações de consultas. Possui acesso às funcionalidades administrativas básicas.',
+    desc: 'Recepcionar pacientes, organizar agendas e realizar confirmações de consultas. Acesso às funcionalidades administrativas básicas.',
   },
 ]
 
-const formSchema = z.object({
-  name: z.string().min(1, 'Obrigatório'),
-  username: z.string().optional(),
-  email: z.string().email('Inválido').or(z.literal('')),
-  phone: z.string().optional(),
-  birthDate: z.string().optional(),
-  rg: z.string().optional(),
-  cpf: z.string().optional(),
-  cep: z.string().optional(),
-  address: z.string().optional(),
-  addressNumber: z.string().optional(),
-  addressComplement: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  accessSchedule: z.boolean().default(false),
-  systemProfiles: z.array(z.string()).default([]),
-  permissions: z.record(z.array(z.string())).optional(),
-})
+const formSchema = z
+  .object({
+    name: z.string().min(1, 'Obrigatório'),
+    username: z.string().optional(),
+    email: z.string().email('Inválido').or(z.literal('')),
+    phone: z.string().optional(),
+    birthDate: z.string().optional(),
+    rg: z.string().optional(),
+    cpf: z.string().optional(),
+    cep: z.string().optional(),
+    address: z.string().optional(),
+    addressNumber: z.string().optional(),
+    addressComplement: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    accessSchedule: z.boolean().default(false),
+    systemProfiles: z.array(z.string()).default([]),
+    permissions: z.record(z.array(z.string())).optional(),
+    newPassword: z.string().optional(),
+    confirmPassword: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.newPassword || data.confirmPassword) {
+        return data.newPassword === data.confirmPassword
+      }
+      return true
+    },
+    {
+      message: 'As senhas não conferem',
+      path: ['confirmPassword'],
+    },
+  )
 
 type FormValues = z.infer<typeof formSchema>
 
@@ -139,15 +154,21 @@ export function EditEmployeeDialog({
   employee,
   open,
   onOpenChange,
+  defaultTab = 'dados',
 }: {
   employee: Employee | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  defaultTab?: string
 }) {
-  const { updateEmployee, can, isAdmin } = useAppStore()
+  const { updateEmployee, updateEmployeePassword, can, isAdmin } = useAppStore()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditingData, setIsEditingData] = useState(false)
+  const [activeTab, setActiveTab] = useState(defaultTab)
+
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const canManagePerms = isAdmin || can('colaboradores', 'gerir_permissoes')
 
@@ -170,6 +191,8 @@ export function EditEmployeeDialog({
       accessSchedule: false,
       systemProfiles: [],
       permissions: {},
+      newPassword: '',
+      confirmPassword: '',
     },
   })
 
@@ -192,29 +215,66 @@ export function EditEmployeeDialog({
         accessSchedule: employee.accessSchedule || false,
         systemProfiles: employee.systemProfiles || [],
         permissions: employee.permissions || {},
+        newPassword: '',
+        confirmPassword: '',
       })
       setIsEditingData(false)
+      setActiveTab(defaultTab)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
     } else {
       setIsEditingData(true)
     }
-  }, [open, employee, form])
+  }, [open, employee, form, defaultTab])
 
   const onSubmit = async (v: FormValues) => {
     if (!employee) return
     setIsLoading(true)
     try {
       const res = await updateEmployee(employee.id, v)
-      if (res.success) {
+      let passRes = { success: true, error: null }
+
+      if (v.newPassword && employee.user_id) {
+        passRes = await updateEmployeePassword(employee.user_id, v.newPassword)
+      } else if (v.newPassword && !employee.user_id) {
+        toast({
+          title: 'Aviso',
+          description: 'Usuário não possui conta de acesso vinculada. A senha não foi alterada.',
+          variant: 'destructive',
+        })
+      }
+
+      if (res.success && passRes.success) {
         toast({ title: 'Sucesso', description: 'Dados atualizados com sucesso.' })
         onOpenChange(false)
       } else {
-        toast({ title: 'Erro', description: 'Erro ao atualizar dados.', variant: 'destructive' })
+        toast({
+          title: 'Erro',
+          description: passRes.error?.message || 'Erro ao atualizar dados.',
+          variant: 'destructive',
+        })
       }
     } catch (error) {
       toast({ title: 'Erro', description: 'Ocorreu um erro inesperado.', variant: 'destructive' })
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSelectAllProfiles = () => {
+    form.setValue(
+      'systemProfiles',
+      PROFILES_DEF.map((p) => p.id),
+      { shouldDirty: true },
+    )
+  }
+
+  const handleSelectAllPermissions = (module: string, actions: any[]) => {
+    form.setValue(
+      `permissions.${module}`,
+      actions.map((a) => a.id),
+      { shouldDirty: true },
+    )
   }
 
   const SectionTitle = ({ title, icon: Icon }: { title: string; icon?: any }) => (
@@ -266,35 +326,49 @@ export function EditEmployeeDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col flex-1 overflow-hidden"
           >
-            <Tabs defaultValue="dados" className="flex-1 flex flex-col min-h-0">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="flex-1 flex flex-col min-h-0"
+            >
               <div className="px-8 bg-white border-b pt-2 shrink-0">
-                <TabsList className="bg-transparent h-auto p-0 flex gap-6">
+                <TabsList className="bg-transparent h-auto p-0 flex gap-6 overflow-x-auto w-full justify-start">
                   <TabsTrigger
                     value="dados"
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
                   >
                     Dados Pessoais
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="perfil"
-                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
-                  >
-                    Perfil de Usuário
-                  </TabsTrigger>
+                  {canManagePerms && (
+                    <TabsTrigger
+                      value="seguranca"
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
+                    >
+                      Segurança e Acesso
+                    </TabsTrigger>
+                  )}
+                  {canManagePerms && (
+                    <TabsTrigger
+                      value="perfil"
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
+                    >
+                      Perfil de Usuário
+                    </TabsTrigger>
+                  )}
                   {canManagePerms && (
                     <TabsTrigger
                       value="permissoes"
                       className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
                     >
-                      Configurações de permissão
+                      Config. de permissão
                     </TabsTrigger>
                   )}
                 </TabsList>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-8">
-                <TabsContent value="dados" className="m-0 space-y-0 relative">
-                  <div className="absolute right-0 top-0">
+              <div className="flex-1 overflow-y-auto p-8 relative">
+                {activeTab === 'dados' && (
+                  <div className="absolute right-8 top-8 z-10">
                     <Button
                       type="button"
                       variant="outline"
@@ -304,34 +378,19 @@ export function EditEmployeeDialog({
                       {isEditingData ? 'Bloquear Edição' : 'Editar'}
                     </Button>
                   </div>
+                )}
 
+                <TabsContent value="dados" className="m-0 space-y-0">
                   <div className="space-y-8 max-w-4xl">
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
                       <SectionTitle title="Informações Básicas" icon={User} />
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField
                           control={form.control}
                           name="name"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Nome Completo *</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  disabled={!isEditingData}
-                                  className="bg-background"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="username"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Usuário *</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
@@ -570,88 +629,191 @@ export function EditEmployeeDialog({
                         </div>
                       </div>
                     </div>
+                  </div>
+                </TabsContent>
+
+                {canManagePerms && (
+                  <TabsContent value="seguranca" className="m-0 space-y-8 max-w-4xl">
+                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                      <SectionTitle title="Credenciais de Acesso" icon={Key} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem className="md:col-span-2">
+                              <FormLabel>Username de Acesso</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  className="bg-background"
+                                  placeholder="Ex: joao.silva"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nova Senha</FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    {...field}
+                                    className="bg-background pr-10"
+                                    placeholder="••••••••"
+                                  />
+                                </FormControl>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowNewPassword(!showNewPassword)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                  {showNewPassword ? (
+                                    <EyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <Eye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Confirmar Nova Senha</FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    {...field}
+                                    className="bg-background pr-10"
+                                    placeholder="••••••••"
+                                  />
+                                </FormControl>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                  {showConfirmPassword ? (
+                                    <EyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <Eye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-4">
+                        <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
+                        As alterações de senha refletirão no próximo login do colaborador.
+                      </p>
+                    </div>
 
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Controle de Horário de Acesso no Sistema" icon={User} />
+                      <SectionTitle title="Controle de Horário de Acesso" icon={Key} />
                       <FormField
                         control={form.control}
                         name="accessSchedule"
                         render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/10">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base">
-                                Definir horário de acesso ao sistema
+                              <FormLabel className="text-base font-semibold">
+                                Restringir acesso ao sistema fora do expediente
                               </FormLabel>
+                              <p className="text-sm text-muted-foreground">
+                                Quando ativado, o usuário não conseguirá logar na plataforma fora do
+                                horário de trabalho configurado.
+                              </p>
                             </div>
                             <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                disabled={!isEditingData}
-                              />
+                              <Switch checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
                           </FormItem>
                         )}
                       />
                     </div>
-                  </div>
-                </TabsContent>
+                  </TabsContent>
+                )}
 
-                <TabsContent value="perfil" className="m-0">
-                  <div className="mb-6">
-                    <h3 className="text-lg font-bold">Perfil de Usuário</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Selecione o perfil que melhor se enquadra às responsabilidades para este novo
-                      usuário:
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {PROFILES_DEF.map((profile) => (
-                      <Card
-                        key={profile.id}
-                        className={`cursor-pointer transition-colors ${form.watch('systemProfiles').includes(profile.id) ? 'border-[#f26522] bg-[#f26522]/5' : 'hover:border-muted-foreground/30'}`}
-                        onClick={() => {
-                          const current = form.getValues('systemProfiles')
-                          if (current.includes(profile.id)) {
-                            form.setValue(
-                              'systemProfiles',
-                              current.filter((id) => id !== profile.id),
-                              { shouldDirty: true },
-                            )
-                          } else {
-                            form.setValue('systemProfiles', [...current, profile.id], {
-                              shouldDirty: true,
-                            })
-                          }
-                        }}
+                {canManagePerms && (
+                  <TabsContent value="perfil" className="m-0">
+                    <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-lg font-bold">Perfil de Usuário</h3>
+                        <p className="text-muted-foreground text-sm">
+                          Selecione o perfil que melhor se enquadra às responsabilidades para este
+                          usuário.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSelectAllProfiles}
+                        className="shrink-0 border-[#f26522] text-[#f26522] hover:bg-[#f26522]/10"
                       >
-                        <CardContent className="p-6 flex gap-4 relative">
-                          <div className="mt-1">
-                            <User
-                              className={`w-6 h-6 ${form.watch('systemProfiles').includes(profile.id) ? 'text-[#f26522]' : 'text-muted-foreground'}`}
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-bold text-foreground mb-1">{profile.title}</h4>
-                            <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                              {profile.desc}
-                            </p>
-                            <span className="text-xs font-semibold text-[#f26522] flex items-center gap-1 hover:underline">
-                              <User className="w-3 h-3" /> Permissões padrão do sistema
-                            </span>
-                          </div>
-                          <div className="absolute right-6 top-6">
-                            <Checkbox
-                              checked={form.watch('systemProfiles').includes(profile.id)}
-                              onCheckedChange={() => {}}
-                              className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
+                        MARCAR TODAS
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                      {PROFILES_DEF.map((profile) => (
+                        <Card
+                          key={profile.id}
+                          className={`cursor-pointer transition-colors ${form.watch('systemProfiles').includes(profile.id) ? 'border-[#f26522] bg-[#f26522]/5' : 'hover:border-muted-foreground/30'}`}
+                          onClick={() => {
+                            const current = form.getValues('systemProfiles')
+                            if (current.includes(profile.id)) {
+                              form.setValue(
+                                'systemProfiles',
+                                current.filter((id) => id !== profile.id),
+                                { shouldDirty: true },
+                              )
+                            } else {
+                              form.setValue('systemProfiles', [...current, profile.id], {
+                                shouldDirty: true,
+                              })
+                            }
+                          }}
+                        >
+                          <CardContent className="p-6 flex gap-4 relative">
+                            <div className="mt-1">
+                              <User
+                                className={`w-6 h-6 ${form.watch('systemProfiles').includes(profile.id) ? 'text-[#f26522]' : 'text-muted-foreground'}`}
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-bold text-foreground mb-1">{profile.title}</h4>
+                              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                                {profile.desc}
+                              </p>
+                            </div>
+                            <div className="absolute right-6 top-6">
+                              <Checkbox
+                                checked={form.watch('systemProfiles').includes(profile.id)}
+                                onCheckedChange={() => {}}
+                                className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                )}
 
                 {canManagePerms && (
                   <TabsContent value="permissoes" className="m-0 space-y-6">
@@ -661,48 +823,63 @@ export function EditEmployeeDialog({
                         Ajuste os acessos pontuais para cada módulo do sistema.
                       </p>
                     </div>
-                    {PERMISSIONS_DEF.map((mod) => (
-                      <div key={mod.module} className="bg-white border rounded-xl overflow-hidden">
-                        <div className="bg-muted/30 px-6 py-3 border-b font-bold text-foreground">
-                          {mod.label}
-                        </div>
-                        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {mod.actions.map((act) => (
-                            <div key={act.id} className="flex items-center space-x-3">
-                              <Checkbox
-                                id={`perm-${mod.module}-${act.id}`}
-                                checked={
-                                  form.watch(`permissions.${mod.module}`)?.includes(act.id) || false
-                                }
-                                onCheckedChange={(checked) => {
-                                  const current = form.watch(`permissions.${mod.module}`) || []
-                                  if (checked) {
-                                    form.setValue(
-                                      `permissions.${mod.module}`,
-                                      [...current, act.id],
-                                      { shouldDirty: true },
-                                    )
-                                  } else {
-                                    form.setValue(
-                                      `permissions.${mod.module}`,
-                                      current.filter((id) => id !== act.id),
-                                      { shouldDirty: true },
-                                    )
+                    <div className="columns-1 xl:columns-2 gap-6 space-y-6">
+                      {PERMISSIONS_DEF.map((mod) => (
+                        <div
+                          key={mod.module}
+                          className="bg-white border rounded-xl overflow-hidden break-inside-avoid"
+                        >
+                          <div className="bg-muted/30 px-6 py-3 border-b font-bold text-foreground flex justify-between items-center">
+                            <span>{mod.label}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs px-2 hover:text-[#f26522]"
+                              onClick={() => handleSelectAllPermissions(mod.module, mod.actions)}
+                            >
+                              MARCAR TODAS
+                            </Button>
+                          </div>
+                          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {mod.actions.map((act) => (
+                              <div key={act.id} className="flex items-center space-x-3">
+                                <Checkbox
+                                  id={`perm-${mod.module}-${act.id}`}
+                                  checked={
+                                    form.watch(`permissions.${mod.module}`)?.includes(act.id) ||
+                                    false
                                   }
-                                }}
-                                className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
-                              />
-                              <label
-                                htmlFor={`perm-${mod.module}-${act.id}`}
-                                className="text-sm font-medium leading-none cursor-pointer"
-                              >
-                                {act.label}
-                              </label>
-                            </div>
-                          ))}
+                                  onCheckedChange={(checked) => {
+                                    const current = form.watch(`permissions.${mod.module}`) || []
+                                    if (checked) {
+                                      form.setValue(
+                                        `permissions.${mod.module}`,
+                                        [...current, act.id],
+                                        { shouldDirty: true },
+                                      )
+                                    } else {
+                                      form.setValue(
+                                        `permissions.${mod.module}`,
+                                        current.filter((id) => id !== act.id),
+                                        { shouldDirty: true },
+                                      )
+                                    }
+                                  }}
+                                  className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
+                                />
+                                <label
+                                  htmlFor={`perm-${mod.module}-${act.id}`}
+                                  className="text-sm font-medium leading-none cursor-pointer"
+                                >
+                                  {act.label}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </TabsContent>
                 )}
               </div>

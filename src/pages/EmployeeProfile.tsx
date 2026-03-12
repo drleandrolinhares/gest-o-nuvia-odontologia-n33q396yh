@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import useAppStore from '@/stores/main'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -13,16 +14,21 @@ import {
   Trash2,
   CalendarDays,
   UserX,
+  Key,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { EditEmployeeDialog } from '@/components/rh/EditEmployeeDialog'
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { employees, isAdmin, deleteEmployee, updateEmployeeStatus } = useAppStore()
   const employee = employees.find((e) => e.id === id)
+
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [editTab, setEditTab] = useState('dados')
 
   if (!employee) {
     return (
@@ -56,6 +62,11 @@ export default function EmployeeProfile() {
     }
   }
 
+  const handleResetAccess = () => {
+    setEditTab('seguranca')
+    setIsEditOpen(true)
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -81,6 +92,13 @@ export default function EmployeeProfile() {
         </div>
         {isAdmin && (
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <Button
+              variant="outline"
+              className="text-stone-700 border-stone-500 hover:bg-stone-100 hover:text-stone-900"
+              onClick={handleResetAccess}
+            >
+              <Key className="h-4 w-4 mr-2" /> REDEFINIR ACESSO
+            </Button>
             {employee.status !== 'Desligado' && (
               <Button
                 variant="outline"
@@ -177,6 +195,13 @@ export default function EmployeeProfile() {
           </CardContent>
         </Card>
       </div>
+
+      <EditEmployeeDialog
+        employee={employee}
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        defaultTab={editTab}
+      />
     </div>
   )
 }

@@ -149,6 +149,10 @@ interface AppStore {
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
   addEmployee: (e: Omit<Employee, 'id'>) => void
   updateEmployee: (id: string, e: Partial<Employee>) => Promise<{ success: boolean; error?: any }>
+  updateEmployeePassword: (
+    userId: string,
+    newPass: string,
+  ) => Promise<{ success: boolean; error?: any }>
   deleteEmployee: (id: string) => void
   updateEmployeeStatus: (id: string, s: Employee['status']) => void
   updateEmployeeLevel: (id: string, l: Employee['accessLevel']) => void
@@ -678,6 +682,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const updateEmployeePassword = useCallback(
+    async (userId: string, newPass: string) => {
+      try {
+        const { data, error } = await supabase.functions.invoke('update-user-password', {
+          body: { userId, password: newPass },
+        })
+        if (error) throw error
+        logAction(`ALTEROU SENHA DE ACESSO DO USUÁRIO ID: ${userId}`)
+        return { success: true }
+      } catch (error: any) {
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
   const deleteEmployee = useCallback(
     (id: string) => {
       supabase
@@ -972,6 +992,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPurchaseHistory,
       addEmployee,
       updateEmployee,
+      updateEmployeePassword,
       deleteEmployee,
       updateEmployeeStatus,
       updateEmployeeLevel,
@@ -1023,6 +1044,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPurchaseHistory,
       addEmployee,
       updateEmployee,
+      updateEmployeePassword,
       deleteEmployee,
       updateEmployeeStatus,
       updateEmployeeLevel,
