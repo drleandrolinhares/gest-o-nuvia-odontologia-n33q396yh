@@ -59,8 +59,8 @@ export function GeneralSettings() {
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-primary" /> DEPARTAMENTOS
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
+            <Building2 className="h-5 w-5 text-nuvia-gold" /> DEPARTAMENTOS
           </CardTitle>
           <CardDescription>GERENCIE OS DEPARTAMENTOS DO SISTEMA.</CardDescription>
         </CardHeader>
@@ -81,7 +81,7 @@ export function GeneralSettings() {
                 key={dept}
                 className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
               >
-                <span className="font-medium text-sm text-foreground uppercase">{dept}</span>
+                <span className="font-medium text-sm text-nuvia-navy uppercase">{dept}</span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -98,8 +98,8 @@ export function GeneralSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" /> TIPOS DE EMBALAGEM
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
+            <Package className="h-5 w-5 text-nuvia-gold" /> TIPOS DE EMBALAGEM
           </CardTitle>
           <CardDescription>GERENCIE AS OPÇÕES DE EMBALAGEM.</CardDescription>
         </CardHeader>
@@ -120,7 +120,7 @@ export function GeneralSettings() {
                 key={pkg}
                 className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
               >
-                <span className="font-medium text-sm text-foreground uppercase">{pkg}</span>
+                <span className="font-medium text-sm text-nuvia-navy uppercase">{pkg}</span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -137,7 +137,7 @@ export function GeneralSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
             <Stethoscope className="h-5 w-5 text-[#D81B84]" /> ESPECIALIDADES
           </CardTitle>
           <CardDescription>GERENCIE AS ESPECIALIDADES PARA O ESTOQUE.</CardDescription>
@@ -163,7 +163,7 @@ export function GeneralSettings() {
                 key={spec}
                 className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
               >
-                <span className="font-medium text-sm text-foreground uppercase">{spec}</span>
+                <span className="font-medium text-sm text-nuvia-navy uppercase">{spec}</span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -180,7 +180,7 @@ export function GeneralSettings() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
             <CalendarDays className="h-5 w-5 text-indigo-500" /> TIPOS DE COMPROMISSO
           </CardTitle>
           <CardDescription>CATEGORIAS DISPONÍVEIS NA AGENDA.</CardDescription>
@@ -202,7 +202,7 @@ export function GeneralSettings() {
                 key={type}
                 className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
               >
-                <span className="font-medium text-sm text-foreground uppercase">{type}</span>
+                <span className="font-medium text-sm text-nuvia-navy uppercase">{type}</span>
                 <Button
                   variant="ghost"
                   size="icon"

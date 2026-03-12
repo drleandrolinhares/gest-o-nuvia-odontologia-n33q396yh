@@ -155,8 +155,8 @@ type FormValues = z.infer<typeof formSchema>
 
 const SectionTitle = ({ title, icon: Icon }: { title: string; icon?: any }) => (
   <div className="flex items-center gap-2 mb-4 mt-6 first:mt-0">
-    {Icon && <Icon className="w-5 h-5 text-[#f26522]" />}
-    <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+    {Icon && <Icon className="w-5 h-5 text-nuvia-gold" />}
+    <h3 className="text-lg font-semibold text-nuvia-navy">{title}</h3>
   </div>
 )
 
@@ -317,7 +317,7 @@ export function EditEmployeeDialog({
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">{employee.name}</h2>
+              <h2 className="text-2xl font-bold text-nuvia-navy">{employee.name}</h2>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <User className="w-4 h-4" /> {employee.username || 'Não informado'}
@@ -347,14 +347,14 @@ export function EditEmployeeDialog({
                 <TabsList className="bg-transparent h-auto p-0 flex gap-6 overflow-x-auto w-full justify-start">
                   <TabsTrigger
                     value="dados"
-                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
+                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
                   >
                     Dados Pessoais e Contrato
                   </TabsTrigger>
                   {canManagePerms && (
                     <TabsTrigger
                       value="seguranca"
-                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
                     >
                       Segurança e Acesso
                     </TabsTrigger>
@@ -362,7 +362,7 @@ export function EditEmployeeDialog({
                   {canManagePerms && (
                     <TabsTrigger
                       value="perfil"
-                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
                     >
                       Perfil de Usuário
                     </TabsTrigger>
@@ -370,7 +370,7 @@ export function EditEmployeeDialog({
                   {canManagePerms && (
                     <TabsTrigger
                       value="permissoes"
-                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#f26522] data-[state=active]:text-[#f26522] rounded-none px-0 pb-3 text-base font-semibold"
+                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
                     >
                       Config. de permissão
                     </TabsTrigger>
@@ -384,7 +384,7 @@ export function EditEmployeeDialog({
                     <Button
                       type="button"
                       variant="outline"
-                      className="border-[#f26522] text-[#f26522] hover:bg-[#f26522]/10"
+                      className="border-nuvia-gold text-nuvia-gold hover:bg-nuvia-gold/10"
                       onClick={() => setIsEditingData(!isEditingData)}
                     >
                       {isEditingData ? 'Bloquear Edição' : 'Editar'}
@@ -795,7 +795,7 @@ export function EditEmployeeDialog({
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/10">
                             <div className="space-y-0.5">
-                              <FormLabel className="text-base font-semibold">
+                              <FormLabel className="text-base font-semibold text-nuvia-navy">
                                 Restringir acesso ao sistema fora do expediente
                               </FormLabel>
                               <p className="text-sm text-muted-foreground">
@@ -817,7 +817,7 @@ export function EditEmployeeDialog({
                   <TabsContent value="perfil" className="m-0">
                     <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
-                        <h3 className="text-lg font-bold">Perfil de Usuário</h3>
+                        <h3 className="text-lg font-bold text-nuvia-navy">Perfil de Usuário</h3>
                         <p className="text-muted-foreground text-sm">
                           Selecione o perfil que melhor se enquadra às responsabilidades para este
                           usuário.
@@ -828,7 +828,7 @@ export function EditEmployeeDialog({
                         variant="outline"
                         size="sm"
                         onClick={handleSelectAllProfiles}
-                        className="shrink-0 border-[#f26522] text-[#f26522] hover:bg-[#f26522]/10"
+                        className="shrink-0 border-nuvia-gold text-nuvia-gold hover:bg-nuvia-gold/10 font-bold"
                       >
                         MARCAR TODAS
                       </Button>
@@ -839,7 +839,7 @@ export function EditEmployeeDialog({
                         return (
                           <Card
                             key={profile.id}
-                            className={`cursor-pointer transition-colors ${isChecked ? 'border-[#f26522] bg-[#f26522]/5' : 'hover:border-muted-foreground/30'}`}
+                            className={`cursor-pointer transition-colors ${isChecked ? 'border-nuvia-gold bg-nuvia-gold/5' : 'hover:border-muted-foreground/30'}`}
                             onClick={() => {
                               if (isChecked) {
                                 form.setValue(
@@ -861,11 +861,11 @@ export function EditEmployeeDialog({
                             <CardContent className="p-6 flex gap-4 relative">
                               <div className="mt-1">
                                 <User
-                                  className={`w-6 h-6 ${isChecked ? 'text-[#f26522]' : 'text-muted-foreground'}`}
+                                  className={`w-6 h-6 ${isChecked ? 'text-nuvia-gold' : 'text-muted-foreground'}`}
                                 />
                               </div>
                               <div className="flex-1">
-                                <h4 className="font-bold text-foreground mb-1">{profile.title}</h4>
+                                <h4 className="font-bold text-nuvia-navy mb-1">{profile.title}</h4>
                                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                                   {profile.desc}
                                 </p>
@@ -874,7 +874,7 @@ export function EditEmployeeDialog({
                                 <Checkbox
                                   checked={isChecked}
                                   onCheckedChange={() => {}}
-                                  className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
+                                  className="data-[state=checked]:bg-nuvia-gold data-[state=checked]:border-nuvia-gold"
                                 />
                               </div>
                             </CardContent>
@@ -888,7 +888,7 @@ export function EditEmployeeDialog({
                 {canManagePerms && (
                   <TabsContent value="permissoes" className="m-0 space-y-6">
                     <div className="mb-4">
-                      <h3 className="text-lg font-bold">Permissões Específicas</h3>
+                      <h3 className="text-lg font-bold text-nuvia-navy">Permissões Específicas</h3>
                       <p className="text-muted-foreground text-sm">
                         Ajuste os acessos pontuais para cada módulo do sistema.
                       </p>
@@ -899,13 +899,13 @@ export function EditEmployeeDialog({
                           key={mod.module}
                           className="bg-white border rounded-xl overflow-hidden break-inside-avoid"
                         >
-                          <div className="bg-muted/30 px-6 py-3 border-b font-bold text-foreground flex justify-between items-center">
+                          <div className="bg-muted/30 px-6 py-3 border-b font-bold text-nuvia-navy flex justify-between items-center">
                             <span>{mod.label}</span>
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              className="h-7 text-xs px-2 hover:text-[#f26522]"
+                              className="h-7 text-xs px-2 hover:text-nuvia-gold"
                               onClick={() => handleSelectAllPermissions(mod.module, mod.actions)}
                             >
                               MARCAR TODAS
@@ -936,11 +936,11 @@ export function EditEmployeeDialog({
                                         )
                                       }
                                     }}
-                                    className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
+                                    className="data-[state=checked]:bg-nuvia-gold data-[state=checked]:border-nuvia-gold"
                                   />
                                   <label
                                     htmlFor={`perm-${mod.module}-${act.id}`}
-                                    className="text-sm font-medium leading-none cursor-pointer"
+                                    className="text-sm font-medium leading-none cursor-pointer text-nuvia-navy"
                                   >
                                     {act.label}
                                   </label>
@@ -967,7 +967,7 @@ export function EditEmployeeDialog({
                 <Button
                   type="submit"
                   disabled={isLoading || (!isEditingData && !form.formState.isDirty)}
-                  className="bg-[#f26522] hover:bg-[#d9531e] text-white"
+                  className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
                 >
                   {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>

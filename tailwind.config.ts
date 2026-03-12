@@ -40,8 +40,8 @@ export default {
           foreground: 'hsl(var(--card-foreground))',
         },
         nuvia: {
-          gold: '#D4A017',
-          navy: '#1B2631',
+          gold: '#D79A2A',
+          navy: '#15222E',
           bg: '#F8FAFC',
         },
       },
@@ -63,6 +63,9 @@ export default {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+      },
+      fontFamily: {
+        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
       },
     },
   },

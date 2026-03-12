@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
 import { AlertCircle, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -44,59 +43,83 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4 uppercase relative">
-      <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
-        <Link
-          to="/"
-          className={cn(
-            buttonVariants({ variant: 'ghost' }),
-            'uppercase text-xs font-bold tracking-wider text-muted-foreground hover:text-foreground',
-          )}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          ACESSAR PORTAL
-        </Link>
+    <div className="min-h-screen w-full flex bg-background font-sans">
+      {/* Left panel - Branding */}
+      <div className="hidden lg:flex flex-1 flex-col justify-center px-16 lg:px-24 bg-nuvia-navy relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-nuvia-gold to-transparent"></div>
+        <div className="relative z-10 max-w-2xl">
+          <h1 className="text-4xl lg:text-5xl font-serif text-nuvia-gold leading-tight">
+            Porque sorrir, para Nuvia, é mais que mostrar dentes é revelar quem se é, com verdade e
+            elegância.
+          </h1>
+        </div>
       </div>
 
-      <Card className="w-full max-w-md shadow-xl border-primary/10">
-        <CardHeader className="space-y-4 items-center text-center">
-          <img src={logoUrl} alt="Nuvia" className="h-10 mb-2" />
-          <CardTitle className="text-2xl text-nuvia-navy">ÁREA RESTRITA</CardTitle>
-          <CardDescription>ACESSO EXCLUSIVO PARA COLABORADORES DA CLÍNICA.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+      {/* Right panel - Login Form */}
+      <div className="flex-1 flex flex-col justify-center items-center p-8 lg:p-16 relative bg-white">
+        <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
+          <Link
+            to="/"
+            className={cn(
+              buttonVariants({ variant: 'ghost' }),
+              'uppercase text-xs font-bold tracking-wider text-muted-foreground hover:text-nuvia-navy',
+            )}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            ACESSAR PORTAL
+          </Link>
+        </div>
+
+        <div className="w-full max-w-sm space-y-8 animate-fade-in-up">
+          <div className="flex flex-col items-center text-center space-y-6">
+            <img src={logoUrl} alt="Nuvia Odontologia" className="h-16 object-contain" />
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-nuvia-navy uppercase tracking-widest">
+                ÁREA RESTRITA
+              </h2>
+              <p className="text-sm text-muted-foreground uppercase tracking-wide">
+                ACESSO EXCLUSIVO PARA COLABORADORES.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
             {error && (
               <Alert variant="destructive" className="py-2">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs font-bold">{error}</AlertDescription>
+                <AlertDescription className="text-xs font-bold uppercase">{error}</AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
-              <label className="text-sm font-bold text-muted-foreground">E-MAIL</label>
+              <label className="text-xs font-bold text-nuvia-navy uppercase tracking-widest">
+                E-MAIL
+              </label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="SEU@EMAIL.COM"
+                className="uppercase"
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-bold text-muted-foreground">SENHA</label>
+                <label className="text-xs font-bold text-nuvia-navy uppercase tracking-widest">
+                  SENHA
+                </label>
                 <Dialog onOpenChange={(open) => !open && setResetSent(false)}>
                   <DialogTrigger asChild>
                     <button
                       type="button"
-                      className="text-xs font-bold text-primary hover:underline"
+                      className="text-[10px] font-bold text-nuvia-gold hover:underline uppercase tracking-widest"
                     >
                       ESQUECI MINHA SENHA
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="uppercase">
+                  <DialogContent className="uppercase border-nuvia-navy/10">
                     <DialogHeader>
-                      <DialogTitle>RECUPERAR SENHA</DialogTitle>
+                      <DialogTitle className="text-nuvia-navy">RECUPERAR SENHA</DialogTitle>
                       <DialogDescription>
                         INFORME SEU E-MAIL CADASTRADO PARA RECEBER AS INSTRUÇÕES DE REDEFINIÇÃO DE
                         SENHA.
@@ -105,7 +128,7 @@ export default function Login() {
                     {!resetSent ? (
                       <form onSubmit={handleResetPassword} className="space-y-4 pt-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-bold text-muted-foreground">E-MAIL</label>
+                          <label className="text-sm font-bold text-nuvia-navy">E-MAIL</label>
                           <Input
                             type="email"
                             required
@@ -114,7 +137,10 @@ export default function Login() {
                             onChange={(e) => setResetEmail(e.target.value)}
                           />
                         </div>
-                        <Button type="submit" className="w-full font-bold tracking-widest">
+                        <Button
+                          type="submit"
+                          className="w-full font-bold tracking-widest bg-nuvia-navy hover:bg-nuvia-navy/90 text-white"
+                        >
                           ENVIAR INSTRUÇÕES
                         </Button>
                       </form>
@@ -151,7 +177,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-nuvia-navy transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -159,13 +185,13 @@ export default function Login() {
             </div>
             <Button
               type="submit"
-              className="w-full mt-4 bg-primary text-white text-md h-12 tracking-widest font-bold"
+              className="w-full mt-6 bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy text-sm h-12 tracking-widest font-black uppercase transition-colors"
             >
               ENTRAR NO SISTEMA
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

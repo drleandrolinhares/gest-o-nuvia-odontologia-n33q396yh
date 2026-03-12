@@ -81,7 +81,7 @@ export function UsersList() {
         {canAdd && (
           <AddEmployeeDialog
             customTrigger={
-              <Button className="bg-[#f26522] hover:bg-[#d9531e] text-white font-bold tracking-wide w-full sm:w-auto">
+              <Button className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-black tracking-wide w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" /> Novo Usuário
               </Button>
             }
@@ -95,7 +95,7 @@ export function UsersList() {
             key={emp.id}
             className={cn(
               'overflow-hidden hover:shadow-md transition-shadow relative',
-              emp.accessLevel === 'MASTER' ? 'border-amber-400 bg-amber-50/20' : '',
+              emp.accessLevel === 'MASTER' ? 'border-nuvia-gold/50 bg-nuvia-gold/5' : '',
             )}
           >
             <CardContent className="p-0">
@@ -103,7 +103,7 @@ export function UsersList() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${
                         emp.status === 'Ativo'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-red-100 text-red-700'
@@ -112,7 +112,7 @@ export function UsersList() {
                       {emp.status === 'Ativo' ? 'Ativo' : 'Inativo'}
                     </span>
                     {emp.accessLevel === 'MASTER' && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-black bg-amber-100 text-amber-700 border border-amber-200 tracking-wider shadow-sm">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-nuvia-gold text-nuvia-navy border border-nuvia-gold/50 tracking-widest shadow-sm uppercase">
                         MASTER
                       </span>
                     )}
@@ -142,15 +142,15 @@ export function UsersList() {
                     className={cn(
                       'h-16 w-16 border-2',
                       emp.accessLevel === 'MASTER'
-                        ? 'bg-amber-100 border-amber-200'
-                        : 'bg-orange-50 border-orange-100',
+                        ? 'bg-nuvia-navy border-nuvia-gold'
+                        : 'bg-muted border-muted-foreground/20',
                     )}
                   >
                     <AvatarFallback
                       className={
                         emp.accessLevel === 'MASTER'
-                          ? 'bg-amber-200 text-amber-600'
-                          : 'bg-orange-100 text-[#f26522]'
+                          ? 'bg-nuvia-navy text-nuvia-gold'
+                          : 'bg-muted text-muted-foreground'
                       }
                     >
                       <UserIcon className="h-8 w-8" />
@@ -162,7 +162,7 @@ export function UsersList() {
                 <div
                   className={cn(
                     'space-y-2 p-3 rounded-lg text-sm',
-                    emp.accessLevel === 'MASTER' ? 'bg-amber-100/50' : 'bg-muted/30',
+                    emp.accessLevel === 'MASTER' ? 'bg-nuvia-gold/10' : 'bg-muted/30',
                   )}
                 >
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -188,7 +188,7 @@ export function UsersList() {
               <div
                 className={cn(
                   'border-t px-5 py-3 text-xs text-muted-foreground font-medium flex items-center',
-                  emp.accessLevel === 'MASTER' ? 'bg-amber-100/30' : 'bg-muted/10',
+                  emp.accessLevel === 'MASTER' ? 'bg-nuvia-gold/10' : 'bg-muted/10',
                 )}
               >
                 <span className="mr-1">🕒</span> Último acesso em:{' '}
