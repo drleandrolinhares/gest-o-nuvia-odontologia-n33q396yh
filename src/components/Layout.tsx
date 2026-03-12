@@ -1,178 +1,171 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
-import { navItems } from '@/config/navigation'
-import useAppStore from '@/stores/main'
-import { useAuth } from '@/hooks/use-auth'
-import { LogOut, Menu } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
-import { useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
+import { Link, Outlet } from 'react-router-dom'
+import { publicNavigation } from '@/config/navigation'
+import { MapPin, Phone, Mail, Facebook, Instagram, Youtube, MessageCircle } from 'lucide-react'
 
-export default function Layout() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { signOut } = useAuth()
-  const { employees, currentUserId, isAdmin } = useAppStore()
-  const [isOpen, setIsOpen] = useState(false)
-
-  const currentUser = employees.find((e) => e.id === currentUserId)
-
-  const handleLogout = async () => {
-    await signOut()
-    navigate('/login')
-  }
-
-  useEffect(() => {
-    setIsOpen(false)
-  }, [location.pathname])
-
-  const isItemVisible = (item: any) => {
-    if (isAdmin) return true
-    if (item.id === 'dashboard') return true
-    if (!currentUser?.permissions) return false
-
-    const p = currentUser.permissions
-    if (item.id === 'agenda')
-      return Object.keys(p.agenda || {}).length > 0 || currentUser.agendaAccess === 'ADD_EDIT'
-    if (item.id === 'acessos') return Object.keys(p.acessos || {}).length > 0
-    if (item.id === 'rh')
-      return (
-        Object.keys(p.colaboradores || {}).length > 0 || Object.keys(p.documentos || {}).length > 0
-      )
-    if (item.id === 'estoque') return Object.keys(p.estoque || {}).length > 0
-    if (item.id === 'configuracoes')
-      return (
-        Object.keys(p.fornecedores || {}).length > 0 ||
-        Object.keys(p.colaboradores || {}).length > 0
-      )
-    if (item.id === 'auditoria') return false
-
-    return false
-  }
-
-  const visibleNav = navItems.filter(isItemVisible)
-
-  const NavLinks = () => (
-    <div className="flex flex-col gap-2 p-4">
-      {visibleNav.map((item) => {
-        const isActive =
-          location.pathname === item.href ||
-          (item.href !== '/admin' && location.pathname.startsWith(item.href))
-        return (
-          <Link
-            key={item.id}
-            to={item.href}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-bold uppercase',
-              isActive
-                ? 'bg-nuvia-gold text-white shadow-sm'
-                : 'text-white/70 hover:bg-white/10 hover:text-white',
-            )}
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-          </Link>
-        )
-      })}
-    </div>
-  )
-
+export function Layout() {
   return (
-    <div className="min-h-screen bg-muted/20 flex w-full">
-      <aside className="hidden md:flex flex-col w-64 bg-nuvia-navy border-r border-nuvia-navy shrink-0 sticky top-0 h-screen shadow-xl z-20">
-        <div className="h-20 flex items-center justify-center px-6 border-b border-white/10">
-          <img src={logoUrl} alt="Nuvia" className="h-10 object-contain brightness-0 invert" />
-        </div>
-        <div className="flex-1 overflow-y-auto py-2">
-          <NavLinks />
-        </div>
-        <div className="p-4 border-t border-white/10 bg-nuvia-navy mt-auto">
-          <div className="mb-4 px-2">
-            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-0.5">
-              LOGADO COMO
-            </p>
-            <p className="text-sm font-black text-white truncate uppercase leading-tight">
-              {currentUser?.name || 'ADMINISTRADOR'}
-            </p>
-            <p
-              className={cn(
-                'text-xs font-bold uppercase mt-0.5',
-                currentUser?.accessLevel === 'MASTER' ? 'text-nuvia-gold' : 'text-white/70',
-              )}
-            >
-              {currentUser?.accessLevel || 'ESTRATEGICO'}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            className="w-full justify-start border-white/20 text-white/70 hover:bg-white/10 hover:text-white uppercase font-bold"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4 mr-2" /> SAIR
-          </Button>
-        </div>
-      </aside>
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <header className="sticky top-0 z-50 w-full border-b bg-nuvia-blue text-white shadow-sm">
+        <div className="container flex h-24 items-center justify-between px-4 md:px-6">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="flex items-center">
+              <svg
+                viewBox="0 0 100 60"
+                className="h-10 w-16 text-nuvia-gold fill-none stroke-current stroke-[3]"
+              >
+                <path d="M30 40 C 10 40, 10 10, 30 10 C 45 10, 50 25, 50 25 C 50 25, 55 10, 70 10 C 90 10, 90 40, 70 40 C 55 40, 50 25, 50 25 C 50 25, 45 40, 30 40 Z" />
+              </svg>
+              <div className="flex flex-col ml-2">
+                <span className="text-xl font-serif font-bold tracking-widest text-nuvia-gold">
+                  NUVIA
+                </span>
+                <span className="text-[10px] tracking-widest text-slate-300">ODONTOLOGIA</span>
+              </div>
+            </div>
+          </Link>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden h-16 border-b bg-nuvia-navy flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
-          <img src={logoUrl} alt="Nuvia" className="h-8 object-contain brightness-0 invert" />
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent
-              side="left"
-              className="p-0 flex flex-col w-64 border-r border-nuvia-navy bg-nuvia-navy"
-            >
-              <SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
-              <div className="h-20 flex items-center justify-center px-6 border-b border-white/10">
-                <img
-                  src={logoUrl}
-                  alt="Nuvia"
-                  className="h-10 object-contain brightness-0 invert"
-                />
-              </div>
-              <div className="flex-1 overflow-y-auto py-2">
-                <NavLinks />
-              </div>
-              <div className="p-4 border-t border-white/10 mt-auto">
-                <div className="mb-4 px-2">
-                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-0.5">
-                    LOGADO COMO
-                  </p>
-                  <p className="text-sm font-black text-white truncate uppercase leading-tight">
-                    {currentUser?.name || 'ADMINISTRADOR'}
-                  </p>
-                  <p
-                    className={cn(
-                      'text-xs font-bold uppercase mt-0.5',
-                      currentUser?.accessLevel === 'MASTER' ? 'text-nuvia-gold' : 'text-white/70',
-                    )}
-                  >
-                    {currentUser?.accessLevel || 'ESTRATEGICO'}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start border-white/20 text-white/70 hover:bg-white/10 hover:text-white uppercase font-bold"
-                  onClick={handleLogout}
+          <nav className="hidden md:flex gap-4">
+            {publicNavigation.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className="bg-nuvia-gold/10 border border-nuvia-gold/30 text-nuvia-gold hover:bg-nuvia-gold hover:text-nuvia-blue px-5 py-2 rounded-sm font-medium transition-all duration-300 text-sm tracking-wide"
+              >
+                {item.name}
+              </a>
+            ))}
+          </nav>
+
+          <nav className="flex md:hidden overflow-x-auto gap-2 pb-2 -mb-2 no-scrollbar max-w-[50vw]">
+            {publicNavigation.map((item) => (
+              <a
+                key={item.name}
+                href={item.href}
+                className="whitespace-nowrap bg-nuvia-gold/10 border border-nuvia-gold/30 text-nuvia-gold px-3 py-1 rounded-sm text-xs transition-all"
+              >
+                {item.name}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main className="flex-1">
+        <Outlet />
+      </main>
+
+      <a
+        href="https://wa.me/5511952687760"
+        target="_blank"
+        rel="noreferrer"
+        className="fixed bottom-6 right-6 bg-[#25D366] text-white p-4 rounded-full shadow-2xl z-50 hover:bg-[#1EBE5D] transition-transform duration-300 hover:scale-110 flex items-center justify-center"
+        aria-label="Contact on WhatsApp"
+      >
+        <MessageCircle className="h-8 w-8" />
+      </a>
+
+      <footer className="bg-nuvia-dark text-slate-300 pt-16 pb-8 border-t-4 border-nuvia-gold">
+        <div className="container px-4 md:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div className="flex flex-col items-center md:items-start space-y-6">
+              <div className="flex items-center">
+                <svg
+                  viewBox="0 0 100 60"
+                  className="h-16 w-24 text-nuvia-gold fill-none stroke-current stroke-[2]"
                 >
-                  <LogOut className="h-4 w-4 mr-2" /> SAIR
-                </Button>
+                  <path d="M30 40 C 10 40, 10 10, 30 10 C 45 10, 50 25, 50 25 C 50 25, 55 10, 70 10 C 90 10, 90 40, 70 40 C 55 40, 50 25, 50 25 C 50 25, 45 40, 30 40 Z" />
+                </svg>
+                <div className="flex flex-col ml-3">
+                  <span className="text-3xl font-serif font-bold tracking-widest text-nuvia-gold">
+                    NUVIA
+                  </span>
+                  <span className="text-xs tracking-widest text-slate-400">ODONTOLOGIA</span>
+                </div>
               </div>
-            </SheetContent>
-          </Sheet>
-        </header>
+              <div className="text-center md:text-left">
+                <h4 className="text-nuvia-gold font-semibold text-lg mb-1">Responsável Técnico</h4>
+                <p className="text-sm mb-1">Dr. Roberto Souza Filho</p>
+                <div className="inline-block border border-nuvia-gold/40 text-nuvia-gold text-xs px-3 py-1 rounded mt-2">
+                  CRO SP 97.044 - CROSP - CL 11.050
+                </div>
+              </div>
+            </div>
 
-        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto">
-            <Outlet />
+            <div>
+              <h4 className="text-nuvia-gold font-bold text-lg mb-6 border-b-2 border-nuvia-gold inline-block pb-1">
+                MENU
+              </h4>
+              <ul className="space-y-3">
+                {publicNavigation.map((item) => (
+                  <li key={item.name}>
+                    <a
+                      href={item.href}
+                      className="hover:text-nuvia-gold transition-colors flex items-center gap-2 text-sm"
+                    >
+                      <span className="text-nuvia-gold text-xs">❯</span> {item.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-nuvia-gold font-bold text-lg mb-6 border-b-2 border-nuvia-gold inline-block pb-1">
+                CONTATO
+              </h4>
+              <ul className="space-y-4 text-sm">
+                <li className="flex items-start gap-3">
+                  <Phone className="h-5 w-5 text-nuvia-gold shrink-0 mt-0.5" />
+                  <span>(11) 95268-7760</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Mail className="h-5 w-5 text-nuvia-gold shrink-0 mt-0.5" />
+                  <span>atendimento@clinicanuvia.com.br</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-nuvia-gold shrink-0 mt-0.5" />
+                  <span>
+                    Av. Pres. Juscelino Kubitschek, 1545 – Conj
+                    <br />
+                    78 – Vila Nova Conceição
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-nuvia-gold font-bold text-lg mb-6 border-b-2 border-nuvia-gold inline-block pb-1">
+                REDES SOCIAIS
+              </h4>
+              <div className="flex gap-4">
+                <a
+                  href="#"
+                  className="bg-nuvia-gold/10 p-3 rounded-full hover:bg-nuvia-gold hover:text-nuvia-dark transition-colors text-nuvia-gold"
+                >
+                  <Facebook className="h-5 w-5" />
+                </a>
+                <a
+                  href="#"
+                  className="bg-nuvia-gold/10 p-3 rounded-full hover:bg-nuvia-gold hover:text-nuvia-dark transition-colors text-nuvia-gold"
+                >
+                  <Instagram className="h-5 w-5" />
+                </a>
+                <a
+                  href="#"
+                  className="bg-nuvia-gold/10 p-3 rounded-full hover:bg-nuvia-gold hover:text-nuvia-dark transition-colors text-nuvia-gold"
+                >
+                  <Youtube className="h-5 w-5" />
+                </a>
+              </div>
+            </div>
           </div>
-        </main>
-      </div>
+
+          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4">
+            <p>© 2026 Nuvia Odontologia. Todos os direitos reservados.</p>
+            <p>Desenvolvido com sofisticação.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

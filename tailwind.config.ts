@@ -1,9 +1,22 @@
 import type { Config } from 'tailwindcss'
 
-export default {
+const config = {
   darkMode: ['class'],
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  prefix: '',
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       colors: {
         border: 'hsl(var(--border))',
@@ -11,6 +24,11 @@ export default {
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        nuvia: {
+          blue: 'hsl(var(--nuvia-blue))',
+          gold: 'hsl(var(--nuvia-gold))',
+          dark: 'hsl(var(--nuvia-dark))',
+        },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
@@ -39,11 +57,6 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        nuvia: {
-          gold: '#D79A2A',
-          navy: '#15222E',
-          bg: '#F8FAFC',
-        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -64,10 +77,9 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
-      fontFamily: {
-        serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
-      },
     },
   },
-  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
+  plugins: [require('tailwindcss-animate')],
 } satisfies Config
+
+export default config
