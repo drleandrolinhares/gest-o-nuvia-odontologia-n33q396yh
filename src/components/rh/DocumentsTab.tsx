@@ -5,19 +5,8 @@ import { FileText, Download, Trash2, Upload } from 'lucide-react'
 import useAppStore from '@/stores/main'
 
 export function DocumentsTab() {
-  const { documents, addDocument, removeDocument, can, isAdmin } = useAppStore()
+  const { documents, addDocument, removeDocument } = useAppStore()
   const fileRef = useRef<HTMLInputElement>(null)
-
-  const canView = isAdmin || can('documentos', 'visualizar_documentos')
-  const canAdd = isAdmin || can('documentos', 'adicionar_documento')
-
-  if (!canView) {
-    return (
-      <div className="p-10 text-center uppercase text-muted-foreground border border-dashed rounded-lg bg-card/50 mt-6">
-        VOCÊ NÃO TEM PERMISSÃO PARA VISUALIZAR DOCUMENTOS.
-      </div>
-    )
-  }
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -38,20 +27,18 @@ export function DocumentsTab() {
             REPOSITÓRIO DE MANUAIS E PROCEDIMENTOS OPERACIONAIS PADRÃO (POPS) DO RH.
           </CardDescription>
         </div>
-        {canAdd && (
-          <div>
-            <input
-              type="file"
-              ref={fileRef}
-              className="hidden"
-              onChange={handleUpload}
-              accept=".pdf,.doc,.docx"
-            />
-            <Button onClick={() => fileRef.current?.click()} className="uppercase">
-              <Upload className="h-4 w-4 mr-2" /> FAZER UPLOAD
-            </Button>
-          </div>
-        )}
+        <div>
+          <input
+            type="file"
+            ref={fileRef}
+            className="hidden"
+            onChange={handleUpload}
+            accept=".pdf,.doc,.docx"
+          />
+          <Button onClick={() => fileRef.current?.click()} className="uppercase">
+            <Upload className="h-4 w-4 mr-2" /> FAZER UPLOAD
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {sortedDocuments.length === 0 ? (
@@ -80,16 +67,14 @@ export function DocumentsTab() {
                   <Button variant="outline" size="sm" className="hidden sm:flex uppercase">
                     <Download className="h-4 w-4 mr-2" /> BAIXAR
                   </Button>
-                  {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeDocument(doc.id)}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeDocument(doc.id)}
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
