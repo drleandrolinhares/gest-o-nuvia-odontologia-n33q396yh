@@ -1,4 +1,12 @@
-import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useCallback } from 'react'
+import React, {
+  Component,
+  ErrorInfo,
+  ReactNode,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +20,7 @@ import {
   ChevronLeft,
   User,
   Loader2,
+  ShieldCheck,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from '@/components/ui/sheet'
 import {
@@ -100,6 +109,23 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
+// Stable Constants outside of component to prevent recreation on re-renders
+const NAV_ITEMS = [
+  { label: 'HOME', href: '#' },
+  { label: 'ATELIÊ ORAL', href: '#' },
+  { label: 'LENTES DE CONTATO', href: '#' },
+  { label: 'TRATAMENTOS', href: '#' },
+  { label: 'CLIENTES', href: '#' },
+  { label: 'MAIS SOBRE NÓS', href: '#' },
+  { label: 'CONTATO', href: '#' },
+]
+
+const HERO_IMAGES = [
+  'https://img.usecurling.com/p/1600/900?q=smiling%20older%20man',
+  'https://img.usecurling.com/p/1600/900?q=dentist%20office',
+  'https://img.usecurling.com/p/1600/900?q=perfect%20smile',
+]
+
 function PublicHomeContent() {
   const { user, loading: authLoading } = useAuth()
   const { employees } = useAppStore()
@@ -108,72 +134,84 @@ function PublicHomeContent() {
   const [showProfileSelector, setShowProfileSelector] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
-  // Safely find the current employee matching the authenticated user
-  const currentEmployee = employees.find((e) => e.user_id === user?.id)
+  // Guard state to prevent multiple updates/clicks during processing
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  // Safely find and memoize the current employee matching the authenticated user
+  const currentEmployee = useMemo(() => {
+    if (!user?.id || !employees.length) return null
+    return employees.find((e) => e.user_id === user.id) || null
+  }, [employees, user?.id])
+
+  // Derive stable profiles array, protecting against malformed data (null/undefined)
+  const userProfiles = useMemo(() => {
+    if (!currentEmployee || !currentEmployee.systemProfiles) return []
+    return Array.isArray(currentEmployee.systemProfiles) ? currentEmployee.systemProfiles : []
+  }, [currentEmployee])
 
   // Event handler for accessing the system.
-  // We avoid useEffect here to prevent React recursive update loops (Maximum update depth exceeded).
   const handleAccessClick = useCallback(
     (e?: React.MouseEvent) => {
       if (e) e.preventDefault()
-      if (authLoading) return
+      if (authLoading || isProcessing) return
 
       if (!user) {
         navigate('/login')
         return
       }
 
-      // Check if employee has multiple system profiles configured in the DB
-      const profiles = currentEmployee?.systemProfiles || []
-
-      if (profiles.length > 0) {
-        // Only trigger state update to show selector as a direct result of user action
+      if (userProfiles.length > 0) {
         setShowProfileSelector(true)
       } else {
+        setIsProcessing(true)
         // Fallback: Proceed directly to admin if no specific profiles are found
         navigate('/admin')
       }
     },
-    [user, authLoading, currentEmployee, navigate],
+    [user, authLoading, isProcessing, userProfiles.length, navigate],
   )
 
   const handleProfileSelect = useCallback(
     (profile: string) => {
-      // Small timeout ensures the Dialog close animation registers cleanly before navigating
+      // Guard against multiple clicks/updates causing infinite loops
+      if (isProcessing) return
+
+      // Validate employee data sync before processing state updates
+      if (!currentEmployee?.user_id) {
+        console.warn('Sincronização de colaborador pendente. Prosseguindo com seleção local.')
+      }
+
+      setIsProcessing(true)
+
+      // Persist access level and profile context
+      localStorage.setItem('nuvia_active_profile', profile)
+      if (currentEmployee?.accessLevel) {
+        localStorage.setItem('nuvia_access_level', currentEmployee.accessLevel)
+      }
+
+      // Safe state update sequence
+      setShowProfileSelector(false)
+
+      // Allow dialog to unmount cleanly before history push to avoid React warnings
       setTimeout(() => {
-        localStorage.setItem('nuvia_active_profile', profile)
-        setShowProfileSelector(false)
         navigate('/admin')
-      }, 0)
+
+        // Reset processing state cleanly in case user navigates back
+        setTimeout(() => setIsProcessing(false), 300)
+      }, 50)
     },
-    [navigate],
+    [isProcessing, currentEmployee, navigate],
   )
 
-  const navItems = [
-    { label: 'HOME', href: '#' },
-    { label: 'ATELIÊ ORAL', href: '#' },
-    { label: 'LENTES DE CONTATO', href: '#' },
-    { label: 'TRATAMENTOS', href: '#' },
-    { label: 'CLIENTES', href: '#' },
-    { label: 'MAIS SOBRE NÓS', href: '#' },
-    { label: 'CONTATO', href: '#' },
-  ]
-
-  const heroImages = [
-    'https://img.usecurling.com/p/1600/900?q=smiling%20older%20man',
-    'https://img.usecurling.com/p/1600/900?q=dentist%20office',
-    'https://img.usecurling.com/p/1600/900?q=perfect%20smile',
-  ]
-
   const nextImage = useCallback(() => {
-    setActiveImageIndex((prev) => (prev + 1) % heroImages.length)
-  }, [heroImages.length])
+    setActiveImageIndex((prev) => (prev + 1) % HERO_IMAGES.length)
+  }, [])
 
   const prevImage = useCallback(() => {
-    setActiveImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)
-  }, [heroImages.length])
+    setActiveImageIndex((prev) => (prev - 1 + HERO_IMAGES.length) % HERO_IMAGES.length)
+  }, [])
 
-  // Optional: Auto-rotate hero images securely
+  // Auto-rotate hero images with stable dependencies
   useEffect(() => {
     const timer = setInterval(nextImage, 6000)
     return () => clearInterval(timer)
@@ -196,7 +234,7 @@ function PublicHomeContent() {
           {/* Desktop Navigation */}
           <div className="hidden xl:flex flex-1 justify-center">
             <nav className="flex gap-6 lg:gap-8 items-center mt-2">
-              {navItems.map((item) => (
+              {NAV_ITEMS.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
@@ -213,10 +251,10 @@ function PublicHomeContent() {
             <div className="hidden xl:flex items-center mt-2">
               <Button
                 onClick={handleAccessClick}
-                disabled={authLoading}
+                disabled={authLoading || isProcessing}
                 className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all"
               >
-                {authLoading ? (
+                {authLoading || isProcessing ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : user ? (
                   'Acessar Sistema'
@@ -241,7 +279,7 @@ function PublicHomeContent() {
                       <NuviaLogo className="h-16" />
                     </div>
                     <div className="flex-1 overflow-y-auto px-4 space-y-1">
-                      {navItems.map((item) => (
+                      {NAV_ITEMS.map((item) => (
                         <SheetClose asChild key={item.label}>
                           <a
                             href={item.href}
@@ -257,10 +295,10 @@ function PublicHomeContent() {
                       <SheetClose asChild>
                         <Button
                           onClick={handleAccessClick}
-                          disabled={authLoading}
+                          disabled={authLoading || isProcessing}
                           className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
                         >
-                          {authLoading ? (
+                          {authLoading || isProcessing ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : user ? (
                             'Acessar Sistema'
@@ -285,7 +323,7 @@ function PublicHomeContent() {
           <div className="absolute inset-0 z-0">
             <img
               key={activeImageIndex}
-              src={heroImages[activeImageIndex]}
+              src={HERO_IMAGES[activeImageIndex]}
               alt="Cliente sorrindo"
               className="w-full h-full object-cover object-center opacity-70 animate-fade-in"
             />
@@ -422,7 +460,7 @@ function PublicHomeContent() {
             <div>
               <h4 className="text-white font-serif mb-6 text-lg tracking-wider">Links Rápidos</h4>
               <ul className="space-y-3 font-light text-sm">
-                {navItems.slice(0, 4).map((item) => (
+                {NAV_ITEMS.slice(0, 4).map((item) => (
                   <li key={item.label}>
                     <a href={item.href} className="hover:text-[#C69B56] transition-colors">
                       {item.label}
@@ -476,23 +514,30 @@ function PublicHomeContent() {
       </footer>
 
       {/* Profile Selector Dialog (Stable Rendering) */}
-      <Dialog open={showProfileSelector} onOpenChange={setShowProfileSelector}>
-        <DialogContent className="sm:max-w-md uppercase border-slate-200">
+      <Dialog
+        open={showProfileSelector}
+        onOpenChange={(open) => !isProcessing && setShowProfileSelector(open)}
+      >
+        <DialogContent
+          className="sm:max-w-md uppercase border-slate-200"
+          aria-describedby="profile-dialog-desc"
+        >
           <DialogHeader>
             <DialogTitle className="text-xl text-[#0A192F] flex items-center gap-2 font-serif">
-              <User className="h-5 w-5 text-[#C69B56]" /> SELECIONE SEU PERFIL
+              <ShieldCheck className="h-5 w-5 text-[#C69B56]" /> SELECIONE SEU PERFIL
             </DialogTitle>
-            <DialogDescription className="text-slate-500">
+            <DialogDescription id="profile-dialog-desc" className="text-slate-500">
               VOCÊ POSSUI MÚLTIPLOS PERFIS DE ACESSO. SELECIONE COM QUAL DESEJA ENTRAR NO SISTEMA.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            {currentEmployee?.systemProfiles?.map((profile, index) => (
+            {userProfiles.map((profile, index) => (
               <Button
-                key={index}
+                key={`${profile}-${index}`}
                 variant="outline"
-                className="h-auto py-4 px-6 justify-start text-left border-slate-200 hover:bg-[#C69B56]/5 hover:border-[#C69B56] transition-colors shadow-sm"
+                className="h-auto py-4 px-6 justify-start text-left border-slate-200 hover:bg-[#C69B56]/5 hover:border-[#C69B56] transition-colors shadow-sm disabled:opacity-50"
                 onClick={() => handleProfileSelect(profile)}
+                disabled={isProcessing}
               >
                 <div className="flex items-center gap-4 w-full">
                   <div className="h-12 w-12 shrink-0 rounded-full bg-[#0A192F] flex items-center justify-center text-[#C69B56] font-serif font-bold text-xl shadow-inner">
@@ -504,12 +549,16 @@ function PublicHomeContent() {
                       ACESSAR AMBIENTE
                     </div>
                   </div>
-                  <ChevronRight className="ml-auto h-5 w-5 text-slate-300 shrink-0" />
+                  {isProcessing ? (
+                    <Loader2 className="ml-auto h-5 w-5 text-slate-300 shrink-0 animate-spin" />
+                  ) : (
+                    <ChevronRight className="ml-auto h-5 w-5 text-slate-300 shrink-0" />
+                  )}
                 </div>
               </Button>
             ))}
 
-            {(!currentEmployee?.systemProfiles || currentEmployee.systemProfiles.length === 0) && (
+            {userProfiles.length === 0 && (
               <div className="text-center py-8 text-slate-500 text-sm">
                 NENHUM PERFIL ESPECÍFICO ENCONTRADO. ACESSANDO MÓDULO PADRÃO...
               </div>
