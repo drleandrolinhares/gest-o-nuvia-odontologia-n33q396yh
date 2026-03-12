@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +19,7 @@ import logoImg from '@/assets/img_3243-2f960.jpg'
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
@@ -39,7 +41,7 @@ export default function Login() {
         return
       }
 
-      navigate('/agenda')
+      navigate('/admin')
     } finally {
       setIsLoading(false)
     }
@@ -82,7 +84,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white border-slate-300 focus-visible:ring-[#D4AF37]"
+                  className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] normal-case"
                 />
               </div>
               <div className="space-y-2">
@@ -97,14 +99,24 @@ export default function Login() {
                     Esqueceu a senha?
                   </a>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-white border-slate-300 focus-visible:ring-[#D4AF37]"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] pr-10 normal-case"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 focus:outline-none transition-colors"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <Button
                 type="submit"
