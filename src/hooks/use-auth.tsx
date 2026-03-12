@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 interface AuthContextType {
   user: User | null
   session: Session | null
-  signIn: (email: string, pass: string) => Promise<{ error: any }>
+  signIn: (email: string, pass: string, keepSignedIn?: boolean) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
   loading: boolean
 }
@@ -39,9 +39,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, keepSignedIn: boolean = false) => {
+    localStorage.setItem('keepSignedIn', keepSignedIn ? 'true' : 'false')
     return await supabase.auth.signInWithPassword({ email, password })
   }
+
   const signOut = async () => {
     return await supabase.auth.signOut()
   }

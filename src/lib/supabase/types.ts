@@ -643,6 +643,44 @@ export const Constants = {
 // Table: suppliers
 //   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
 
+// --- ROW LEVEL SECURITY POLICIES ---
+// Table: acessos
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: agenda
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: audit_logs
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: documents
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: employees
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: inventory
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: onboarding
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: profiles
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: suppliers
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+
 // --- DATABASE FUNCTIONS ---
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()

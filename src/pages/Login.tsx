@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Card,
   CardContent,
@@ -20,6 +21,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [keepSignedIn, setKeepSignedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { signIn, user } = useAuth()
   const navigate = useNavigate()
@@ -40,7 +42,7 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      const { error } = await signIn(email.trim().toLowerCase(), password)
+      const { error } = await signIn(email.trim().toLowerCase(), password, keepSignedIn)
 
       if (error) {
         toast({
@@ -138,6 +140,23 @@ export default function Login() {
                   </button>
                 </div>
               </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="keepSignedIn"
+                  checked={keepSignedIn}
+                  onCheckedChange={(checked) => setKeepSignedIn(checked as boolean)}
+                  disabled={isLoading}
+                  className="data-[state=checked]:bg-[#0A192F] data-[state=checked]:border-[#0A192F]"
+                />
+                <Label
+                  htmlFor="keepSignedIn"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700 cursor-pointer"
+                >
+                  Permanecer conectado
+                </Label>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-[#0A192F] hover:bg-[#112240] text-white mt-6 h-11 text-base transition-colors"
