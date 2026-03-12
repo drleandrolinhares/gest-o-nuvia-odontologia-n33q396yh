@@ -1,5 +1,6 @@
 {
   "_versions": {
-    "update-user-password": 2
+    "update-user-password": 2,
+    "admin-create-user": 1
   }
 }
