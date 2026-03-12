@@ -464,6 +464,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_auth_user_rooms: { Args: never; Returns: string[] }
       get_or_create_group_room: {
         Args: { creator_id: string; dept_name: string }
         Returns: string
@@ -803,7 +804,7 @@ export const Constants = {
 //   Policy "Users can update their own participant record" (UPDATE, PERMISSIVE) roles={public}
 //     USING: (user_id = auth.uid())
 //   Policy "Users can view participants in their rooms" (SELECT, PERMISSIVE) roles={public}
-//     USING: ((EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = chat_participants.room_id) AND (cp.user_id = auth.uid())))) OR (user_id = auth.uid()))
+//     USING: (room_id IN ( SELECT get_auth_user_rooms() AS get_auth_user_rooms))
 // Table: chat_rooms
 //   Policy "Users can create rooms" (INSERT, PERMISSIVE) roles={public}
 //     WITH CHECK: (auth.role() = 'authenticated'::text)
@@ -835,6 +836,16 @@ export const Constants = {
 //     WITH CHECK: true
 
 // --- DATABASE FUNCTIONS ---
+// FUNCTION get_auth_user_rooms()
+//   CREATE OR REPLACE FUNCTION public.get_auth_user_rooms()
+//    RETURNS SETOF uuid
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//    SET search_path TO ''
+//   AS $function$
+//     SELECT room_id FROM public.chat_participants WHERE user_id = auth.uid();
+//   $function$
+//
 // FUNCTION get_or_create_group_room(text, uuid)
 //   CREATE OR REPLACE FUNCTION public.get_or_create_group_room(dept_name text, creator_id uuid)
 //    RETURNS uuid

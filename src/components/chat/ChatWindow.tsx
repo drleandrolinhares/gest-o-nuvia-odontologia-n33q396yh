@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Send, Users } from 'lucide-react'
+import { Send, Users, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 export function ChatWindow() {
   const [input, setInput] = useState('')
-  const { activeRoomId, rooms, messages, sendMessage, onlineUsers } = useChatStore()
+  const { activeRoomId, rooms, messages, sendMessage, onlineUsers, isLoadingRoom } = useChatStore()
   const { employees, currentUserId } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -24,6 +24,15 @@ export function ChatWindow() {
       scrollRef.current.scrollIntoView({ behavior: 'auto' })
     }
   }, [roomMsgs])
+
+  if (isLoadingRoom) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase">
+        <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+        <h3 className="text-lg font-bold">CARREGANDO CONVERSA...</h3>
+      </div>
+    )
+  }
 
   if (!activeRoomId || !activeRoom) {
     return (
