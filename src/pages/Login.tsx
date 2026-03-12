@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,9 +21,19 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const { toast } = useToast()
+
+  const from = location.state?.from?.pathname || '/admin'
+
+  useEffect(() => {
+    // Prevent infinite loops or showing login to already authenticated users
+    if (user) {
+      navigate(from, { replace: true })
+    }
+  }, [user, navigate, from])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,15 +43,27 @@ export default function Login() {
       const { error } = await signIn(email, password)
 
       if (error) {
+        let errorMessage = error.message || 'Verifique suas credenciais e tente novamente.'
+
+        // Proactive error messaging translation and mapping
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'E-mail ou senha incorretos. Verifique suas credenciais.'
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Por favor, confirme seu e-mail antes de fazer login.'
+        } else if (error.message.includes('user not found')) {
+          errorMessage = 'Usuário não encontrado em nossa base de dados.'
+        }
+
         toast({
           variant: 'destructive',
-          title: 'Erro ao fazer login',
-          description: error.message || 'Verifique suas credenciais e tente novamente.',
+          title: 'Erro de Autenticação',
+          description: errorMessage,
         })
         return
       }
 
-      navigate('/admin')
+      // Successful login automatically navigates to DASH NUVIA or requested route
+      navigate(from, { replace: true })
     } finally {
       setIsLoading(false)
     }
@@ -68,7 +90,7 @@ export default function Login() {
           <CardHeader className="space-y-2 text-center pb-6">
             <CardTitle className="text-2xl font-bold text-[#0A192F]">Acesso ao Sistema</CardTitle>
             <CardDescription className="text-slate-500">
-              Insira suas credenciais para acessar a plataforma de gestão.
+              Insira seu e-mail e senha para acessar a plataforma de gestão Nuvia.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -84,7 +106,8 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] normal-case"
+                  disabled={isLoading}
+                  className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] normal-case disabled:opacity-50"
                 />
               </div>
               <div className="space-y-2">
@@ -106,12 +129,14 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] pr-10 normal-case"
+                    disabled={isLoading}
+                    className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] pr-10 normal-case disabled:opacity-50"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 focus:outline-none transition-colors"
+                    disabled={isLoading}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 focus:outline-none transition-colors disabled:opacity-50"
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -123,7 +148,14 @@ export default function Login() {
                 className="w-full bg-[#0A192F] hover:bg-[#112240] text-white mt-6 h-11 text-base transition-colors"
                 disabled={isLoading}
               >
-                {isLoading ? 'Entrando...' : 'Entrar'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Autenticando...
+                  </>
+                ) : (
+                  'Entrar no Dash Nuvia'
+                )}
               </Button>
             </form>
           </CardContent>
