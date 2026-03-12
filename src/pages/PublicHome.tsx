@@ -1,12 +1,4 @@
-import React, {
-  Component,
-  ErrorInfo,
-  ReactNode,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-} from 'react'
+import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,18 +11,9 @@ import {
   ChevronRight,
   ChevronLeft,
   Loader2,
-  ShieldCheck,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from '@/components/ui/sheet'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
 import { useAuth } from '@/hooks/use-auth'
-import useAppStore from '@/stores/main'
 
 const NuviaLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 350 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -125,77 +108,22 @@ const HERO_IMAGES = [
 
 function PublicHomeContent() {
   const { user, loading: authLoading } = useAuth()
-  const { employees } = useAppStore()
   const navigate = useNavigate()
 
-  const [showProfileSelector, setShowProfileSelector] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
-  // Mutex for navigation lock state
-  const [isNavigating, setIsNavigating] = useState(false)
-
-  // Safely find and memoize the current employee matching the authenticated user
-  const currentEmployee = useMemo(() => {
-    if (!user?.id || !employees || employees.length === 0) return null
-    return employees.find((e) => e.user_id === user.id) || null
-  }, [employees, user?.id])
-
-  // Is the app syncing user profile?
-  const isSyncingData = !!user && !currentEmployee && employees.length === 0
-
-  // Derive stable profiles array, protecting against malformed data
-  const userProfiles = useMemo(() => {
-    if (!currentEmployee || !currentEmployee.systemProfiles) return []
-    return Array.isArray(currentEmployee.systemProfiles) ? currentEmployee.systemProfiles : []
-  }, [currentEmployee])
-
-  // Event handler for accessing the system.
   const handleAccessClick = useCallback(
     (e?: React.MouseEvent) => {
       if (e) e.preventDefault()
-      if (authLoading || isNavigating || isSyncingData) return
+      if (authLoading) return
 
       if (!user) {
-        setIsNavigating(true)
         navigate('/login')
-        return
-      }
-
-      if (userProfiles.length > 0) {
-        setShowProfileSelector(true)
       } else {
-        setIsNavigating(true)
         navigate('/admin')
       }
     },
-    [user, authLoading, isNavigating, isSyncingData, userProfiles.length, navigate],
-  )
-
-  const handleProfileSelect = useCallback(
-    (profile: string) => {
-      // Guard against multiple clicks/updates causing infinite loops
-      if (isNavigating) return
-
-      setIsNavigating(true)
-
-      // Persist access level and profile context
-      localStorage.setItem('nuvia_active_profile', profile)
-      if (currentEmployee?.accessLevel) {
-        localStorage.setItem('nuvia_access_level', currentEmployee.accessLevel)
-      }
-
-      // Safe state update sequence
-      setShowProfileSelector(false)
-
-      // Use a brief timeout to allow Dialog close animation/unmount safely
-      setTimeout(() => {
-        navigate('/admin')
-
-        // Safety reset after navigation
-        setTimeout(() => setIsNavigating(false), 300)
-      }, 50)
-    },
-    [isNavigating, currentEmployee?.accessLevel, navigate],
+    [user, authLoading, navigate],
   )
 
   const nextImage = useCallback(() => {
@@ -206,7 +134,6 @@ function PublicHomeContent() {
     setActiveImageIndex((prev) => (prev - 1 + HERO_IMAGES.length) % HERO_IMAGES.length)
   }, [])
 
-  // Auto-rotate hero images with stable dependencies
   useEffect(() => {
     const timer = setInterval(nextImage, 6000)
     return () => clearInterval(timer)
@@ -243,10 +170,10 @@ function PublicHomeContent() {
             <div className="hidden xl:flex items-center mt-2">
               <Button
                 onClick={handleAccessClick}
-                disabled={authLoading || isNavigating || isSyncingData}
+                disabled={authLoading}
                 className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all"
               >
-                {authLoading || isNavigating || isSyncingData ? (
+                {authLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : user ? (
                   'Acessar Sistema'
@@ -286,10 +213,10 @@ function PublicHomeContent() {
                       <SheetClose asChild>
                         <Button
                           onClick={handleAccessClick}
-                          disabled={authLoading || isNavigating || isSyncingData}
+                          disabled={authLoading}
                           className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
                         >
-                          {authLoading || isNavigating || isSyncingData ? (
+                          {authLoading ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : user ? (
                             'Acessar Sistema'
@@ -494,68 +421,6 @@ function PublicHomeContent() {
           </div>
         </div>
       </footer>
-
-      <Dialog
-        open={showProfileSelector}
-        onOpenChange={(open) => {
-          if (!isNavigating) {
-            setShowProfileSelector(open)
-          }
-        }}
-      >
-        <DialogContent
-          className="sm:max-w-md uppercase border-slate-200"
-          aria-describedby="profile-dialog-desc"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-xl text-[#0A192F] flex items-center gap-2 font-serif">
-              <ShieldCheck className="h-5 w-5 text-[#C69B56]" /> SELECIONE SEU PERFIL
-            </DialogTitle>
-            <DialogDescription id="profile-dialog-desc" className="text-slate-500">
-              VOCÊ POSSUI MÚLTIPLOS PERFIS DE ACESSO. SELECIONE COM QUAL DESEJA ENTRAR NO SISTEMA.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            {isSyncingData ? (
-              <div className="flex flex-col items-center justify-center py-8 text-slate-500">
-                <Loader2 className="h-8 w-8 animate-spin mb-4 text-[#C69B56]" />
-                <p className="text-sm font-semibold tracking-widest">SINCRONIZANDO PERFIS...</p>
-              </div>
-            ) : userProfiles.length > 0 ? (
-              userProfiles.map((profile, index) => (
-                <Button
-                  key={`${profile}-${index}`}
-                  variant="outline"
-                  className="h-auto py-4 px-6 justify-start text-left border-slate-200 hover:bg-[#C69B56]/5 hover:border-[#C69B56] transition-colors shadow-sm disabled:opacity-50"
-                  onClick={() => handleProfileSelect(profile)}
-                  disabled={isNavigating}
-                >
-                  <div className="flex items-center gap-4 w-full">
-                    <div className="h-12 w-12 shrink-0 rounded-full bg-[#0A192F] flex items-center justify-center text-[#C69B56] font-serif font-bold text-xl shadow-inner">
-                      {profile.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-base text-[#0A192F] truncate">{profile}</div>
-                      <div className="text-[10px] text-slate-500 mt-1 font-semibold tracking-widest truncate">
-                        ACESSAR AMBIENTE
-                      </div>
-                    </div>
-                    {isNavigating ? (
-                      <Loader2 className="ml-auto h-5 w-5 text-slate-300 shrink-0 animate-spin" />
-                    ) : (
-                      <ChevronRight className="ml-auto h-5 w-5 text-slate-300 shrink-0" />
-                    )}
-                  </div>
-                </Button>
-              ))
-            ) : (
-              <div className="text-center py-8 text-slate-500 text-sm">
-                NENHUM PERFIL ESPECÍFICO ENCONTRADO. ACESSANDO MÓDULO PADRÃO...
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

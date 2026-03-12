@@ -15,8 +15,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
 import useAppStore, { Employee } from '@/stores/main'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -34,7 +32,6 @@ import {
   ChevronsUpDown,
   Loader2,
 } from 'lucide-react'
-import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -53,91 +50,6 @@ import {
   CommandList,
 } from '@/components/ui/command'
 
-const PERMISSIONS_DEF = [
-  {
-    module: 'agenda',
-    label: 'Agenda',
-    actions: [
-      { id: 'incluir_compromisso', label: 'Incluir novo compromisso' },
-      { id: 'selecionar_filtro', label: 'Selecionar filtro' },
-      { id: 'clicar_calendario', label: 'Clicar no calendário' },
-      { id: 'editar_compromisso', label: 'Editar compromisso' },
-      { id: 'excluir_compromisso', label: 'Excluir compromisso' },
-    ],
-  },
-  {
-    module: 'estoque',
-    label: 'Estoque',
-    actions: [
-      { id: 'adicionar_item', label: 'Adicionar item' },
-      { id: 'editar_quantidade', label: 'Editar quantidade' },
-      { id: 'baixar_material', label: 'Baixar material' },
-      { id: 'visualizar_custos', label: 'Visualizar notas e custos' },
-    ],
-  },
-  {
-    module: 'colaboradores',
-    label: 'Colaboradores',
-    actions: [
-      { id: 'visualizar_lista', label: 'Visualizar lista' },
-      { id: 'editar_cadastro', label: 'Editar cadastro' },
-      { id: 'gerir_permissoes', label: 'Gerir permissões' },
-    ],
-  },
-  {
-    module: 'fornecedores',
-    label: 'Fornecedores',
-    actions: [
-      { id: 'visualizar_fornecedores', label: 'Visualizar fornecedores' },
-      { id: 'criar_fornecedor', label: 'Criar fornecedor' },
-      { id: 'editar_fornecedor', label: 'Editar fornecedor' },
-      { id: 'ver_notas', label: 'Ver notas de negociação' },
-    ],
-  },
-  {
-    module: 'acessos',
-    label: 'Acessos',
-    actions: [
-      { id: 'visualizar_logins', label: 'Visualizar logins/senhas' },
-      { id: 'criar_acesso', label: 'Criar novo acesso' },
-      { id: 'editar_acesso', label: 'Editar acesso' },
-    ],
-  },
-]
-
-const PROFILES_DEF = [
-  {
-    id: 'Administrador',
-    title: 'Administrador',
-    desc: 'Coordenar as operações diárias da clínica, organizando a equipe e configurando o sistema. Gerenciar usuários, agendas, fluxos e relatórios.',
-  },
-  {
-    id: 'Auxiliar Técnico',
-    title: 'Auxiliar Técnico',
-    desc: 'Apoiar os profissionais, organizar materiais, gerenciar o estoque e preparar o ambiente clínico. Acesso restrito a informações de pacientes.',
-  },
-  {
-    id: 'Financeiro',
-    title: 'Financeiro',
-    desc: 'Controlar as receitas, despesas e o faturamento. Acesso exclusivo a relatórios financeiros e monitoramento de cobranças.',
-  },
-  {
-    id: 'Gestor de Relacionamento',
-    title: 'Gestor de Relacionamento',
-    desc: 'Monitorar a experiência dos pacientes e promover actions de engajamento. Acesso a ferramentas de comunicação e indicadores.',
-  },
-  {
-    id: 'Profissional',
-    title: 'Profissional',
-    desc: 'Responsáveis pelos atendimentos clínicos, elaboração de diagnósticos e acompanhamento. Possui acesso a prontuários e agenda.',
-  },
-  {
-    id: 'Recepcionista',
-    title: 'Recepcionista',
-    desc: 'Recepcionar pacientes, organizar agendas e realizar confirmações de consultas. Acesso às funcionalidades administrativas básicas.',
-  },
-]
-
 const formSchema = z
   .object({
     name: z.string().min(1, 'Obrigatório'),
@@ -153,9 +65,6 @@ const formSchema = z
     addressComplement: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
-    accessSchedule: z.boolean().default(false),
-    systemProfiles: z.array(z.string()).default([]),
-    permissions: z.record(z.array(z.string())).optional(),
     newPassword: z.string().optional(),
     confirmPassword: z.string().optional(),
     teamCategory: z.array(z.string()).min(1, 'Obrigatório'),
@@ -194,8 +103,7 @@ export function EditEmployeeDialog({
   onOpenChange: (open: boolean) => void
   defaultTab?: string
 }) {
-  const { updateEmployee, updateEmployeePassword, generateEmployeeAccess, can, isAdmin } =
-    useAppStore()
+  const { updateEmployee, updateEmployeePassword, generateEmployeeAccess } = useAppStore()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditingData, setIsEditingData] = useState(false)
@@ -209,8 +117,6 @@ export function EditEmployeeDialog({
   const [genEmail, setGenEmail] = useState('')
   const [genPass, setGenPass] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-
-  const canManagePerms = isAdmin || can('colaboradores', 'gerir_permissoes')
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -228,18 +134,12 @@ export function EditEmployeeDialog({
       addressComplement: '',
       city: '',
       state: '',
-      accessSchedule: false,
-      systemProfiles: [],
-      permissions: {},
       newPassword: '',
       confirmPassword: '',
       teamCategory: ['COLABORADOR'],
       contractDetails: '',
     },
   })
-
-  const watchedSystemProfiles = form.watch('systemProfiles') || []
-  const watchedPermissions = form.watch('permissions') || {}
 
   useEffect(() => {
     if (open) {
@@ -258,9 +158,6 @@ export function EditEmployeeDialog({
           addressComplement: employee.addressComplement || '',
           city: employee.city || '',
           state: employee.state || '',
-          accessSchedule: employee.accessSchedule || false,
-          systemProfiles: employee.systemProfiles || [],
-          permissions: employee.permissions || {},
           newPassword: '',
           confirmPassword: '',
           teamCategory: employee.teamCategory || ['COLABORADOR'],
@@ -313,22 +210,6 @@ export function EditEmployeeDialog({
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleSelectAllProfiles = () => {
-    form.setValue(
-      'systemProfiles',
-      PROFILES_DEF.map((p) => p.id),
-      { shouldDirty: true },
-    )
-  }
-
-  const handleSelectAllPermissions = (module: string, actions: any[]) => {
-    form.setValue(
-      `permissions.${module}`,
-      actions.map((a) => a.id),
-      { shouldDirty: true },
-    )
   }
 
   const handleGenerateAccess = async () => {
@@ -403,30 +284,12 @@ export function EditEmployeeDialog({
                   >
                     Dados Pessoais e Contrato
                   </TabsTrigger>
-                  {canManagePerms && (
-                    <TabsTrigger
-                      value="seguranca"
-                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
-                    >
-                      Segurança e Acesso
-                    </TabsTrigger>
-                  )}
-                  {canManagePerms && (
-                    <TabsTrigger
-                      value="perfil"
-                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
-                    >
-                      Perfil de Usuário
-                    </TabsTrigger>
-                  )}
-                  {canManagePerms && (
-                    <TabsTrigger
-                      value="permissoes"
-                      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
-                    >
-                      Config. de permissão
-                    </TabsTrigger>
-                  )}
+                  <TabsTrigger
+                    value="seguranca"
+                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
+                  >
+                    Segurança e Acesso
+                  </TabsTrigger>
                 </TabsList>
               </div>
 
@@ -785,331 +648,162 @@ export function EditEmployeeDialog({
                   </div>
                 </TabsContent>
 
-                {canManagePerms && (
-                  <TabsContent value="seguranca" className="m-0 space-y-8 max-w-4xl">
-                    {!employee?.user_id ? (
-                      <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                        <SectionTitle title="Conta de Acesso" icon={Key} />
-                        {!isGenerateAccessMode ? (
-                          <div className="flex flex-col items-center justify-center py-8 text-center">
-                            <Shield className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
-                            <h3 className="text-lg font-bold text-nuvia-navy mb-2">
-                              Conta Não Vinculada
-                            </h3>
-                            <p className="text-muted-foreground text-sm text-center max-w-md mb-6">
-                              Este colaborador não possui acesso ao sistema vinculado.
-                            </p>
+                <TabsContent value="seguranca" className="m-0 space-y-8 max-w-4xl">
+                  {!employee?.user_id ? (
+                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                      <SectionTitle title="Conta de Acesso" icon={Key} />
+                      {!isGenerateAccessMode ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <Shield className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
+                          <h3 className="text-lg font-bold text-nuvia-navy mb-2">
+                            Conta Não Vinculada
+                          </h3>
+                          <p className="text-muted-foreground text-sm text-center max-w-md mb-6">
+                            Este colaborador não possui acesso ao sistema vinculado.
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={() => setIsGenerateAccessMode(true)}
+                            className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
+                          >
+                            <Key className="w-4 h-4 mr-2" /> Gerar Acesso
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 pt-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">E-mail (Login) *</label>
+                            <Input
+                              value={genEmail}
+                              onChange={(e) => setGenEmail(e.target.value)}
+                              disabled={isGenerating}
+                              type="email"
+                              className="lowercase"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Senha Provisória *</label>
+                            <Input
+                              value={genPass}
+                              onChange={(e) => setGenPass(e.target.value)}
+                              disabled={isGenerating}
+                              type="text"
+                              minLength={6}
+                            />
+                          </div>
+                          <div className="flex justify-end gap-3 pt-4">
                             <Button
                               type="button"
-                              onClick={() => setIsGenerateAccessMode(true)}
+                              variant="outline"
+                              onClick={() => setIsGenerateAccessMode(false)}
+                              disabled={isGenerating}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              type="button"
+                              onClick={handleGenerateAccess}
+                              disabled={isGenerating || !genEmail || !genPass}
                               className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
                             >
-                              <Key className="w-4 h-4 mr-2" /> Gerar Acesso
+                              {isGenerating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{' '}
+                              Confirmar Geração de Acesso
                             </Button>
                           </div>
-                        ) : (
-                          <div className="space-y-4 pt-4">
-                            <div className="space-y-2">
-                              <label className="text-sm font-medium">E-mail (Login) *</label>
-                              <Input
-                                value={genEmail}
-                                onChange={(e) => setGenEmail(e.target.value)}
-                                disabled={isGenerating}
-                                type="email"
-                                className="lowercase"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <label className="text-sm font-medium">Senha Provisória *</label>
-                              <Input
-                                value={genPass}
-                                onChange={(e) => setGenPass(e.target.value)}
-                                disabled={isGenerating}
-                                type="text"
-                                minLength={6}
-                              />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setIsGenerateAccessMode(false)}
-                                disabled={isGenerating}
-                              >
-                                Cancelar
-                              </Button>
-                              <Button
-                                type="button"
-                                onClick={handleGenerateAccess}
-                                disabled={isGenerating || !genEmail || !genPass}
-                                className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
-                              >
-                                {isGenerating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{' '}
-                                Confirmar Geração de Acesso
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <>
-                        <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                          <SectionTitle title="Credenciais de Acesso" icon={Key} />
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormField
-                              control={form.control}
-                              name="username"
-                              render={({ field }) => (
-                                <FormItem className="md:col-span-2">
-                                  <FormLabel>Username de Acesso</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      {...field}
-                                      className="bg-background"
-                                      placeholder="Ex: joao.silva"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="newPassword"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Nova Senha</FormLabel>
-                                  <div className="relative">
-                                    <FormControl>
-                                      <Input
-                                        type={showNewPassword ? 'text' : 'password'}
-                                        {...field}
-                                        className="bg-background pr-10"
-                                        placeholder="••••••••"
-                                      />
-                                    </FormControl>
-                                    <button
-                                      type="button"
-                                      onClick={() => setShowNewPassword(!showNewPassword)}
-                                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                    >
-                                      {showNewPassword ? (
-                                        <EyeOff className="w-4 h-4" />
-                                      ) : (
-                                        <Eye className="w-4 h-4" />
-                                      )}
-                                    </button>
-                                  </div>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="confirmPassword"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Confirmar Nova Senha</FormLabel>
-                                  <div className="relative">
-                                    <FormControl>
-                                      <Input
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        {...field}
-                                        className="bg-background pr-10"
-                                        placeholder="••••••••"
-                                      />
-                                    </FormControl>
-                                    <button
-                                      type="button"
-                                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                    >
-                                      {showConfirmPassword ? (
-                                        <EyeOff className="w-4 h-4" />
-                                      ) : (
-                                        <Eye className="w-4 h-4" />
-                                      )}
-                                    </button>
-                                  </div>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-4">
-                            <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
-                            As alterações de senha refletirão no próximo login do colaborador.
-                          </p>
                         </div>
-
-                        <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                          <SectionTitle title="Controle de Horário de Acesso" icon={Key} />
-                          <FormField
-                            control={form.control}
-                            name="accessSchedule"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/10">
-                                <div className="space-y-0.5">
-                                  <FormLabel className="text-base font-semibold text-nuvia-navy">
-                                    Restringir acesso ao sistema fora do expediente
-                                  </FormLabel>
-                                  <p className="text-sm text-muted-foreground">
-                                    Quando ativado, o usuário não conseguirá logar na plataforma
-                                    fora do horário de trabalho configurado.
-                                  </p>
-                                </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                      <SectionTitle title="Credenciais de Acesso" icon={Key} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem className="md:col-span-2">
+                              <FormLabel>Username de Acesso</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  className="bg-background"
+                                  placeholder="Ex: joao.silva"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nova Senha</FormLabel>
+                              <div className="relative">
                                 <FormControl>
-                                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                  <Input
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    {...field}
+                                    className="bg-background pr-10"
+                                    placeholder="••••••••"
+                                  />
                                 </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                      </>
-                    )}
-                  </TabsContent>
-                )}
-
-                {canManagePerms && (
-                  <TabsContent value="perfil" className="m-0">
-                    <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-nuvia-navy">Perfil de Usuário</h3>
-                        <p className="text-muted-foreground text-sm">
-                          Selecione o perfil que melhor se enquadra às responsabilidades para este
-                          usuário.
-                        </p>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowNewPassword(!showNewPassword)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                  {showNewPassword ? (
+                                    <EyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <Eye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Confirmar Nova Senha</FormLabel>
+                              <div className="relative">
+                                <FormControl>
+                                  <Input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    {...field}
+                                    className="bg-background pr-10"
+                                    placeholder="••••••••"
+                                  />
+                                </FormControl>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                  {showConfirmPassword ? (
+                                    <EyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <Eye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSelectAllProfiles}
-                        className="shrink-0 border-nuvia-gold text-nuvia-gold hover:bg-nuvia-gold/10 font-bold"
-                      >
-                        MARCAR TODAS
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                      {PROFILES_DEF.map((profile) => {
-                        const isChecked = watchedSystemProfiles.includes(profile.id)
-                        return (
-                          <Card
-                            key={profile.id}
-                            className={`cursor-pointer transition-colors ${isChecked ? 'border-nuvia-gold bg-nuvia-gold/5' : 'hover:border-muted-foreground/30'}`}
-                            onClick={() => {
-                              if (isChecked) {
-                                form.setValue(
-                                  'systemProfiles',
-                                  watchedSystemProfiles.filter((id) => id !== profile.id),
-                                  { shouldDirty: true },
-                                )
-                              } else {
-                                form.setValue(
-                                  'systemProfiles',
-                                  [...watchedSystemProfiles, profile.id],
-                                  {
-                                    shouldDirty: true,
-                                  },
-                                )
-                              }
-                            }}
-                          >
-                            <CardContent className="p-6 flex gap-4 relative">
-                              <div className="mt-1">
-                                <User
-                                  className={`w-6 h-6 ${isChecked ? 'text-nuvia-gold' : 'text-muted-foreground'}`}
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-bold text-nuvia-navy mb-1">{profile.title}</h4>
-                                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                                  {profile.desc}
-                                </p>
-                              </div>
-                              <div className="absolute right-6 top-6 pointer-events-none">
-                                <Checkbox
-                                  checked={isChecked}
-                                  onCheckedChange={() => {}}
-                                  className="data-[state=checked]:bg-nuvia-gold data-[state=checked]:border-nuvia-gold"
-                                />
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )
-                      })}
-                    </div>
-                  </TabsContent>
-                )}
-
-                {canManagePerms && (
-                  <TabsContent value="permissoes" className="m-0 space-y-6">
-                    <div className="mb-4">
-                      <h3 className="text-lg font-bold text-nuvia-navy">Permissões Específicas</h3>
-                      <p className="text-muted-foreground text-sm">
-                        Ajuste os acessos pontuais para cada módulo do sistema.
+                      <p className="text-sm text-muted-foreground mt-4">
+                        <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
+                        As alterações de senha refletirão no próximo login do colaborador.
                       </p>
                     </div>
-                    <div className="columns-1 xl:columns-2 gap-6 space-y-6">
-                      {PERMISSIONS_DEF.map((mod) => (
-                        <div
-                          key={mod.module}
-                          className="bg-white border rounded-xl overflow-hidden break-inside-avoid"
-                        >
-                          <div className="bg-muted/30 px-6 py-3 border-b font-bold text-nuvia-navy flex justify-between items-center">
-                            <span>{mod.label}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 text-xs px-2 hover:text-nuvia-gold"
-                              onClick={() => handleSelectAllPermissions(mod.module, mod.actions)}
-                            >
-                              MARCAR TODAS
-                            </Button>
-                          </div>
-                          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {mod.actions.map((act) => {
-                              const isChecked =
-                                watchedPermissions[mod.module]?.includes(act.id) || false
-                              return (
-                                <div key={act.id} className="flex items-center space-x-3">
-                                  <Checkbox
-                                    id={`perm-${mod.module}-${act.id}`}
-                                    checked={isChecked}
-                                    onCheckedChange={(checked) => {
-                                      const current = watchedPermissions[mod.module] || []
-                                      if (checked) {
-                                        form.setValue(
-                                          `permissions.${mod.module}`,
-                                          [...current, act.id],
-                                          { shouldDirty: true },
-                                        )
-                                      } else {
-                                        form.setValue(
-                                          `permissions.${mod.module}`,
-                                          current.filter((id: string) => id !== act.id),
-                                          { shouldDirty: true },
-                                        )
-                                      }
-                                    }}
-                                    className="data-[state=checked]:bg-nuvia-gold data-[state=checked]:border-nuvia-gold"
-                                  />
-                                  <label
-                                    htmlFor={`perm-${mod.module}-${act.id}`}
-                                    className="text-sm font-medium leading-none cursor-pointer text-nuvia-navy"
-                                  >
-                                    {act.label}
-                                  </label>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                )}
+                  )}
+                </TabsContent>
               </div>
 
               <div className="p-6 bg-white border-t flex justify-end gap-3 shrink-0">

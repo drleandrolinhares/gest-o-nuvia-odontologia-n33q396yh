@@ -25,7 +25,7 @@ import { EditEmployeeDialog } from '@/components/rh/EditEmployeeDialog'
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { employees, isAdmin, deleteEmployee, updateEmployeeStatus } = useAppStore()
+  const { employees, deleteEmployee, updateEmployeeStatus } = useAppStore()
   const employee = employees.find((e) => e.id === id)
 
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -104,52 +104,50 @@ export default function EmployeeProfile() {
             </p>
           </div>
         </div>
-        {isAdmin && (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            {employee.user_id ? (
-              <Button
-                variant="outline"
-                className="text-stone-700 border-stone-500 hover:bg-stone-100 hover:text-stone-900"
-                onClick={handleResetAccess}
-              >
-                <Key className="h-4 w-4 mr-2" /> REDEFINIR ACESSO
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary/10"
-                onClick={() => {
-                  setEditTab('seguranca')
-                  setIsEditOpen(true)
-                }}
-              >
-                <Key className="h-4 w-4 mr-2" /> GERAR ACESSO
-              </Button>
-            )}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {employee.user_id ? (
+            <Button
+              variant="outline"
+              className="text-stone-700 border-stone-500 hover:bg-stone-100 hover:text-stone-900"
+              onClick={handleResetAccess}
+            >
+              <Key className="h-4 w-4 mr-2" /> REDEFINIR ACESSO
+            </Button>
+          ) : (
             <Button
               variant="outline"
               className="border-primary text-primary hover:bg-primary/10"
               onClick={() => {
-                setEditTab('dados')
+                setEditTab('seguranca')
                 setIsEditOpen(true)
               }}
             >
-              EDITAR DADOS
+              <Key className="h-4 w-4 mr-2" /> GERAR ACESSO
             </Button>
-            {employee.status !== 'Desligado' && (
-              <Button
-                variant="outline"
-                className="text-stone-700 border-stone-500 hover:bg-stone-100 hover:text-stone-900"
-                onClick={handleInactivate}
-              >
-                <UserX className="h-4 w-4 mr-2" /> DESLIGAR
-              </Button>
-            )}
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 className="h-4 w-4 mr-2" /> REMOVER
+          )}
+          <Button
+            variant="outline"
+            className="border-primary text-primary hover:bg-primary/10"
+            onClick={() => {
+              setEditTab('dados')
+              setIsEditOpen(true)
+            }}
+          >
+            EDITAR DADOS
+          </Button>
+          {employee.status !== 'Desligado' && (
+            <Button
+              variant="outline"
+              className="text-stone-700 border-stone-500 hover:bg-stone-100 hover:text-stone-900"
+              onClick={handleInactivate}
+            >
+              <UserX className="h-4 w-4 mr-2" /> DESLIGAR
             </Button>
-          </div>
-        )}
+          )}
+          <Button variant="destructive" onClick={handleDelete}>
+            <Trash2 className="h-4 w-4 mr-2" /> REMOVER
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

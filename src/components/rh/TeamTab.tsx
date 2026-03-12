@@ -12,20 +12,9 @@ import {
 } from '@/components/ui/select'
 
 export function TeamTab() {
-  const { employees, can, isAdmin } = useAppStore()
+  const { employees } = useAppStore()
   const [statusFilter, setStatusFilter] = useState('ATIVOS')
   const [categoryFilter, setCategoryFilter] = useState('TIME TOTAL')
-
-  const canView = isAdmin || can('colaboradores', 'visualizar_lista')
-  const canAdd = isAdmin || can('colaboradores', 'criar_colaborador')
-
-  if (!canView) {
-    return (
-      <div className="p-10 text-center uppercase text-muted-foreground border border-dashed rounded-lg bg-card/50 mt-6">
-        VOCÊ NÃO TEM PERMISSÃO PARA VISUALIZAR A EQUIPE.
-      </div>
-    )
-  }
 
   const filteredEmployees = employees.filter((e) => {
     const matchStatus =
@@ -72,7 +61,7 @@ export function TeamTab() {
               </SelectItem>
             </SelectContent>
           </Select>
-          {canAdd && <AddEmployeeDialog />}
+          <AddEmployeeDialog />
         </div>
       </div>
 

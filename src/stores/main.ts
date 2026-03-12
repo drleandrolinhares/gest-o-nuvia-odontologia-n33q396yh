@@ -11,9 +11,6 @@ import React, {
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 
-export type PermissionsMap = Record<string, string[]>
-
-export type AgendaAccess = 'VIEW_ONLY' | 'ADD_EDIT'
 export type Employee = {
   id: string
   user_id?: string
@@ -29,9 +26,6 @@ export type Employee = {
   vacationDueDate: string
   email: string
   phone: string
-  agendaAccess: AgendaAccess
-  permissions?: PermissionsMap
-  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO' | 'MASTER'
   rg?: string
   cpf?: string
   birthDate?: string
@@ -41,8 +35,6 @@ export type Employee = {
   addressComplement?: string
   city?: string
   state?: string
-  accessSchedule?: boolean
-  systemProfiles?: string[]
   lastAccess?: string
   teamCategory?: string[]
   contractDetails?: string
@@ -120,7 +112,6 @@ export type AuditLog = { id: string; userName: string; action: string; timestamp
 
 interface AppStore {
   isAuthenticated: boolean
-  isAdmin: boolean
   currentUserId: string | null
   departments: string[]
   packageTypes: string[]
@@ -135,7 +126,6 @@ interface AppStore {
   acessos: AccessItem[]
   suppliers: Supplier[]
   auditLogs: AuditLog[]
-  can: (module: string, action: string) => boolean
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -159,9 +149,6 @@ interface AppStore {
   ) => Promise<{ success: boolean; error?: any }>
   deleteEmployee: (id: string) => void
   updateEmployeeStatus: (id: string, s: Employee['status']) => void
-  updateEmployeeLevel: (id: string, l: Employee['accessLevel']) => void
-  updateEmployeeAgendaAccess: (id: string, a: AgendaAccess) => void
-  updateEmployeePermissions: (id: string, p: PermissionsMap) => void
   generateEmployeeAccess: (
     id: string,
     email: string,
@@ -193,47 +180,38 @@ const mockSpecialties = [
 ]
 const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria']
 
-const mEmp = (d: any): Employee => {
-  const p = d.permissions
-  const isObj = p && typeof p === 'object' && !Array.isArray(p)
-  return {
-    id: d.id,
-    user_id: d.user_id,
-    name: d.name,
-    username: d.username,
-    role: d.role,
-    department: d.department,
-    status: d.status,
-    hireDate: d.hire_date,
-    salary: d.salary,
-    vacationDaysTaken: d.vacation_days_taken,
-    vacationDaysTotal: d.vacation_days_total,
-    vacationDueDate: d.vacation_due_date,
-    email: d.email,
-    phone: d.phone,
-    agendaAccess: d.agenda_access,
-    permissions: isObj ? p : {},
-    accessLevel: d.access_level,
-    rg: d.rg,
-    cpf: d.cpf,
-    birthDate: d.birth_date,
-    cep: d.cep,
-    address: d.address,
-    addressNumber: d.address_number,
-    addressComplement: d.address_complement,
-    city: d.city,
-    state: d.state,
-    accessSchedule: d.access_schedule,
-    systemProfiles: d.system_profiles || [],
-    lastAccess: d.last_access,
-    teamCategory: Array.isArray(d.team_category)
-      ? d.team_category
-      : d.team_category
-        ? [d.team_category]
-        : ['COLABORADOR'],
-    contractDetails: d.contract_details || '',
-  }
-}
+const mEmp = (d: any): Employee => ({
+  id: d.id,
+  user_id: d.user_id,
+  name: d.name,
+  username: d.username,
+  role: d.role,
+  department: d.department,
+  status: d.status,
+  hireDate: d.hire_date,
+  salary: d.salary,
+  vacationDaysTaken: d.vacation_days_taken,
+  vacationDaysTotal: d.vacation_days_total,
+  vacationDueDate: d.vacation_due_date,
+  email: d.email,
+  phone: d.phone,
+  rg: d.rg,
+  cpf: d.cpf,
+  birthDate: d.birth_date,
+  cep: d.cep,
+  address: d.address,
+  addressNumber: d.address_number,
+  addressComplement: d.address_complement,
+  city: d.city,
+  state: d.state,
+  lastAccess: d.last_access,
+  teamCategory: Array.isArray(d.team_category)
+    ? d.team_category
+    : d.team_category
+      ? [d.team_category]
+      : ['COLABORADOR'],
+  contractDetails: d.contract_details || '',
+})
 const mInv = (d: any): InventoryItem => ({
   id: d.id,
   name: d.name,
@@ -299,7 +277,6 @@ const StoreContext = createContext<AppStore | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [departments, setDepartments] = useState(mockDepartments)
   const [packageTypes, setPackageTypes] = useState(mockPackageTypes)
@@ -371,7 +348,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } else {
       setIsAuthenticated(false)
       setCurrentUserId(null)
-      setIsAdmin(false)
       setEmployees([])
       setInventory([])
       setAuditLogs([])
@@ -380,7 +356,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const me = employees.find((e) => e.user_id === user?.id)
-    setIsAdmin(me?.accessLevel === 'ESTRATEGICO' || me?.accessLevel === 'MASTER')
     setCurrentUserId(me?.id || null)
   }, [employees, user])
 
@@ -400,14 +375,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...p,
           ])
       })
-  }, [])
-
-  const can = useCallback((module: string, action: string) => {
-    if (!storeRef.current.user) return false
-    const me = storeRef.current.employees.find((e) => e.user_id === storeRef.current.user?.id)
-    if (!me) return false
-    if (me.accessLevel === 'ESTRATEGICO' || me.accessLevel === 'MASTER') return true
-    return me.permissions?.[module]?.includes(action) ?? false
   }, [])
 
   const addDepartment = useCallback(
@@ -658,9 +625,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             vacation_due_date: e.vacationDueDate,
             email: e.email,
             phone: e.phone,
-            agenda_access: e.agendaAccess,
-            permissions: e.permissions || {},
-            access_level: e.accessLevel || 'OPERACIONAL',
             rg: e.rg,
             cpf: e.cpf,
             birth_date: e.birthDate,
@@ -670,8 +634,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             address_complement: e.addressComplement,
             city: e.city,
             state: e.state,
-            access_schedule: e.accessSchedule,
-            system_profiles: e.systemProfiles || [],
             team_category: e.teamCategory || ['COLABORADOR'],
             contract_details: e.contractDetails || '',
             user_id: userId,
@@ -750,8 +712,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.salary !== undefined) payload.salary = e.salary
       if (e.email !== undefined) payload.email = e.email
       if (e.phone !== undefined) payload.phone = e.phone
-      if (e.accessLevel !== undefined) payload.access_level = e.accessLevel
-      if (e.permissions !== undefined) payload.permissions = e.permissions
       if (e.rg !== undefined) payload.rg = e.rg
       if (e.cpf !== undefined) payload.cpf = e.cpf
       if (e.birthDate !== undefined) payload.birth_date = e.birthDate
@@ -761,8 +721,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.addressComplement !== undefined) payload.address_complement = e.addressComplement
       if (e.city !== undefined) payload.city = e.city
       if (e.state !== undefined) payload.state = e.state
-      if (e.accessSchedule !== undefined) payload.access_schedule = e.accessSchedule
-      if (e.systemProfiles !== undefined) payload.system_profiles = e.systemProfiles
       if (e.teamCategory !== undefined) payload.team_category = e.teamCategory
       if (e.contractDetails !== undefined) payload.contract_details = e.contractDetails
 
@@ -816,45 +774,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .then(() => {
           setEmployees((p) => p.map((e) => (e.id === id ? { ...e, status: s as any } : e)))
           logAction(`ALTEROU STATUS COLAB ID: ${id}`)
-        })
-    },
-    [logAction],
-  )
-  const updateEmployeeLevel = useCallback(
-    (id: string, l: string) => {
-      supabase
-        .from('employees')
-        .update({ access_level: l })
-        .eq('id', id)
-        .then(() => {
-          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, accessLevel: l as any } : e)))
-          logAction(`ALTEROU NÍVEL COLAB ID: ${id}`)
-        })
-    },
-    [logAction],
-  )
-  const updateEmployeeAgendaAccess = useCallback(
-    (id: string, a: string) => {
-      supabase
-        .from('employees')
-        .update({ agenda_access: a })
-        .eq('id', id)
-        .then(() => {
-          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, agendaAccess: a as any } : e)))
-          logAction(`ALTEROU AGENDA COLAB ID: ${id}`)
-        })
-    },
-    [logAction],
-  )
-  const updateEmployeePermissions = useCallback(
-    (id: string, perms: PermissionsMap) => {
-      supabase
-        .from('employees')
-        .update({ permissions: perms })
-        .eq('id', id)
-        .then(() => {
-          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, permissions: perms } : e)))
-          logAction(`PERMISSÕES COLAB ID: ${id}`)
         })
     },
     [logAction],
@@ -1057,7 +976,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       isAuthenticated,
-      isAdmin,
       currentUserId,
       departments,
       packageTypes,
@@ -1072,7 +990,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       acessos,
       suppliers,
       auditLogs,
-      can,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1091,9 +1008,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateEmployeePassword,
       deleteEmployee,
       updateEmployeeStatus,
-      updateEmployeeLevel,
-      updateEmployeeAgendaAccess,
-      updateEmployeePermissions,
       generateEmployeeAccess,
       addOnboardingTask,
       removeOnboardingTask,
@@ -1110,7 +1024,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       isAuthenticated,
-      isAdmin,
       currentUserId,
       departments,
       packageTypes,
@@ -1125,7 +1038,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       acessos,
       suppliers,
       auditLogs,
-      can,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1144,9 +1056,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateEmployeePassword,
       deleteEmployee,
       updateEmployeeStatus,
-      updateEmployeeLevel,
-      updateEmployeeAgendaAccess,
-      updateEmployeePermissions,
       generateEmployeeAccess,
       addOnboardingTask,
       removeOnboardingTask,

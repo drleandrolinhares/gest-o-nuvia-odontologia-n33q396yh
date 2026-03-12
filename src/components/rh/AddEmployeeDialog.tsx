@@ -53,7 +53,6 @@ const formSchema = z.object({
   salary: z.string().min(1, 'OBRIGATÓRIO'),
   hireDate: z.string().min(1, 'OBRIGATÓRIO'),
   vacationDueDate: z.string().min(1, 'OBRIGATÓRIO'),
-  accessLevel: z.enum(['OPERACIONAL', 'GERENCIAL', 'ESTRATEGICO', 'MASTER']),
   contractDetails: z.string().optional(),
 })
 type FormValues = z.infer<typeof formSchema>
@@ -82,7 +81,6 @@ export function AddEmployeeDialog({
       password: '',
       phone: '',
       salary: '',
-      accessLevel: 'OPERACIONAL',
       hireDate: new Date().toISOString().split('T')[0],
       vacationDueDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
         .toISOString()
@@ -98,9 +96,6 @@ export function AddEmployeeDialog({
       status: 'Ativo',
       vacationDaysTaken: 0,
       vacationDaysTotal: 30,
-      agendaAccess: 'VIEW_ONLY',
-      permissions: {},
-      systemProfiles: [],
     })
     setIsLoading(false)
 
@@ -330,33 +325,6 @@ export function AddEmployeeDialog({
                         <FormControl>
                           <Input type="text" {...field} disabled={isLoading} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="accessLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>NÍVEL DE ACESSO</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isLoading}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="SELECIONE..." />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="OPERACIONAL">OPERACIONAL</SelectItem>
-                            <SelectItem value="GERENCIAL">GERENCIAL</SelectItem>
-                            <SelectItem value="ESTRATEGICO">ESTRATEGICO</SelectItem>
-                            <SelectItem value="MASTER">MASTER</SelectItem>
-                          </SelectContent>
-                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

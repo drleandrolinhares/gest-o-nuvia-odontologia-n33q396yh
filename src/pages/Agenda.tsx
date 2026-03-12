@@ -39,8 +39,6 @@ export default function Agenda() {
     employees,
     departments,
     agendaTypes,
-    can,
-    isAdmin,
   } = useAppStore()
 
   const [openAdd, setOpenAdd] = useState(false)
@@ -64,12 +62,6 @@ export default function Agenda() {
   const [agendaFilterValue, setAgendaFilterValue] = useState<string>('all')
 
   const currentUser = employees.find((e) => e.id === currentUserId)
-
-  const canAdd =
-    isAdmin || can('agenda', 'incluir_compromisso') || currentUser?.agendaAccess === 'ADD_EDIT'
-  const canFilter = isAdmin || can('agenda', 'selecionar_filtro')
-  const canClickCalendar = isAdmin || can('agenda', 'clicar_calendario')
-  const canDelete = isAdmin || can('agenda', 'excluir_compromisso')
 
   const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
 
@@ -146,11 +138,9 @@ export default function Agenda() {
             GERENCIE COMPROMISSOS, REUNIÕES E LEMBRETES DA CLÍNICA.
           </p>
         </div>
-        {canAdd && (
-          <Button onClick={() => setOpenAdd(true)} className="bg-primary text-primary-foreground">
-            <Plus className="h-4 w-4 mr-2" /> NOVO COMPROMISSO
-          </Button>
-        )}
+        <Button onClick={() => setOpenAdd(true)} className="bg-primary text-primary-foreground">
+          <Plus className="h-4 w-4 mr-2" /> NOVO COMPROMISSO
+        </Button>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6 items-start">
@@ -159,90 +149,86 @@ export default function Agenda() {
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={(day) => canClickCalendar && day && setSelectedDate(day)}
+            onSelect={(day) => day && setSelectedDate(day)}
             locale={ptBR}
             modifiers={{ booked: datesWithEvents }}
             modifiersClassNames={{
               booked: 'font-bold underline decoration-primary decoration-2 underline-offset-4',
             }}
-            className={
-              !canClickCalendar ? 'pointer-events-none opacity-80 w-full mx-auto' : 'w-full mx-auto'
-            }
+            className={'w-full mx-auto'}
           />
         </Card>
 
         {/* List View */}
         <div className="lg:col-span-8 space-y-4 order-1 lg:order-2">
-          {canFilter && (
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-muted/30 p-2 rounded-lg border">
-              <Tabs
-                value={filterView}
-                onValueChange={(v) => setFilterView(v as any)}
-                className="w-full xl:w-auto"
-              >
-                <TabsList className="grid grid-cols-3 w-full xl:w-[250px]">
-                  <TabsTrigger value="DIA">DIA</TabsTrigger>
-                  <TabsTrigger value="SEMANA">SEMANA</TabsTrigger>
-                  <TabsTrigger value="MES">MÊS</TabsTrigger>
-                </TabsList>
-              </Tabs>
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-muted/30 p-2 rounded-lg border">
+            <Tabs
+              value={filterView}
+              onValueChange={(v) => setFilterView(v as any)}
+              className="w-full xl:w-auto"
+            >
+              <TabsList className="grid grid-cols-3 w-full xl:w-[250px]">
+                <TabsTrigger value="DIA">DIA</TabsTrigger>
+                <TabsTrigger value="SEMANA">SEMANA</TabsTrigger>
+                <TabsTrigger value="MES">MÊS</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-              <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto flex-1 justify-end">
-                <Select
-                  value={agendaFilterType}
-                  onValueChange={(v: any) => {
-                    setAgendaFilterType(v)
-                    setAgendaFilterValue('all')
-                  }}
-                >
-                  <SelectTrigger className="w-full sm:w-[220px]">
-                    <SelectValue placeholder="FILTRAR POR" />
+            <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto flex-1 justify-end">
+              <Select
+                value={agendaFilterType}
+                onValueChange={(v: any) => {
+                  setAgendaFilterType(v)
+                  setAgendaFilterValue('all')
+                }}
+              >
+                <SelectTrigger className="w-full sm:w-[220px]">
+                  <SelectValue placeholder="FILTRAR POR" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="TODOS">TODOS OS COMPROMISSOS</SelectItem>
+                  <SelectItem value="COLABORADOR">FILTRAR POR COLABORADOR</SelectItem>
+                  <SelectItem value="SETOR">FILTRAR POR SETOR</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {agendaFilterType === 'COLABORADOR' && (
+                <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="SELECIONE..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="TODOS">TODOS OS COMPROMISSOS</SelectItem>
-                    <SelectItem value="COLABORADOR">FILTRAR POR COLABORADOR</SelectItem>
-                    <SelectItem value="SETOR">FILTRAR POR SETOR</SelectItem>
+                    <SelectItem value="all">TODOS</SelectItem>
+                    {activeEmployees.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+              )}
 
-                {agendaFilterType === 'COLABORADOR' && (
-                  <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="SELECIONE..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">TODOS</SelectItem>
-                      {activeEmployees.map((e) => (
-                        <SelectItem key={e.id} value={e.id}>
-                          {e.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-
-                {agendaFilterType === 'SETOR' && (
-                  <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="SELECIONE..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">TODOS</SelectItem>
-                      {departments.map((d) => (
-                        <SelectItem key={d} value={d}>
-                          {d}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              <div className="text-sm font-bold text-primary px-4 py-2 bg-background border rounded-md whitespace-nowrap hidden xl:block">
-                {selectedDate?.toLocaleDateString('pt-BR', { dateStyle: 'short' })}
-              </div>
+              {agendaFilterType === 'SETOR' && (
+                <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
+                  <SelectTrigger className="w-full sm:w-[200px]">
+                    <SelectValue placeholder="SELECIONE..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">TODOS</SelectItem>
+                    {departments.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-          )}
+
+            <div className="text-sm font-bold text-primary px-4 py-2 bg-background border rounded-md whitespace-nowrap hidden xl:block">
+              {selectedDate?.toLocaleDateString('pt-BR', { dateStyle: 'short' })}
+            </div>
+          </div>
 
           <div className="grid gap-3">
             {filteredAgenda.length === 0 ? (
@@ -291,19 +277,17 @@ export default function Agenda() {
                         </div>
                       </div>
                     </div>
-                    {canDelete && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          removeAgendaItem(item.id)
-                        }}
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeAgendaItem(item.id)
+                      }}
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
                   </CardContent>
                 </Card>
               ))
