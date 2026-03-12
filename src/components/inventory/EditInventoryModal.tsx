@@ -32,13 +32,9 @@ export function EditInventoryModal({
   onOpenChange: (val: boolean) => void
   onNewPurchase: () => void
 }) {
-  const { updateInventoryQuantity, deleteInventoryItem, isAdmin, can, suppliers } = useAppStore()
+  const { updateInventoryQuantity, deleteInventoryItem, suppliers } = useAppStore()
 
   const [manualQty, setManualQty] = useState(item?.quantity || 0)
-
-  const canMove = isAdmin || can('estoque', 'registrar_movimentacao')
-  const canViewCosts = isAdmin || can('estoque', 'visualizar_custos')
-  const canDelete = isAdmin || can('estoque', 'remover_item')
 
   useEffect(() => {
     if (item) setManualQty(item.quantity)
@@ -78,28 +74,24 @@ export function EditInventoryModal({
             </DialogDescription>
           </div>
           <div className="flex items-center gap-2">
-            {canDelete && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleDelete}
-                className="text-destructive hover:bg-destructive/10 -mt-2"
-                title="REMOVER PRODUTO"
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            )}
-            {canMove && (
-              <Button
-                onClick={() => {
-                  onOpenChange(false)
-                  setTimeout(onNewPurchase, 300)
-                }}
-                className="bg-[#D81B84] hover:bg-[#B71770] text-white tracking-widest font-bold h-10"
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" /> NOVA COMPRA
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleDelete}
+              className="text-destructive hover:bg-destructive/10 -mt-2"
+              title="REMOVER PRODUTO"
+            >
+              <Trash2 className="h-5 w-5" />
+            </Button>
+            <Button
+              onClick={() => {
+                onOpenChange(false)
+                setTimeout(onNewPurchase, 300)
+              }}
+              className="bg-[#D81B84] hover:bg-[#B71770] text-white tracking-widest font-bold h-10"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" /> NOVA COMPRA
+            </Button>
           </div>
         </DialogHeader>
 
@@ -111,114 +103,104 @@ export function EditInventoryModal({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isAdmin || can('estoque', 'editar_item') ? (
-                <div className="flex items-end gap-3">
-                  <div className="space-y-1 flex-1">
-                    <label className="text-xs font-semibold text-muted-foreground">
-                      QUANTIDADE EM ESTOQUE
-                    </label>
-                    <Input
-                      type="number"
-                      value={manualQty}
-                      onChange={(e) => setManualQty(Number(e.target.value))}
-                      className="font-bold text-lg h-12 uppercase"
-                    />
-                  </div>
-                  <Button
-                    onClick={handleManualUpdate}
-                    className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold"
-                  >
-                    SALVAR
-                  </Button>
+              <div className="flex items-end gap-3">
+                <div className="space-y-1 flex-1">
+                  <label className="text-xs font-semibold text-muted-foreground">
+                    QUANTIDADE EM ESTOQUE
+                  </label>
+                  <Input
+                    type="number"
+                    value={manualQty}
+                    onChange={(e) => setManualQty(Number(e.target.value))}
+                    className="font-bold text-lg h-12 uppercase"
+                  />
                 </div>
-              ) : (
-                <div className="text-2xl font-black text-blue-600">{item.quantity} UNIDADES</div>
-              )}
+                <Button
+                  onClick={handleManualUpdate}
+                  className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                >
+                  SALVAR
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
-          {canViewCosts && (
-            <Card className="border-l-4 border-l-emerald-500 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <Calculator className="h-4 w-4 text-emerald-500" /> PREÇO MÉDIO DAS ÚLTIMAS 5
-                  COMPRAS
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-black text-emerald-600">
-                  {formatCurrency(avgPrice)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 font-bold">
-                  CUSTO ATUAL REGISTRADO: {formatCurrency(item.packageCost)}
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card className="border-l-4 border-l-emerald-500 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <Calculator className="h-4 w-4 text-emerald-500" /> PREÇO MÉDIO DAS ÚLTIMAS 5
+                COMPRAS
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black text-emerald-600">{formatCurrency(avgPrice)}</div>
+              <p className="text-xs text-muted-foreground mt-1 font-bold">
+                CUSTO ATUAL REGISTRADO: {formatCurrency(item.packageCost)}
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        {canViewCosts && (
-          <div className="mt-6 border-t pt-6 space-y-6">
-            <div>
-              <h4 className="font-bold text-sm mb-3 flex items-center gap-2 text-nuvia-navy">
-                <History className="h-4 w-4" /> HISTÓRICO DE COMPRAS (ÚLTIMAS 5)
-              </h4>
-              <div className="border rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead className="font-bold">DATA</TableHead>
-                      <TableHead className="font-bold">FORNECEDOR</TableHead>
-                      <TableHead className="font-bold">LOTE / VALIDADE</TableHead>
-                      <TableHead className="text-center font-bold">QTD.</TableHead>
-                      <TableHead className="text-right font-bold">VALOR TOTAL</TableHead>
+        <div className="mt-6 border-t pt-6 space-y-6">
+          <div>
+            <h4 className="font-bold text-sm mb-3 flex items-center gap-2 text-nuvia-navy">
+              <History className="h-4 w-4" /> HISTÓRICO DE COMPRAS (ÚLTIMAS 5)
+            </h4>
+            <div className="border rounded-md overflow-hidden">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="font-bold">DATA</TableHead>
+                    <TableHead className="font-bold">FORNECEDOR</TableHead>
+                    <TableHead className="font-bold">LOTE / VALIDADE</TableHead>
+                    <TableHead className="text-center font-bold">QTD.</TableHead>
+                    <TableHead className="text-right font-bold">VALOR TOTAL</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentHistory.map((h) => (
+                    <TableRow key={h.id}>
+                      <TableCell className="font-medium text-xs">
+                        {new Date(h.date).toLocaleDateString('pt-BR')}
+                      </TableCell>
+                      <TableCell className="text-xs font-semibold text-muted-foreground">
+                        {getSupplierName(h.supplierId)}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {h.lot ? (
+                          <span className="font-mono bg-muted px-1 py-0.5 rounded">{h.lot}</span>
+                        ) : (
+                          '-'
+                        )}
+                        {h.expirationDate && (
+                          <div className="text-orange-600 mt-1">
+                            VAL: {new Date(h.expirationDate).toLocaleDateString('pt-BR')}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center font-black text-base">
+                        {h.quantity}
+                      </TableCell>
+                      <TableCell className="text-right font-bold">
+                        {formatCurrency(h.price)}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentHistory.map((h) => (
-                      <TableRow key={h.id}>
-                        <TableCell className="font-medium text-xs">
-                          {new Date(h.date).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className="text-xs font-semibold text-muted-foreground">
-                          {getSupplierName(h.supplierId)}
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          {h.lot ? (
-                            <span className="font-mono bg-muted px-1 py-0.5 rounded">{h.lot}</span>
-                          ) : (
-                            '-'
-                          )}
-                          {h.expirationDate && (
-                            <div className="text-orange-600 mt-1">
-                              VAL: {new Date(h.expirationDate).toLocaleDateString('pt-BR')}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center font-black text-base">
-                          {h.quantity}
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {formatCurrency(h.price)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {recentHistory.length === 0 && (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="text-center py-6 text-muted-foreground font-bold"
-                        >
-                          NENHUM REGISTRO DE COMPRA ENCONTRADO.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                  {recentHistory.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-6 text-muted-foreground font-bold"
+                      >
+                        NENHUM REGISTRO DE COMPRA ENCONTRADO.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   )

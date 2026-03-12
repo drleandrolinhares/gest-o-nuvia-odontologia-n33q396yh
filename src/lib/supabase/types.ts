@@ -11,7 +11,6 @@ export type Database = {
     Tables: {
       acessos: {
         Row: {
-          access_level: string | null
           created_at: string
           id: string
           instructions: string | null
@@ -21,7 +20,6 @@ export type Database = {
           url: string
         }
         Insert: {
-          access_level?: string | null
           created_at?: string
           id?: string
           instructions?: string | null
@@ -31,7 +29,6 @@ export type Database = {
           url?: string
         }
         Update: {
-          access_level?: string | null
           created_at?: string
           id?: string
           instructions?: string | null
@@ -528,7 +525,6 @@ export const Constants = {
 //   login: text (not null)
 //   pass: text (not null)
 //   instructions: text (nullable)
-//   access_level: text (nullable, default: 'OPERACIONAL'::text)
 //   created_at: timestamp with time zone (not null, default: now())
 // Table: agenda
 //   id: uuid (not null, default: gen_random_uuid())
