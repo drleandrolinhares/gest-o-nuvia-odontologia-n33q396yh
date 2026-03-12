@@ -25,10 +25,10 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
 
-    /* Nuvia Brand Colors */
-    --nuvia-blue: 211 50% 15%; /* #13263a */
-    --nuvia-gold: 36 62% 57%; /* #d39e50 */
-    --nuvia-dark: 216 45% 7%; /* #080c13 */
+    /* Nuvia Brand Colors - Updated to match premium identity */
+    --nuvia-blue: 214 42% 15%; /* Navy Blue */
+    --nuvia-gold: 41 69% 51%; /* Mustard Yellow */
+    --nuvia-dark: 215 50% 10%; /* Deep Navy */
   }
 
   .dark {
