@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Layout from '@/components/Layout'
+import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import RH from '@/pages/RH'
 import EmployeeProfile from '@/pages/EmployeeProfile'
