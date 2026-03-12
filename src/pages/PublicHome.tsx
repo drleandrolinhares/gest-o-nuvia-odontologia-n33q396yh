@@ -18,7 +18,6 @@ import {
   Menu,
   ChevronRight,
   ChevronLeft,
-  User,
   Loader2,
   ShieldCheck,
 } from 'lucide-react'
@@ -74,7 +73,6 @@ const NuviaLogo = ({ className }: { className?: string }) => (
   </svg>
 )
 
-// Implementing an Error Boundary to prevent white screens on unexpected crashes
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   constructor(props: { children: ReactNode }) {
     super(props)
@@ -109,7 +107,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
-// Stable Constants outside of component to prevent recreation on re-renders
 const NAV_ITEMS = [
   { label: 'HOME', href: '#' },
   { label: 'ATELIÊ ORAL', href: '#' },
@@ -134,16 +131,19 @@ function PublicHomeContent() {
   const [showProfileSelector, setShowProfileSelector] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
-  // Guard state to prevent multiple updates/clicks during processing
-  const [isProcessing, setIsProcessing] = useState(false)
+  // Mutex for navigation lock state
+  const [isNavigating, setIsNavigating] = useState(false)
 
   // Safely find and memoize the current employee matching the authenticated user
   const currentEmployee = useMemo(() => {
-    if (!user?.id || !employees.length) return null
+    if (!user?.id || !employees || employees.length === 0) return null
     return employees.find((e) => e.user_id === user.id) || null
   }, [employees, user?.id])
 
-  // Derive stable profiles array, protecting against malformed data (null/undefined)
+  // Is the app syncing user profile?
+  const isSyncingData = !!user && !currentEmployee && employees.length === 0
+
+  // Derive stable profiles array, protecting against malformed data
   const userProfiles = useMemo(() => {
     if (!currentEmployee || !currentEmployee.systemProfiles) return []
     return Array.isArray(currentEmployee.systemProfiles) ? currentEmployee.systemProfiles : []
@@ -153,9 +153,10 @@ function PublicHomeContent() {
   const handleAccessClick = useCallback(
     (e?: React.MouseEvent) => {
       if (e) e.preventDefault()
-      if (authLoading || isProcessing) return
+      if (authLoading || isNavigating || isSyncingData) return
 
       if (!user) {
+        setIsNavigating(true)
         navigate('/login')
         return
       }
@@ -163,25 +164,19 @@ function PublicHomeContent() {
       if (userProfiles.length > 0) {
         setShowProfileSelector(true)
       } else {
-        setIsProcessing(true)
-        // Fallback: Proceed directly to admin if no specific profiles are found
+        setIsNavigating(true)
         navigate('/admin')
       }
     },
-    [user, authLoading, isProcessing, userProfiles.length, navigate],
+    [user, authLoading, isNavigating, isSyncingData, userProfiles.length, navigate],
   )
 
   const handleProfileSelect = useCallback(
     (profile: string) => {
       // Guard against multiple clicks/updates causing infinite loops
-      if (isProcessing) return
+      if (isNavigating) return
 
-      // Validate employee data sync before processing state updates
-      if (!currentEmployee?.user_id) {
-        console.warn('Sincronização de colaborador pendente. Prosseguindo com seleção local.')
-      }
-
-      setIsProcessing(true)
+      setIsNavigating(true)
 
       // Persist access level and profile context
       localStorage.setItem('nuvia_active_profile', profile)
@@ -192,15 +187,15 @@ function PublicHomeContent() {
       // Safe state update sequence
       setShowProfileSelector(false)
 
-      // Allow dialog to unmount cleanly before history push to avoid React warnings
+      // Use a brief timeout to allow Dialog close animation/unmount safely
       setTimeout(() => {
         navigate('/admin')
 
-        // Reset processing state cleanly in case user navigates back
-        setTimeout(() => setIsProcessing(false), 300)
+        // Safety reset after navigation
+        setTimeout(() => setIsNavigating(false), 300)
       }, 50)
     },
-    [isProcessing, currentEmployee, navigate],
+    [isNavigating, currentEmployee?.accessLevel, navigate],
   )
 
   const nextImage = useCallback(() => {
@@ -219,7 +214,6 @@ function PublicHomeContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
-      {/* Header */}
       <header className="absolute top-0 left-0 w-full z-50 bg-gradient-to-b from-[#0A192F]/90 to-transparent pb-10">
         <div className="container mx-auto px-4 lg:px-8 h-24 flex items-center justify-between">
           <div className="w-auto lg:w-1/4 flex justify-start">
@@ -231,7 +225,6 @@ function PublicHomeContent() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden xl:flex flex-1 justify-center">
             <nav className="flex gap-6 lg:gap-8 items-center mt-2">
               {NAV_ITEMS.map((item) => (
@@ -247,14 +240,13 @@ function PublicHomeContent() {
           </div>
 
           <div className="w-auto xl:w-1/4 flex justify-end">
-            {/* Desktop CTA */}
             <div className="hidden xl:flex items-center mt-2">
               <Button
                 onClick={handleAccessClick}
-                disabled={authLoading || isProcessing}
+                disabled={authLoading || isNavigating || isSyncingData}
                 className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all"
               >
-                {authLoading || isProcessing ? (
+                {authLoading || isNavigating || isSyncingData ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : user ? (
                   'Acessar Sistema'
@@ -264,7 +256,6 @@ function PublicHomeContent() {
               </Button>
             </div>
 
-            {/* Mobile Navigation Toggle */}
             <div className="xl:hidden flex items-center mt-2">
               <Sheet>
                 <SheetTrigger asChild>
@@ -295,10 +286,10 @@ function PublicHomeContent() {
                       <SheetClose asChild>
                         <Button
                           onClick={handleAccessClick}
-                          disabled={authLoading || isProcessing}
+                          disabled={authLoading || isNavigating || isSyncingData}
                           className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
                         >
-                          {authLoading || isProcessing ? (
+                          {authLoading || isNavigating || isSyncingData ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : user ? (
                             'Acessar Sistema'
@@ -317,9 +308,7 @@ function PublicHomeContent() {
       </header>
 
       <main className="flex-1">
-        {/* Hero Section */}
         <section className="relative w-full pt-40 pb-56 md:pt-48 md:pb-64 flex items-center bg-[#0A192F] min-h-[700px] lg:min-h-[850px] overflow-hidden">
-          {/* Background Image Carousel */}
           <div className="absolute inset-0 z-0">
             <img
               key={activeImageIndex}
@@ -327,11 +316,9 @@ function PublicHomeContent() {
               alt="Cliente sorrindo"
               className="w-full h-full object-cover object-center opacity-70 animate-fade-in"
             />
-            {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#0A192F]/95 via-[#0A192F]/70 to-[#0A192F]/20"></div>
           </div>
 
-          {/* Carousel Arrows */}
           <button
             onClick={prevImage}
             className="hidden md:flex absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/40 hover:bg-black/70 text-white rounded-full items-center justify-center backdrop-blur-sm transition-colors z-20"
@@ -363,14 +350,12 @@ function PublicHomeContent() {
           </div>
         </section>
 
-        {/* Horizontal Infobar */}
         <section
           className="relative z-20 -mt-24 md:-mt-32 px-4 mb-20 animate-fade-in-up"
           style={{ animationDelay: '200ms' }}
         >
           <div className="container mx-auto max-w-6xl">
             <div className="bg-white/95 backdrop-blur-md shadow-2xl flex flex-col md:flex-row items-stretch border border-slate-100/50">
-              {/* Box 1 */}
               <div className="flex-1 p-6 md:p-8 lg:p-10 flex items-start gap-4 md:border-r border-b md:border-b-0 border-slate-200">
                 <div className="shrink-0 mt-1">
                   <div className="w-10 h-10 md:w-12 h-12 rounded-full border border-[#C69B56]/60 flex items-center justify-center bg-white text-[#C69B56]">
@@ -388,7 +373,6 @@ function PublicHomeContent() {
                 </div>
               </div>
 
-              {/* Box 2 */}
               <div className="flex-1 p-6 md:p-8 lg:p-10 flex items-start gap-4 md:border-r border-b md:border-b-0 border-slate-200">
                 <div className="shrink-0 mt-1">
                   <div className="w-10 h-10 md:w-12 h-12 rounded-full border border-[#C69B56]/60 flex items-center justify-center bg-white text-[#C69B56]">
@@ -403,7 +387,6 @@ function PublicHomeContent() {
                 </div>
               </div>
 
-              {/* Box 3 */}
               <div className="flex-1 p-6 md:p-8 lg:p-10 flex items-start gap-4">
                 <div className="shrink-0 mt-1">
                   <div className="w-10 h-10 md:w-12 h-12 rounded-full border border-[#C69B56]/60 flex items-center justify-center bg-white text-[#C69B56]">
@@ -426,7 +409,6 @@ function PublicHomeContent() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-[#0A192F] text-slate-300 py-16 border-t border-slate-800">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -513,10 +495,13 @@ function PublicHomeContent() {
         </div>
       </footer>
 
-      {/* Profile Selector Dialog (Stable Rendering) */}
       <Dialog
         open={showProfileSelector}
-        onOpenChange={(open) => !isProcessing && setShowProfileSelector(open)}
+        onOpenChange={(open) => {
+          if (!isNavigating) {
+            setShowProfileSelector(open)
+          }
+        }}
       >
         <DialogContent
           className="sm:max-w-md uppercase border-slate-200"
@@ -531,34 +516,39 @@ function PublicHomeContent() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-4 max-h-[60vh] overflow-y-auto pr-2">
-            {userProfiles.map((profile, index) => (
-              <Button
-                key={`${profile}-${index}`}
-                variant="outline"
-                className="h-auto py-4 px-6 justify-start text-left border-slate-200 hover:bg-[#C69B56]/5 hover:border-[#C69B56] transition-colors shadow-sm disabled:opacity-50"
-                onClick={() => handleProfileSelect(profile)}
-                disabled={isProcessing}
-              >
-                <div className="flex items-center gap-4 w-full">
-                  <div className="h-12 w-12 shrink-0 rounded-full bg-[#0A192F] flex items-center justify-center text-[#C69B56] font-serif font-bold text-xl shadow-inner">
-                    {profile.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-base text-[#0A192F] truncate">{profile}</div>
-                    <div className="text-[10px] text-slate-500 mt-1 font-semibold tracking-widest truncate">
-                      ACESSAR AMBIENTE
+            {isSyncingData ? (
+              <div className="flex flex-col items-center justify-center py-8 text-slate-500">
+                <Loader2 className="h-8 w-8 animate-spin mb-4 text-[#C69B56]" />
+                <p className="text-sm font-semibold tracking-widest">SINCRONIZANDO PERFIS...</p>
+              </div>
+            ) : userProfiles.length > 0 ? (
+              userProfiles.map((profile, index) => (
+                <Button
+                  key={`${profile}-${index}`}
+                  variant="outline"
+                  className="h-auto py-4 px-6 justify-start text-left border-slate-200 hover:bg-[#C69B56]/5 hover:border-[#C69B56] transition-colors shadow-sm disabled:opacity-50"
+                  onClick={() => handleProfileSelect(profile)}
+                  disabled={isNavigating}
+                >
+                  <div className="flex items-center gap-4 w-full">
+                    <div className="h-12 w-12 shrink-0 rounded-full bg-[#0A192F] flex items-center justify-center text-[#C69B56] font-serif font-bold text-xl shadow-inner">
+                      {profile.charAt(0).toUpperCase()}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-base text-[#0A192F] truncate">{profile}</div>
+                      <div className="text-[10px] text-slate-500 mt-1 font-semibold tracking-widest truncate">
+                        ACESSAR AMBIENTE
+                      </div>
+                    </div>
+                    {isNavigating ? (
+                      <Loader2 className="ml-auto h-5 w-5 text-slate-300 shrink-0 animate-spin" />
+                    ) : (
+                      <ChevronRight className="ml-auto h-5 w-5 text-slate-300 shrink-0" />
+                    )}
                   </div>
-                  {isProcessing ? (
-                    <Loader2 className="ml-auto h-5 w-5 text-slate-300 shrink-0 animate-spin" />
-                  ) : (
-                    <ChevronRight className="ml-auto h-5 w-5 text-slate-300 shrink-0" />
-                  )}
-                </div>
-              </Button>
-            ))}
-
-            {userProfiles.length === 0 && (
+                </Button>
+              ))
+            ) : (
               <div className="text-center py-8 text-slate-500 text-sm">
                 NENHUM PERFIL ESPECÍFICO ENCONTRADO. ACESSANDO MÓDULO PADRÃO...
               </div>
