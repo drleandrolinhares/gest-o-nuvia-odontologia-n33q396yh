@@ -619,17 +619,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
       let userId = undefined
 
       if (e.password && e.email) {
-        const { data, error } = await supabase.functions.invoke('admin-create-user', {
-          body: { email: e.email, password: e.password, name: e.name },
+        const formattedEmail = e.email.trim().toLowerCase()
+        const res = await supabase.functions.invoke('admin-create-user', {
+          body: { email: formattedEmail, password: e.password, name: e.name },
         })
 
-        if (error || !data?.id) {
+        if (res.error) {
+          return { success: false, error: res.error }
+        }
+        if (res.data?.error) {
+          return { success: false, error: new Error(res.data.error) }
+        }
+        if (!res.data?.id) {
           return {
             success: false,
-            error: error || new Error('Erro ao criar usuário na autenticação'),
+            error: new Error(
+              'Erro ao criar usuário na autenticação. Verifique se o e-mail já está em uso.',
+            ),
           }
         }
-        userId = data.id
+        userId = res.data.id
+        e.email = formattedEmail
       }
 
       const { data: empData, error: empError } = await supabase
@@ -687,29 +697,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const generateEmployeeAccess = useCallback(
     async (id: string, email: string, password: string, name: string) => {
-      const { data, error } = await supabase.functions.invoke('admin-create-user', {
-        body: { email, password, name },
+      const formattedEmail = email.trim().toLowerCase()
+      const res = await supabase.functions.invoke('admin-create-user', {
+        body: { email: formattedEmail, password, name },
       })
 
-      if (error || !data?.id) {
+      if (res.error) {
+        return { success: false, error: res.error }
+      }
+      if (res.data?.error) {
+        return { success: false, error: new Error(res.data.error) }
+      }
+      if (!res.data?.id) {
         return {
           success: false,
-          error: error || new Error('Erro ao criar usuário na autenticação'),
+          error: new Error(
+            'Erro ao criar usuário na autenticação. Verifique se o e-mail já existe.',
+          ),
         }
       }
 
-      const userId = data.id
+      const userId = res.data.id
 
       const { error: updateError } = await supabase
         .from('employees')
-        .update({ user_id: userId, email })
+        .update({ user_id: userId, email: formattedEmail })
         .eq('id', id)
 
       if (updateError) {
         return { success: false, error: updateError }
       }
 
-      setEmployees((p) => p.map((e) => (e.id === id ? { ...e, user_id: userId, email } : e)))
+      setEmployees((p) =>
+        p.map((e) => (e.id === id ? { ...e, user_id: userId, email: formattedEmail } : e)),
+      )
       logAction(`GEROU ACESSO PARA COLABORADOR ID: ${id}`)
 
       return { success: true }

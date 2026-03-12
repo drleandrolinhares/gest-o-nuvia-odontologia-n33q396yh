@@ -32,6 +32,7 @@ import {
   Briefcase,
   Check,
   ChevronsUpDown,
+  Loader2,
 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -193,7 +194,8 @@ export function EditEmployeeDialog({
   onOpenChange: (open: boolean) => void
   defaultTab?: string
 }) {
-  const { updateEmployee, updateEmployeePassword, can, isAdmin } = useAppStore()
+  const { updateEmployee, updateEmployeePassword, generateEmployeeAccess, can, isAdmin } =
+    useAppStore()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditingData, setIsEditingData] = useState(false)
@@ -201,6 +203,12 @@ export function EditEmployeeDialog({
 
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Generate Access Mode States
+  const [isGenerateAccessMode, setIsGenerateAccessMode] = useState(false)
+  const [genEmail, setGenEmail] = useState('')
+  const [genPass, setGenPass] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const canManagePerms = isAdmin || can('colaboradores', 'gerir_permissoes')
 
@@ -262,11 +270,16 @@ export function EditEmployeeDialog({
         setActiveTab(defaultTab)
         setShowNewPassword(false)
         setShowConfirmPassword(false)
+
+        // Reset generate access mode
+        setGenEmail(employee.email || '')
+        setGenPass('')
+        setIsGenerateAccessMode(false)
       }
     } else {
       setIsEditingData(true)
     }
-  }, [open, employee?.id, defaultTab, form])
+  }, [open, employee?.id, defaultTab, form, employee])
 
   const onSubmit = async (v: FormValues) => {
     if (!employee) return
@@ -316,6 +329,23 @@ export function EditEmployeeDialog({
       actions.map((a) => a.id),
       { shouldDirty: true },
     )
+  }
+
+  const handleGenerateAccess = async () => {
+    if (!employee) return
+    setIsGenerating(true)
+    const res = await generateEmployeeAccess(employee.id, genEmail, genPass, employee.name)
+    setIsGenerating(false)
+    if (res.success) {
+      toast({ title: 'Sucesso', description: 'Acesso criado com sucesso!' })
+      setIsGenerateAccessMode(false)
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: res.error?.message || 'Erro ao gerar acesso.',
+      })
+    }
   }
 
   return (
@@ -757,118 +787,186 @@ export function EditEmployeeDialog({
 
                 {canManagePerms && (
                   <TabsContent value="seguranca" className="m-0 space-y-8 max-w-4xl">
-                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Credenciais de Acesso" icon={Key} />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="username"
-                          render={({ field }) => (
-                            <FormItem className="md:col-span-2">
-                              <FormLabel>Username de Acesso</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  className="bg-background"
-                                  placeholder="Ex: joao.silva"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="newPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nova Senha</FormLabel>
-                              <div className="relative">
-                                <FormControl>
-                                  <Input
-                                    type={showNewPassword ? 'text' : 'password'}
-                                    {...field}
-                                    className="bg-background pr-10"
-                                    placeholder="••••••••"
-                                  />
-                                </FormControl>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowNewPassword(!showNewPassword)}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                >
-                                  {showNewPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                  ) : (
-                                    <Eye className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="confirmPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Confirmar Nova Senha</FormLabel>
-                              <div className="relative">
-                                <FormControl>
-                                  <Input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    {...field}
-                                    className="bg-background pr-10"
-                                    placeholder="••••••••"
-                                  />
-                                </FormControl>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                >
-                                  {showConfirmPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                  ) : (
-                                    <Eye className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-4">
-                        <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
-                        As alterações de senha refletirão no próximo login do colaborador.
-                      </p>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Controle de Horário de Acesso" icon={Key} />
-                      <FormField
-                        control={form.control}
-                        name="accessSchedule"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/10">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-base font-semibold text-nuvia-navy">
-                                Restringir acesso ao sistema fora do expediente
-                              </FormLabel>
-                              <p className="text-sm text-muted-foreground">
-                                Quando ativado, o usuário não conseguirá logar na plataforma fora do
-                                horário de trabalho configurado.
-                              </p>
+                    {!employee?.user_id ? (
+                      <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                        <SectionTitle title="Conta de Acesso" icon={Key} />
+                        {!isGenerateAccessMode ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-center">
+                            <Shield className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
+                            <h3 className="text-lg font-bold text-nuvia-navy mb-2">
+                              Conta Não Vinculada
+                            </h3>
+                            <p className="text-muted-foreground text-sm text-center max-w-md mb-6">
+                              Este colaborador não possui acesso ao sistema vinculado.
+                            </p>
+                            <Button
+                              type="button"
+                              onClick={() => setIsGenerateAccessMode(true)}
+                              className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
+                            >
+                              <Key className="w-4 h-4 mr-2" /> Gerar Acesso
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">E-mail (Login) *</label>
+                              <Input
+                                value={genEmail}
+                                onChange={(e) => setGenEmail(e.target.value)}
+                                disabled={isGenerating}
+                                type="email"
+                                className="lowercase"
+                              />
                             </div>
-                            <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                          </FormItem>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Senha Provisória *</label>
+                              <Input
+                                value={genPass}
+                                onChange={(e) => setGenPass(e.target.value)}
+                                disabled={isGenerating}
+                                type="text"
+                                minLength={6}
+                              />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsGenerateAccessMode(false)}
+                                disabled={isGenerating}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                type="button"
+                                onClick={handleGenerateAccess}
+                                disabled={isGenerating || !genEmail || !genPass}
+                                className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
+                              >
+                                {isGenerating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{' '}
+                                Confirmar Geração de Acesso
+                              </Button>
+                            </div>
+                          </div>
                         )}
-                      />
-                    </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                          <SectionTitle title="Credenciais de Acesso" icon={Key} />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="username"
+                              render={({ field }) => (
+                                <FormItem className="md:col-span-2">
+                                  <FormLabel>Username de Acesso</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      className="bg-background"
+                                      placeholder="Ex: joao.silva"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="newPassword"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Nova Senha</FormLabel>
+                                  <div className="relative">
+                                    <FormControl>
+                                      <Input
+                                        type={showNewPassword ? 'text' : 'password'}
+                                        {...field}
+                                        className="bg-background pr-10"
+                                        placeholder="••••••••"
+                                      />
+                                    </FormControl>
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowNewPassword(!showNewPassword)}
+                                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                      {showNewPassword ? (
+                                        <EyeOff className="w-4 h-4" />
+                                      ) : (
+                                        <Eye className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </div>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="confirmPassword"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Confirmar Nova Senha</FormLabel>
+                                  <div className="relative">
+                                    <FormControl>
+                                      <Input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        {...field}
+                                        className="bg-background pr-10"
+                                        placeholder="••••••••"
+                                      />
+                                    </FormControl>
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                      {showConfirmPassword ? (
+                                        <EyeOff className="w-4 h-4" />
+                                      ) : (
+                                        <Eye className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </div>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-4">
+                            <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
+                            As alterações de senha refletirão no próximo login do colaborador.
+                          </p>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                          <SectionTitle title="Controle de Horário de Acesso" icon={Key} />
+                          <FormField
+                            control={form.control}
+                            name="accessSchedule"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/10">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base font-semibold text-nuvia-navy">
+                                    Restringir acesso ao sistema fora do expediente
+                                  </FormLabel>
+                                  <p className="text-sm text-muted-foreground">
+                                    Quando ativado, o usuário não conseguirá logar na plataforma
+                                    fora do horário de trabalho configurado.
+                                  </p>
+                                </div>
+                                <FormControl>
+                                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
                   </TabsContent>
                 )}
 

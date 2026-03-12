@@ -40,19 +40,25 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      const { error } = await signIn(email, password)
+      const { error } = await signIn(email.trim().toLowerCase(), password)
 
       if (error) {
         toast({
           variant: 'destructive',
-          title: 'Erro de Autenticação',
-          description: 'Erro ao acessar: Verifique suas credenciais ou se sua conta foi ativada.',
+          title: 'Credenciais inválidas',
+          description: 'Erro ao acessar: E-mail ou senha incorretos.',
         })
         return
       }
 
       // Successful login automatically navigates to DASH NUVIA or requested route
       navigate(from, { replace: true })
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro de Autenticação',
+        description: 'Ocorreu um erro inesperado ao tentar acessar.',
+      })
     } finally {
       setIsLoading(false)
     }

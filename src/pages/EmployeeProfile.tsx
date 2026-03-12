@@ -1,10 +1,8 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import useAppStore from '@/stores/main'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import {
   AlertCircle,
   ArrowLeft,
@@ -18,36 +16,20 @@ import {
   UserX,
   Key,
   FileText,
-  Loader2,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { EditEmployeeDialog } from '@/components/rh/EditEmployeeDialog'
-import { useToast } from '@/hooks/use-toast'
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { toast } = useToast()
-  const { employees, isAdmin, deleteEmployee, updateEmployeeStatus, generateEmployeeAccess } =
-    useAppStore()
+  const { employees, isAdmin, deleteEmployee, updateEmployeeStatus } = useAppStore()
   const employee = employees.find((e) => e.id === id)
 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [editTab, setEditTab] = useState('dados')
-
-  const [isGenerateOpen, setIsGenerateOpen] = useState(false)
-  const [genEmail, setGenEmail] = useState('')
-  const [genPass, setGenPass] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-
-  useEffect(() => {
-    if (isGenerateOpen) {
-      setGenEmail(employee?.email || '')
-      setGenPass('')
-    }
-  }, [isGenerateOpen, employee])
 
   if (!employee) {
     return (
@@ -84,24 +66,6 @@ export default function EmployeeProfile() {
   const handleResetAccess = () => {
     setEditTab('seguranca')
     setIsEditOpen(true)
-  }
-
-  const handleGenerateAccess = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!employee) return
-    setIsGenerating(true)
-    const res = await generateEmployeeAccess(employee.id, genEmail, genPass, employee.name)
-    setIsGenerating(false)
-    if (res.success) {
-      toast({ title: 'Sucesso', description: 'Acesso gerado com sucesso!' })
-      setIsGenerateOpen(false)
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: res.error?.message || 'Erro ao gerar acesso.',
-      })
-    }
   }
 
   return (
@@ -154,7 +118,10 @@ export default function EmployeeProfile() {
               <Button
                 variant="outline"
                 className="border-primary text-primary hover:bg-primary/10"
-                onClick={() => setIsGenerateOpen(true)}
+                onClick={() => {
+                  setEditTab('seguranca')
+                  setIsEditOpen(true)
+                }}
               >
                 <Key className="h-4 w-4 mr-2" /> GERAR ACESSO
               </Button>
@@ -297,51 +264,6 @@ export default function EmployeeProfile() {
         onOpenChange={setIsEditOpen}
         defaultTab={editTab}
       />
-
-      <Dialog open={isGenerateOpen} onOpenChange={setIsGenerateOpen}>
-        <DialogContent className="sm:max-w-md uppercase">
-          <DialogHeader>
-            <DialogTitle>GERAR ACESSO PARA {employee?.name}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleGenerateAccess} className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">E-MAIL (LOGIN) *</label>
-              <Input
-                required
-                type="email"
-                value={genEmail}
-                onChange={(e) => setGenEmail(e.target.value)}
-                className="lowercase"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">SENHA PROVISÓRIA *</label>
-              <Input
-                required
-                type="text"
-                value={genPass}
-                onChange={(e) => setGenPass(e.target.value)}
-                minLength={6}
-                className="lowercase"
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsGenerateOpen(false)}
-                disabled={isGenerating}
-              >
-                CANCELAR
-              </Button>
-              <Button type="submit" disabled={isGenerating || !genEmail || !genPass}>
-                {isGenerating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                CRIAR CONTA
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
