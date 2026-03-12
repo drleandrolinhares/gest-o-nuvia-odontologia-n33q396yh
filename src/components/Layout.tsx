@@ -9,6 +9,7 @@ import {
   FileText,
   Shield,
   Home,
+  LayoutDashboard,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -18,7 +19,8 @@ import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 
 const navigation = [
-  { name: 'Agenda', href: '/admin/agenda', icon: Calendar },
+  { name: 'DASH NUVIA', href: '/admin', icon: LayoutDashboard, exact: true },
+  { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
   { name: 'Recursos Humanos', href: '/admin/rh', icon: Users },
   { name: 'Estoque', href: '/admin/estoque', icon: Package },
   { name: 'Acessos', href: '/admin/acessos', icon: Shield },
@@ -34,7 +36,7 @@ export function Layout() {
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
       <div className="p-6 flex items-center justify-center border-b border-white/5 bg-[#0A192F]">
-        <Link to="/" className="block w-full text-center hover:opacity-80 transition-opacity">
+        <Link to="/admin" className="block w-full text-center hover:opacity-80 transition-opacity">
           <img
             src={logoImg}
             alt="Nuvia Odontologia"
@@ -49,7 +51,9 @@ export function Layout() {
             Gestão Integrada
           </p>
           {navigation.map((item) => {
-            const isActive = location.pathname.startsWith(item.href)
+            const isActive = item.exact
+              ? location.pathname === item.href || location.pathname === `${item.href}/`
+              : location.pathname.startsWith(item.href)
             return (
               <Link
                 key={item.name}
@@ -102,7 +106,7 @@ export function Layout() {
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
-        <Link to="/" className="hover:opacity-80 transition-opacity">
+        <Link to="/admin" className="hover:opacity-80 transition-opacity">
           <img
             src={logoImg}
             alt="Nuvia Odontologia"
@@ -134,7 +138,7 @@ export function Layout() {
             <Home className="w-4 h-4" />
             <span>/</span>
             <span className="font-medium text-slate-900 capitalize">
-              {location.pathname.split('/')[2] || 'Dashboard'}
+              {location.pathname.split('/')[2] || 'Dash Nuvia'}
             </span>
           </div>
           <div className="flex items-center gap-4">
