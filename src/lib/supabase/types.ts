@@ -2,6 +2,8 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: '14.4'
   }
@@ -135,96 +137,96 @@ export type Database = {
       employees: {
         Row: {
           access_level: string | null
+          access_schedule: boolean | null
+          address: string | null
+          address_complement: string | null
+          address_number: string | null
           agenda_access: string | null
+          birth_date: string | null
+          cep: string | null
+          city: string | null
+          cpf: string | null
           created_at: string
           department: string
           email: string | null
           hire_date: string | null
           id: string
-          name: string
-          username: string | null
-          rg: string | null
-          cpf: string | null
-          birth_date: string | null
-          cep: string | null
-          address: string | null
-          address_number: string | null
-          address_complement: string | null
-          city: string | null
-          state: string | null
-          access_schedule: boolean | null
-          system_profiles: Json | null
           last_access: string | null
+          name: string
           permissions: Json | null
           phone: string | null
+          rg: string | null
           role: string
           salary: string | null
+          state: string | null
           status: string | null
+          system_profiles: Json | null
           user_id: string | null
+          username: string | null
           vacation_days_taken: number | null
           vacation_days_total: number | null
           vacation_due_date: string | null
         }
         Insert: {
           access_level?: string | null
+          access_schedule?: boolean | null
+          address?: string | null
+          address_complement?: string | null
+          address_number?: string | null
           agenda_access?: string | null
+          birth_date?: string | null
+          cep?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string
           department: string
           email?: string | null
           hire_date?: string | null
           id?: string
-          name: string
-          username?: string | null
-          rg?: string | null
-          cpf?: string | null
-          birth_date?: string | null
-          cep?: string | null
-          address?: string | null
-          address_number?: string | null
-          address_complement?: string | null
-          city?: string | null
-          state?: string | null
-          access_schedule?: boolean | null
-          system_profiles?: Json | null
           last_access?: string | null
+          name: string
           permissions?: Json | null
           phone?: string | null
+          rg?: string | null
           role: string
           salary?: string | null
+          state?: string | null
           status?: string | null
+          system_profiles?: Json | null
           user_id?: string | null
+          username?: string | null
           vacation_days_taken?: number | null
           vacation_days_total?: number | null
           vacation_due_date?: string | null
         }
         Update: {
           access_level?: string | null
+          access_schedule?: boolean | null
+          address?: string | null
+          address_complement?: string | null
+          address_number?: string | null
           agenda_access?: string | null
+          birth_date?: string | null
+          cep?: string | null
+          city?: string | null
+          cpf?: string | null
           created_at?: string
           department?: string
           email?: string | null
           hire_date?: string | null
           id?: string
-          name?: string
-          username?: string | null
-          rg?: string | null
-          cpf?: string | null
-          birth_date?: string | null
-          cep?: string | null
-          address?: string | null
-          address_number?: string | null
-          address_complement?: string | null
-          city?: string | null
-          state?: string | null
-          access_schedule?: boolean | null
-          system_profiles?: Json | null
           last_access?: string | null
+          name?: string
           permissions?: Json | null
           phone?: string | null
+          rg?: string | null
           role?: string
           salary?: string | null
+          state?: string | null
           status?: string | null
+          system_profiles?: Json | null
           user_id?: string | null
+          username?: string | null
           vacation_days_taken?: number | null
           vacation_days_total?: number | null
           vacation_due_date?: string | null
@@ -517,3 +519,157 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
+// This section contains actual PostgreSQL column types, constraints, RLS policies,
+// functions, triggers, indexes and materialized views not present in the type definitions above.
+// IMPORTANT: The TypeScript types above map UUID, TEXT, VARCHAR all to "string".
+// Use the COLUMN TYPES section below to know the real PostgreSQL type for each column.
+// Always use the correct PostgreSQL type when writing SQL migrations.
+
+// --- COLUMN TYPES (actual PostgreSQL types) ---
+// Use this to know the real database type when writing migrations.
+// "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: acessos
+//   id: uuid (not null, default: gen_random_uuid())
+//   platform: text (not null)
+//   url: text (not null, default: ''::text)
+//   login: text (not null)
+//   pass: text (not null)
+//   instructions: text (nullable)
+//   access_level: text (nullable, default: 'OPERACIONAL'::text)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: agenda
+//   id: uuid (not null, default: gen_random_uuid())
+//   title: text (not null)
+//   date: text (not null)
+//   time: text (not null)
+//   location: text (not null)
+//   type: text (not null)
+//   assigned_to: text (nullable)
+//   involves_third_party: boolean (nullable, default: false)
+//   third_party_details: text (nullable)
+//   created_by: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: audit_logs
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   action: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: documents
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   date: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: employees
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   name: text (not null)
+//   role: text (not null)
+//   department: text (not null)
+//   status: text (nullable, default: 'Ativo'::text)
+//   hire_date: timestamp with time zone (nullable)
+//   salary: text (nullable)
+//   vacation_days_taken: integer (nullable, default: 0)
+//   vacation_days_total: integer (nullable, default: 30)
+//   vacation_due_date: timestamp with time zone (nullable)
+//   email: text (nullable)
+//   phone: text (nullable)
+//   agenda_access: text (nullable, default: 'VIEW_ONLY'::text)
+//   permissions: jsonb (nullable, default: '["dashboard"]'::jsonb)
+//   access_level: text (nullable, default: 'OPERACIONAL'::text)
+//   created_at: timestamp with time zone (not null, default: now())
+//   username: text (nullable)
+//   rg: text (nullable)
+//   cpf: text (nullable)
+//   birth_date: text (nullable)
+//   cep: text (nullable)
+//   address: text (nullable)
+//   address_number: text (nullable)
+//   address_complement: text (nullable)
+//   city: text (nullable)
+//   state: text (nullable)
+//   access_schedule: boolean (nullable, default: false)
+//   system_profiles: jsonb (nullable, default: '[]'::jsonb)
+//   last_access: timestamp with time zone (nullable)
+// Table: inventory
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   package_cost: numeric (nullable, default: 0)
+//   storage_location: text (nullable)
+//   package_type: text (nullable)
+//   items_per_box: integer (nullable, default: 1)
+//   min_stock: integer (nullable, default: 0)
+//   quantity: integer (nullable, default: 0)
+//   specialty: text (nullable)
+//   entry_date: timestamp with time zone (nullable)
+//   expiration_date: timestamp with time zone (nullable)
+//   brand: text (nullable)
+//   last_brand: text (nullable)
+//   last_value: numeric (nullable, default: 0)
+//   notes: text (nullable)
+//   barcode: text (nullable)
+//   purchase_history: jsonb (nullable, default: '[]'::jsonb)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: onboarding
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   role: text (not null)
+//   department: text (not null)
+//   tasks: jsonb (nullable, default: '[]'::jsonb)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: profiles
+//   id: uuid (not null)
+//   email: text (not null, default: ''::text)
+//   name: text (not null, default: ''::text)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: suppliers
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   contact: text (not null, default: ''::text)
+//   phone: text (not null, default: ''::text)
+//   email: text (not null, default: ''::text)
+//   cnpj: text (not null, default: ''::text)
+//   website: text (nullable)
+//   has_special_negotiation: boolean (nullable, default: false)
+//   negotiation_notes: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+
+// --- CONSTRAINTS ---
+// Table: acessos
+//   PRIMARY KEY acessos_pkey: PRIMARY KEY (id)
+// Table: agenda
+//   PRIMARY KEY agenda_pkey: PRIMARY KEY (id)
+// Table: audit_logs
+//   PRIMARY KEY audit_logs_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
+//   FOREIGN KEY audit_logs_user_id_profiles_fkey: FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE SET NULL
+// Table: documents
+//   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
+// Table: employees
+//   PRIMARY KEY employees_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
+// Table: inventory
+//   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
+// Table: onboarding
+//   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
+// Table: profiles
+//   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
+// Table: suppliers
+//   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
+
+// --- DATABASE FUNCTIONS ---
+// FUNCTION handle_new_user()
+//   CREATE OR REPLACE FUNCTION public.handle_new_user()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     INSERT INTO public.profiles (id, email, name)
+//     VALUES (NEW.id, COALESCE(NEW.email, ''), COALESCE(NEW.raw_user_meta_data->>'name', 'Colaborador'));
+//     RETURN NEW;
+//   END;
+//   $function$
+//

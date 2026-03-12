@@ -232,13 +232,13 @@ export function EditEmployeeDialog({
         if (!o) form.reset()
       }}
     >
-      <DialogContent className="max-w-5xl p-0 overflow-hidden bg-[#f9fafb]">
-        <DialogHeader className="p-6 pb-0 sr-only">
+      <DialogContent className="max-w-5xl p-0 max-h-[90vh] flex flex-col overflow-hidden bg-[#f9fafb]">
+        <DialogHeader className="p-6 pb-0 sr-only shrink-0">
           <DialogTitle>Editar Colaborador</DialogTitle>
         </DialogHeader>
 
         {employee && (
-          <div className="bg-white border-b px-8 py-6 flex items-center gap-6">
+          <div className="bg-white border-b px-8 py-6 flex items-center gap-6 shrink-0">
             <Avatar className="h-20 w-20 bg-muted">
               <AvatarFallback className="text-2xl text-muted-foreground">
                 <User className="w-10 h-10" />
@@ -264,10 +264,10 @@ export function EditEmployeeDialog({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col h-[calc(100vh-200px)] max-h-[800px]"
+            className="flex flex-col flex-1 overflow-hidden"
           >
-            <Tabs defaultValue="dados" className="flex-1 flex flex-col">
-              <div className="px-8 bg-white border-b pt-2">
+            <Tabs defaultValue="dados" className="flex-1 flex flex-col min-h-0">
+              <div className="px-8 bg-white border-b pt-2 shrink-0">
                 <TabsList className="bg-transparent h-auto p-0 flex gap-6">
                   <TabsTrigger
                     value="dados"
