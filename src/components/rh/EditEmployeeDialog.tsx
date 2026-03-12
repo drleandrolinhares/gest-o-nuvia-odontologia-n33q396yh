@@ -150,6 +150,13 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>
 
+const SectionTitle = ({ title, icon: Icon }: { title: string; icon?: any }) => (
+  <div className="flex items-center gap-2 mb-4 mt-6 first:mt-0">
+    {Icon && <Icon className="w-5 h-5 text-[#f26522]" />}
+    <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+  </div>
+)
+
 export function EditEmployeeDialog({
   employee,
   open,
@@ -196,36 +203,42 @@ export function EditEmployeeDialog({
     },
   })
 
+  const watchedSystemProfiles = form.watch('systemProfiles') || []
+  const watchedPermissions = form.watch('permissions') || {}
+
   useEffect(() => {
-    if (open && employee) {
-      form.reset({
-        name: employee.name || '',
-        username: employee.username || '',
-        email: employee.email || '',
-        phone: employee.phone || '',
-        birthDate: employee.birthDate || '',
-        rg: employee.rg || '',
-        cpf: employee.cpf || '',
-        cep: employee.cep || '',
-        address: employee.address || '',
-        addressNumber: employee.addressNumber || '',
-        addressComplement: employee.addressComplement || '',
-        city: employee.city || '',
-        state: employee.state || '',
-        accessSchedule: employee.accessSchedule || false,
-        systemProfiles: employee.systemProfiles || [],
-        permissions: employee.permissions || {},
-        newPassword: '',
-        confirmPassword: '',
-      })
-      setIsEditingData(false)
-      setActiveTab(defaultTab)
-      setShowNewPassword(false)
-      setShowConfirmPassword(false)
+    if (open) {
+      if (employee) {
+        form.reset({
+          name: employee.name || '',
+          username: employee.username || '',
+          email: employee.email || '',
+          phone: employee.phone || '',
+          birthDate: employee.birthDate || '',
+          rg: employee.rg || '',
+          cpf: employee.cpf || '',
+          cep: employee.cep || '',
+          address: employee.address || '',
+          addressNumber: employee.addressNumber || '',
+          addressComplement: employee.addressComplement || '',
+          city: employee.city || '',
+          state: employee.state || '',
+          accessSchedule: employee.accessSchedule || false,
+          systemProfiles: employee.systemProfiles || [],
+          permissions: employee.permissions || {},
+          newPassword: '',
+          confirmPassword: '',
+        })
+        setIsEditingData(false)
+        setActiveTab(defaultTab)
+        setShowNewPassword(false)
+        setShowConfirmPassword(false)
+      }
     } else {
       setIsEditingData(true)
     }
-  }, [open, employee, form, defaultTab])
+    // Depend on employee?.id instead of employee to prevent infinite loops when store updates
+  }, [open, employee?.id, defaultTab, form])
 
   const onSubmit = async (v: FormValues) => {
     if (!employee) return
@@ -250,7 +263,7 @@ export function EditEmployeeDialog({
       } else {
         toast({
           title: 'Erro',
-          description: passRes.error?.message || 'Erro ao atualizar dados.',
+          description: passRes.error?.message || res.error?.message || 'Erro ao atualizar dados.',
           variant: 'destructive',
         })
       }
@@ -276,13 +289,6 @@ export function EditEmployeeDialog({
       { shouldDirty: true },
     )
   }
-
-  const SectionTitle = ({ title, icon: Icon }: { title: string; icon?: any }) => (
-    <div className="flex items-center gap-2 mb-4 mt-6 first:mt-0">
-      {Icon && <Icon className="w-5 h-5 text-[#f26522]" />}
-      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-    </div>
-  )
 
   return (
     <Dialog
@@ -770,47 +776,53 @@ export function EditEmployeeDialog({
                       </Button>
                     </div>
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                      {PROFILES_DEF.map((profile) => (
-                        <Card
-                          key={profile.id}
-                          className={`cursor-pointer transition-colors ${form.watch('systemProfiles').includes(profile.id) ? 'border-[#f26522] bg-[#f26522]/5' : 'hover:border-muted-foreground/30'}`}
-                          onClick={() => {
-                            const current = form.getValues('systemProfiles')
-                            if (current.includes(profile.id)) {
-                              form.setValue(
-                                'systemProfiles',
-                                current.filter((id) => id !== profile.id),
-                                { shouldDirty: true },
-                              )
-                            } else {
-                              form.setValue('systemProfiles', [...current, profile.id], {
-                                shouldDirty: true,
-                              })
-                            }
-                          }}
-                        >
-                          <CardContent className="p-6 flex gap-4 relative">
-                            <div className="mt-1">
-                              <User
-                                className={`w-6 h-6 ${form.watch('systemProfiles').includes(profile.id) ? 'text-[#f26522]' : 'text-muted-foreground'}`}
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-bold text-foreground mb-1">{profile.title}</h4>
-                              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                                {profile.desc}
-                              </p>
-                            </div>
-                            <div className="absolute right-6 top-6">
-                              <Checkbox
-                                checked={form.watch('systemProfiles').includes(profile.id)}
-                                onCheckedChange={() => {}}
-                                className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
-                              />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                      {PROFILES_DEF.map((profile) => {
+                        const isChecked = watchedSystemProfiles.includes(profile.id)
+                        return (
+                          <Card
+                            key={profile.id}
+                            className={`cursor-pointer transition-colors ${isChecked ? 'border-[#f26522] bg-[#f26522]/5' : 'hover:border-muted-foreground/30'}`}
+                            onClick={() => {
+                              if (isChecked) {
+                                form.setValue(
+                                  'systemProfiles',
+                                  watchedSystemProfiles.filter((id) => id !== profile.id),
+                                  { shouldDirty: true },
+                                )
+                              } else {
+                                form.setValue(
+                                  'systemProfiles',
+                                  [...watchedSystemProfiles, profile.id],
+                                  {
+                                    shouldDirty: true,
+                                  },
+                                )
+                              }
+                            }}
+                          >
+                            <CardContent className="p-6 flex gap-4 relative">
+                              <div className="mt-1">
+                                <User
+                                  className={`w-6 h-6 ${isChecked ? 'text-[#f26522]' : 'text-muted-foreground'}`}
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-foreground mb-1">{profile.title}</h4>
+                                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                                  {profile.desc}
+                                </p>
+                              </div>
+                              <div className="absolute right-6 top-6 pointer-events-none">
+                                <Checkbox
+                                  checked={isChecked}
+                                  onCheckedChange={() => {}}
+                                  className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
                     </div>
                   </TabsContent>
                 )}
@@ -842,40 +854,41 @@ export function EditEmployeeDialog({
                             </Button>
                           </div>
                           <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {mod.actions.map((act) => (
-                              <div key={act.id} className="flex items-center space-x-3">
-                                <Checkbox
-                                  id={`perm-${mod.module}-${act.id}`}
-                                  checked={
-                                    form.watch(`permissions.${mod.module}`)?.includes(act.id) ||
-                                    false
-                                  }
-                                  onCheckedChange={(checked) => {
-                                    const current = form.watch(`permissions.${mod.module}`) || []
-                                    if (checked) {
-                                      form.setValue(
-                                        `permissions.${mod.module}`,
-                                        [...current, act.id],
-                                        { shouldDirty: true },
-                                      )
-                                    } else {
-                                      form.setValue(
-                                        `permissions.${mod.module}`,
-                                        current.filter((id) => id !== act.id),
-                                        { shouldDirty: true },
-                                      )
-                                    }
-                                  }}
-                                  className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
-                                />
-                                <label
-                                  htmlFor={`perm-${mod.module}-${act.id}`}
-                                  className="text-sm font-medium leading-none cursor-pointer"
-                                >
-                                  {act.label}
-                                </label>
-                              </div>
-                            ))}
+                            {mod.actions.map((act) => {
+                              const isChecked =
+                                watchedPermissions[mod.module]?.includes(act.id) || false
+                              return (
+                                <div key={act.id} className="flex items-center space-x-3">
+                                  <Checkbox
+                                    id={`perm-${mod.module}-${act.id}`}
+                                    checked={isChecked}
+                                    onCheckedChange={(checked) => {
+                                      const current = watchedPermissions[mod.module] || []
+                                      if (checked) {
+                                        form.setValue(
+                                          `permissions.${mod.module}`,
+                                          [...current, act.id],
+                                          { shouldDirty: true },
+                                        )
+                                      } else {
+                                        form.setValue(
+                                          `permissions.${mod.module}`,
+                                          current.filter((id: string) => id !== act.id),
+                                          { shouldDirty: true },
+                                        )
+                                      }
+                                    }}
+                                    className="data-[state=checked]:bg-[#f26522] data-[state=checked]:border-[#f26522]"
+                                  />
+                                  <label
+                                    htmlFor={`perm-${mod.module}-${act.id}`}
+                                    className="text-sm font-medium leading-none cursor-pointer"
+                                  >
+                                    {act.label}
+                                  </label>
+                                </div>
+                              )
+                            })}
                           </div>
                         </div>
                       ))}
