@@ -95,7 +95,6 @@ export type AccessItem = {
   login: string
   pass: string
   instructions: string
-  accessLevel?: 'OPERACIONAL' | 'GERENCIAL' | 'ESTRATEGICO' | 'MASTER'
 }
 export type Supplier = {
   id: string
@@ -250,7 +249,6 @@ const mAcc = (d: any): AccessItem => ({
   login: d.login,
   pass: d.pass,
   instructions: d.instructions,
-  accessLevel: d.access_level,
 })
 const mSup = (d: any): Supplier => ({
   id: d.id,
@@ -862,7 +860,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             login: i.login,
             pass: i.pass,
             instructions: i.instructions,
-            access_level: i.accessLevel,
           },
         ])
         .select()
@@ -886,7 +883,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           login: i.login,
           pass: i.pass,
           instructions: i.instructions,
-          access_level: i.accessLevel,
         })
         .eq('id', id)
         .then(() => {

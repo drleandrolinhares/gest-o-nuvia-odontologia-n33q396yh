@@ -14,16 +14,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
 
 export function UsersList() {
-  const { employees, can, isAdmin } = useAppStore()
+  const { employees } = useAppStore()
   const [search, setSearch] = useState('')
   const [activeOnly, setActiveOnly] = useState(false)
   const [selectedEmp, setSelectedEmp] = useState<Employee | null>(null)
-
-  const canAdd = isAdmin || can('colaboradores', 'criar_colaborador')
-  const canEdit = isAdmin || can('colaboradores', 'editar_colaborador')
 
   const filteredEmployees = employees
     .filter((emp) => {
@@ -46,9 +42,9 @@ export function UsersList() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div>
-        <h2 className="text-2xl font-bold text-nuvia-navy tracking-tight">Usuários e Permissões</h2>
+        <h2 className="text-2xl font-bold text-nuvia-navy tracking-tight">Usuários do Sistema</h2>
         <p className="text-muted-foreground mt-1">
-          Gerencie aqui os membros da equipe e as permissões de acesso
+          Gerencie aqui os membros da equipe e seus acessos
         </p>
       </div>
 
@@ -78,26 +74,18 @@ export function UsersList() {
           </div>
         </div>
 
-        {canAdd && (
-          <AddEmployeeDialog
-            customTrigger={
-              <Button className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-black tracking-wide w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" /> Novo Usuário
-              </Button>
-            }
-          />
-        )}
+        <AddEmployeeDialog
+          customTrigger={
+            <Button className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-black tracking-wide w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-2" /> Novo Usuário
+            </Button>
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredEmployees.map((emp) => (
-          <Card
-            key={emp.id}
-            className={cn(
-              'overflow-hidden hover:shadow-md transition-shadow relative',
-              emp.accessLevel === 'MASTER' ? 'border-nuvia-gold/50 bg-nuvia-gold/5' : '',
-            )}
-          >
+          <Card key={emp.id} className="overflow-hidden hover:shadow-md transition-shadow relative">
             <CardContent className="p-0">
               <div className="p-5 pb-4">
                 <div className="flex justify-between items-start mb-4">
@@ -111,60 +99,35 @@ export function UsersList() {
                     >
                       {emp.status === 'Ativo' ? 'Ativo' : 'Inativo'}
                     </span>
-                    {emp.accessLevel === 'MASTER' && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-nuvia-gold text-nuvia-navy border border-nuvia-gold/50 tracking-widest shadow-sm uppercase">
-                        MASTER
-                      </span>
-                    )}
                   </div>
-                  {canEdit && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:bg-muted"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(emp)}>
-                          Editar Perfil
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:bg-muted"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(emp)}>
+                        Editar Perfil
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 <div className="flex flex-col items-center text-center space-y-3 mb-6">
-                  <Avatar
-                    className={cn(
-                      'h-16 w-16 border-2',
-                      emp.accessLevel === 'MASTER'
-                        ? 'bg-nuvia-navy border-nuvia-gold'
-                        : 'bg-muted border-muted-foreground/20',
-                    )}
-                  >
-                    <AvatarFallback
-                      className={
-                        emp.accessLevel === 'MASTER'
-                          ? 'bg-nuvia-navy text-nuvia-gold'
-                          : 'bg-muted text-muted-foreground'
-                      }
-                    >
+                  <Avatar className="h-16 w-16 border-2 bg-muted border-muted-foreground/20">
+                    <AvatarFallback className="bg-muted text-muted-foreground">
                       <UserIcon className="h-8 w-8" />
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="font-bold text-foreground leading-tight px-2">{emp.name}</h3>
                 </div>
 
-                <div
-                  className={cn(
-                    'space-y-2 p-3 rounded-lg text-sm',
-                    emp.accessLevel === 'MASTER' ? 'bg-nuvia-gold/10' : 'bg-muted/30',
-                  )}
-                >
+                <div className="space-y-2 p-3 rounded-lg text-sm bg-muted/30">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Briefcase className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{emp.role || 'Não informado'}</span>
@@ -185,12 +148,7 @@ export function UsersList() {
                   </div>
                 </div>
               </div>
-              <div
-                className={cn(
-                  'border-t px-5 py-3 text-xs text-muted-foreground font-medium flex items-center',
-                  emp.accessLevel === 'MASTER' ? 'bg-nuvia-gold/10' : 'bg-muted/10',
-                )}
-              >
+              <div className="border-t px-5 py-3 text-xs text-muted-foreground font-medium flex items-center bg-muted/10">
                 <span className="mr-1">🕒</span> Último acesso em:{' '}
                 {formatLastAccess(emp.lastAccess)}
               </div>

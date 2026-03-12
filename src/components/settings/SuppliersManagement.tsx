@@ -15,16 +15,12 @@ import { SupplierFormDialog } from './SupplierFormDialog'
 import { SupplierDetailsDialog } from './SupplierDetailsDialog'
 
 export function SuppliersManagement() {
-  const { suppliers, addSupplier, updateSupplier, removeSupplier, can, isAdmin } = useAppStore()
+  const { suppliers, addSupplier, updateSupplier, removeSupplier } = useAppStore()
   const [openForm, setOpenForm] = useState(false)
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
 
   const sortedSuppliers = [...suppliers].sort((a, b) => a.name.localeCompare(b.name))
-
-  const canAdd = isAdmin || can('fornecedores', 'criar_fornecedor')
-  const canEdit = isAdmin || can('fornecedores', 'editar_fornecedor')
-  const canViewNotes = isAdmin || can('fornecedores', 'ver_notas')
 
   const handleOpenForm = (item?: Supplier) => {
     setEditingSupplier(item || null)
@@ -51,11 +47,9 @@ export function SuppliersManagement() {
             GESTÃO DE FORNECEDORES DE MATERIAIS CLÍNICOS E SERVIÇOS.
           </CardDescription>
         </div>
-        {canAdd && (
-          <Button onClick={() => handleOpenForm()} className="bg-primary text-primary-foreground">
-            <Plus className="h-4 w-4 mr-2" /> NOVO FORNECEDOR
-          </Button>
-        )}
+        <Button onClick={() => handleOpenForm()} className="bg-primary text-primary-foreground">
+          <Plus className="h-4 w-4 mr-2" /> NOVO FORNECEDOR
+        </Button>
       </CardHeader>
 
       <div className="border-t border-muted overflow-hidden">
@@ -82,7 +76,7 @@ export function SuppliersManagement() {
                 <TableCell>
                   <div className="font-bold text-primary flex items-center gap-2">
                     {item.name}
-                    {canViewNotes && item.hasSpecialNegotiation && (
+                    {item.hasSpecialNegotiation && (
                       <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold">
                         NEGOCIAÇÃO
                       </span>
@@ -105,28 +99,24 @@ export function SuppliersManagement() {
                   className="text-right whitespace-nowrap"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {canEdit && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenForm(item)}
-                      className="text-muted-foreground hover:text-primary hover:bg-primary/10"
-                      title="EDITAR"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeSupplier(item.id)}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                      title="REMOVER"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleOpenForm(item)}
+                    className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                    title="EDITAR"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeSupplier(item.id)}
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    title="REMOVER"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

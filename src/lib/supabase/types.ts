@@ -136,12 +136,9 @@ export type Database = {
       }
       employees: {
         Row: {
-          access_level: string | null
-          access_schedule: boolean | null
           address: string | null
           address_complement: string | null
           address_number: string | null
-          agenda_access: string | null
           birth_date: string | null
           cep: string | null
           city: string | null
@@ -154,14 +151,12 @@ export type Database = {
           id: string
           last_access: string | null
           name: string
-          permissions: Json | null
           phone: string | null
           rg: string | null
           role: string
           salary: string | null
           state: string | null
           status: string | null
-          system_profiles: Json | null
           team_category: string[] | null
           user_id: string | null
           username: string | null
@@ -170,12 +165,9 @@ export type Database = {
           vacation_due_date: string | null
         }
         Insert: {
-          access_level?: string | null
-          access_schedule?: boolean | null
           address?: string | null
           address_complement?: string | null
           address_number?: string | null
-          agenda_access?: string | null
           birth_date?: string | null
           cep?: string | null
           city?: string | null
@@ -188,14 +180,12 @@ export type Database = {
           id?: string
           last_access?: string | null
           name: string
-          permissions?: Json | null
           phone?: string | null
           rg?: string | null
           role: string
           salary?: string | null
           state?: string | null
           status?: string | null
-          system_profiles?: Json | null
           team_category?: string[] | null
           user_id?: string | null
           username?: string | null
@@ -204,12 +194,9 @@ export type Database = {
           vacation_due_date?: string | null
         }
         Update: {
-          access_level?: string | null
-          access_schedule?: boolean | null
           address?: string | null
           address_complement?: string | null
           address_number?: string | null
-          agenda_access?: string | null
           birth_date?: string | null
           cep?: string | null
           city?: string | null
@@ -222,14 +209,12 @@ export type Database = {
           id?: string
           last_access?: string | null
           name?: string
-          permissions?: Json | null
           phone?: string | null
           rg?: string | null
           role?: string
           salary?: string | null
           state?: string | null
           status?: string | null
-          system_profiles?: Json | null
           team_category?: string[] | null
           user_id?: string | null
           username?: string | null
@@ -581,9 +566,6 @@ export const Constants = {
 //   vacation_due_date: timestamp with time zone (nullable)
 //   email: text (nullable)
 //   phone: text (nullable)
-//   agenda_access: text (nullable, default: 'VIEW_ONLY'::text)
-//   permissions: jsonb (nullable, default: '["dashboard"]'::jsonb)
-//   access_level: text (nullable, default: 'OPERACIONAL'::text)
 //   created_at: timestamp with time zone (not null, default: now())
 //   username: text (nullable)
 //   rg: text (nullable)
@@ -595,8 +577,6 @@ export const Constants = {
 //   address_complement: text (nullable)
 //   city: text (nullable)
 //   state: text (nullable)
-//   access_schedule: boolean (nullable, default: false)
-//   system_profiles: jsonb (nullable, default: '[]'::jsonb)
 //   last_access: timestamp with time zone (nullable)
 //   team_category: _text (nullable, default: ARRAY['COLABORADOR'::text])
 //   contract_details: text (nullable, default: ''::text)
