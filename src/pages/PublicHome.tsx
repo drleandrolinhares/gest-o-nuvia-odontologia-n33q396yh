@@ -139,7 +139,7 @@ export default function PublicHome() {
         style={{ animationDelay: '200ms' }}
       >
         <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-          <Clock className="w-10 h-10 text-nuvia-gold shrink-0" stroke-width="1.5" />
+          <Clock className="w-10 h-10 text-nuvia-gold shrink-0" strokeWidth="1.5" />
           <div>
             <h4 className="text-nuvia-blue font-serif text-lg font-bold">
               Segunda - Sexta: 08h - 18h
@@ -148,14 +148,14 @@ export default function PublicHome() {
           </div>
         </div>
         <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4 md:border-l md:border-nuvia-gold/20 md:pl-8">
-          <Phone className="w-10 h-10 text-nuvia-gold shrink-0" stroke-width="1.5" />
+          <Phone className="w-10 h-10 text-nuvia-gold shrink-0" strokeWidth="1.5" />
           <div>
             <h4 className="text-nuvia-blue font-serif text-lg font-bold">(11) 96172-9130</h4>
             <p className="text-slate-500 text-sm mt-1">(11) 3040-8884</p>
           </div>
         </div>
         <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4 md:border-l md:border-nuvia-gold/20 md:pl-8">
-          <MapPin className="w-10 h-10 text-nuvia-gold shrink-0" stroke-width="1.5" />
+          <MapPin className="w-10 h-10 text-nuvia-gold shrink-0" strokeWidth="1.5" />
           <div>
             <h4 className="text-nuvia-blue font-serif text-lg font-bold">Endereço</h4>
             <p className="text-slate-500 text-sm mt-1">
@@ -241,17 +241,17 @@ export default function PublicHome() {
               {
                 title: 'Estética Dental',
                 desc: 'Facetas, lentes de contato e clareamento para um sorriso radiante e perfeitamente alinhado.',
-                icon: <Star className="h-8 w-8 text-nuvia-gold" stroke-width="1.5" />,
+                icon: <Star className="h-8 w-8 text-nuvia-gold" strokeWidth="1.5" />,
               },
               {
                 title: 'Implantes',
                 desc: 'Reabilitação oral segura e definitiva, devolvendo sua confiança e qualidade de vida.',
-                icon: <Shield className="h-8 w-8 text-nuvia-gold" stroke-width="1.5" />,
+                icon: <Shield className="h-8 w-8 text-nuvia-gold" strokeWidth="1.5" />,
               },
               {
                 title: 'Ortodontia',
                 desc: 'Alinhadores invisíveis e aparelhos modernos para um tratamento discreto e eficiente.',
-                icon: <Clock className="h-8 w-8 text-nuvia-gold" stroke-width="1.5" />,
+                icon: <Clock className="h-8 w-8 text-nuvia-gold" strokeWidth="1.5" />,
               },
             ].map((service, idx) => (
               <div
