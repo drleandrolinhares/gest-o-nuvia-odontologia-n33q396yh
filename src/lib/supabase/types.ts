@@ -145,6 +145,7 @@ export type Database = {
           birth_date: string | null
           cep: string | null
           city: string | null
+          contract_details: string | null
           cpf: string | null
           created_at: string
           department: string
@@ -161,6 +162,7 @@ export type Database = {
           state: string | null
           status: string | null
           system_profiles: Json | null
+          team_category: string | null
           user_id: string | null
           username: string | null
           vacation_days_taken: number | null
@@ -177,6 +179,7 @@ export type Database = {
           birth_date?: string | null
           cep?: string | null
           city?: string | null
+          contract_details?: string | null
           cpf?: string | null
           created_at?: string
           department: string
@@ -193,6 +196,7 @@ export type Database = {
           state?: string | null
           status?: string | null
           system_profiles?: Json | null
+          team_category?: string | null
           user_id?: string | null
           username?: string | null
           vacation_days_taken?: number | null
@@ -209,6 +213,7 @@ export type Database = {
           birth_date?: string | null
           cep?: string | null
           city?: string | null
+          contract_details?: string | null
           cpf?: string | null
           created_at?: string
           department?: string
@@ -225,6 +230,7 @@ export type Database = {
           state?: string | null
           status?: string | null
           system_profiles?: Json | null
+          team_category?: string | null
           user_id?: string | null
           username?: string | null
           vacation_days_taken?: number | null
@@ -592,6 +598,8 @@ export const Constants = {
 //   access_schedule: boolean (nullable, default: false)
 //   system_profiles: jsonb (nullable, default: '[]'::jsonb)
 //   last_access: timestamp with time zone (nullable)
+//   team_category: text (nullable, default: 'COLABORADOR'::text)
+//   contract_details: text (nullable, default: ''::text)
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
