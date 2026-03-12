@@ -110,6 +110,94 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          room_id: string | null
+          sender_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          room_id?: string | null
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          room_id?: string | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'chat_messages_room_id_fkey'
+            columns: ['room_id']
+            isOneToOne: false
+            referencedRelation: 'chat_rooms'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      chat_participants: {
+        Row: {
+          created_at: string
+          id: string
+          last_read_at: string | null
+          room_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_read_at?: string | null
+          room_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_read_at?: string | null
+          room_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'chat_participants_room_id_fkey'
+            columns: ['room_id']
+            isOneToOne: false
+            referencedRelation: 'chat_rooms'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string
+          department: string | null
+          id: string
+          name: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          name?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          name?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -376,7 +464,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_or_create_group_room: {
+        Args: { creator_id: string; dept_name: string }
+        Returns: string
+      }
+      get_or_create_individual_room: {
+        Args: { user1: string; user2: string }
+        Returns: string
+      }
+      get_unread_counts: {
+        Args: { user_id_param: string }
+        Returns: {
+          room_id: string
+          unread_count: number
+        }[]
+      }
+      mark_room_read: {
+        Args: { p_room_id: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -543,6 +649,24 @@ export const Constants = {
 //   user_id: uuid (nullable)
 //   action: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: chat_messages
+//   id: uuid (not null, default: gen_random_uuid())
+//   room_id: uuid (nullable)
+//   sender_id: uuid (nullable)
+//   content: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: chat_participants
+//   id: uuid (not null, default: gen_random_uuid())
+//   room_id: uuid (nullable)
+//   user_id: uuid (nullable)
+//   last_read_at: timestamp with time zone (nullable, default: now())
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: chat_rooms
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (nullable)
+//   type: text (nullable)
+//   department: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: documents
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -628,6 +752,18 @@ export const Constants = {
 //   PRIMARY KEY audit_logs_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 //   FOREIGN KEY audit_logs_user_id_profiles_fkey: FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE SET NULL
+// Table: chat_messages
+//   PRIMARY KEY chat_messages_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY chat_messages_room_id_fkey: FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE
+//   FOREIGN KEY chat_messages_sender_id_fkey: FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: chat_participants
+//   PRIMARY KEY chat_participants_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY chat_participants_room_id_fkey: FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE
+//   UNIQUE chat_participants_room_id_user_id_key: UNIQUE (room_id, user_id)
+//   FOREIGN KEY chat_participants_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: chat_rooms
+//   PRIMARY KEY chat_rooms_pkey: PRIMARY KEY (id)
+//   CHECK chat_rooms_type_check: CHECK ((type = ANY (ARRAY['individual'::text, 'group'::text])))
 // Table: documents
 //   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
 // Table: employees
@@ -656,6 +792,23 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+// Table: chat_messages
+//   Policy "Users can insert messages in their rooms" (INSERT, PERMISSIVE) roles={public}
+//     WITH CHECK: ((EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.room_id) AND (cp.user_id = auth.uid())))) AND (sender_id = auth.uid()))
+//   Policy "Users can view messages in their rooms" (SELECT, PERMISSIVE) roles={public}
+//     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = chat_messages.room_id) AND (cp.user_id = auth.uid()))))
+// Table: chat_participants
+//   Policy "Users can insert themselves or others into rooms" (INSERT, PERMISSIVE) roles={public}
+//     WITH CHECK: (auth.role() = 'authenticated'::text)
+//   Policy "Users can update their own participant record" (UPDATE, PERMISSIVE) roles={public}
+//     USING: (user_id = auth.uid())
+//   Policy "Users can view participants in their rooms" (SELECT, PERMISSIVE) roles={public}
+//     USING: ((EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = chat_participants.room_id) AND (cp.user_id = auth.uid())))) OR (user_id = auth.uid()))
+// Table: chat_rooms
+//   Policy "Users can create rooms" (INSERT, PERMISSIVE) roles={public}
+//     WITH CHECK: (auth.role() = 'authenticated'::text)
+//   Policy "Users can view rooms they are in" (SELECT, PERMISSIVE) roles={public}
+//     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.id) AND (cp.user_id = auth.uid()))))
 // Table: documents
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -682,6 +835,69 @@ export const Constants = {
 //     WITH CHECK: true
 
 // --- DATABASE FUNCTIONS ---
+// FUNCTION get_or_create_group_room(text, uuid)
+//   CREATE OR REPLACE FUNCTION public.get_or_create_group_room(dept_name text, creator_id uuid)
+//    RETURNS uuid
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   DECLARE
+//     v_room_id UUID;
+//   BEGIN
+//     SELECT id INTO v_room_id FROM public.chat_rooms WHERE type = 'group' AND department = dept_name LIMIT 1;
+//     IF v_room_id IS NULL THEN
+//       INSERT INTO public.chat_rooms (name, type, department) VALUES (dept_name, 'group', dept_name) RETURNING id INTO v_room_id;
+//       INSERT INTO public.chat_participants (room_id, user_id)
+//       SELECT v_room_id, user_id FROM public.employees WHERE department = dept_name AND user_id IS NOT NULL
+//       ON CONFLICT DO NOTHING;
+//     ELSE
+//       INSERT INTO public.chat_participants (room_id, user_id) VALUES (v_room_id, creator_id) ON CONFLICT DO NOTHING;
+//     END IF;
+//     RETURN v_room_id;
+//   END;
+//   $function$
+//
+// FUNCTION get_or_create_individual_room(uuid, uuid)
+//   CREATE OR REPLACE FUNCTION public.get_or_create_individual_room(user1 uuid, user2 uuid)
+//    RETURNS uuid
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   DECLARE
+//     v_room_id UUID;
+//   BEGIN
+//     SELECT r.id INTO v_room_id
+//     FROM public.chat_rooms r
+//     JOIN public.chat_participants p1 ON p1.room_id = r.id AND p1.user_id = user1
+//     JOIN public.chat_participants p2 ON p2.room_id = r.id AND p2.user_id = user2
+//     WHERE r.type = 'individual'
+//     LIMIT 1;
+//
+//     IF v_room_id IS NULL THEN
+//       INSERT INTO public.chat_rooms (type) VALUES ('individual') RETURNING id INTO v_room_id;
+//       INSERT INTO public.chat_participants (room_id, user_id) VALUES (v_room_id, user1), (v_room_id, user2);
+//     END IF;
+//     RETURN v_room_id;
+//   END;
+//   $function$
+//
+// FUNCTION get_unread_counts(uuid)
+//   CREATE OR REPLACE FUNCTION public.get_unread_counts(user_id_param uuid)
+//    RETURNS TABLE(room_id uuid, unread_count bigint)
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     SELECT
+//       cp.room_id,
+//       COUNT(m.id) as unread_count
+//     FROM public.chat_participants cp
+//     JOIN public.chat_messages m ON m.room_id = cp.room_id
+//     WHERE cp.user_id = user_id_param
+//       AND m.sender_id != user_id_param
+//       AND m.created_at > COALESCE(cp.last_read_at, '1970-01-01'::timestamptz)
+//     GROUP BY cp.room_id;
+//   $function$
+//
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -695,3 +911,18 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION mark_room_read(uuid, uuid)
+//   CREATE OR REPLACE FUNCTION public.mark_room_read(p_room_id uuid, p_user_id uuid)
+//    RETURNS void
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     UPDATE public.chat_participants
+//     SET last_read_at = NOW()
+//     WHERE room_id = p_room_id AND user_id = p_user_id;
+//   $function$
+//
+
+// --- INDEXES ---
+// Table: chat_participants
+//   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
