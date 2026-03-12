@@ -133,12 +133,12 @@ export default function PublicHome() {
                     </div>
                     <div className="p-8 border-t border-slate-800 mt-auto">
                       <SheetClose asChild>
-                        <Button
-                          asChild
-                          className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none"
+                        <Link
+                          to="/login"
+                          className="inline-flex items-center justify-center w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
                         >
-                          <Link to="/login">Acesso Restrito</Link>
-                        </Button>
+                          Acesso Restrito
+                        </Link>
                       </SheetClose>
                     </div>
                   </div>
