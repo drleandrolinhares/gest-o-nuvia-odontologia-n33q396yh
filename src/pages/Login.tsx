@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -45,16 +46,16 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4 uppercase relative">
       <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
-        <Button
-          variant="ghost"
-          asChild
-          className="uppercase text-xs font-bold tracking-wider text-muted-foreground hover:text-foreground"
+        <Link
+          to="/"
+          className={cn(
+            buttonVariants({ variant: 'ghost' }),
+            'uppercase text-xs font-bold tracking-wider text-muted-foreground hover:text-foreground',
+          )}
         >
-          <Link to="/">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            ACESSAR PORTAL
-          </Link>
-        </Button>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          ACESSAR PORTAL
+        </Link>
       </div>
 
       <Card className="w-full max-w-md shadow-xl border-primary/10">

@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { ChevronRight, ArrowRight, BookOpen, Stethoscope } from 'lucide-react'
 import logoUrl from '@/assets/nuvia_logo__horizontal_by_souza_filho_original-5cc4a.png'
+import { cn } from '@/lib/utils'
 
 export default function PublicHome() {
   return (
@@ -19,14 +20,15 @@ export default function PublicHome() {
             BLOG CIENTÍFICO
           </a>
         </nav>
-        <Button
-          asChild
-          className="bg-[#D81B84] hover:bg-[#B71770] text-white font-bold tracking-wider"
+        <Link
+          to="/login"
+          className={cn(
+            buttonVariants(),
+            'bg-[#D81B84] hover:bg-[#B71770] text-white font-bold tracking-wider',
+          )}
         >
-          <Link to="/login">
-            ÁREA RESTRITA <ArrowRight className="w-4 h-4 ml-2" />
-          </Link>
-        </Button>
+          ÁREA RESTRITA <ArrowRight className="w-4 h-4 ml-2" />
+        </Link>
       </header>
 
       <main className="flex-1">
