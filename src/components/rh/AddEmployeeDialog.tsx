@@ -27,13 +27,23 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import useAppStore from '@/stores/main'
-import { Plus } from 'lucide-react'
+import { Plus, Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const formSchema = z.object({
   name: z.string().min(1, 'OBRIGATÓRIO'),
   username: z.string().optional(),
-  teamCategory: z.enum(['SÓCIO', 'DENTISTA', 'COLABORADOR']),
+  teamCategory: z.array(z.string()).min(1, 'SELECIONE AO MENOS UMA'),
   role: z.string().min(1, 'OBRIGATÓRIO'),
   department: z.string().min(1, 'OBRIGATÓRIO'),
   email: z.string().email('INVÁLIDO').min(1, 'OBRIGATÓRIO'),
@@ -61,7 +71,7 @@ export function AddEmployeeDialog({
     defaultValues: {
       name: '',
       username: '',
-      teamCategory: 'COLABORADOR',
+      teamCategory: ['COLABORADOR'],
       role: '',
       department: '',
       email: '',
@@ -136,20 +146,56 @@ export function AddEmployeeDialog({
                   control={form.control}
                   name="teamCategory"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CATEGORIA</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="SELECIONE..." />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="SÓCIO">SÓCIO</SelectItem>
-                          <SelectItem value="DENTISTA">DENTISTA</SelectItem>
-                          <SelectItem value="COLABORADOR">COLABORADOR</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>FUNÇÕES PROFISSIONAIS</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                'w-full justify-between',
+                                !field.value?.length && 'text-muted-foreground',
+                              )}
+                            >
+                              {field.value?.length > 0 ? field.value.join(', ') : 'SELECIONE...'}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <Command>
+                            <CommandInput placeholder="BUSCAR FUNÇÃO..." />
+                            <CommandList>
+                              <CommandEmpty>NENHUMA FUNÇÃO ENCONTRADA.</CommandEmpty>
+                              <CommandGroup>
+                                {['SÓCIO', 'DENTISTA', 'COLABORADOR'].map((cat) => (
+                                  <CommandItem
+                                    value={cat}
+                                    key={cat}
+                                    onSelect={() => {
+                                      const current = field.value || []
+                                      const updated = current.includes(cat)
+                                        ? current.filter((val) => val !== cat)
+                                        : [...current, cat]
+                                      field.onChange(updated)
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        field.value?.includes(cat) ? 'opacity-100' : 'opacity-0',
+                                      )}
+                                    />
+                                    {cat}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}

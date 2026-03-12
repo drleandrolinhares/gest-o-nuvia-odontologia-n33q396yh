@@ -86,9 +86,17 @@ export default function EmployeeProfile() {
                 </Badge>
               )}
               {employee.status !== 'Desligado' && (
-                <Badge variant="outline" className="border-primary/50 text-primary bg-primary/5">
-                  {employee.teamCategory || 'COLABORADOR'}
-                </Badge>
+                <div className="flex flex-wrap gap-2">
+                  {(employee.teamCategory || ['COLABORADOR']).map((cat) => (
+                    <Badge
+                      key={cat}
+                      variant="outline"
+                      className="border-primary/50 text-primary bg-primary/5"
+                    >
+                      {cat}
+                    </Badge>
+                  ))}
+                </div>
               )}
             </h1>
             <p className="text-muted-foreground flex items-center gap-2 mt-1">

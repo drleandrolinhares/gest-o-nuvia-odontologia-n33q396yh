@@ -20,7 +20,19 @@ import { Checkbox } from '@/components/ui/checkbox'
 import useAppStore, { Employee } from '@/stores/main'
 import { useToast } from '@/hooks/use-toast'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { User, Phone, Mail, Search, Key, Shield, Eye, EyeOff, Briefcase } from 'lucide-react'
+import {
+  User,
+  Phone,
+  Mail,
+  Search,
+  Key,
+  Shield,
+  Eye,
+  EyeOff,
+  Briefcase,
+  Check,
+  ChevronsUpDown,
+} from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -29,6 +41,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 
 const PERMISSIONS_DEF = [
   {
@@ -135,7 +157,7 @@ const formSchema = z
     permissions: z.record(z.array(z.string())).optional(),
     newPassword: z.string().optional(),
     confirmPassword: z.string().optional(),
-    teamCategory: z.enum(['SÓCIO', 'DENTISTA', 'COLABORADOR']).optional(),
+    teamCategory: z.array(z.string()).min(1, 'Obrigatório'),
     contractDetails: z.string().optional(),
   })
   .refine(
@@ -203,7 +225,7 @@ export function EditEmployeeDialog({
       permissions: {},
       newPassword: '',
       confirmPassword: '',
-      teamCategory: 'COLABORADOR',
+      teamCategory: ['COLABORADOR'],
       contractDetails: '',
     },
   })
@@ -233,7 +255,7 @@ export function EditEmployeeDialog({
           permissions: employee.permissions || {},
           newPassword: '',
           confirmPassword: '',
-          teamCategory: employee.teamCategory || 'COLABORADOR',
+          teamCategory: employee.teamCategory || ['COLABORADOR'],
           contractDetails: employee.contractDetails || '',
         })
         setIsEditingData(false)
@@ -458,24 +480,61 @@ export function EditEmployeeDialog({
                           control={form.control}
                           name="teamCategory"
                           render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Categoria Profissional</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={!isEditingData}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="bg-background">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="SÓCIO">SÓCIO</SelectItem>
-                                  <SelectItem value="DENTISTA">DENTISTA</SelectItem>
-                                  <SelectItem value="COLABORADOR">COLABORADOR</SelectItem>
-                                </SelectContent>
-                              </Select>
+                            <FormItem className="md:col-span-3">
+                              <FormLabel>Funções Profissionais</FormLabel>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      disabled={!isEditingData}
+                                      className={cn(
+                                        'w-full justify-between bg-background font-normal',
+                                        !field.value?.length && 'text-muted-foreground',
+                                      )}
+                                    >
+                                      {field.value?.length > 0
+                                        ? field.value.join(', ')
+                                        : 'Selecione...'}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                  <Command>
+                                    <CommandInput placeholder="Buscar função..." />
+                                    <CommandList>
+                                      <CommandEmpty>Nenhuma função encontrada.</CommandEmpty>
+                                      <CommandGroup>
+                                        {['SÓCIO', 'DENTISTA', 'COLABORADOR'].map((cat) => (
+                                          <CommandItem
+                                            value={cat}
+                                            key={cat}
+                                            onSelect={() => {
+                                              const current = field.value || []
+                                              const updated = current.includes(cat)
+                                                ? current.filter((val) => val !== cat)
+                                                : [...current, cat]
+                                              field.onChange(updated)
+                                            }}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                'mr-2 h-4 w-4',
+                                                field.value?.includes(cat)
+                                                  ? 'opacity-100'
+                                                  : 'opacity-0',
+                                              )}
+                                            />
+                                            {cat}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <FormMessage />
                             </FormItem>
                           )}

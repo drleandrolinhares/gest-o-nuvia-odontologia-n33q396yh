@@ -35,8 +35,11 @@ export function TeamTab() {
 
     const matchCategory =
       categoryFilter === 'TIME TOTAL' ||
-      (categoryFilter === 'COLABORADOR' && (!e.teamCategory || e.teamCategory === 'COLABORADOR')) ||
-      e.teamCategory === categoryFilter
+      (categoryFilter === 'COLABORADOR' &&
+        (!e.teamCategory ||
+          e.teamCategory.length === 0 ||
+          e.teamCategory.includes('COLABORADOR'))) ||
+      (e.teamCategory && e.teamCategory.includes(categoryFilter))
 
     return matchStatus && matchCategory
   })

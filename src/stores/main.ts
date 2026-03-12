@@ -44,7 +44,7 @@ export type Employee = {
   accessSchedule?: boolean
   systemProfiles?: string[]
   lastAccess?: string
-  teamCategory?: 'SÓCIO' | 'DENTISTA' | 'COLABORADOR'
+  teamCategory?: string[]
   contractDetails?: string
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
@@ -218,7 +218,11 @@ const mEmp = (d: any): Employee => {
     accessSchedule: d.access_schedule,
     systemProfiles: d.system_profiles || [],
     lastAccess: d.last_access,
-    teamCategory: d.team_category || 'COLABORADOR',
+    teamCategory: Array.isArray(d.team_category)
+      ? d.team_category
+      : d.team_category
+        ? [d.team_category]
+        : ['COLABORADOR'],
     contractDetails: d.contract_details || '',
   }
 }
@@ -634,7 +638,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             state: e.state,
             access_schedule: e.accessSchedule,
             system_profiles: e.systemProfiles || [],
-            team_category: e.teamCategory || 'COLABORADOR',
+            team_category: e.teamCategory || ['COLABORADOR'],
             contract_details: e.contractDetails || '',
           },
         ])

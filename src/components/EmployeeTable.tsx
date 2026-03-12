@@ -42,9 +42,17 @@ export function EmployeeTable({ employees }: { employees: Employee[] }) {
                 </Link>
               </TableCell>
               <TableCell>
-                <Badge variant="outline" className="uppercase bg-background">
-                  {emp.teamCategory || 'COLABORADOR'}
-                </Badge>
+                <div className="flex flex-wrap gap-1">
+                  {(emp.teamCategory || ['COLABORADOR']).map((cat) => (
+                    <Badge
+                      key={cat}
+                      variant="outline"
+                      className="uppercase bg-background text-[10px] leading-tight"
+                    >
+                      {cat}
+                    </Badge>
+                  ))}
+                </div>
               </TableCell>
               <TableCell>
                 <div className="font-medium uppercase text-sm">{emp.role}</div>
