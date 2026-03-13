@@ -49,6 +49,51 @@ const calculateMinutes = (schedule: Partial<TWorkSchedule>) => {
   return total
 }
 
+const renderBalanceBadge = (worked: number, target: number) => {
+  if (worked === 0) return null
+
+  const diff = target - worked
+
+  if (diff === 0) {
+    return (
+      <div className="mt-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 text-center border border-slate-200 w-full max-w-[80px]">
+        00:00
+        <br />
+        <span className="text-[7px] font-semibold opacity-70 uppercase tracking-tighter">
+          NO PRAZO
+        </span>
+      </div>
+    )
+  }
+
+  const isPositive = diff > 0
+  const absDiff = Math.abs(diff)
+
+  return (
+    <div
+      className={cn(
+        'mt-1.5 text-[10px] font-bold px-1.5 py-1 rounded-md text-center border w-full max-w-[80px] shadow-sm transition-colors',
+        isPositive
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          : 'bg-red-50 text-red-700 border-red-200',
+      )}
+    >
+      <div className="flex items-center justify-center gap-0.5 font-black tracking-tight">
+        {isPositive ? '+' : '-'}
+        {formatMinutes(absDiff)}
+      </div>
+      <div
+        className={cn(
+          'text-[7px] font-extrabold uppercase mt-0.5 tracking-tighter leading-[1.1]',
+          isPositive ? 'text-emerald-600/90' : 'text-red-600/90',
+        )}
+      >
+        {isPositive ? 'SALDO POSITIVO' : 'SALDO NEGATIVO'}
+      </div>
+    </div>
+  )
+}
+
 export default function WorkSchedule() {
   const {
     employees,
@@ -342,28 +387,28 @@ export default function WorkSchedule() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-100/50">
-                    <TableHead className="font-bold text-slate-700 w-[240px]">
+                    <TableHead className="font-bold text-slate-700 w-[200px]">
                       COLABORADOR
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[180px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[170px]">
                       MANHÃ (ENTRADA-SAÍDA)
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[180px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[170px]">
                       TARDE (ENTRADA-SAÍDA)
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[160px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[140px]">
                       LANCHE MANHÃ
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[160px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[140px]">
                       LANCHE TARDE
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[100px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[110px]">
                       DIA
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[100px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[110px]">
                       SEMANA
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[100px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[80px]">
                       AÇÕES
                     </TableHead>
                   </TableRow>
@@ -536,33 +581,39 @@ export default function WorkSchedule() {
                                   />
                                 </div>
                               </TableCell>
-                              <TableCell className="text-center py-3">
-                                <span
-                                  className={cn(
-                                    'font-bold text-xs px-2.5 py-1 rounded w-[60px] inline-block text-center',
-                                    dailyMins > 0 && dailyMins !== dailyTarget
-                                      ? 'text-amber-700 bg-amber-100 border border-amber-200'
-                                      : dailyMins === dailyTarget
-                                        ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                                        : 'text-slate-500 bg-slate-100',
-                                  )}
-                                >
-                                  {formatMinutes(dailyMins)}
-                                </span>
+                              <TableCell className="text-center py-3 align-top">
+                                <div className="flex flex-col items-center justify-start">
+                                  <span
+                                    className={cn(
+                                      'font-bold text-xs px-2.5 py-1 rounded w-[60px] inline-block text-center',
+                                      dailyMins > 0 && dailyMins !== dailyTarget
+                                        ? 'text-amber-700 bg-amber-100 border border-amber-200'
+                                        : dailyMins === dailyTarget
+                                          ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                                          : 'text-slate-500 bg-slate-100',
+                                    )}
+                                  >
+                                    {formatMinutes(dailyMins)}
+                                  </span>
+                                  {renderBalanceBadge(dailyMins, dailyTarget)}
+                                </div>
                               </TableCell>
-                              <TableCell className="text-center py-3">
-                                <span
-                                  className={cn(
-                                    'font-bold text-xs px-2.5 py-1 rounded w-[60px] inline-block text-center',
-                                    weeklyMins > 0 && weeklyMins !== weeklyTarget
-                                      ? 'text-amber-700 bg-amber-100 border border-amber-200'
-                                      : weeklyMins === weeklyTarget
-                                        ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                                        : 'text-slate-500 bg-slate-100',
-                                  )}
-                                >
-                                  {formatMinutes(weeklyMins)}
-                                </span>
+                              <TableCell className="text-center py-3 align-top">
+                                <div className="flex flex-col items-center justify-start">
+                                  <span
+                                    className={cn(
+                                      'font-bold text-xs px-2.5 py-1 rounded w-[60px] inline-block text-center',
+                                      weeklyMins > 0 && weeklyMins !== weeklyTarget
+                                        ? 'text-amber-700 bg-amber-100 border border-amber-200'
+                                        : weeklyMins === weeklyTarget
+                                          ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                                          : 'text-slate-500 bg-slate-100',
+                                    )}
+                                  >
+                                    {formatMinutes(weeklyMins)}
+                                  </span>
+                                  {renderBalanceBadge(weeklyMins, weeklyTarget)}
+                                </div>
                               </TableCell>
                               <TableCell className="text-center py-3">
                                 <div className="flex items-center justify-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
