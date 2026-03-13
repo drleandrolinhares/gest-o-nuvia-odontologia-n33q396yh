@@ -178,15 +178,40 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [user?.id, markRoomAsRead],
   )
 
+  const loadMessages = useCallback(async (roomId: string) => {
+    if (!roomId) return
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session) {
+      throw new Error('Sessão expirada. Verifique seu login.')
+    }
+
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('room_id', roomId)
+      .order('created_at', { ascending: true })
+      .limit(300)
+
+    if (error) throw error
+    if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
+  }, [])
+
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (!document.hidden && activeRoomIdRef.current) {
-        markRoomAsRead(activeRoomIdRef.current)
+      if (!document.hidden) {
+        if (activeRoomIdRef.current) {
+          markRoomAsRead(activeRoomIdRef.current)
+          loadMessages(activeRoomIdRef.current)
+        }
+        fetchUnread()
+        fetchMyRooms()
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [markRoomAsRead])
+  }, [markRoomAsRead, loadMessages, fetchUnread, fetchMyRooms])
 
   useEffect(() => {
     if (!user || !user.id) return
@@ -202,7 +227,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           handleNewMessage(payload.new as ChatMessage)
         },
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          fetchUnread()
+          if (activeRoomIdRef.current) {
+            loadMessages(activeRoomIdRef.current)
+          }
+        }
+      })
 
     const participantChannel = supabase
       .channel('chat_participants_updates')
@@ -236,7 +268,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         },
         () => fetchMyRooms(),
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          fetchMyRooms()
+        }
+      })
 
     const presenceChannel = supabase.channel('chat_presence', {
       config: { presence: { key: user.id } },
@@ -254,27 +290,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       supabase.removeChannel(participantChannel)
       supabase.removeChannel(presenceChannel)
     }
-  }, [user, fetchMyRooms, fetchUnread, handleNewMessage])
-
-  const loadMessages = async (roomId: string) => {
-    if (!roomId) return
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (!session) {
-      throw new Error('Sessão expirada. Verifique seu login.')
-    }
-
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('room_id', roomId)
-      .order('created_at', { ascending: true })
-      .limit(300)
-
-    if (error) throw error
-    if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
-  }
+  }, [user, fetchMyRooms, fetchUnread, handleNewMessage, loadMessages])
 
   const logAudit = async (action: string) => {
     if (!user || !user.id) return

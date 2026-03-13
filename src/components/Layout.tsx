@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { useChatStore } from '@/stores/chat'
+import useAppStore from '@/stores/main'
 
 const navigation = [
   { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
@@ -78,6 +79,17 @@ export function Layout() {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { unreadCounts } = useChatStore()
+  const { isDataLoading } = useAppStore()
+
+  if (isDataLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
+        <NuviaLogo className="h-24 w-auto mb-4 animate-pulse opacity-80" />
+        <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
+        <p className="text-sm opacity-80 animate-pulse">Sincronizando dados da clínica...</p>
+      </div>
+    )
+  }
 
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 

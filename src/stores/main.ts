@@ -137,6 +137,7 @@ export type WorkSchedule = {
 
 interface AppStore {
   isAuthenticated: boolean
+  isDataLoading: boolean
   currentUserId: string | null
   isAdmin: boolean
   can: (module: string, action: string) => boolean
@@ -328,6 +329,7 @@ const StoreContext = createContext<AppStore | undefined>(undefined)
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isDataLoading, setIsDataLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [departments, setDepartments] = useState(mockDepartments)
   const [packageTypes, setPackageTypes] = useState(mockPackageTypes)
@@ -354,6 +356,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user) {
       setIsAuthenticated(true)
+      setIsDataLoading(true)
       Promise.all([
         supabase
           .from('employees')
@@ -406,7 +409,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
               })),
             ),
           ),
-      ])
+      ]).finally(() => {
+        setIsDataLoading(false)
+      })
     } else {
       setIsAuthenticated(false)
       setCurrentUserId(null)
@@ -416,6 +421,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setBonusTypes([])
       setEmployeeDocuments([])
       setWorkSchedules([])
+      setIsDataLoading(false)
     }
   }, [user])
 
@@ -1219,6 +1225,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       isAuthenticated,
+      isDataLoading,
       currentUserId,
       isAdmin,
       can,
@@ -1279,6 +1286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       isAuthenticated,
+      isDataLoading,
       currentUserId,
       isAdmin,
       can,
