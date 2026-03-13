@@ -25,7 +25,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { EditEmployeeDialog } from '@/components/rh/EditEmployeeDialog'
-import { differenceInMonths, isValid, parseISO } from 'date-fns'
+import { getVacationStatus } from '@/lib/vacation'
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>()
@@ -95,32 +95,7 @@ export default function EmployeeProfile() {
   }
 
   const docs = employeeDocuments.filter((d) => d.employee_id === employee.id)
-
-  const monthsElapsed =
-    employee.hireDate && isValid(parseISO(employee.hireDate))
-      ? differenceInMonths(new Date(), parseISO(employee.hireDate))
-      : -1
-  const effectiveMonths = monthsElapsed >= 0 ? monthsElapsed % 12 : -1
-
-  let vacationColor = 'bg-muted/50 border-muted text-muted-foreground'
-  let vacationIcon = <Clock className="h-8 w-8 text-muted-foreground" />
-  let vacationText = 'SEM DATA DE ADMISSÃO'
-
-  if (effectiveMonths >= 0) {
-    if (effectiveMonths <= 8) {
-      vacationColor = 'bg-emerald-50 border-emerald-200 text-emerald-800'
-      vacationIcon = <CheckCircle className="h-8 w-8 text-emerald-600" />
-      vacationText = 'NO PRAZO (ATÉ 8 MESES)'
-    } else if (effectiveMonths <= 10) {
-      vacationColor = 'bg-amber-50 border-amber-200 text-amber-800'
-      vacationIcon = <AlertTriangle className="h-8 w-8 text-amber-600" />
-      vacationText = 'ATENÇÃO (9 A 10 MESES)'
-    } else {
-      vacationColor = 'bg-red-50 border-red-200 text-red-800'
-      vacationIcon = <AlertTriangle className="h-8 w-8 text-red-600" />
-      vacationText = 'VENCIMENTO PRÓXIMO/VENCIDO (11+ MESES)'
-    }
-  }
+  const vStatus = getVacationStatus(employee.vacationDueDate)
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
@@ -251,7 +226,9 @@ export default function EmployeeProfile() {
           </CardContent>
         </Card>
 
-        <Card className={`md:col-span-1 border-2 shadow-md ${vacationColor}`}>
+        <Card
+          className={`md:col-span-1 border-2 shadow-md ${vStatus.colorClass} transition-colors`}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg">
               <CalendarDays className="h-5 w-5" /> VENCIMENTO DE FÉRIAS
@@ -259,12 +236,22 @@ export default function EmployeeProfile() {
           </CardHeader>
           <CardContent className="pt-4 flex flex-col justify-center gap-4">
             <div className="flex items-center gap-4 bg-white/50 p-4 rounded-xl border border-white/20">
-              {vacationIcon}
+              {vStatus.status === 'ok' && (
+                <CheckCircle className={`h-8 w-8 shrink-0 ${vStatus.iconColor}`} />
+              )}
+              {(vStatus.status === 'warning' || vStatus.status === 'critical') && (
+                <AlertTriangle className={`h-8 w-8 shrink-0 ${vStatus.iconColor}`} />
+              )}
+              {vStatus.status === 'unknown' && (
+                <Clock className={`h-8 w-8 shrink-0 ${vStatus.iconColor}`} />
+              )}
               <div>
-                <p className="font-bold text-lg leading-tight">{vacationText}</p>
-                <p className="text-sm opacity-80 font-medium">
-                  TEMPO GESTADO: {monthsElapsed >= 0 ? `${monthsElapsed} MESES` : 'N/A'}
-                </p>
+                <p className="font-bold text-lg leading-tight">{vStatus.phrase}</p>
+                {vStatus.status !== 'unknown' && (
+                  <p className="text-sm opacity-80 font-medium mt-1">
+                    DIAS ATÉ O VENCIMENTO DAS FÉRIAS: {vStatus.days}
+                  </p>
+                )}
               </div>
             </div>
 

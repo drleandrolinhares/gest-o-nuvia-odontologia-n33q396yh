@@ -110,6 +110,24 @@ export type Database = {
           },
         ]
       }
+      bonus_settings: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -219,12 +237,47 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_documents: {
+        Row: {
+          created_at: string
+          employee_id: string
+          file_name: string
+          file_path: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          file_name: string
+          file_path: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'employee_documents_employee_id_fkey'
+            columns: ['employee_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       employees: {
         Row: {
           address: string | null
           address_complement: string | null
           address_number: string | null
           birth_date: string | null
+          bonus_due_date: string | null
+          bonus_rules: string | null
+          bonus_type: string | null
           cep: string | null
           city: string | null
           contract_details: string | null
@@ -254,6 +307,9 @@ export type Database = {
           address_complement?: string | null
           address_number?: string | null
           birth_date?: string | null
+          bonus_due_date?: string | null
+          bonus_rules?: string | null
+          bonus_type?: string | null
           cep?: string | null
           city?: string | null
           contract_details?: string | null
@@ -283,6 +339,9 @@ export type Database = {
           address_complement?: string | null
           address_number?: string | null
           birth_date?: string | null
+          bonus_due_date?: string | null
+          bonus_rules?: string | null
+          bonus_type?: string | null
           cep?: string | null
           city?: string | null
           contract_details?: string | null
@@ -650,6 +709,10 @@ export const Constants = {
 //   user_id: uuid (nullable)
 //   action: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: bonus_settings
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: chat_messages
 //   id: uuid (not null, default: gen_random_uuid())
 //   room_id: uuid (nullable)
@@ -672,6 +735,12 @@ export const Constants = {
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
 //   date: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: employee_documents
+//   id: uuid (not null, default: gen_random_uuid())
+//   employee_id: uuid (not null)
+//   file_name: text (not null)
+//   file_path: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
 // Table: employees
 //   id: uuid (not null, default: gen_random_uuid())
@@ -701,6 +770,9 @@ export const Constants = {
 //   last_access: timestamp with time zone (nullable)
 //   team_category: _text (nullable, default: ARRAY['COLABORADOR'::text])
 //   contract_details: text (nullable, default: ''::text)
+//   bonus_type: text (nullable)
+//   bonus_rules: text (nullable)
+//   bonus_due_date: text (nullable)
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -753,6 +825,8 @@ export const Constants = {
 //   PRIMARY KEY audit_logs_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 //   FOREIGN KEY audit_logs_user_id_profiles_fkey: FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE SET NULL
+// Table: bonus_settings
+//   PRIMARY KEY bonus_settings_pkey: PRIMARY KEY (id)
 // Table: chat_messages
 //   PRIMARY KEY chat_messages_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY chat_messages_room_id_fkey: FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE
@@ -767,6 +841,9 @@ export const Constants = {
 //   CHECK chat_rooms_type_check: CHECK ((type = ANY (ARRAY['individual'::text, 'group'::text])))
 // Table: documents
 //   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
+// Table: employee_documents
+//   FOREIGN KEY employee_documents_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+//   PRIMARY KEY employee_documents_pkey: PRIMARY KEY (id)
 // Table: employees
 //   PRIMARY KEY employees_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
@@ -793,6 +870,10 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+// Table: bonus_settings
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: chat_messages
 //   Policy "Users can insert messages in their rooms" (INSERT, PERMISSIVE) roles={public}
 //     WITH CHECK: ((EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.room_id) AND (cp.user_id = auth.uid())))) AND (sender_id = auth.uid()))
@@ -811,6 +892,10 @@ export const Constants = {
 //   Policy "Users can view rooms they are in" (SELECT, PERMISSIVE) roles={public}
 //     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.id) AND (cp.user_id = auth.uid()))))
 // Table: documents
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: employee_documents
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
