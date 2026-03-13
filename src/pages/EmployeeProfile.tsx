@@ -21,6 +21,7 @@ import {
   Upload,
   Download,
   Paperclip,
+  Pencil,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -37,11 +38,14 @@ export default function EmployeeProfile() {
     employeeDocuments,
     addEmployeeDocument,
     removeEmployeeDocument,
+    isAdmin,
   } = useAppStore()
   const employee = employees.find((e) => e.id === id)
 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [editTab, setEditTab] = useState('dados')
+  const [startEditMode, setStartEditMode] = useState(false)
+  const [focusSection, setFocusSection] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   if (!employee) {
@@ -76,6 +80,15 @@ export default function EmployeeProfile() {
 
   const handleResetAccess = () => {
     setEditTab('seguranca')
+    setStartEditMode(false)
+    setFocusSection(null)
+    setIsEditOpen(true)
+  }
+
+  const handleEditClick = (section: string) => {
+    setEditTab('dados')
+    setStartEditMode(true)
+    setFocusSection(section)
     setIsEditOpen(true)
   }
 
@@ -148,6 +161,8 @@ export default function EmployeeProfile() {
               className="border-primary text-primary hover:bg-primary/10"
               onClick={() => {
                 setEditTab('seguranca')
+                setStartEditMode(false)
+                setFocusSection(null)
                 setIsEditOpen(true)
               }}
             >
@@ -159,6 +174,8 @@ export default function EmployeeProfile() {
             className="border-primary text-primary hover:bg-primary/10"
             onClick={() => {
               setEditTab('dados')
+              setStartEditMode(false)
+              setFocusSection(null)
               setIsEditOpen(true)
             }}
           >
@@ -181,8 +198,18 @@ export default function EmployeeProfile() {
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-1 border-primary/20 shadow-md">
-          <CardHeader className="bg-primary/5 pb-4 border-b border-primary/10">
+          <CardHeader className="bg-primary/5 pb-4 border-b border-primary/10 flex flex-row items-center justify-between">
             <CardTitle className="text-primary text-lg">DADOS CADASTRAIS</CardTitle>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 hover:bg-primary/20 hover:text-primary shrink-0 -mr-2"
+                onClick={() => handleEditClick('dados')}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="pt-6 grid gap-6">
             <div className="flex items-center gap-3">
@@ -267,10 +294,20 @@ export default function EmployeeProfile() {
         </Card>
 
         <Card className="md:col-span-1 border-nuvia-gold/30 shadow-md">
-          <CardHeader className="bg-nuvia-gold/10 pb-4 border-b border-nuvia-gold/20">
+          <CardHeader className="bg-nuvia-gold/10 pb-4 border-b border-nuvia-gold/20 flex flex-row items-center justify-between">
             <CardTitle className="text-nuvia-gold flex items-center gap-2 text-lg">
               <Gift className="h-5 w-5" /> BONIFICAÇÃO
             </CardTitle>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 hover:bg-nuvia-gold/20 hover:text-nuvia-gold shrink-0 -mr-2"
+                onClick={() => handleEditClick('bonus')}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
             {employee.bonusType ? (
@@ -376,10 +413,20 @@ export default function EmployeeProfile() {
         </Card>
 
         <Card className="md:col-span-1 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <FileText className="h-5 w-5 text-nuvia-navy" /> RELAÇÕES E ACORDOS
             </CardTitle>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 hover:bg-muted"
+                onClick={() => handleEditClick('contrato')}
+              >
+                <Pencil className="h-4 w-4 text-muted-foreground hover:text-nuvia-navy" />
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {employee.contractDetails ? (
@@ -398,8 +445,16 @@ export default function EmployeeProfile() {
       <EditEmployeeDialog
         employee={employee}
         open={isEditOpen}
-        onOpenChange={setIsEditOpen}
+        onOpenChange={(open) => {
+          setIsEditOpen(open)
+          if (!open) {
+            setStartEditMode(false)
+            setFocusSection(null)
+          }
+        }}
         defaultTab={editTab}
+        startInEditMode={startEditMode}
+        focusSection={focusSection}
       />
     </div>
   )

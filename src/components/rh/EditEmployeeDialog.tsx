@@ -101,11 +101,15 @@ export function EditEmployeeDialog({
   open,
   onOpenChange,
   defaultTab = 'dados',
+  startInEditMode = false,
+  focusSection = null,
 }: {
   employee: Employee | null
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultTab?: string
+  startInEditMode?: boolean
+  focusSection?: string | null
 }) {
   const { updateEmployee, updateEmployeePassword, generateEmployeeAccess, bonusTypes } =
     useAppStore()
@@ -173,7 +177,7 @@ export function EditEmployeeDialog({
           bonusRules: employee.bonusRules || '',
           bonusDueDate: employee.bonusDueDate || '',
         })
-        setIsEditingData(false)
+        setIsEditingData(startInEditMode)
         setActiveTab(defaultTab)
         setShowNewPassword(false)
         setShowConfirmPassword(false)
@@ -181,10 +185,16 @@ export function EditEmployeeDialog({
         setGenPass('')
         setIsGenerateAccessMode(false)
       }
-    } else {
-      setIsEditingData(true)
+      if (focusSection) {
+        setTimeout(() => {
+          const el = document.getElementById(`section-${focusSection}`)
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }, 100)
+      }
     }
-  }, [open, employee?.id, defaultTab, form, employee])
+  }, [open, employee, defaultTab, form, startInEditMode, focusSection])
 
   const onSubmit = async (v: FormValues) => {
     if (!employee) return
@@ -317,7 +327,10 @@ export function EditEmployeeDialog({
 
                 <TabsContent value="dados" className="m-0 space-y-8 max-w-4xl">
                   <div className="space-y-8">
-                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                    <div
+                      id="section-dados"
+                      className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm"
+                    >
                       <SectionTitle title="INFORMAÇÕES BÁSICAS" icon={User} />
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField
@@ -374,7 +387,10 @@ export function EditEmployeeDialog({
                       </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                    <div
+                      id="section-contrato"
+                      className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm"
+                    >
                       <SectionTitle title="RELAÇÕES E ACORDOS COM A EMPRESA" icon={Briefcase} />
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField
@@ -463,7 +479,10 @@ export function EditEmployeeDialog({
                       </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                    <div
+                      id="section-bonus"
+                      className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm"
+                    >
                       <SectionTitle title="BONIFICAÇÃO" icon={Gift} />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField

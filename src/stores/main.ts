@@ -401,7 +401,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       role.includes('admin') ||
       role.includes('diretor') ||
       cats.includes('ADMIN') ||
-      cats.includes('DIRETORIA')
+      cats.includes('DIRETORIA') ||
+      cats.includes('MASTER')
     )
   }, [employees, user])
 
