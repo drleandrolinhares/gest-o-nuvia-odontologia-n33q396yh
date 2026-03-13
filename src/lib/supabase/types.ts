@@ -521,6 +521,56 @@ export type Database = {
         }
         Relationships: []
       }
+      work_schedules: {
+        Row: {
+          afternoon_snack_end: string | null
+          afternoon_snack_start: string | null
+          created_at: string
+          employee_id: string
+          end_time: string | null
+          id: string
+          morning_snack_end: string | null
+          morning_snack_start: string | null
+          start_time: string | null
+          total_daily_hours: number | null
+          work_date: string
+        }
+        Insert: {
+          afternoon_snack_end?: string | null
+          afternoon_snack_start?: string | null
+          created_at?: string
+          employee_id: string
+          end_time?: string | null
+          id?: string
+          morning_snack_end?: string | null
+          morning_snack_start?: string | null
+          start_time?: string | null
+          total_daily_hours?: number | null
+          work_date: string
+        }
+        Update: {
+          afternoon_snack_end?: string | null
+          afternoon_snack_start?: string | null
+          created_at?: string
+          employee_id?: string
+          end_time?: string | null
+          id?: string
+          morning_snack_end?: string | null
+          morning_snack_start?: string | null
+          start_time?: string | null
+          total_daily_hours?: number | null
+          work_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'work_schedules_employee_id_fkey'
+            columns: ['employee_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -820,6 +870,18 @@ export const Constants = {
 //   has_special_negotiation: boolean (nullable, default: false)
 //   negotiation_notes: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: work_schedules
+//   id: uuid (not null, default: gen_random_uuid())
+//   employee_id: uuid (not null)
+//   work_date: date (not null)
+//   start_time: time without time zone (nullable)
+//   end_time: time without time zone (nullable)
+//   morning_snack_start: time without time zone (nullable)
+//   morning_snack_end: time without time zone (nullable)
+//   afternoon_snack_start: time without time zone (nullable)
+//   afternoon_snack_end: time without time zone (nullable)
+//   total_daily_hours: numeric (nullable, default: 0)
+//   created_at: timestamp with time zone (not null, default: now())
 
 // --- CONSTRAINTS ---
 // Table: acessos
@@ -861,6 +923,10 @@ export const Constants = {
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
 // Table: suppliers
 //   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
+// Table: work_schedules
+//   FOREIGN KEY work_schedules_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+//   UNIQUE work_schedules_employee_id_work_date_key: UNIQUE (employee_id, work_date)
+//   PRIMARY KEY work_schedules_pkey: PRIMARY KEY (id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: acessos
@@ -923,6 +989,10 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: suppliers
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: work_schedules
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
@@ -1092,3 +1162,5 @@ export const Constants = {
 // --- INDEXES ---
 // Table: chat_participants
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
+// Table: work_schedules
+//   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)

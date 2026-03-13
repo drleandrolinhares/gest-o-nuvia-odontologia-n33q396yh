@@ -125,6 +125,8 @@ export type WorkSchedule = {
   employee_id: string
   work_date: string
   start_time: string | null
+  morning_end_time: string | null
+  afternoon_start_time: string | null
   end_time: string | null
   morning_snack_start: string | null
   morning_snack_end: string | null
@@ -1181,6 +1183,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             employee_id: s.employee_id,
             work_date: s.work_date,
             start_time: s.start_time || null,
+            morning_end_time: s.morning_end_time || null,
+            afternoon_start_time: s.afternoon_start_time || null,
             end_time: s.end_time || null,
             morning_snack_start: s.morning_snack_start || null,
             morning_snack_end: s.morning_snack_end || null,

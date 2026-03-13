@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import useAppStore, { WorkSchedule as TWorkSchedule } from '@/stores/main'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -36,32 +36,34 @@ const formatMinutes = (mins: number) => {
 }
 
 const calculateMinutes = (schedule: Partial<TWorkSchedule>) => {
-  let start = timeToMin(schedule.start_time)
-  let end = timeToMin(schedule.end_time)
-  if (end < start && end !== 0) end += 24 * 60
-
-  let mStart = timeToMin(schedule.morning_snack_start)
-  let mEnd = timeToMin(schedule.morning_snack_end)
+  let mStart = timeToMin(schedule.start_time)
+  let mEnd = timeToMin(schedule.morning_end_time)
   if (mEnd < mStart && mEnd !== 0) mEnd += 24 * 60
 
-  let aStart = timeToMin(schedule.afternoon_snack_start)
-  let aEnd = timeToMin(schedule.afternoon_snack_end)
+  let aStart = timeToMin(schedule.afternoon_start_time)
+  let aEnd = timeToMin(schedule.end_time)
   if (aEnd < aStart && aEnd !== 0) aEnd += 24 * 60
 
-  let total = end - start - (mEnd - mStart) - (aEnd - aStart)
-  return Math.max(0, total)
+  let total = Math.max(0, mEnd - mStart) + Math.max(0, aEnd - aStart)
+  return total
 }
 
 export default function WorkSchedule() {
   const { employees, departments, fetchWorkSchedules, workSchedules, upsertWorkSchedule } =
     useAppStore()
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const saved = localStorage.getItem('workScheduleDate')
+    return saved ? new Date(saved) : new Date()
+  })
+
   const [department, setDepartment] = useState<string>('all')
   const [drafts, setDrafts] = useState<Record<string, Partial<TWorkSchedule>>>({})
 
   const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
 
   useEffect(() => {
+    localStorage.setItem('workScheduleDate', selectedDate.toISOString())
     const start = format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')
     const end = format(endOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')
     fetchWorkSchedules(start, end)
@@ -174,9 +176,21 @@ export default function WorkSchedule() {
   }, [drafts, workSchedules, selectedDate, department, employees])
 
   const dateStr = format(selectedDate, 'yyyy-MM-dd')
-  const displayEmployees = activeEmployees
-    .filter((e) => department === 'all' || e.department === department)
-    .sort((a, b) => a.name.localeCompare(b.name))
+
+  const employeesByDepartment = useMemo(() => {
+    const groups: Record<string, typeof activeEmployees> = {}
+    const filtered = activeEmployees.filter(
+      (e) => department === 'all' || e.department === department,
+    )
+    filtered.forEach((emp) => {
+      if (!groups[emp.department]) groups[emp.department] = []
+      groups[emp.department].push(emp)
+    })
+    Object.keys(groups).forEach((k) => {
+      groups[k].sort((a, b) => a.name.localeCompare(b.name))
+    })
+    return groups
+  }, [activeEmployees, department])
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
@@ -243,155 +257,199 @@ export default function WorkSchedule() {
         </Select>
       </div>
 
-      <Card className="shadow-sm border-muted overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/30">
-                <TableHead className="font-semibold w-[200px]">COLABORADOR</TableHead>
-                <TableHead className="font-semibold text-center w-[180px]">
-                  EXPEDIENTE (INÍCIO - FIM)
-                </TableHead>
-                <TableHead className="font-semibold text-center w-[180px]">LANCHE MANHÃ</TableHead>
-                <TableHead className="font-semibold text-center w-[180px]">LANCHE TARDE</TableHead>
-                <TableHead className="font-semibold text-center">TOTAL DIA</TableHead>
-                <TableHead className="font-semibold text-center">TOTAL SEMANA</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayEmployees.map((emp) => {
-                const s = getScheduleForDay(emp.id, dateStr)
-                const dailyMins =
-                  getScheduleForDay(emp.id, dateStr).total_daily_hours !== undefined
-                    ? calculateMinutes(s)
-                    : s.total_daily_hours || 0
-                const weeklyMins = getWeeklyTotal(emp.id)
-
-                const hasMorningConflict = conflicts.has(`${emp.id}-morning`)
-                const hasAfternoonConflict = conflicts.has(`${emp.id}-afternoon`)
-
-                const dailyTarget = 8 * 60 + 48 // 528
-                const weeklyTarget = 44 * 60 // 2640
-
-                return (
-                  <TableRow key={emp.id} className="hover:bg-muted/10">
-                    <TableCell className="font-bold text-nuvia-navy">{emp.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 justify-center">
-                        <Input
-                          type="time"
-                          value={s.start_time || ''}
-                          onChange={(e) => updateDraft(emp.id, 'start_time', e.target.value)}
-                          onBlur={() => handleBlur(emp.id)}
-                          className="h-8 w-[75px] text-xs px-2 text-center"
-                        />
-                        <span className="text-muted-foreground text-xs font-bold">ÀS</span>
-                        <Input
-                          type="time"
-                          value={s.end_time || ''}
-                          onChange={(e) => updateDraft(emp.id, 'end_time', e.target.value)}
-                          onBlur={() => handleBlur(emp.id)}
-                          className="h-8 w-[75px] text-xs px-2 text-center"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 justify-center">
-                        <Input
-                          type="time"
-                          value={s.morning_snack_start || ''}
-                          onChange={(e) =>
-                            updateDraft(emp.id, 'morning_snack_start', e.target.value)
-                          }
-                          onBlur={() => handleBlur(emp.id)}
-                          className={cn(
-                            'h-8 w-[75px] text-xs px-2 text-center',
-                            hasMorningConflict && 'border-red-500 bg-red-50 text-red-900',
-                          )}
-                        />
-                        <span className="text-muted-foreground text-xs font-bold">-</span>
-                        <Input
-                          type="time"
-                          value={s.morning_snack_end || ''}
-                          onChange={(e) => updateDraft(emp.id, 'morning_snack_end', e.target.value)}
-                          onBlur={() => handleBlur(emp.id)}
-                          className={cn(
-                            'h-8 w-[75px] text-xs px-2 text-center',
-                            hasMorningConflict && 'border-red-500 bg-red-50 text-red-900',
-                          )}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 justify-center">
-                        <Input
-                          type="time"
-                          value={s.afternoon_snack_start || ''}
-                          onChange={(e) =>
-                            updateDraft(emp.id, 'afternoon_snack_start', e.target.value)
-                          }
-                          onBlur={() => handleBlur(emp.id)}
-                          className={cn(
-                            'h-8 w-[75px] text-xs px-2 text-center',
-                            hasAfternoonConflict && 'border-red-500 bg-red-50 text-red-900',
-                          )}
-                        />
-                        <span className="text-muted-foreground text-xs font-bold">-</span>
-                        <Input
-                          type="time"
-                          value={s.afternoon_snack_end || ''}
-                          onChange={(e) =>
-                            updateDraft(emp.id, 'afternoon_snack_end', e.target.value)
-                          }
-                          onBlur={() => handleBlur(emp.id)}
-                          className={cn(
-                            'h-8 w-[75px] text-xs px-2 text-center',
-                            hasAfternoonConflict && 'border-red-500 bg-red-50 text-red-900',
-                          )}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span
-                        className={cn(
-                          'font-bold text-sm bg-muted px-3 py-1 rounded',
-                          dailyMins > 0 && dailyMins !== dailyTarget
-                            ? 'text-amber-600 bg-amber-50'
-                            : 'text-emerald-700',
-                        )}
-                      >
-                        {formatMinutes(dailyMins)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span
-                        className={cn(
-                          'font-bold text-sm bg-muted px-3 py-1 rounded',
-                          weeklyMins > 0 && weeklyMins !== weeklyTarget
-                            ? 'text-amber-600 bg-amber-50'
-                            : 'text-emerald-700',
-                        )}
-                      >
-                        {formatMinutes(weeklyMins)}
-                      </span>
-                    </TableCell>
+      <div className="space-y-6">
+        {Object.entries(employeesByDepartment).map(([dept, emps]) => (
+          <Card key={dept} className="shadow-sm border-muted overflow-hidden">
+            <div className="bg-primary/5 px-4 py-3 border-b border-primary/10">
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <span className="w-1.5 h-5 bg-primary rounded-full inline-block"></span>
+                SETOR: {dept}
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="font-semibold w-[200px]">COLABORADOR</TableHead>
+                    <TableHead className="font-semibold text-center w-[180px]">
+                      MANHÃ (ENTRADA-SAÍDA)
+                    </TableHead>
+                    <TableHead className="font-semibold text-center w-[180px]">
+                      TARDE (ENTRADA-SAÍDA)
+                    </TableHead>
+                    <TableHead className="font-semibold text-center w-[150px]">
+                      LANCHE MANHÃ
+                    </TableHead>
+                    <TableHead className="font-semibold text-center w-[150px]">
+                      LANCHE TARDE
+                    </TableHead>
+                    <TableHead className="font-semibold text-center w-[110px]">TOTAL DIA</TableHead>
+                    <TableHead className="font-semibold text-center w-[110px]">
+                      TOTAL SEMANA
+                    </TableHead>
                   </TableRow>
-                )
-              })}
-              {displayEmployees.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center py-10 text-muted-foreground font-bold"
-                  >
-                    NENHUM COLABORADOR ENCONTRADO PARA O SETOR SELECIONADO.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {emps.map((emp) => {
+                    const s = getScheduleForDay(emp.id, dateStr)
+                    const dailyMins = calculateMinutes(s)
+                    const weeklyMins = getWeeklyTotal(emp.id)
+
+                    const hasMorningConflict = conflicts.has(`${emp.id}-morning`)
+                    const hasAfternoonConflict = conflicts.has(`${emp.id}-afternoon`)
+
+                    const dailyTarget = 8 * 60 + 48 // 528
+                    const weeklyTarget = 44 * 60 // 2640
+
+                    return (
+                      <TableRow key={emp.id} className="hover:bg-muted/10">
+                        <TableCell className="font-bold text-nuvia-navy">{emp.name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <Input
+                              type="time"
+                              value={s.start_time || ''}
+                              onChange={(e) => updateDraft(emp.id, 'start_time', e.target.value)}
+                              onBlur={() => handleBlur(emp.id)}
+                              className="h-8 w-[75px] text-xs px-1.5 text-center"
+                            />
+                            <span className="text-muted-foreground text-xs font-bold">-</span>
+                            <Input
+                              type="time"
+                              value={s.morning_end_time || ''}
+                              onChange={(e) =>
+                                updateDraft(emp.id, 'morning_end_time', e.target.value)
+                              }
+                              onBlur={() => handleBlur(emp.id)}
+                              className="h-8 w-[75px] text-xs px-1.5 text-center"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <Input
+                              type="time"
+                              value={s.afternoon_start_time || ''}
+                              onChange={(e) =>
+                                updateDraft(emp.id, 'afternoon_start_time', e.target.value)
+                              }
+                              onBlur={() => handleBlur(emp.id)}
+                              className="h-8 w-[75px] text-xs px-1.5 text-center"
+                            />
+                            <span className="text-muted-foreground text-xs font-bold">-</span>
+                            <Input
+                              type="time"
+                              value={s.end_time || ''}
+                              onChange={(e) => updateDraft(emp.id, 'end_time', e.target.value)}
+                              onBlur={() => handleBlur(emp.id)}
+                              className="h-8 w-[75px] text-xs px-1.5 text-center"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <Input
+                              type="time"
+                              value={s.morning_snack_start || ''}
+                              onChange={(e) =>
+                                updateDraft(emp.id, 'morning_snack_start', e.target.value)
+                              }
+                              onBlur={() => handleBlur(emp.id)}
+                              className={cn(
+                                'h-8 w-[70px] text-xs px-1.5 text-center',
+                                hasMorningConflict && 'border-red-500 bg-red-50 text-red-900',
+                              )}
+                            />
+                            <span className="text-muted-foreground text-xs font-bold">-</span>
+                            <Input
+                              type="time"
+                              value={s.morning_snack_end || ''}
+                              onChange={(e) =>
+                                updateDraft(emp.id, 'morning_snack_end', e.target.value)
+                              }
+                              onBlur={() => handleBlur(emp.id)}
+                              className={cn(
+                                'h-8 w-[70px] text-xs px-1.5 text-center',
+                                hasMorningConflict && 'border-red-500 bg-red-50 text-red-900',
+                              )}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 justify-center">
+                            <Input
+                              type="time"
+                              value={s.afternoon_snack_start || ''}
+                              onChange={(e) =>
+                                updateDraft(emp.id, 'afternoon_snack_start', e.target.value)
+                              }
+                              onBlur={() => handleBlur(emp.id)}
+                              className={cn(
+                                'h-8 w-[70px] text-xs px-1.5 text-center',
+                                hasAfternoonConflict && 'border-red-500 bg-red-50 text-red-900',
+                              )}
+                            />
+                            <span className="text-muted-foreground text-xs font-bold">-</span>
+                            <Input
+                              type="time"
+                              value={s.afternoon_snack_end || ''}
+                              onChange={(e) =>
+                                updateDraft(emp.id, 'afternoon_snack_end', e.target.value)
+                              }
+                              onBlur={() => handleBlur(emp.id)}
+                              className={cn(
+                                'h-8 w-[70px] text-xs px-1.5 text-center',
+                                hasAfternoonConflict && 'border-red-500 bg-red-50 text-red-900',
+                              )}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span
+                            className={cn(
+                              'font-bold text-xs bg-muted px-2.5 py-1 rounded',
+                              dailyMins > 0 && dailyMins !== dailyTarget
+                                ? 'text-amber-600 bg-amber-50'
+                                : dailyMins === dailyTarget
+                                  ? 'text-emerald-700 bg-emerald-50'
+                                  : 'text-muted-foreground',
+                            )}
+                          >
+                            {formatMinutes(dailyMins)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span
+                            className={cn(
+                              'font-bold text-xs bg-muted px-2.5 py-1 rounded',
+                              weeklyMins > 0 && weeklyMins !== weeklyTarget
+                                ? 'text-amber-600 bg-amber-50'
+                                : weeklyMins === weeklyTarget
+                                  ? 'text-emerald-700 bg-emerald-50'
+                                  : 'text-muted-foreground',
+                            )}
+                          >
+                            {formatMinutes(weeklyMins)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        ))}
+
+        {Object.keys(employeesByDepartment).length === 0 && (
+          <Card className="shadow-sm border-muted overflow-hidden p-10 text-center flex flex-col items-center gap-2">
+            <AlertTriangle className="h-8 w-8 text-muted-foreground/50" />
+            <p className="text-muted-foreground font-bold">
+              NENHUM COLABORADOR ENCONTRADO PARA O SETOR SELECIONADO.
+            </p>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }
