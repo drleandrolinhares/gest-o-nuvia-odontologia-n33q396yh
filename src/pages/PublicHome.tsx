@@ -111,7 +111,6 @@ function PublicHomeContent() {
   const navigate = useNavigate()
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
-  // Strictly protect administrative routes from accidentally rendering PublicHome
   const isAdminRoute =
     typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
 
@@ -123,7 +122,7 @@ function PublicHomeContent() {
       if (!user) {
         navigate('/login')
       } else {
-        navigate('/admin')
+        navigate('/admin/dashboard')
       }
     },
     [user, authLoading, navigate],
@@ -142,8 +141,6 @@ function PublicHomeContent() {
     return () => clearInterval(timer)
   }, [nextImage])
 
-  // AC: Route Protection & Route Synchronization
-  // Ensure PublicHome immediately stops rendering if the path indicates an admin route
   if (isAdminRoute) {
     return null
   }
@@ -158,10 +155,6 @@ function PublicHomeContent() {
       </div>
     )
   }
-
-  // We explicitly removed the forced redirect "if (user) navigate('/admin')"
-  // to avoid "phantom" redirects when users try to view the public site intentionally,
-  // satisfying the strict route isolation requirement.
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import RH from '@/pages/RH'
@@ -15,9 +15,16 @@ import Chat from '@/pages/Chat'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import { AppProvider } from '@/stores/main'
-import { AuthProvider } from '@/hooks/use-auth'
+import { AuthProvider, useAuth } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
 import { Toaster } from '@/components/ui/toaster'
+
+function RootRoute() {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="min-h-screen bg-[#0A192F]" />
+  if (user) return <Navigate to="/admin/dashboard" replace />
+  return <PublicHome />
+}
 
 export default function App() {
   return (
@@ -25,7 +32,7 @@ export default function App() {
       <AppProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<PublicHome />} />
+            <Route path="/" element={<RootRoute />} />
             <Route path="/login" element={<Login />} />
             <Route
               path="/admin"
@@ -37,8 +44,9 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Agenda />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<Index />} />
+              <Route path="agenda" element={<Agenda />} />
               <Route path="chat" element={<Chat />} />
               <Route path="acessos" element={<Acessos />} />
               <Route path="rh" element={<RH />} />

@@ -2,8 +2,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: '14.4'
   }
@@ -527,11 +525,13 @@ export type Database = {
           afternoon_snack_start: string | null
           created_at: string
           employee_id: string
-          end_time: string | null
+          afternoon_end: string | null
           id: string
           morning_snack_end: string | null
           morning_snack_start: string | null
-          start_time: string | null
+          morning_start: string | null
+          morning_end: string | null
+          afternoon_start: string | null
           total_daily_hours: number | null
           work_date: string
         }
@@ -540,11 +540,13 @@ export type Database = {
           afternoon_snack_start?: string | null
           created_at?: string
           employee_id: string
-          end_time?: string | null
+          afternoon_end?: string | null
           id?: string
           morning_snack_end?: string | null
           morning_snack_start?: string | null
-          start_time?: string | null
+          morning_start?: string | null
+          morning_end?: string | null
+          afternoon_start?: string | null
           total_daily_hours?: number | null
           work_date: string
         }
@@ -553,11 +555,13 @@ export type Database = {
           afternoon_snack_start?: string | null
           created_at?: string
           employee_id?: string
-          end_time?: string | null
+          afternoon_end?: string | null
           id?: string
           morning_snack_end?: string | null
           morning_snack_start?: string | null
-          start_time?: string | null
+          morning_start?: string | null
+          morning_end?: string | null
+          afternoon_start?: string | null
           total_daily_hours?: number | null
           work_date?: string
         }
@@ -874,14 +878,16 @@ export const Constants = {
 //   id: uuid (not null, default: gen_random_uuid())
 //   employee_id: uuid (not null)
 //   work_date: date (not null)
-//   start_time: time without time zone (nullable)
-//   end_time: time without time zone (nullable)
+//   morning_start: time without time zone (nullable)
+//   afternoon_end: time without time zone (nullable)
 //   morning_snack_start: time without time zone (nullable)
 //   morning_snack_end: time without time zone (nullable)
 //   afternoon_snack_start: time without time zone (nullable)
 //   afternoon_snack_end: time without time zone (nullable)
 //   total_daily_hours: numeric (nullable, default: 0)
 //   created_at: timestamp with time zone (not null, default: now())
+//   morning_end: time without time zone (nullable)
+//   afternoon_start: time without time zone (nullable)
 
 // --- CONSTRAINTS ---
 // Table: acessos

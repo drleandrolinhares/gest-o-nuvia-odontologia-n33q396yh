@@ -21,8 +21,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { useChatStore } from '@/stores/chat'
 
 const navigation = [
-  { name: 'AGENDA', href: '/admin', icon: Calendar, exact: true },
   { name: 'DASH NUVIA', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
   { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
   { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
   { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
@@ -85,7 +85,7 @@ export function Layout() {
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
       <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F]">
         <Link
-          to="/admin"
+          to="/admin/dashboard"
           className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
         >
           <NuviaLogo className="h-20 w-auto mx-auto" />
@@ -164,7 +164,7 @@ export function Layout() {
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
-        <Link to="/admin" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
+        <Link to="/admin/dashboard" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
           <NuviaLogo className="h-12 w-auto" />
         </Link>
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -195,8 +195,8 @@ export function Layout() {
             <Home className="w-4 h-4" />
             <span>/</span>
             <span className="text-slate-900">
-              {location.pathname === '/admin' || location.pathname === '/admin/'
-                ? 'AGENDA'
+              {location.pathname === '/admin/dashboard' || location.pathname === '/admin'
+                ? 'DASHBOARD'
                 : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
             </span>
           </div>
