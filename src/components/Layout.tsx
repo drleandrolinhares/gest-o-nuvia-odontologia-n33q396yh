@@ -11,6 +11,7 @@ import {
   Home,
   LayoutDashboard,
   MessageCircle,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -23,7 +24,8 @@ const navigation = [
   { name: 'AGENDA', href: '/admin', icon: Calendar, exact: true },
   { name: 'DASH NUVIA', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
-  { name: 'RH', href: '/admin/rh', icon: Users },
+  { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
+  { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
   { name: 'Estoque', href: '/admin/estoque', icon: Package },
   { name: 'Acessos', href: '/admin/acessos', icon: Shield },
   { name: 'Logs', href: '/admin/auditoria', icon: FileText },

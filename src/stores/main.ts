@@ -120,6 +120,18 @@ export type EmployeeDocument = {
   file_path: string
   created_at: string
 }
+export type WorkSchedule = {
+  id: string
+  employee_id: string
+  work_date: string
+  start_time: string | null
+  end_time: string | null
+  morning_snack_start: string | null
+  morning_snack_end: string | null
+  afternoon_snack_start: string | null
+  afternoon_snack_end: string | null
+  total_daily_hours: number | null
+}
 
 interface AppStore {
   isAuthenticated: boolean
@@ -141,6 +153,7 @@ interface AppStore {
   auditLogs: AuditLog[]
   bonusTypes: BonusSetting[]
   employeeDocuments: EmployeeDocument[]
+  workSchedules: WorkSchedule[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -187,6 +200,10 @@ interface AppStore {
   removeBonusType: (id: string) => void
   addEmployeeDocument: (employeeId: string, fileName: string, file: File) => Promise<void>
   removeEmployeeDocument: (id: string) => Promise<void>
+  fetchWorkSchedules: (start: string, end: string) => Promise<void>
+  upsertWorkSchedule: (
+    schedule: Partial<WorkSchedule> & { employee_id: string; work_date: string },
+  ) => Promise<void>
 }
 
 const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção', 'RH']
@@ -324,6 +341,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
   const [bonusTypes, setBonusTypes] = useState<BonusSetting[]>([])
   const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocument[]>([])
+  const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([])
   const [alerts] = useState<string[]>([])
 
   const storeRef = useRef({ user, employees })
@@ -395,6 +413,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAuditLogs([])
       setBonusTypes([])
       setEmployeeDocuments([])
+      setWorkSchedules([])
     }
   }, [user])
 
@@ -1139,6 +1158,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const fetchWorkSchedules = useCallback(async (start: string, end: string) => {
+    const { data } = await supabase
+      .from('work_schedules' as any)
+      .select('*')
+      .gte('work_date', start)
+      .lte('work_date', end)
+    if (data) {
+      setWorkSchedules((prev) => {
+        const others = prev.filter((p) => p.work_date < start || p.work_date > end)
+        return [...others, ...data]
+      })
+    }
+  }, [])
+
+  const upsertWorkSchedule = useCallback(
+    async (s: Partial<WorkSchedule> & { employee_id: string; work_date: string }) => {
+      const { data, error } = await supabase
+        .from('work_schedules' as any)
+        .upsert(
+          {
+            employee_id: s.employee_id,
+            work_date: s.work_date,
+            start_time: s.start_time || null,
+            end_time: s.end_time || null,
+            morning_snack_start: s.morning_snack_start || null,
+            morning_snack_end: s.morning_snack_end || null,
+            afternoon_snack_start: s.afternoon_snack_start || null,
+            afternoon_snack_end: s.afternoon_snack_end || null,
+            total_daily_hours: s.total_daily_hours || 0,
+          },
+          { onConflict: 'employee_id, work_date' },
+        )
+        .select()
+        .single()
+
+      if (data) {
+        setWorkSchedules((prev) => {
+          const exists = prev.find(
+            (p) =>
+              p.id === data.id ||
+              (p.employee_id === data.employee_id && p.work_date === data.work_date),
+          )
+          if (exists) return prev.map((p) => (p.id === exists.id ? data : p))
+          return [...prev, data]
+        })
+      }
+    },
+    [],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -1160,6 +1229,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       auditLogs,
       bonusTypes,
       employeeDocuments,
+      workSchedules,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1196,6 +1266,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeBonusType,
       addEmployeeDocument,
       removeEmployeeDocument,
+      fetchWorkSchedules,
+      upsertWorkSchedule,
     }),
     [
       isAuthenticated,
@@ -1217,6 +1289,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       auditLogs,
       bonusTypes,
       employeeDocuments,
+      workSchedules,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1253,6 +1326,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeBonusType,
       addEmployeeDocument,
       removeEmployeeDocument,
+      fetchWorkSchedules,
+      upsertWorkSchedule,
     ],
   )
 
