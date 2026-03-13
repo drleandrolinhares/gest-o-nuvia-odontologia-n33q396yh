@@ -86,7 +86,7 @@ export function Layout() {
           to="/admin"
           className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
         >
-          <NuviaLogo className="h-16 w-auto mx-auto" />
+          <NuviaLogo className="h-20 w-auto mx-auto" />
         </Link>
       </div>
 
@@ -163,7 +163,7 @@ export function Layout() {
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
         <Link to="/admin" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
-          <NuviaLogo className="h-10 w-auto" />
+          <NuviaLogo className="h-12 w-auto" />
         </Link>
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>

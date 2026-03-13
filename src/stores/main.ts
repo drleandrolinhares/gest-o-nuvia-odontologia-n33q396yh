@@ -198,7 +198,16 @@ const mockSpecialties = [
   'Endodontia',
   'Odontopediatria',
 ]
-const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria', 'Comissão']
+const mockAgendaTypes = [
+  'Consulta',
+  'Reunião',
+  'Viagem',
+  'Lembrete',
+  'Auditoria',
+  'Comissão',
+  'Bônus',
+  'Férias',
+]
 
 const mEmp = (d: any): Employee => ({
   id: d.id,

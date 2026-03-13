@@ -47,6 +47,7 @@ export type Database = {
           date: string
           id: string
           involves_third_party: boolean | null
+          is_completed: boolean | null
           location: string
           third_party_details: string | null
           time: string
@@ -60,6 +61,7 @@ export type Database = {
           date: string
           id?: string
           involves_third_party?: boolean | null
+          is_completed?: boolean | null
           location: string
           third_party_details?: string | null
           time: string
@@ -73,6 +75,7 @@ export type Database = {
           date?: string
           id?: string
           involves_third_party?: boolean | null
+          is_completed?: boolean | null
           location?: string
           third_party_details?: string | null
           time?: string
@@ -705,6 +708,7 @@ export const Constants = {
 //   third_party_details: text (nullable)
 //   created_by: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   is_completed: boolean (nullable, default: false)
 // Table: audit_logs
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (nullable)

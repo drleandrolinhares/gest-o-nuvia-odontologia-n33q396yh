@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { isSameDay, isSameWeek, isSameMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 export default function Agenda() {
   const {
@@ -63,6 +64,7 @@ export default function Agenda() {
     'TODOS',
   )
   const [agendaFilterValue, setAgendaFilterValue] = useState<string>('all')
+  const [showCompleted, setShowCompleted] = useState(false)
 
   const currentUser = employees.find((e) => e.id === currentUserId)
 
@@ -105,36 +107,15 @@ export default function Agenda() {
     if (t.includes('VIAGEM')) return <MapPin className="h-5 w-5 text-emerald-500" />
     if (t.includes('LEMBRETE')) return <Bell className="h-5 w-5 text-amber-500" />
     if (t.includes('CONSULTA')) return <Stethoscope className="h-5 w-5 text-[#D81B84]" />
-    if (t.includes('COMISSÃO')) return <DollarSign className="h-5 w-5 text-emerald-600" />
+    if (t.includes('COMISSÃO') || t.includes('BÔNUS'))
+      return <DollarSign className="h-5 w-5 text-emerald-600" />
+    if (t.includes('FÉRIAS')) return <CalendarDays className="h-5 w-5 text-orange-500" />
     return <Clock className="h-5 w-5 text-primary" />
   }
 
   const allAgendaItems = useMemo(() => {
-    const dbItems = agenda.filter((a) => !a.is_completed)
-
-    const dbCommissionsMap = new Set(
-      agenda
-        .filter((a) => a.type.toUpperCase() === 'COMISSÃO')
-        .map((a) => `${a.assignedTo}||${a.date}`),
-    )
-
-    const virtuals: AgendaItem[] = activeEmployees
-      .filter((e) => e.role.toUpperCase().includes('DENTISTA') && e.bonusDueDate)
-      .filter((e) => !dbCommissionsMap.has(`${e.id}||${e.bonusDueDate}`))
-      .map((e) => ({
-        id: `virtual||${e.id}||${e.bonusDueDate}`,
-        title: `PAGAMENTO COMISSÃO - ${e.name}`,
-        date: e.bonusDueDate as string,
-        time: '08:00',
-        location: 'FINANCEIRO',
-        type: 'Comissão',
-        assignedTo: e.id,
-        is_completed: false,
-        createdBy: 'SISTEMA',
-      }))
-
-    return [...dbItems, ...virtuals]
-  }, [agenda, activeEmployees])
+    return agenda.filter((a) => showCompleted || !a.is_completed)
+  }, [agenda, showCompleted])
 
   const filteredAgenda = allAgendaItems
     .filter((item) => {
@@ -159,7 +140,9 @@ export default function Agenda() {
         new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime(),
     )
 
-  const datesWithEvents = allAgendaItems.map((item) => parseISO(item.date))
+  const datesWithPendingEvents = useMemo(() => {
+    return agenda.filter((a) => !a.is_completed).map((item) => parseISO(item.date))
+  }, [agenda])
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
@@ -183,9 +166,10 @@ export default function Agenda() {
             selected={selectedDate}
             onSelect={(day) => day && setSelectedDate(day)}
             locale={ptBR}
-            modifiers={{ booked: datesWithEvents }}
+            modifiers={{ booked: datesWithPendingEvents }}
             modifiersClassNames={{
-              booked: 'font-bold underline decoration-primary decoration-2 underline-offset-4',
+              booked:
+                'relative font-bold text-primary after:content-[""] after:absolute after:bottom-1.5 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:bg-primary after:rounded-full',
             }}
             className={'w-full mx-auto'}
           />
@@ -207,6 +191,20 @@ export default function Agenda() {
             </Tabs>
 
             <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto flex-1 justify-end">
+              <div className="flex items-center space-x-2 bg-background border px-3 py-2 rounded-md h-10">
+                <Switch
+                  checked={showCompleted}
+                  onCheckedChange={setShowCompleted}
+                  id="show-completed"
+                />
+                <label
+                  htmlFor="show-completed"
+                  className="text-xs font-bold cursor-pointer uppercase whitespace-nowrap"
+                >
+                  CONCLUÍDOS
+                </label>
+              </div>
+
               <Select
                 value={agendaFilterType}
                 onValueChange={(v: any) => {
@@ -257,7 +255,7 @@ export default function Agenda() {
               )}
             </div>
 
-            <div className="text-sm font-bold text-primary px-4 py-2 bg-background border rounded-md whitespace-nowrap hidden xl:block">
+            <div className="text-sm font-bold text-primary px-4 py-2 bg-background border rounded-md whitespace-nowrap hidden xl:block h-10 flex items-center justify-center">
               {selectedDate?.toLocaleDateString('pt-BR', { dateStyle: 'short' })}
             </div>
           </div>
@@ -271,36 +269,53 @@ export default function Agenda() {
               filteredAgenda.map((item) => (
                 <Card
                   key={item.id}
-                  className="hover:border-primary/50 transition-colors shadow-sm cursor-pointer group"
+                  className={cn(
+                    'hover:border-primary/50 transition-colors shadow-sm cursor-pointer group',
+                    item.is_completed && 'opacity-60 bg-muted/20',
+                  )}
                   onClick={() => setSelectedItem(item)}
                 >
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0 group-hover:bg-primary/10 transition-colors">
+                  <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
+                    <div className="flex items-center gap-4 flex-1 w-full">
+                      <div
+                        className={cn(
+                          'h-12 w-12 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                          item.is_completed
+                            ? 'bg-muted text-muted-foreground'
+                            : 'bg-primary/10 group-hover:bg-primary/20',
+                        )}
+                      >
                         {getIcon(item.type)}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-lg uppercase">
+                        <h3
+                          className={cn(
+                            'font-semibold text-lg uppercase leading-tight',
+                            item.is_completed
+                              ? 'text-muted-foreground line-through'
+                              : 'text-foreground',
+                          )}
+                        >
                           {item.title}
                         </h3>
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-1">
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1.5">
                           <span className="flex items-center gap-1 font-medium text-primary">
-                            <Clock className="h-3 w-3" /> {item.time}
+                            <Clock className="h-3.5 w-3.5" /> {item.time}
                           </span>
                           <span>•</span>
                           <span className="flex items-center gap-1">
-                            <CalendarIcon className="h-3 w-3" />{' '}
+                            <CalendarIcon className="h-3.5 w-3.5" />{' '}
                             {new Date(item.date).toLocaleDateString('pt-BR')}
                           </span>
                           <span>•</span>
-                          <span className="bg-muted px-2 py-0.5 rounded text-xs font-bold uppercase">
+                          <span className="bg-muted px-2 py-0.5 rounded text-xs font-bold uppercase border">
                             {item.type}
                           </span>
                           {item.assignedTo && item.assignedTo !== 'none' && (
                             <>
                               <span>•</span>
-                              <span className="flex items-center gap-1 text-indigo-600 uppercase">
-                                <User className="h-3 w-3" />
+                              <span className="flex items-center gap-1 text-indigo-600 uppercase font-medium">
+                                <User className="h-3.5 w-3.5" />
                                 {employees.find((e) => e.id === item.assignedTo)?.name ||
                                   'DESCONHECIDO'}
                               </span>
@@ -309,7 +324,42 @@ export default function Agenda() {
                         </div>
                       </div>
                     </div>
-                    {item.id.startsWith('virtual||') ? null : (
+                    <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 justify-end pt-3 sm:pt-0 border-t sm:border-0 border-muted">
+                      <div
+                        className={cn(
+                          'flex items-center space-x-2 px-3 py-1.5 rounded-lg border transition-colors cursor-pointer',
+                          item.is_completed
+                            ? 'bg-muted border-muted-foreground/20 hover:bg-muted/80'
+                            : 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100',
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          updateAgendaItem(item.id, { is_completed: !item.is_completed })
+                        }}
+                      >
+                        <Checkbox
+                          id={`concluido-${item.id}`}
+                          checked={item.is_completed}
+                          onCheckedChange={(checked) => {
+                            updateAgendaItem(item.id, { is_completed: !!checked })
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <label
+                          htmlFor={`concluido-${item.id}`}
+                          className={cn(
+                            'text-xs font-bold cursor-pointer uppercase whitespace-nowrap',
+                            item.is_completed ? 'text-muted-foreground' : 'text-emerald-900',
+                          )}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {item.is_completed
+                            ? 'CONCLUÍDO'
+                            : item.type.toUpperCase() === 'BÔNUS'
+                              ? 'MARCAR COMO PAGO'
+                              : 'MARCAR CONCLUÍDO'}
+                        </label>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -319,9 +369,9 @@ export default function Agenda() {
                         }}
                         className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                       >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -532,39 +582,32 @@ export default function Agenda() {
               </p>
 
               <div className="flex justify-end pt-4 border-t gap-3 items-center w-full">
-                {selectedItem.type.toUpperCase() === 'COMISSÃO' && (
-                  <div className="flex items-center space-x-2 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100 mr-auto">
-                    <Checkbox
-                      id="pagamento-concluido"
-                      checked={selectedItem.is_completed}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          if (selectedItem.id.startsWith('virtual||')) {
-                            addAgendaItem({
-                              title: selectedItem.title,
-                              date: selectedItem.date,
-                              time: selectedItem.time,
-                              location: selectedItem.location,
-                              type: selectedItem.type,
-                              assignedTo: selectedItem.assignedTo,
-                              is_completed: true,
-                              createdBy: 'SISTEMA',
-                            })
-                          } else {
-                            updateAgendaItem(selectedItem.id, { is_completed: true })
-                          }
-                          setSelectedItem(null)
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor="pagamento-concluido"
-                      className="text-xs font-bold text-emerald-900 cursor-pointer uppercase"
-                    >
-                      PAGAMENTO CONCLUÍDO
-                    </label>
-                  </div>
-                )}
+                <div
+                  className={cn(
+                    'flex items-center space-x-2 px-4 py-2 rounded-lg border mr-auto transition-colors',
+                    selectedItem.is_completed
+                      ? 'bg-muted border-muted-foreground/20'
+                      : 'bg-emerald-50 border-emerald-200',
+                  )}
+                >
+                  <Checkbox
+                    id="modal-pagamento-concluido"
+                    checked={selectedItem.is_completed}
+                    onCheckedChange={(checked) => {
+                      updateAgendaItem(selectedItem.id, { is_completed: !!checked })
+                      setSelectedItem({ ...selectedItem, is_completed: !!checked })
+                    }}
+                  />
+                  <label
+                    htmlFor="modal-pagamento-concluido"
+                    className={cn(
+                      'text-xs font-bold cursor-pointer uppercase',
+                      selectedItem.is_completed ? 'text-muted-foreground' : 'text-emerald-900',
+                    )}
+                  >
+                    {selectedItem.is_completed ? 'CONCLUÍDO' : 'MARCAR COMO CONCLUÍDO'}
+                  </label>
+                </div>
                 <Button variant="outline" onClick={() => setSelectedItem(null)}>
                   FECHAR
                 </Button>
