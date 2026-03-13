@@ -37,6 +37,7 @@ interface ChatStore {
   activeRoomId: string | null
   isLoadingRoom: boolean
   isMasterUser: boolean
+  roomError: string | null
   openIndividualRoom: (userId: string) => Promise<void>
   openRoom: (roomId: string) => Promise<void>
   createGroupRoom: (name: string, participantIds?: string[]) => Promise<void>
@@ -58,6 +59,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null)
   const [isLoadingRoom, setIsLoadingRoom] = useState(false)
   const [isMasterUser, setIsMasterUser] = useState(false)
+  const [roomError, setRoomError] = useState<string | null>(null)
 
   const activeRoomIdRef = useRef<string | null>(null)
 
@@ -242,32 +244,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const loadMessages = async (roomId: string) => {
     if (!roomId) return
-    try {
-      // AC: Session Validation
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      if (!session) {
-        throw new Error('Sessão expirada. Verifique seu login.')
-      }
-
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('room_id', roomId)
-        .order('created_at', { ascending: true })
-        .limit(300)
-
-      if (error) throw error
-      if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
-    } catch (err: any) {
-      console.warn('Error in loadMessages:', err)
-      toast({
-        title: 'Erro ao carregar mensagens',
-        description: err.message || 'Verifique sua conexão ou realize login novamente.',
-        variant: 'destructive',
-      })
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session) {
+      throw new Error('Sessão expirada. Verifique seu login.')
     }
+
+    const { data, error } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('room_id', roomId)
+      .order('created_at', { ascending: true })
+      .limit(300)
+
+    if (error) throw error
+    if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
   }
 
   const logAudit = async (action: string) => {
@@ -282,28 +274,31 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const openRoom = async (roomId: string) => {
     if (!roomId || !user?.id) return
 
-    // AC: Session Validation
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession()
-    if (error || !session) {
-      toast({
-        title: 'Sessão Expirada',
-        description: 'Por favor, faça login novamente para acessar o chat.',
-        variant: 'destructive',
-      })
-      return
-    }
+    setRoomError(null)
+    setIsLoadingRoom(true)
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
+      if (error || !session) {
+        throw new Error('Sessão expirada. Por favor, faça login novamente.')
+      }
 
-    setActiveRoomId(roomId)
-    markRoomAsRead(roomId)
-    await loadMessages(roomId)
+      setActiveRoomId(roomId)
+      markRoomAsRead(roomId)
+      await loadMessages(roomId)
+    } catch (err: any) {
+      setRoomError(err.message || 'Não foi possível carregar a conversa.')
+    } finally {
+      setIsLoadingRoom(false)
+    }
   }
 
   const createGroupRoom = async (name: string, participantIds: string[] = []) => {
     if (!user || !user.id || !name.trim()) return
     setIsLoadingRoom(true)
+    setRoomError(null)
     try {
       const {
         data: { session },
@@ -324,15 +319,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         await supabase.from('chat_participants').insert(partsToInsert)
 
         setRooms((prev) => [...prev, data as ChatRoom])
-        await openRoom(data.id)
+        setActiveRoomId(data.id)
+        markRoomAsRead(data.id)
+        await loadMessages(data.id)
         logAudit(`CRIOU GRUPO DE CHAT: ${name}`)
       }
     } catch (err: any) {
-      toast({
-        title: 'Erro',
-        description: err.message || 'Não foi possível criar o grupo.',
-        variant: 'destructive',
-      })
+      setRoomError(err.message || 'Não foi possível criar o grupo.')
     } finally {
       setIsLoadingRoom(false)
     }
@@ -353,7 +346,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       logAudit(`REMOVEU USUÁRIO DO GRUPO ID: ${roomId}`)
       if (userId === user?.id) {
         setRooms((prev) => prev.filter((r) => r.id !== roomId))
-        if (activeRoomId === roomId) setActiveRoomId(null)
+        if (activeRoomId === roomId) {
+          setActiveRoomId(null)
+          setRoomError(null)
+        }
       }
     } catch (err) {
       console.warn('Error in removeGroupParticipant:', err)
@@ -376,21 +372,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const openIndividualRoom = async (userId: string) => {
     if (!user || !user.id || !userId) return
 
-    // AC: Session Validation
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (!session) {
-      toast({
-        title: 'Sessão Expirada',
-        description: 'Faça login novamente para usar o chat.',
-        variant: 'destructive',
-      })
-      return
-    }
-
+    setRoomError(null)
     setIsLoadingRoom(true)
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão expirada. Faça login novamente para usar o chat.')
+      }
+
       const { data: roomId, error: rpcError } = await supabase.rpc(
         'get_or_create_individual_room',
         {
@@ -400,49 +391,53 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       )
 
       if (rpcError) throw rpcError
+      if (!roomId || typeof roomId !== 'string') {
+        throw new Error('Não foi possível inicializar a sala com este colaborador.')
+      }
 
-      if (roomId && typeof roomId === 'string') {
-        const existingRoom = rooms.find((r) => r.id === roomId)
-        let roomToOpen = existingRoom
+      const existingRoom = rooms.find((r) => r.id === roomId)
+      let roomToOpen = existingRoom
 
-        if (!existingRoom) {
-          const { data: newRoomData, error: fetchError } = await supabase
-            .from('chat_rooms')
-            .select('*')
-            .eq('id', roomId)
-            .maybeSingle()
+      if (!existingRoom) {
+        const { data: newRoomData, error: fetchError } = await supabase
+          .from('chat_rooms')
+          .select('*')
+          .eq('id', roomId)
+          .maybeSingle()
 
-          if (fetchError) throw fetchError
+        if (fetchError) throw fetchError
 
-          if (newRoomData) {
-            roomToOpen = { ...newRoomData, other_user_id: userId } as ChatRoom
-            setRooms((prev) => (prev.find((r) => r.id === roomId) ? prev : [...prev, roomToOpen!]))
-          }
+        if (newRoomData) {
+          roomToOpen = { ...newRoomData, other_user_id: userId } as ChatRoom
+          setRooms((prev) => (prev.find((r) => r.id === roomId) ? prev : [...prev, roomToOpen!]))
         }
+      }
 
-        if (roomToOpen) {
-          await openRoom(roomId)
-          logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
-        }
+      if (roomToOpen) {
+        setActiveRoomId(roomId)
+        markRoomAsRead(roomId)
+        await loadMessages(roomId)
+        logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
+      } else {
+        throw new Error('Sala de chat não encontrada após criação.')
       }
     } catch (error: any) {
       console.error('Error in openIndividualRoom:', error)
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível instanciar a sala de chat.',
-        variant: 'destructive',
-      })
+      setRoomError(error.message || 'Não foi possível carregar a conversa com o colaborador.')
+      setActiveRoomId(null)
     } finally {
       setIsLoadingRoom(false)
     }
   }
 
-  const closeRoom = () => setActiveRoomId(null)
+  const closeRoom = () => {
+    setActiveRoomId(null)
+    setRoomError(null)
+  }
 
   const sendMessage = async (roomId: string, content: string) => {
     if (!user || !user.id || !content.trim()) return
     try {
-      // AC: Verify session explicitly
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -483,6 +478,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         activeRoomId,
         isLoadingRoom,
         isMasterUser,
+        roomError,
         openIndividualRoom,
         openRoom,
         createGroupRoom,

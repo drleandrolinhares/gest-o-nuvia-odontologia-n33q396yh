@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { ArrowLeft, Send, Users, Loader2, Settings } from 'lucide-react'
+import { ArrowLeft, Send, Users, Loader2, Settings, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -20,6 +20,7 @@ export function ChatWindow() {
     isLoadingRoom,
     isMasterUser,
     closeRoom,
+    roomError,
   } = useChatStore()
   const { employees, currentUserId } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -36,13 +37,37 @@ export function ChatWindow() {
     }
   }, [roomMsgs])
 
-  const isRoomLoading = isLoadingRoom || (activeRoomId && !activeRoom)
+  const isRoomLoading = isLoadingRoom
 
   if (isRoomLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase h-full overflow-hidden min-w-0">
         <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
         <h3 className="text-lg font-bold">CARREGANDO CONVERSA...</h3>
+      </div>
+    )
+  }
+
+  if (roomError) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase h-full overflow-hidden min-w-0 animate-fade-in-up relative">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 left-4 md:hidden shrink-0"
+          onClick={closeRoom}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="h-16 w-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="h-8 w-8 text-destructive" />
+        </div>
+        <h3 className="text-lg font-bold text-destructive">NÃO FOI POSSÍVEL CARREGAR A CONVERSA</h3>
+        <p className="text-sm mt-2 max-w-md font-medium">{roomError}</p>
+        <Button variant="outline" className="mt-6" onClick={closeRoom}>
+          VOLTAR
+        </Button>
       </div>
     )
   }
