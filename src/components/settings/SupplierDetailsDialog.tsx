@@ -12,7 +12,7 @@ export function SupplierDetailsDialog({
   onClose: () => void
 }) {
   const { can, isAdmin } = useAppStore()
-  const canViewNotes = isAdmin || can('fornecedores', 'ver_notas')
+  const canViewNotes = isAdmin || (typeof can === 'function' && can('fornecedores', 'ver_notas'))
 
   if (!supplier) return null
 

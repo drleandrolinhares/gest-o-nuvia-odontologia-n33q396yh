@@ -123,6 +123,8 @@ export type EmployeeDocument = {
 interface AppStore {
   isAuthenticated: boolean
   currentUserId: string | null
+  isAdmin: boolean
+  can: (module: string, action: string) => boolean
   departments: string[]
   packageTypes: string[]
   specialties: string[]
@@ -388,6 +390,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const me = employees.find((e) => e.user_id === user?.id)
     setCurrentUserId(me?.id || null)
   }, [employees, user])
+
+  const isAdmin = useMemo(() => {
+    if (!user) return false
+    const me = employees.find((e) => e.user_id === user.id)
+    if (!me) return false
+    const role = (me.role || '').toLowerCase()
+    const cats = me.teamCategory || []
+    return (
+      role.includes('admin') ||
+      role.includes('diretor') ||
+      cats.includes('ADMIN') ||
+      cats.includes('DIRETORIA')
+    )
+  }, [employees, user])
+
+  const can = useCallback(
+    (module: string, action: string) => {
+      if (isAdmin) return true
+      return false
+    },
+    [isAdmin],
+  )
 
   const logAction = useCallback((action: string) => {
     if (!storeRef.current.user) return
@@ -1076,6 +1100,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       isAuthenticated,
       currentUserId,
+      isAdmin,
+      can,
       departments,
       packageTypes,
       specialties,
@@ -1130,6 +1156,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [
       isAuthenticated,
       currentUserId,
+      isAdmin,
+      can,
       departments,
       packageTypes,
       specialties,
