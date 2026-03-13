@@ -236,23 +236,23 @@ const mEmp = (d: any): Employee => ({
   role: d.role,
   department: d.department,
   status: d.status,
-  hireDate: d.hire_date,
+  hireDate: d.hire_date || '',
   salary: d.salary,
   vacationDaysTaken: d.vacation_days_taken,
   vacationDaysTotal: d.vacation_days_total,
-  vacationDueDate: d.vacation_due_date,
+  vacationDueDate: d.vacation_due_date || '',
   email: d.email,
   phone: d.phone,
   rg: d.rg,
   cpf: d.cpf,
-  birthDate: d.birth_date,
+  birthDate: d.birth_date || '',
   cep: d.cep,
   address: d.address,
   addressNumber: d.address_number,
   addressComplement: d.address_complement,
   city: d.city,
   state: d.state,
-  lastAccess: d.last_access,
+  lastAccess: d.last_access || '',
   teamCategory: Array.isArray(d.team_category)
     ? d.team_category
     : d.team_category
@@ -702,32 +702,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .insert([
           {
             name: e.name,
-            username: e.username,
+            username: e.username || null,
             role: e.role,
             department: e.department,
             status: e.status,
-            hire_date: e.hireDate,
+            hire_date: e.hireDate || null,
             salary: e.salary,
             vacation_days_taken: e.vacationDaysTaken,
             vacation_days_total: e.vacationDaysTotal,
-            vacation_due_date: e.vacationDueDate,
-            email: e.email,
-            phone: e.phone,
-            rg: e.rg,
-            cpf: e.cpf,
-            birth_date: e.birthDate,
-            cep: e.cep,
-            address: e.address,
-            address_number: e.addressNumber,
-            address_complement: e.addressComplement,
-            city: e.city,
-            state: e.state,
+            vacation_due_date: e.vacationDueDate || null,
+            email: e.email || null,
+            phone: e.phone || null,
+            rg: e.rg || null,
+            cpf: e.cpf || null,
+            birth_date: e.birthDate || null,
+            cep: e.cep || null,
+            address: e.address || null,
+            address_number: e.addressNumber || null,
+            address_complement: e.addressComplement || null,
+            city: e.city || null,
+            state: e.state || null,
             team_category: e.teamCategory || ['COLABORADOR'],
             contract_details: e.contractDetails || '',
             bonus_type: e.bonusType || '',
             bonus_rules: e.bonusRules || '',
-            bonus_due_date: e.bonusDueDate || '',
-            user_id: userId,
+            bonus_due_date: e.bonusDueDate || null,
+            user_id: userId || null,
           },
         ])
         .select()
@@ -799,13 +799,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.role !== undefined) payload.role = e.role
       if (e.department !== undefined) payload.department = e.department
       if (e.status !== undefined) payload.status = e.status
-      if (e.hireDate !== undefined) payload.hire_date = e.hireDate
+      if (e.hireDate !== undefined) payload.hire_date = e.hireDate || null
       if (e.salary !== undefined) payload.salary = e.salary
       if (e.email !== undefined) payload.email = e.email
       if (e.phone !== undefined) payload.phone = e.phone
       if (e.rg !== undefined) payload.rg = e.rg
       if (e.cpf !== undefined) payload.cpf = e.cpf
-      if (e.birthDate !== undefined) payload.birth_date = e.birthDate
+      if (e.birthDate !== undefined) payload.birth_date = e.birthDate || null
       if (e.cep !== undefined) payload.cep = e.cep
       if (e.address !== undefined) payload.address = e.address
       if (e.addressNumber !== undefined) payload.address_number = e.addressNumber
@@ -816,7 +816,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.contractDetails !== undefined) payload.contract_details = e.contractDetails
       if (e.bonusType !== undefined) payload.bonus_type = e.bonusType
       if (e.bonusRules !== undefined) payload.bonus_rules = e.bonusRules
-      if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate
+      if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
+
+      if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
+      if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal
+      if (e.vacationDueDate !== undefined) payload.vacation_due_date = e.vacationDueDate || null
 
       const { error } = await supabase.from('employees').update(payload).eq('id', id)
 
