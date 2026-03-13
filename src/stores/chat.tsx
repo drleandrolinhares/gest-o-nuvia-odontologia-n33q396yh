@@ -405,22 +405,27 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           .eq('id', roomId)
           .maybeSingle()
 
-        if (fetchError) throw fetchError
-
-        if (newRoomData) {
-          roomToOpen = { ...newRoomData, other_user_id: userId } as ChatRoom
-          setRooms((prev) => (prev.find((r) => r.id === roomId) ? prev : [...prev, roomToOpen!]))
+        if (fetchError) {
+          console.warn('Failed to fetch new room details, proceeding with fallback:', fetchError)
         }
+
+        // Use fallback data if fetch fails (e.g. due to RLS timing)
+        roomToOpen = {
+          id: roomId,
+          type: 'individual',
+          other_user_id: userId,
+          name: newRoomData?.name || null,
+          department: newRoomData?.department || null,
+          created_at: newRoomData?.created_at || new Date().toISOString(),
+        } as ChatRoom
+
+        setRooms((prev) => (prev.find((r) => r.id === roomId) ? prev : [...prev, roomToOpen!]))
       }
 
-      if (roomToOpen) {
-        setActiveRoomId(roomId)
-        markRoomAsRead(roomId)
-        await loadMessages(roomId)
-        logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
-      } else {
-        throw new Error('Sala de chat não encontrada após criação.')
-      }
+      setActiveRoomId(roomId)
+      markRoomAsRead(roomId)
+      await loadMessages(roomId)
+      logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
     } catch (error: any) {
       console.error('Error in openIndividualRoom:', error)
       setRoomError(error.message || 'Não foi possível carregar a conversa com o colaborador.')
