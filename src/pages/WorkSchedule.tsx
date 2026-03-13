@@ -30,12 +30,6 @@ const timeToMin = (t?: string | null) => {
   return (h || 0) * 60 + (m || 0)
 }
 
-const formatMinutes = (mins: number) => {
-  const h = Math.floor(mins / 60)
-  const m = Math.floor(mins % 60)
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
-}
-
 const calculateMinutes = (schedule: Partial<TWorkSchedule>) => {
   let mStart = timeToMin(schedule.morning_start)
   let mEnd = timeToMin(schedule.morning_end)
@@ -47,51 +41,6 @@ const calculateMinutes = (schedule: Partial<TWorkSchedule>) => {
 
   let total = Math.max(0, mEnd - mStart) + Math.max(0, aEnd - aStart)
   return total
-}
-
-const renderBalanceBadge = (worked: number, target: number) => {
-  if (worked === 0) return null
-
-  const diff = target - worked
-
-  if (diff === 0) {
-    return (
-      <div className="mt-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 text-center border border-slate-200 w-full max-w-[80px]">
-        00:00
-        <br />
-        <span className="text-[7px] font-semibold opacity-70 uppercase tracking-tighter">
-          NO PRAZO
-        </span>
-      </div>
-    )
-  }
-
-  const isPositive = diff > 0
-  const absDiff = Math.abs(diff)
-
-  return (
-    <div
-      className={cn(
-        'mt-1.5 text-[10px] font-bold px-1.5 py-1 rounded-md text-center border w-full max-w-[80px] shadow-sm transition-colors',
-        isPositive
-          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-          : 'bg-red-50 text-red-700 border-red-200',
-      )}
-    >
-      <div className="flex items-center justify-center gap-0.5 font-black tracking-tight">
-        {isPositive ? '+' : '-'}
-        {formatMinutes(absDiff)}
-      </div>
-      <div
-        className={cn(
-          'text-[7px] font-extrabold uppercase mt-0.5 tracking-tighter leading-[1.1]',
-          isPositive ? 'text-emerald-600/90' : 'text-red-600/90',
-        )}
-      >
-        {isPositive ? 'SALDO POSITIVO' : 'SALDO NEGATIVO'}
-      </div>
-    </div>
-  )
 }
 
 export default function WorkSchedule() {
@@ -166,21 +115,6 @@ export default function WorkSchedule() {
       work_date: dateStr,
       total_daily_hours: dailyMinutes,
     })
-  }
-
-  const getWeeklyTotal = (empId: string) => {
-    let total = 0
-    const start = startOfWeek(selectedDate, { weekStartsOn: 1 })
-    for (let i = 0; i < 7; i++) {
-      const dStr = format(addDays(start, i), 'yyyy-MM-dd')
-      const merged = getScheduleForDay(empId, dStr)
-      if (drafts[`${empId}-${dStr}`]) {
-        total += calculateMinutes(merged)
-      } else {
-        total += merged.total_daily_hours || 0
-      }
-    }
-    return total
   }
 
   const conflicts = useMemo(() => {
@@ -387,28 +321,22 @@ export default function WorkSchedule() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-100/50">
-                    <TableHead className="font-bold text-slate-700 w-[200px]">
+                    <TableHead className="font-bold text-slate-700 w-[250px]">
                       COLABORADOR
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[170px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[200px]">
                       MANHÃ (ENTRADA-SAÍDA)
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[170px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[200px]">
                       TARDE (ENTRADA-SAÍDA)
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[140px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[160px]">
                       LANCHE MANHÃ
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[140px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[160px]">
                       LANCHE TARDE
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[110px]">
-                      DIA
-                    </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[110px]">
-                      SEMANA
-                    </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[80px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[100px]">
                       AÇÕES
                     </TableHead>
                   </TableRow>
@@ -422,7 +350,7 @@ export default function WorkSchedule() {
                       <React.Fragment key={dept}>
                         {/* Sector Header (DRE Style) */}
                         <TableRow className="bg-[#0A192F] hover:bg-[#0A192F] border-b-0">
-                          <TableCell colSpan={8} className="p-0">
+                          <TableCell colSpan={6} className="p-0">
                             <div className="px-4 py-2.5 flex items-center justify-between">
                               <h3 className="font-extrabold tracking-widest text-[#D4AF37] flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
@@ -443,7 +371,7 @@ export default function WorkSchedule() {
                         {emps.length === 0 && (
                           <TableRow>
                             <TableCell
-                              colSpan={8}
+                              colSpan={6}
                               className="text-center py-6 text-muted-foreground bg-slate-50/50 text-xs font-bold"
                             >
                               NENHUM COLABORADOR NESTE SETOR
@@ -453,14 +381,8 @@ export default function WorkSchedule() {
 
                         {emps.map((emp) => {
                           const s = getScheduleForDay(emp.id, dateStr)
-                          const dailyMins = calculateMinutes(s)
-                          const weeklyMins = getWeeklyTotal(emp.id)
-
                           const hasMorningConflict = conflicts.has(`${emp.id}-morning`)
                           const hasAfternoonConflict = conflicts.has(`${emp.id}-afternoon`)
-
-                          const dailyTarget = 8 * 60 + 48 // 528
-                          const weeklyTarget = 44 * 60 // 2640
 
                           return (
                             <TableRow
@@ -484,7 +406,7 @@ export default function WorkSchedule() {
                                       updateDraft(emp.id, 'morning_start', e.target.value)
                                     }
                                     onBlur={() => handleBlur(emp.id)}
-                                    className="h-8 w-[75px] text-xs px-1.5 text-center bg-white"
+                                    className="h-8 w-[85px] text-xs px-1.5 text-center bg-white"
                                   />
                                   <span className="text-slate-400 text-xs font-bold">-</span>
                                   <Input
@@ -494,7 +416,7 @@ export default function WorkSchedule() {
                                       updateDraft(emp.id, 'morning_end', e.target.value)
                                     }
                                     onBlur={() => handleBlur(emp.id)}
-                                    className="h-8 w-[75px] text-xs px-1.5 text-center bg-white"
+                                    className="h-8 w-[85px] text-xs px-1.5 text-center bg-white"
                                   />
                                 </div>
                               </TableCell>
@@ -507,7 +429,7 @@ export default function WorkSchedule() {
                                       updateDraft(emp.id, 'afternoon_start', e.target.value)
                                     }
                                     onBlur={() => handleBlur(emp.id)}
-                                    className="h-8 w-[75px] text-xs px-1.5 text-center bg-white"
+                                    className="h-8 w-[85px] text-xs px-1.5 text-center bg-white"
                                   />
                                   <span className="text-slate-400 text-xs font-bold">-</span>
                                   <Input
@@ -517,7 +439,7 @@ export default function WorkSchedule() {
                                       updateDraft(emp.id, 'afternoon_end', e.target.value)
                                     }
                                     onBlur={() => handleBlur(emp.id)}
-                                    className="h-8 w-[75px] text-xs px-1.5 text-center bg-white"
+                                    className="h-8 w-[85px] text-xs px-1.5 text-center bg-white"
                                   />
                                 </div>
                               </TableCell>
@@ -531,7 +453,7 @@ export default function WorkSchedule() {
                                     }
                                     onBlur={() => handleBlur(emp.id)}
                                     className={cn(
-                                      'h-8 w-[70px] text-xs px-1.5 text-center bg-white',
+                                      'h-8 w-[75px] text-xs px-1.5 text-center bg-white',
                                       hasMorningConflict && 'border-red-500 bg-red-50 text-red-900',
                                     )}
                                   />
@@ -544,7 +466,7 @@ export default function WorkSchedule() {
                                     }
                                     onBlur={() => handleBlur(emp.id)}
                                     className={cn(
-                                      'h-8 w-[70px] text-xs px-1.5 text-center bg-white',
+                                      'h-8 w-[75px] text-xs px-1.5 text-center bg-white',
                                       hasMorningConflict && 'border-red-500 bg-red-50 text-red-900',
                                     )}
                                   />
@@ -560,7 +482,7 @@ export default function WorkSchedule() {
                                     }
                                     onBlur={() => handleBlur(emp.id)}
                                     className={cn(
-                                      'h-8 w-[70px] text-xs px-1.5 text-center bg-white',
+                                      'h-8 w-[75px] text-xs px-1.5 text-center bg-white',
                                       hasAfternoonConflict &&
                                         'border-red-500 bg-red-50 text-red-900',
                                     )}
@@ -574,45 +496,11 @@ export default function WorkSchedule() {
                                     }
                                     onBlur={() => handleBlur(emp.id)}
                                     className={cn(
-                                      'h-8 w-[70px] text-xs px-1.5 text-center bg-white',
+                                      'h-8 w-[75px] text-xs px-1.5 text-center bg-white',
                                       hasAfternoonConflict &&
                                         'border-red-500 bg-red-50 text-red-900',
                                     )}
                                   />
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-center py-3 align-top">
-                                <div className="flex flex-col items-center justify-start">
-                                  <span
-                                    className={cn(
-                                      'font-bold text-xs px-2.5 py-1 rounded w-[60px] inline-block text-center',
-                                      dailyMins > 0 && dailyMins !== dailyTarget
-                                        ? 'text-amber-700 bg-amber-100 border border-amber-200'
-                                        : dailyMins === dailyTarget
-                                          ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                                          : 'text-slate-500 bg-slate-100',
-                                    )}
-                                  >
-                                    {formatMinutes(dailyMins)}
-                                  </span>
-                                  {renderBalanceBadge(dailyMins, dailyTarget)}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-center py-3 align-top">
-                                <div className="flex flex-col items-center justify-start">
-                                  <span
-                                    className={cn(
-                                      'font-bold text-xs px-2.5 py-1 rounded w-[60px] inline-block text-center',
-                                      weeklyMins > 0 && weeklyMins !== weeklyTarget
-                                        ? 'text-amber-700 bg-amber-100 border border-amber-200'
-                                        : weeklyMins === weeklyTarget
-                                          ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                                          : 'text-slate-500 bg-slate-100',
-                                    )}
-                                  >
-                                    {formatMinutes(weeklyMins)}
-                                  </span>
-                                  {renderBalanceBadge(weeklyMins, weeklyTarget)}
                                 </div>
                               </TableCell>
                               <TableCell className="text-center py-3">
