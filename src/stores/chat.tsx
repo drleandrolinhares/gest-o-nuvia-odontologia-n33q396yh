@@ -116,7 +116,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         data.forEach((r: any) => (counts[r.room_id] = Number(r.unread_count)))
         setUnreadCounts(counts)
       }
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Error in fetchUnread:', err)
+    }
   }, [user])
 
   const markRoomAsRead = useCallback(
@@ -125,7 +127,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       try {
         await supabase.rpc('mark_room_read', { p_room_id: roomId, p_user_id: user.id })
         setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 }))
-      } catch (err) {}
+      } catch (err) {
+        console.warn('Error in markRoomAsRead:', err)
+      }
     },
     [user],
   )
@@ -229,14 +233,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: true })
         .limit(300)
       if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Error in loadMessages:', err)
+    }
   }
 
   const logAudit = async (action: string) => {
     if (!user || !user.id) return
     try {
       await supabase.from('audit_logs').insert([{ user_id: user.id, action }])
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Error in logAudit:', err)
+    }
   }
 
   const openRoom = async (roomId: string) => {
@@ -277,7 +285,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.from('chat_participants').insert({ room_id: roomId, user_id: userId })
       logAudit(`ADICIONOU USUÁRIO AO GRUPO ID: ${roomId}`)
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Error in addGroupParticipant:', err)
+    }
   }
 
   const removeGroupParticipant = async (roomId: string, userId: string) => {
@@ -288,7 +298,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setRooms((prev) => prev.filter((r) => r.id !== roomId))
         if (activeRoomId === roomId) setActiveRoomId(null)
       }
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Error in removeGroupParticipant:', err)
+    }
   }
 
   const getGroupParticipants = async (roomId: string) => {
@@ -299,6 +311,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .eq('room_id', roomId)
       return (data?.map((d) => d.user_id).filter(Boolean) as string[]) || []
     } catch (err) {
+      console.warn('Error in getGroupParticipants:', err)
       return []
     }
   }
@@ -331,6 +344,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
       }
     } catch (error: any) {
+      console.warn('Error in openIndividualRoom:', error)
     } finally {
       setIsLoadingRoom(false)
     }
@@ -361,7 +375,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           return { ...prev, [roomId]: [...list, data as ChatMessage] }
         })
       }
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Error in sendMessage:', err)
+    }
   }
 
   return (
