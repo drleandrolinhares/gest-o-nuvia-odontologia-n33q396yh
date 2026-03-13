@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useCallback } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
   MapPin,
@@ -91,13 +91,13 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 }
 
 const NAV_ITEMS = [
-  { label: 'HOME', href: '#' },
-  { label: 'ATELIÊ ORAL', href: '#' },
-  { label: 'LENTES DE CONTATO', href: '#' },
-  { label: 'TRATAMENTOS', href: '#' },
-  { label: 'CLIENTES', href: '#' },
-  { label: 'MAIS SOBRE NÓS', href: '#' },
-  { label: 'CONTATO', href: '#' },
+  { label: 'HOME', href: '#home' },
+  { label: 'ATELIÊ ORAL', href: '#atelie' },
+  { label: 'LENTES DE CONTATO', href: '#lentes' },
+  { label: 'TRATAMENTOS', href: '#tratamentos' },
+  { label: 'CLIENTES', href: '#clientes' },
+  { label: 'MAIS SOBRE NÓS', href: '#sobre' },
+  { label: 'CONTATO', href: '#contato' },
 ]
 
 const HERO_IMAGES = [
@@ -109,10 +109,12 @@ const HERO_IMAGES = [
 function PublicHomeContent() {
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
-
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
-  // Ensure authenticated users can quickly access the dashboard without being trapped
+  // Strictly protect administrative routes from accidentally rendering PublicHome
+  const isAdminRoute =
+    typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+
   const handleAccessClick = useCallback(
     (e?: React.MouseEvent) => {
       if (e) e.preventDefault()
@@ -141,6 +143,11 @@ function PublicHomeContent() {
   }, [nextImage])
 
   // AC: Route Protection & Route Synchronization
+  // Ensure PublicHome immediately stops rendering if the path indicates an admin route
+  if (isAdminRoute) {
+    return null
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A192F]">
@@ -152,10 +159,9 @@ function PublicHomeContent() {
     )
   }
 
-  // Prevents the routing engine from defaulting to public view if logged in
-  if (user) {
-    return <Navigate to="/admin" replace />
-  }
+  // We explicitly removed the forced redirect "if (user) navigate('/admin')"
+  // to avoid "phantom" redirects when users try to view the public site intentionally,
+  // satisfying the strict route isolation requirement.
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
@@ -191,7 +197,7 @@ function PublicHomeContent() {
                 disabled={authLoading}
                 className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all"
               >
-                Acesso Restrito
+                {user ? 'Acessar Dashboard' : 'Acesso Restrito'}
               </Button>
             </div>
 
@@ -228,7 +234,7 @@ function PublicHomeContent() {
                           disabled={authLoading}
                           className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
                         >
-                          Acesso Restrito
+                          {user ? 'Acessar Dashboard' : 'Acesso Restrito'}
                         </Button>
                       </SheetClose>
                     </div>
@@ -241,7 +247,10 @@ function PublicHomeContent() {
       </header>
 
       <main className="flex-1">
-        <section className="relative w-full pt-40 pb-56 md:pt-48 md:pb-64 flex items-center bg-[#0A192F] min-h-[700px] lg:min-h-[850px] overflow-hidden">
+        <section
+          id="home"
+          className="relative w-full pt-40 pb-56 md:pt-48 md:pb-64 flex items-center bg-[#0A192F] min-h-[700px] lg:min-h-[850px] overflow-hidden"
+        >
           <div className="absolute inset-0 z-0">
             <img
               key={activeImageIndex}
@@ -342,7 +351,7 @@ function PublicHomeContent() {
         </section>
       </main>
 
-      <footer className="bg-[#0A192F] text-slate-300 py-16 border-t border-slate-800">
+      <footer id="contato" className="bg-[#0A192F] text-slate-300 py-16 border-t border-slate-800">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="col-span-1 md:col-span-2">
@@ -358,13 +367,13 @@ function PublicHomeContent() {
               </p>
               <div className="flex gap-4">
                 <a
-                  href="#"
+                  href="#instagram"
                   className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-[#0A192F] transition-all"
                 >
                   <Instagram className="w-4 h-4" />
                 </a>
                 <a
-                  href="#"
+                  href="#facebook"
                   className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-[#0A192F] transition-all"
                 >
                   <Facebook className="w-4 h-4" />
@@ -417,10 +426,10 @@ function PublicHomeContent() {
               &copy; {new Date().getFullYear()} Nuvia Odontologia. Todos os direitos reservados.
             </p>
             <div className="flex gap-6 mt-4 md:mt-0">
-              <a href="#" className="hover:text-[#C69B56] transition-colors">
+              <a href="#privacy" className="hover:text-[#C69B56] transition-colors">
                 Política de Privacidade
               </a>
-              <a href="#" className="hover:text-[#C69B56] transition-colors">
+              <a href="#terms" className="hover:text-[#C69B56] transition-colors">
                 Termos de Uso
               </a>
             </div>

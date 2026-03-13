@@ -243,12 +243,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const loadMessages = async (roomId: string) => {
     if (!roomId) return
     try {
-      // AC: Session Validation before fetching messages
+      // AC: Session Validation
       const {
         data: { session },
       } = await supabase.auth.getSession()
       if (!session) {
-        throw new Error('Sessão expirada')
+        throw new Error('Sessão expirada. Verifique seu login.')
       }
 
       const { data, error } = await supabase

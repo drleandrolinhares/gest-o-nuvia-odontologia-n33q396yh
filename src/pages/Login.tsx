@@ -29,12 +29,15 @@ export default function Login() {
   const location = useLocation()
   const { toast } = useToast()
 
-  // Ensure we don't redirect back to the public home if they hit login
-  const locationFrom = location.state?.from?.pathname
-  const from = locationFrom && locationFrom !== '/' ? locationFrom : '/admin'
+  // Ensure we accurately redirect to the intended admin route if it exists
+  const locationFrom = location.state?.from
+  const from =
+    typeof locationFrom === 'string' && locationFrom !== '/' && locationFrom !== '/login'
+      ? locationFrom
+      : '/admin'
 
   useEffect(() => {
-    // Prevent infinite loops or showing login to already authenticated users
+    // Prevent showing login to already authenticated users
     if (user) {
       navigate(from, { replace: true })
     }
@@ -116,7 +119,7 @@ export default function Login() {
                     Senha
                   </Label>
                   <a
-                    href="#"
+                    href="#recover"
                     className="text-xs text-[#0A192F] hover:text-[#D4AF37] font-medium transition-colors"
                   >
                     Esqueceu a senha?
@@ -180,7 +183,7 @@ export default function Login() {
             <p>
               Precisa de acesso?{' '}
               <a
-                href="#"
+                href="#contact"
                 className="text-[#0A192F] font-semibold hover:text-[#D4AF37] transition-colors"
               >
                 Fale com o administrador

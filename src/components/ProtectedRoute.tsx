@@ -15,8 +15,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!user) {
-    // Save the current location they were trying to go to
-    return <Navigate to="/login" state={{ from: location }} replace />
+    // Save the current location they were trying to go to so we can return them after login
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />
   }
 
   return <>{children}</>
