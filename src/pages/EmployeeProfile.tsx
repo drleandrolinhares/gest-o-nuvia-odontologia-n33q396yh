@@ -1,10 +1,8 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import useAppStore from '@/stores/main'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { useState, useRef } from 'react'
+import useAppStore, { EmployeeDocument } from '@/stores/main'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
-  AlertCircle,
   ArrowLeft,
   Calendar,
   DollarSign,
@@ -16,20 +14,35 @@ import {
   UserX,
   Key,
   FileText,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Gift,
+  Upload,
+  Download,
+  Paperclip,
 } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { EditEmployeeDialog } from '@/components/rh/EditEmployeeDialog'
+import { differenceInMonths, isValid, parseISO } from 'date-fns'
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { employees, deleteEmployee, updateEmployeeStatus } = useAppStore()
+  const {
+    employees,
+    deleteEmployee,
+    updateEmployeeStatus,
+    employeeDocuments,
+    addEmployeeDocument,
+    removeEmployeeDocument,
+  } = useAppStore()
   const employee = employees.find((e) => e.id === id)
 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [editTab, setEditTab] = useState('dados')
+  const fileRef = useRef<HTMLInputElement>(null)
 
   if (!employee) {
     return (
@@ -41,8 +54,6 @@ export default function EmployeeProfile() {
       </div>
     )
   }
-
-  const isVacationNear = employee.vacationDaysTotal - employee.vacationDaysTaken < 10
 
   const handleDelete = () => {
     if (
@@ -66,6 +77,49 @@ export default function EmployeeProfile() {
   const handleResetAccess = () => {
     setEditTab('seguranca')
     setIsEditOpen(true)
+  }
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && employee.id) {
+      await addEmployeeDocument(employee.id, file.name, file)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  const handleDownload = (doc: EmployeeDocument) => {
+    const link = document.createElement('a')
+    link.href = doc.file_path
+    link.download = doc.file_name
+    link.click()
+  }
+
+  const docs = employeeDocuments.filter((d) => d.employee_id === employee.id)
+
+  const monthsElapsed =
+    employee.hireDate && isValid(parseISO(employee.hireDate))
+      ? differenceInMonths(new Date(), parseISO(employee.hireDate))
+      : -1
+  const effectiveMonths = monthsElapsed >= 0 ? monthsElapsed % 12 : -1
+
+  let vacationColor = 'bg-muted/50 border-muted text-muted-foreground'
+  let vacationIcon = <Clock className="h-8 w-8 text-muted-foreground" />
+  let vacationText = 'SEM DATA DE ADMISSÃO'
+
+  if (effectiveMonths >= 0) {
+    if (effectiveMonths <= 8) {
+      vacationColor = 'bg-emerald-50 border-emerald-200 text-emerald-800'
+      vacationIcon = <CheckCircle className="h-8 w-8 text-emerald-600" />
+      vacationText = 'NO PRAZO (ATÉ 8 MESES)'
+    } else if (effectiveMonths <= 10) {
+      vacationColor = 'bg-amber-50 border-amber-200 text-amber-800'
+      vacationIcon = <AlertTriangle className="h-8 w-8 text-amber-600" />
+      vacationText = 'ATENÇÃO (9 A 10 MESES)'
+    } else {
+      vacationColor = 'bg-red-50 border-red-200 text-red-800'
+      vacationIcon = <AlertTriangle className="h-8 w-8 text-red-600" />
+      vacationText = 'VENCIMENTO PRÓXIMO/VENCIDO (11+ MESES)'
+    }
   }
 
   return (
@@ -151,32 +205,34 @@ export default function EmployeeProfile() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>DADOS CADASTRAIS</CardTitle>
+        <Card className="md:col-span-1 border-primary/20 shadow-md">
+          <CardHeader className="bg-primary/5 pb-4 border-b border-primary/10">
+            <CardTitle className="text-primary text-lg">DADOS CADASTRAIS</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-6 sm:grid-cols-2">
+          <CardContent className="pt-6 grid gap-6">
             <div className="flex items-center gap-3">
-              <Mail className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
-              <div>
-                <p className="text-sm font-medium">EMAIL PROFISSIONAL</p>
-                <p className="text-sm text-muted-foreground lowercase">
+              <Mail className="h-8 w-8 text-primary/60 bg-primary/10 p-1.5 rounded-full shrink-0" />
+              <div className="overflow-hidden">
+                <p className="text-xs font-bold text-muted-foreground">EMAIL PROFISSIONAL</p>
+                <p className="text-sm font-medium text-foreground truncate lowercase">
                   {employee.email || 'NÃO INFORMADO'}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Phone className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
+              <Phone className="h-8 w-8 text-primary/60 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">TELEFONE</p>
-                <p className="text-sm text-muted-foreground">{employee.phone || 'NÃO INFORMADO'}</p>
+                <p className="text-xs font-bold text-muted-foreground">TELEFONE</p>
+                <p className="text-sm font-medium text-foreground">
+                  {employee.phone || 'NÃO INFORMADO'}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
+              <Calendar className="h-8 w-8 text-primary/60 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">DATA DE ADMISSÃO</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs font-bold text-muted-foreground">DATA DE ADMISSÃO</p>
+                <p className="text-sm font-medium text-foreground">
                   {employee.hireDate
                     ? new Date(employee.hireDate).toLocaleDateString('pt-BR')
                     : 'NÃO INFORMADA'}
@@ -184,71 +240,167 @@ export default function EmployeeProfile() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <DollarSign className="h-8 w-8 text-primary/40 bg-primary/10 p-1.5 rounded-full shrink-0" />
+              <DollarSign className="h-8 w-8 text-primary/60 bg-primary/10 p-1.5 rounded-full shrink-0" />
               <div>
-                <p className="text-sm font-medium">SALÁRIO BASE</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs font-bold text-muted-foreground">SALÁRIO BASE</p>
+                <p className="text-sm font-medium text-foreground">
                   {employee.salary || 'NÃO INFORMADO'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 sm:col-span-2">
-              <CalendarDays className="h-8 w-8 text-amber-500/40 bg-amber-500/10 p-1.5 rounded-full shrink-0" />
+          </CardContent>
+        </Card>
+
+        <Card className={`md:col-span-1 border-2 shadow-md ${vacationColor}`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CalendarDays className="h-5 w-5" /> VENCIMENTO DE FÉRIAS
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4 flex flex-col justify-center gap-4">
+            <div className="flex items-center gap-4 bg-white/50 p-4 rounded-xl border border-white/20">
+              {vacationIcon}
               <div>
-                <p className="text-sm font-medium">VENCIMENTO DE FÉRIAS</p>
-                <p className="text-sm text-muted-foreground">
-                  {employee.vacationDueDate
-                    ? new Date(employee.vacationDueDate).toLocaleDateString('pt-BR')
-                    : 'NÃO CADASTRADO'}
+                <p className="font-bold text-lg leading-tight">{vacationText}</p>
+                <p className="text-sm opacity-80 font-medium">
+                  TEMPO GESTADO: {monthsElapsed >= 0 ? `${monthsElapsed} MESES` : 'N/A'}
                 </p>
               </div>
+            </div>
+
+            <div className="bg-white/60 p-4 rounded-xl border border-white/20 text-center">
+              <p className="text-xs font-bold opacity-80 mb-1">DATA DE VENCIMENTO DO PERÍODO</p>
+              <p className="text-xl font-black">
+                {employee.vacationDueDate
+                  ? new Date(employee.vacationDueDate).toLocaleDateString('pt-BR')
+                  : 'NÃO CADASTRADO'}
+              </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>CONTROLE DE FÉRIAS</CardTitle>
+        <Card className="md:col-span-1 border-nuvia-gold/30 shadow-md">
+          <CardHeader className="bg-nuvia-gold/10 pb-4 border-b border-nuvia-gold/20">
+            <CardTitle className="text-nuvia-gold flex items-center gap-2 text-lg">
+              <Gift className="h-5 w-5" /> BONIFICAÇÃO
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <div className="flex justify-between text-sm mb-2 font-medium">
-                <span>GOZADOS: {employee.vacationDaysTaken} DIAS</span>
-                <span className="text-muted-foreground">
-                  TOTAL: {employee.vacationDaysTotal} DIAS
-                </span>
+          <CardContent className="pt-6 space-y-4">
+            {employee.bonusType ? (
+              <>
+                <div>
+                  <p className="text-xs font-bold text-muted-foreground">TIPO DE BONIFICAÇÃO</p>
+                  <p className="text-sm font-black text-foreground mt-0.5">{employee.bonusType}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-muted-foreground">VENCIMENTO / CICLO</p>
+                  <p className="text-sm font-medium text-foreground mt-0.5">
+                    {employee.bonusDueDate
+                      ? new Date(employee.bonusDueDate).toLocaleDateString('pt-BR')
+                      : 'NÃO DEFINIDO'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-muted-foreground mb-1">REGRAS APLICÁVEIS</p>
+                  <p className="text-sm text-foreground bg-muted/30 p-3 rounded-md border min-h-[60px] whitespace-pre-wrap">
+                    {employee.bonusRules || 'NENHUMA REGRA ESPECÍFICA DEFINIDA.'}
+                  </p>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground opacity-70">
+                <Gift className="h-10 w-10 mb-2" />
+                <p className="text-sm font-bold">NENHUMA BONIFICAÇÃO ATIVA</p>
               </div>
-              <Progress
-                value={(employee.vacationDaysTaken / employee.vacationDaysTotal) * 100}
-                className="h-2"
-              />
-            </div>
-
-            {isVacationNear && employee.status !== 'Desligado' && (
-              <Alert variant="destructive" className="bg-destructive/5">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>ALERTA RH</AlertTitle>
-                <AlertDescription>
-                  O PERÍODO AQUISITIVO DE FÉRIAS ESTÁ PRÓXIMO DO VENCIMENTO OU DO LIMITE.
-                </AlertDescription>
-              </Alert>
             )}
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-3">
+        <Card className="md:col-span-2 shadow-md">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Paperclip className="h-5 w-5 text-nuvia-navy" /> DOCUMENTOS DA CONTRATAÇÃO / ANEXOS
+              </CardTitle>
+              <CardDescription className="mt-1 uppercase text-xs">
+                GERENCIE ARQUIVOS E DOCUMENTOS VINCULADOS A ESTE COLABORADOR.
+              </CardDescription>
+            </div>
+            <div>
+              <input type="file" ref={fileRef} className="hidden" onChange={handleUpload} />
+              <Button onClick={() => fileRef.current?.click()} size="sm" className="uppercase">
+                <Upload className="h-4 w-4 mr-2" /> ANEXAR
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {docs.length === 0 ? (
+              <p className="text-sm text-muted-foreground uppercase text-center py-8 border border-dashed rounded-md bg-card/50">
+                NENHUM DOCUMENTO ANEXADO ATÉ O MOMENTO.
+              </p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {docs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-3 border rounded-lg bg-card hover:border-primary/50 transition-colors shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="overflow-hidden">
+                        <p
+                          className="font-medium text-sm text-foreground truncate uppercase"
+                          title={doc.file_name}
+                        >
+                          {doc.file_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground uppercase">
+                          {new Date(doc.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDownload(doc)}
+                        className="text-muted-foreground hover:text-primary"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          if (confirm('REMOVER ESTE DOCUMENTO?')) removeEmployeeDocument(doc.id)
+                        }}
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-1 shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-nuvia-navy" /> RELAÇÕES E ACORDOS COM A EMPRESA
+              <FileText className="h-5 w-5 text-nuvia-navy" /> RELAÇÕES E ACORDOS
             </CardTitle>
           </CardHeader>
           <CardContent>
             {employee.contractDetails ? (
-              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed p-4 bg-muted/30 rounded-md border">
+              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed p-4 bg-muted/30 rounded-md border min-h-[150px]">
                 {employee.contractDetails}
               </p>
             ) : (
-              <p className="text-sm text-muted-foreground uppercase text-center py-6 border border-dashed rounded-md bg-card/50">
+              <p className="text-sm text-muted-foreground uppercase text-center py-10 border border-dashed rounded-md bg-card/50">
                 NENHUMA INFORMAÇÃO SOBRE ACORDOS REGISTRADA PARA ESTE PERFIL.
               </p>
             )}

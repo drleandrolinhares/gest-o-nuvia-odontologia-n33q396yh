@@ -38,6 +38,9 @@ export type Employee = {
   lastAccess?: string
   teamCategory?: string[]
   contractDetails?: string
+  bonusType?: string
+  bonusRules?: string
+  bonusDueDate?: string
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
 export type OnboardingCandidate = {
@@ -108,6 +111,14 @@ export type Supplier = {
   negotiationNotes?: string
 }
 export type AuditLog = { id: string; userName: string; action: string; timestamp: string }
+export type BonusSetting = { id: string; name: string }
+export type EmployeeDocument = {
+  id: string
+  employee_id: string
+  file_name: string
+  file_path: string
+  created_at: string
+}
 
 interface AppStore {
   isAuthenticated: boolean
@@ -125,6 +136,8 @@ interface AppStore {
   acessos: AccessItem[]
   suppliers: Supplier[]
   auditLogs: AuditLog[]
+  bonusTypes: BonusSetting[]
+  employeeDocuments: EmployeeDocument[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -166,6 +179,10 @@ interface AppStore {
   addSupplier: (i: Omit<Supplier, 'id'>) => void
   updateSupplier: (id: string, i: Partial<Supplier>) => void
   removeSupplier: (id: string) => void
+  addBonusType: (name: string) => void
+  removeBonusType: (id: string) => void
+  addEmployeeDocument: (employeeId: string, fileName: string, file: File) => Promise<void>
+  removeEmployeeDocument: (id: string) => Promise<void>
 }
 
 const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção', 'RH']
@@ -210,6 +227,9 @@ const mEmp = (d: any): Employee => ({
       ? [d.team_category]
       : ['COLABORADOR'],
   contractDetails: d.contract_details || '',
+  bonusType: d.bonus_type || '',
+  bonusRules: d.bonus_rules || '',
+  bonusDueDate: d.bonus_due_date || '',
 })
 const mInv = (d: any): InventoryItem => ({
   id: d.id,
@@ -288,6 +308,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [agenda, setAgenda] = useState<AgendaItem[]>([])
   const [acessos, setAcessos] = useState<AccessItem[]>([])
   const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [bonusTypes, setBonusTypes] = useState<BonusSetting[]>([])
+  const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocument[]>([])
   const [alerts] = useState<string[]>([])
 
   const storeRef = useRef({ user, employees })
@@ -328,6 +350,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .select('*')
           .then((r) => setDocuments((r.data || []).map(mDoc))),
         supabase
+          .from('bonus_settings')
+          .select('*')
+          .then((r) => setBonusTypes(r.data || [])),
+        supabase
+          .from('employee_documents')
+          .select('*')
+          .then((r) => setEmployeeDocuments(r.data || [])),
+        supabase
           .from('audit_logs')
           .select('*, profiles(name)')
           .order('created_at', { ascending: false })
@@ -349,6 +379,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setEmployees([])
       setInventory([])
       setAuditLogs([])
+      setBonusTypes([])
+      setEmployeeDocuments([])
     }
   }, [user])
 
@@ -634,6 +666,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             state: e.state,
             team_category: e.teamCategory || ['COLABORADOR'],
             contract_details: e.contractDetails || '',
+            bonus_type: e.bonusType || '',
+            bonus_rules: e.bonusRules || '',
+            bonus_due_date: e.bonusDueDate || '',
             user_id: userId,
           },
         ])
@@ -721,6 +756,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.state !== undefined) payload.state = e.state
       if (e.teamCategory !== undefined) payload.team_category = e.teamCategory
       if (e.contractDetails !== undefined) payload.contract_details = e.contractDetails
+      if (e.bonusType !== undefined) payload.bonus_type = e.bonusType
+      if (e.bonusRules !== undefined) payload.bonus_rules = e.bonusRules
+      if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate
 
       const { error } = await supabase.from('employees').update(payload).eq('id', id)
 
@@ -969,6 +1007,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const addBonusType = useCallback(
+    (name: string) => {
+      supabase
+        .from('bonus_settings')
+        .insert([{ name }])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) setBonusTypes((p) => [...p, data])
+          logAction(`ADICIONOU TIPO DE BONIFICAÇÃO: ${name}`)
+        })
+    },
+    [logAction],
+  )
+
+  const removeBonusType = useCallback(
+    (id: string) => {
+      supabase
+        .from('bonus_settings')
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setBonusTypes((p) => p.filter((b) => b.id !== id))
+          logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
+        })
+    },
+    [logAction],
+  )
+
+  const addEmployeeDocument = useCallback(
+    async (employeeId: string, fileName: string, file: File) => {
+      return new Promise<void>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = async () => {
+          const base64 = reader.result as string
+          const { data } = await supabase
+            .from('employee_documents')
+            .insert([
+              {
+                employee_id: employeeId,
+                file_name: fileName,
+                file_path: base64,
+              },
+            ])
+            .select()
+            .single()
+          if (data) setEmployeeDocuments((p) => [...p, data])
+          logAction(`ANEXOU DOCUMENTO: ${fileName}`)
+          resolve()
+        }
+        reader.readAsDataURL(file)
+      })
+    },
+    [logAction],
+  )
+
+  const removeEmployeeDocument = useCallback(
+    async (id: string) => {
+      await supabase.from('employee_documents').delete().eq('id', id)
+      setEmployeeDocuments((p) => p.filter((d) => d.id !== id))
+      logAction(`REMOVEU DOCUMENTO ID: ${id}`)
+    },
+    [logAction],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -986,6 +1089,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       acessos,
       suppliers,
       auditLogs,
+      bonusTypes,
+      employeeDocuments,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1017,6 +1122,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addSupplier,
       updateSupplier,
       removeSupplier,
+      addBonusType,
+      removeBonusType,
+      addEmployeeDocument,
+      removeEmployeeDocument,
     }),
     [
       isAuthenticated,
@@ -1034,6 +1143,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       acessos,
       suppliers,
       auditLogs,
+      bonusTypes,
+      employeeDocuments,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1065,6 +1176,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addSupplier,
       updateSupplier,
       removeSupplier,
+      addBonusType,
+      removeBonusType,
+      addEmployeeDocument,
+      removeEmployeeDocument,
     ],
   )
 

@@ -31,6 +31,7 @@ import {
   Check,
   ChevronsUpDown,
   Loader2,
+  Gift,
 } from 'lucide-react'
 import {
   Select,
@@ -69,6 +70,9 @@ const formSchema = z
     confirmPassword: z.string().optional(),
     teamCategory: z.array(z.string()).min(1, 'Obrigatório'),
     contractDetails: z.string().optional(),
+    bonusType: z.string().optional(),
+    bonusRules: z.string().optional(),
+    bonusDueDate: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -86,7 +90,7 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>
 
 const SectionTitle = ({ title, icon: Icon }: { title: string; icon?: any }) => (
-  <div className="flex items-center gap-2 mb-4 mt-6 first:mt-0">
+  <div className="flex items-center gap-2 mb-4 mt-6 first:mt-0 uppercase">
     {Icon && <Icon className="w-5 h-5 text-nuvia-gold" />}
     <h3 className="text-lg font-semibold text-nuvia-navy">{title}</h3>
   </div>
@@ -103,7 +107,8 @@ export function EditEmployeeDialog({
   onOpenChange: (open: boolean) => void
   defaultTab?: string
 }) {
-  const { updateEmployee, updateEmployeePassword, generateEmployeeAccess } = useAppStore()
+  const { updateEmployee, updateEmployeePassword, generateEmployeeAccess, bonusTypes } =
+    useAppStore()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditingData, setIsEditingData] = useState(false)
@@ -112,7 +117,6 @@ export function EditEmployeeDialog({
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  // Generate Access Mode States
   const [isGenerateAccessMode, setIsGenerateAccessMode] = useState(false)
   const [genEmail, setGenEmail] = useState('')
   const [genPass, setGenPass] = useState('')
@@ -138,6 +142,9 @@ export function EditEmployeeDialog({
       confirmPassword: '',
       teamCategory: ['COLABORADOR'],
       contractDetails: '',
+      bonusType: '',
+      bonusRules: '',
+      bonusDueDate: '',
     },
   })
 
@@ -162,13 +169,14 @@ export function EditEmployeeDialog({
           confirmPassword: '',
           teamCategory: employee.teamCategory || ['COLABORADOR'],
           contractDetails: employee.contractDetails || '',
+          bonusType: employee.bonusType || '',
+          bonusRules: employee.bonusRules || '',
+          bonusDueDate: employee.bonusDueDate || '',
         })
         setIsEditingData(false)
         setActiveTab(defaultTab)
         setShowNewPassword(false)
         setShowConfirmPassword(false)
-
-        // Reset generate access mode
         setGenEmail(employee.email || '')
         setGenPass('')
         setIsGenerateAccessMode(false)
@@ -237,9 +245,9 @@ export function EditEmployeeDialog({
         if (!o) form.reset()
       }}
     >
-      <DialogContent className="max-w-5xl p-0 max-h-[90vh] flex flex-col overflow-hidden bg-[#f9fafb]">
+      <DialogContent className="max-w-5xl p-0 max-h-[90vh] flex flex-col overflow-hidden bg-[#f9fafb] uppercase">
         <DialogHeader className="p-6 pb-0 sr-only shrink-0">
-          <DialogTitle>Editar Colaborador</DialogTitle>
+          <DialogTitle>EDITAR COLABORADOR</DialogTitle>
         </DialogHeader>
 
         {employee && (
@@ -253,13 +261,13 @@ export function EditEmployeeDialog({
               <h2 className="text-2xl font-bold text-nuvia-navy">{employee.name}</h2>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <User className="w-4 h-4" /> {employee.username || 'Não informado'}
+                  <User className="w-4 h-4" /> {employee.username || 'NÃO INFORMADO'}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Phone className="w-4 h-4" /> {employee.phone || 'Não informado'}
+                  <Phone className="w-4 h-4" /> {employee.phone || 'NÃO INFORMADO'}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Mail className="w-4 h-4" /> {employee.email || 'Não informado'}
+                  <Mail className="w-4 h-4" /> {employee.email || 'NÃO INFORMADO'}
                 </span>
               </div>
             </div>
@@ -282,13 +290,13 @@ export function EditEmployeeDialog({
                     value="dados"
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
                   >
-                    Dados Pessoais e Contrato
+                    DADOS PESSOAIS E CONTRATO
                   </TabsTrigger>
                   <TabsTrigger
                     value="seguranca"
                     className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-nuvia-gold data-[state=active]:text-nuvia-gold rounded-none px-0 pb-3 text-base font-semibold"
                   >
-                    Segurança e Acesso
+                    SEGURANÇA E ACESSO
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -302,22 +310,22 @@ export function EditEmployeeDialog({
                       className="border-nuvia-gold text-nuvia-gold hover:bg-nuvia-gold/10"
                       onClick={() => setIsEditingData(!isEditingData)}
                     >
-                      {isEditingData ? 'Bloquear Edição' : 'Editar'}
+                      {isEditingData ? 'BLOQUEAR EDIÇÃO' : 'EDITAR'}
                     </Button>
                   </div>
                 )}
 
-                <TabsContent value="dados" className="m-0 space-y-0">
-                  <div className="space-y-8 max-w-4xl">
+                <TabsContent value="dados" className="m-0 space-y-8 max-w-4xl">
+                  <div className="space-y-8">
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Informações Básicas" icon={User} />
+                      <SectionTitle title="INFORMAÇÕES BÁSICAS" icon={User} />
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField
                           control={form.control}
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Nome Completo *</FormLabel>
+                              <FormLabel>NOME COMPLETO *</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
@@ -334,12 +342,12 @@ export function EditEmployeeDialog({
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email *</FormLabel>
+                              <FormLabel>EMAIL *</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
                                   disabled={!isEditingData}
-                                  className="bg-background"
+                                  className="bg-background lowercase"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -351,7 +359,7 @@ export function EditEmployeeDialog({
                           name="phone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Telefone *</FormLabel>
+                              <FormLabel>TELEFONE *</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
@@ -367,14 +375,14 @@ export function EditEmployeeDialog({
                     </div>
 
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Relações e Acordos com a Empresa" icon={Briefcase} />
+                      <SectionTitle title="RELAÇÕES E ACORDOS COM A EMPRESA" icon={Briefcase} />
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField
                           control={form.control}
                           name="teamCategory"
                           render={({ field }) => (
                             <FormItem className="md:col-span-3">
-                              <FormLabel>Funções Profissionais</FormLabel>
+                              <FormLabel>FUNÇÕES PROFISSIONAIS</FormLabel>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
@@ -389,16 +397,16 @@ export function EditEmployeeDialog({
                                     >
                                       {field.value?.length > 0
                                         ? field.value.join(', ')
-                                        : 'Selecione...'}
+                                        : 'SELECIONE...'}
                                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                   </FormControl>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0 uppercase">
                                   <Command>
-                                    <CommandInput placeholder="Buscar função..." />
+                                    <CommandInput placeholder="BUSCAR FUNÇÃO..." />
                                     <CommandList>
-                                      <CommandEmpty>Nenhuma função encontrada.</CommandEmpty>
+                                      <CommandEmpty>NENHUMA FUNÇÃO ENCONTRADA.</CommandEmpty>
                                       <CommandGroup>
                                         {['SÓCIO', 'DENTISTA', 'COLABORADOR'].map((cat) => (
                                           <CommandItem
@@ -438,13 +446,13 @@ export function EditEmployeeDialog({
                             name="contractDetails"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Detalhes de Contrato / Acordos Específicos</FormLabel>
+                                <FormLabel>DETALHES DE CONTRATO / ACORDOS ESPECÍFICOS</FormLabel>
                                 <FormControl>
                                   <Textarea
                                     {...field}
                                     disabled={!isEditingData}
                                     className="bg-background min-h-[120px]"
-                                    placeholder="Informações sobre vínculos, comissões, participações e outros acordos com a empresa..."
+                                    placeholder="INFORMAÇÕES SOBRE VÍNCULOS, COMISSÕES E OUTROS..."
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -456,14 +464,86 @@ export function EditEmployeeDialog({
                     </div>
 
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Informações Pessoais" icon={User} />
+                      <SectionTitle title="BONIFICAÇÃO" icon={Gift} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="bonusType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>TIPO DE BONIFICAÇÃO</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={!isEditingData}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-background">
+                                    <SelectValue placeholder="SELECIONE..." />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {bonusTypes.map((b) => (
+                                    <SelectItem key={b.id} value={b.name} className="uppercase">
+                                      {b.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="bonusDueDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>VENCIMENTO DA BONIFICAÇÃO</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  disabled={!isEditingData}
+                                  className="bg-background"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="md:col-span-2">
+                          <FormField
+                            control={form.control}
+                            name="bonusRules"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>REGRAS DA BONIFICAÇÃO</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    disabled={!isEditingData}
+                                    className="bg-background min-h-[80px]"
+                                    placeholder="DESCREVA AS METAS E REGRAS PARA RECEBIMENTO..."
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                      <SectionTitle title="INFORMAÇÕES PESSOAIS" icon={User} />
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField
                           control={form.control}
                           name="birthDate"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Data de Nascimento</FormLabel>
+                              <FormLabel>DATA DE NASCIMENTO</FormLabel>
                               <FormControl>
                                 <Input
                                   type="date"
@@ -514,7 +594,7 @@ export function EditEmployeeDialog({
                     </div>
 
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Endereço" icon={User} />
+                      <SectionTitle title="ENDEREÇO" icon={User} />
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <div className="md:col-span-3">
                           <FormField
@@ -544,7 +624,7 @@ export function EditEmployeeDialog({
                             name="address"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Endereço</FormLabel>
+                                <FormLabel>ENDEREÇO</FormLabel>
                                 <FormControl>
                                   <Input
                                     {...field}
@@ -563,7 +643,7 @@ export function EditEmployeeDialog({
                             name="addressNumber"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Número</FormLabel>
+                                <FormLabel>NÚMERO</FormLabel>
                                 <FormControl>
                                   <Input
                                     {...field}
@@ -582,7 +662,7 @@ export function EditEmployeeDialog({
                             name="addressComplement"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Complemento</FormLabel>
+                                <FormLabel>COMPLEMENTO</FormLabel>
                                 <FormControl>
                                   <Input
                                     {...field}
@@ -601,7 +681,7 @@ export function EditEmployeeDialog({
                             name="city"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Cidade</FormLabel>
+                                <FormLabel>CIDADE</FormLabel>
                                 <FormControl>
                                   <Input
                                     {...field}
@@ -620,7 +700,7 @@ export function EditEmployeeDialog({
                             name="state"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Estado</FormLabel>
+                                <FormLabel>ESTADO</FormLabel>
                                 <Select
                                   onValueChange={field.onChange}
                                   value={field.value}
@@ -651,28 +731,28 @@ export function EditEmployeeDialog({
                 <TabsContent value="seguranca" className="m-0 space-y-8 max-w-4xl">
                   {!employee?.user_id ? (
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Conta de Acesso" icon={Key} />
+                      <SectionTitle title="CONTA DE ACESSO" icon={Key} />
                       {!isGenerateAccessMode ? (
                         <div className="flex flex-col items-center justify-center py-8 text-center">
                           <Shield className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
                           <h3 className="text-lg font-bold text-nuvia-navy mb-2">
-                            Conta Não Vinculada
+                            CONTA NÃO VINCULADA
                           </h3>
                           <p className="text-muted-foreground text-sm text-center max-w-md mb-6">
-                            Este colaborador não possui acesso ao sistema vinculado.
+                            ESTE COLABORADOR NÃO POSSUI ACESSO AO SISTEMA VINCULADO.
                           </p>
                           <Button
                             type="button"
                             onClick={() => setIsGenerateAccessMode(true)}
                             className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
                           >
-                            <Key className="w-4 h-4 mr-2" /> Gerar Acesso
+                            <Key className="w-4 h-4 mr-2" /> GERAR ACESSO
                           </Button>
                         </div>
                       ) : (
                         <div className="space-y-4 pt-4">
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">E-mail (Login) *</label>
+                            <label className="text-sm font-medium">E-MAIL (LOGIN) *</label>
                             <Input
                               value={genEmail}
                               onChange={(e) => setGenEmail(e.target.value)}
@@ -682,7 +762,7 @@ export function EditEmployeeDialog({
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">Senha Provisória *</label>
+                            <label className="text-sm font-medium">SENHA PROVISÓRIA *</label>
                             <Input
                               value={genPass}
                               onChange={(e) => setGenPass(e.target.value)}
@@ -698,7 +778,7 @@ export function EditEmployeeDialog({
                               onClick={() => setIsGenerateAccessMode(false)}
                               disabled={isGenerating}
                             >
-                              Cancelar
+                              CANCELAR
                             </Button>
                             <Button
                               type="button"
@@ -707,7 +787,7 @@ export function EditEmployeeDialog({
                               className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
                             >
                               {isGenerating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{' '}
-                              Confirmar Geração de Acesso
+                              CONFIRMAR GERAÇÃO DE ACESSO
                             </Button>
                           </div>
                         </div>
@@ -715,19 +795,19 @@ export function EditEmployeeDialog({
                     </div>
                   ) : (
                     <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="Credenciais de Acesso" icon={Key} />
+                      <SectionTitle title="CREDENCIAIS DE ACESSO" icon={Key} />
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
                           name="username"
                           render={({ field }) => (
                             <FormItem className="md:col-span-2">
-                              <FormLabel>Username de Acesso</FormLabel>
+                              <FormLabel>USERNAME DE ACESSO</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
                                   className="bg-background"
-                                  placeholder="Ex: joao.silva"
+                                  placeholder="EX: JOAO.SILVA"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -739,7 +819,7 @@ export function EditEmployeeDialog({
                           name="newPassword"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Nova Senha</FormLabel>
+                              <FormLabel>NOVA SENHA</FormLabel>
                               <div className="relative">
                                 <FormControl>
                                   <Input
@@ -770,7 +850,7 @@ export function EditEmployeeDialog({
                           name="confirmPassword"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Confirmar Nova Senha</FormLabel>
+                              <FormLabel>CONFIRMAR NOVA SENHA</FormLabel>
                               <div className="relative">
                                 <FormControl>
                                   <Input
@@ -799,7 +879,7 @@ export function EditEmployeeDialog({
                       </div>
                       <p className="text-sm text-muted-foreground mt-4">
                         <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
-                        As alterações de senha refletirão no próximo login do colaborador.
+                        AS ALTERAÇÕES DE SENHA REFLETIRÃO NO PRÓXIMO LOGIN DO COLABORADOR.
                       </p>
                     </div>
                   )}
@@ -813,14 +893,14 @@ export function EditEmployeeDialog({
                   onClick={() => onOpenChange(false)}
                   disabled={isLoading}
                 >
-                  Cancelar
+                  CANCELAR
                 </Button>
                 <Button
                   type="submit"
                   disabled={isLoading || (!isEditingData && !form.formState.isDirty)}
                   className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
                 >
-                  {isLoading ? 'Salvando...' : 'Salvar Alterações'}
+                  {isLoading ? 'SALVANDO...' : 'SALVAR ALTERAÇÕES'}
                 </Button>
               </div>
             </Tabs>
