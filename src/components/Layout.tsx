@@ -110,25 +110,34 @@ export function Layout() {
                 to={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  'group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors',
+                  'group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-300',
                   isActive
                     ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
                     : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                  hasUnread &&
+                    !isActive &&
+                    'bg-red-500/10 shadow-[inset_4px_0_0_0_rgba(239,68,68,1)]',
                 )}
               >
                 <item.icon
                   className={cn(
-                    'mr-3 flex-shrink-0 h-5 w-5',
+                    'mr-3 flex-shrink-0 h-5 w-5 transition-colors',
                     isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
-                    hasUnread && !isActive && 'text-red-400 animate-pulse',
+                    hasUnread && 'text-red-400 animate-pulse',
                   )}
                   aria-hidden="true"
                 />
-                <span className={cn(hasUnread && 'text-red-400 animate-pulse font-bold')}>
+                <span
+                  className={cn(
+                    'transition-colors',
+                    hasUnread && 'text-red-400 font-bold',
+                    hasUnread && !isActive && 'animate-pulse',
+                  )}
+                >
                   {item.name}
                 </span>
                 {hasUnread && (
-                  <span className="ml-auto bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]">
+                  <span className="ml-auto bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]">
                     {totalUnread > 99 ? '99+' : totalUnread}
                   </span>
                 )}

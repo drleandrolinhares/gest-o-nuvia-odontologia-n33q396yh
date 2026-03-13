@@ -144,8 +144,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     async (roomId: string) => {
       if (!user || !user.id) return
       try {
+        // Optimistic update
+        setUnreadCounts((prev) => {
+          if (prev[roomId] === 0 || prev[roomId] === undefined) return prev
+          return { ...prev, [roomId]: 0 }
+        })
         await supabase.rpc('mark_room_read', { p_room_id: roomId, p_user_id: user.id })
-        setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 }))
       } catch (err) {
         console.warn('Error in markRoomAsRead:', err)
       }
@@ -173,6 +177,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     },
     [user?.id, markRoomAsRead],
   )
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && activeRoomIdRef.current) {
+        markRoomAsRead(activeRoomIdRef.current)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [markRoomAsRead])
 
   useEffect(() => {
     if (!user || !user.id) return
