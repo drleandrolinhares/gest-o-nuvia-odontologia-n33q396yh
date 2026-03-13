@@ -37,7 +37,11 @@ interface ChatStore {
   activeRoomId: string | null
   isLoadingRoom: boolean
   openIndividualRoom: (userId: string) => Promise<void>
-  openGroupRoom: (dept: string) => Promise<void>
+  openRoom: (roomId: string) => Promise<void>
+  createGroupRoom: (name: string) => Promise<void>
+  addGroupParticipant: (roomId: string, userId: string) => Promise<void>
+  removeGroupParticipant: (roomId: string, userId: string) => Promise<void>
+  getGroupParticipants: (roomId: string) => Promise<string[]>
   sendMessage: (roomId: string, content: string) => Promise<void>
   closeRoom: () => void
 }
@@ -66,29 +70,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .from('chat_participants')
         .select('room_id')
         .eq('user_id', user.id)
-
-      if (partsError) {
-        console.error('Error fetching chat participants', partsError)
-        return
-      }
-
-      if (!myParts || myParts.length === 0) {
+      if (partsError || !myParts || myParts.length === 0) {
         setRooms([])
         return
       }
 
       const roomIds = myParts.map((p) => p.room_id)
-      if (roomIds.length === 0) return
-
       const { data: roomsData, error: roomsError } = await supabase
         .from('chat_rooms')
         .select('*')
         .in('id', roomIds)
-
-      if (roomsError) {
-        console.error('Error fetching chat rooms', roomsError)
-        return
-      }
+      if (roomsError) return
 
       const indRooms = roomsData?.filter((r) => r.type === 'individual').map((r) => r.id) || []
       const otherUsers: Record<string, string> = {}
@@ -118,19 +110,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const fetchUnread = useCallback(async () => {
     if (!user || !user.id) return
     try {
-      const { data, error } = await supabase.rpc('get_unread_counts', { user_id_param: user.id })
-      if (error) {
-        console.error('Error fetching unread counts', error)
-        return
-      }
+      const { data } = await supabase.rpc('get_unread_counts', { user_id_param: user.id })
       if (data) {
         const counts: Record<string, number> = {}
         data.forEach((r: any) => (counts[r.room_id] = Number(r.unread_count)))
         setUnreadCounts(counts)
       }
-    } catch (err) {
-      console.warn('Error in fetchUnread:', err)
-    }
+    } catch (err) {}
   }, [user])
 
   const markRoomAsRead = useCallback(
@@ -139,9 +125,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       try {
         await supabase.rpc('mark_room_read', { p_room_id: roomId, p_user_id: user.id })
         setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 }))
-      } catch (err) {
-        console.warn('Error marking room as read:', err)
-      }
+      } catch (err) {}
     },
     [user],
   )
@@ -169,7 +153,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user || !user.id) return
-
     fetchMyRooms()
     fetchUnread()
 
@@ -194,25 +177,39 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           table: 'chat_participants',
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          fetchUnread()
+        () => fetchUnread(),
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_participants',
+          filter: `user_id=eq.${user.id}`,
         },
+        () => fetchMyRooms(),
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'chat_participants',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => fetchMyRooms(),
       )
       .subscribe()
 
     const presenceChannel = supabase.channel('chat_presence', {
       config: { presence: { key: user.id } },
     })
-
-    presenceChannel.on('presence', { event: 'sync' }, () => {
-      const state = presenceChannel.presenceState()
-      setOnlineUsers(Object.keys(state))
-    })
-
+    presenceChannel.on('presence', { event: 'sync' }, () =>
+      setOnlineUsers(Object.keys(presenceChannel.presenceState())),
+    )
     presenceChannel.subscribe(async (status) => {
-      if (status === 'SUBSCRIBED') {
+      if (status === 'SUBSCRIBED')
         await presenceChannel.track({ online_at: new Date().toISOString() })
-      }
     })
 
     return () => {
@@ -225,42 +222,84 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const loadMessages = async (roomId: string) => {
     if (!roomId) return
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('chat_messages')
         .select('*')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true })
         .limit(300)
-
-      if (error) {
-        console.error('Error loading messages', error)
-        toast({
-          title: 'Aviso',
-          description: 'Pode haver um atraso ao carregar o histórico de mensagens.',
-          variant: 'default',
-        })
-        return
-      }
-
-      if (data) {
-        setMessages((prev) => ({ ...prev, [roomId]: data }))
-      }
-    } catch (err) {
-      console.warn('Error in loadMessages:', err)
-    }
+      if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
+    } catch (err) {}
   }
 
   const logAudit = async (action: string) => {
     if (!user || !user.id) return
     try {
-      await supabase.from('audit_logs').insert([
-        {
-          user_id: user.id,
-          action: action,
-        },
-      ])
+      await supabase.from('audit_logs').insert([{ user_id: user.id, action }])
+    } catch (err) {}
+  }
+
+  const openRoom = async (roomId: string) => {
+    if (!roomId) return
+    setActiveRoomId(roomId)
+    markRoomAsRead(roomId)
+    await loadMessages(roomId)
+  }
+
+  const createGroupRoom = async (name: string) => {
+    if (!user || !user.id || !name.trim()) return
+    setIsLoadingRoom(true)
+    try {
+      const { data, error } = await supabase
+        .from('chat_rooms')
+        .insert({ name: name.trim(), type: 'group' })
+        .select()
+        .single()
+      if (error) throw error
+      if (data) {
+        await supabase.from('chat_participants').insert({ room_id: data.id, user_id: user.id })
+        setRooms((prev) => [...prev, data as ChatRoom])
+        openRoom(data.id)
+        logAudit(`CRIOU GRUPO DE CHAT: ${name}`)
+      }
     } catch (err) {
-      console.warn('Error logging audit for chat:', err)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível criar o grupo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoadingRoom(false)
+    }
+  }
+
+  const addGroupParticipant = async (roomId: string, userId: string) => {
+    try {
+      await supabase.from('chat_participants').insert({ room_id: roomId, user_id: userId })
+      logAudit(`ADICIONOU USUÁRIO AO GRUPO ID: ${roomId}`)
+    } catch (err) {}
+  }
+
+  const removeGroupParticipant = async (roomId: string, userId: string) => {
+    try {
+      await supabase.from('chat_participants').delete().match({ room_id: roomId, user_id: userId })
+      logAudit(`REMOVEU USUÁRIO DO GRUPO ID: ${roomId}`)
+      if (userId === user?.id) {
+        setRooms((prev) => prev.filter((r) => r.id !== roomId))
+        if (activeRoomId === roomId) setActiveRoomId(null)
+      }
+    } catch (err) {}
+  }
+
+  const getGroupParticipants = async (roomId: string) => {
+    try {
+      const { data } = await supabase
+        .from('chat_participants')
+        .select('user_id')
+        .eq('room_id', roomId)
+      return (data?.map((d) => d.user_id).filter(Boolean) as string[]) || []
+    } catch (err) {
+      return []
     }
   }
 
@@ -268,142 +307,30 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (!user || !user.id || !userId) return
     setIsLoadingRoom(true)
     try {
-      const { data: roomId, error } = await supabase.rpc('get_or_create_individual_room', {
+      const { data: roomId } = await supabase.rpc('get_or_create_individual_room', {
         user1: user.id,
         user2: userId,
       })
-
-      if (error) {
-        console.error('Error calling get_or_create_individual_room RPC:', error)
-        throw error
-      }
-
       if (roomId && typeof roomId === 'string') {
         const existingRoom = rooms.find((r) => r.id === roomId)
-
         if (!existingRoom) {
-          const { data: newRoomData, error: fetchError } = await supabase
+          const { data: newRoomData } = await supabase
             .from('chat_rooms')
             .select('*')
             .eq('id', roomId)
             .maybeSingle()
-
-          if (fetchError) {
-            console.error('Error fetching chat room', fetchError)
-          }
-
           if (newRoomData) {
-            setRooms((prev) => {
-              if (prev.find((r) => r.id === roomId)) return prev
-              return [...prev, { ...newRoomData, other_user_id: userId }] as ChatRoom[]
-            })
-          } else {
-            console.warn(
-              `Room with ID ${roomId} not found immediately after creation. Using fallback state.`,
+            setRooms((prev) =>
+              prev.find((r) => r.id === roomId)
+                ? prev
+                : [...prev, { ...newRoomData, other_user_id: userId } as ChatRoom],
             )
-            setRooms((prev) => {
-              if (prev.find((r) => r.id === roomId)) return prev
-              return [
-                ...prev,
-                {
-                  id: roomId,
-                  type: 'individual',
-                  name: null,
-                  department: null,
-                  other_user_id: userId,
-                  created_at: new Date().toISOString(),
-                },
-              ] as ChatRoom[]
-            })
           }
         }
-
-        setActiveRoomId(roomId)
-        markRoomAsRead(roomId)
-        await loadMessages(roomId)
+        openRoom(roomId)
         logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
-      } else {
-        console.warn('Invalid room ID returned from RPC:', roomId)
       }
     } catch (error: any) {
-      console.error('Error opening individual room:', error)
-      toast({
-        title: 'Aviso',
-        description: 'Pode haver um pequeno atraso ao iniciar a conversa.',
-        variant: 'default',
-      })
-    } finally {
-      setIsLoadingRoom(false)
-    }
-  }
-
-  const openGroupRoom = async (dept: string) => {
-    if (!user || !user.id || !dept) return
-    setIsLoadingRoom(true)
-    try {
-      const { data: roomId, error } = await supabase.rpc('get_or_create_group_room', {
-        dept_name: dept,
-        creator_id: user.id,
-      })
-
-      if (error) {
-        console.error('Error calling get_or_create_group_room RPC:', error)
-        throw error
-      }
-
-      if (roomId && typeof roomId === 'string') {
-        const existingRoom = rooms.find((r) => r.id === roomId)
-
-        if (!existingRoom) {
-          const { data: newRoomData, error: fetchError } = await supabase
-            .from('chat_rooms')
-            .select('*')
-            .eq('id', roomId)
-            .maybeSingle()
-
-          if (fetchError) {
-            console.error('Error fetching chat room', fetchError)
-          }
-
-          if (newRoomData) {
-            setRooms((prev) => {
-              if (prev.find((r) => r.id === roomId)) return prev
-              return [...prev, newRoomData as ChatRoom]
-            })
-          } else {
-            console.warn(
-              `Group room with ID ${roomId} not found immediately. Using fallback state.`,
-            )
-            setRooms((prev) => {
-              if (prev.find((r) => r.id === roomId)) return prev
-              return [
-                ...prev,
-                {
-                  id: roomId,
-                  type: 'group',
-                  name: dept,
-                  department: dept,
-                  created_at: new Date().toISOString(),
-                },
-              ] as ChatRoom[]
-            })
-          }
-        }
-
-        setActiveRoomId(roomId)
-        markRoomAsRead(roomId)
-        await loadMessages(roomId)
-        logAudit(`ENTROU NO CANAL DO SETOR: ${dept}`)
-      } else {
-        console.warn('Invalid room ID returned from RPC:', roomId)
-      }
-    } catch (error: any) {
-      console.error('Error opening group room:', error)
-      toast({
-        title: 'Aviso',
-        description: 'Pode haver um pequeno atraso ao entrar no grupo.',
-        variant: 'default',
-      })
     } finally {
       setIsLoadingRoom(false)
     }
@@ -419,16 +346,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .insert({ room_id: roomId, sender_id: user.id, content: content.trim() })
         .select()
         .maybeSingle()
-
       if (error) {
         toast({
           title: 'Erro',
-          description: 'Não foi possível enviar a mensagem. Verifique sua conexão.',
+          description: 'Não foi possível enviar a mensagem.',
           variant: 'destructive',
         })
         return
       }
-
       if (data) {
         setMessages((prev) => {
           const list = prev[roomId] || []
@@ -436,25 +361,31 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           return { ...prev, [roomId]: [...list, data as ChatMessage] }
         })
       }
-    } catch (err) {
-      console.error('Error in sendMessage:', err)
-    }
+    } catch (err) {}
   }
 
-  const value = {
-    rooms,
-    messages,
-    unreadCounts,
-    onlineUsers,
-    activeRoomId,
-    isLoadingRoom,
-    openIndividualRoom,
-    openGroupRoom,
-    sendMessage,
-    closeRoom,
-  }
-
-  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
+  return (
+    <ChatContext.Provider
+      value={{
+        rooms,
+        messages,
+        unreadCounts,
+        onlineUsers,
+        activeRoomId,
+        isLoadingRoom,
+        openIndividualRoom,
+        openRoom,
+        createGroupRoom,
+        addGroupParticipant,
+        removeGroupParticipant,
+        getGroupParticipants,
+        sendMessage,
+        closeRoom,
+      }}
+    >
+      {children}
+    </ChatContext.Provider>
+  )
 }
 
 export function useChatStore() {

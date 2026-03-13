@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Send, Users, Loader2 } from 'lucide-react'
+import { Send, Users, Loader2, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
 import { cn } from '@/lib/utils'
+import { ManageGroupDialog } from './ManageGroupDialog'
 
 export function ChatWindow() {
   const [input, setInput] = useState('')
+  const [manageOpen, setManageOpen] = useState(false)
   const { activeRoomId, rooms, messages, sendMessage, onlineUsers, isLoadingRoom } = useChatStore()
   const { employees, currentUserId } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -18,6 +20,12 @@ export function ChatWindow() {
     () => (activeRoomId ? messages[activeRoomId] || [] : []),
     [messages, activeRoomId],
   )
+
+  const isMaster = useMemo(() => {
+    return (
+      employees.find((e) => e.user_id === currentUserId)?.teamCategory?.includes('MASTER') || false
+    )
+  }, [employees, currentUserId])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -51,6 +59,9 @@ export function ChatWindow() {
   const isGroup = activeRoom.type === 'group'
   const targetUser = !isGroup ? employees.find((e) => e.user_id === activeRoom.other_user_id) : null
   const isOnline = targetUser ? onlineUsers.includes(targetUser.user_id!) : false
+  const displayName = isGroup
+    ? activeRoom.name || activeRoom.department || 'GRUPO'
+    : targetUser?.name || 'DESCONHECIDO'
 
   const handleSend = () => {
     if (!input.trim()) return
@@ -66,24 +77,18 @@ export function ChatWindow() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-full">
-      <div className="h-16 border-b flex items-center px-6 shrink-0 bg-card">
-        {isGroup ? (
-          <div className="flex items-center gap-3">
+    <div className="flex-1 flex flex-col bg-background h-full min-w-0">
+      <div className="h-16 border-b flex items-center px-4 md:px-6 shrink-0 bg-card justify-between">
+        <div className="flex items-center gap-3 overflow-hidden">
+          {isGroup ? (
             <div className="h-10 w-10 rounded-md bg-primary/20 flex items-center justify-center shrink-0">
               <Users className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h3 className="font-bold text-foreground uppercase">{activeRoom.department}</h3>
-              <p className="text-xs text-muted-foreground uppercase">CANAL DO SETOR</p>
-            </div>
-          </div>
-        ) : targetUser ? (
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          ) : (
+            <div className="relative shrink-0">
               <Avatar className="h-10 w-10 border">
                 <AvatarFallback className="bg-muted font-bold text-sm">
-                  {targetUser.name.charAt(0).toUpperCase()}
+                  {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <span
@@ -93,19 +98,30 @@ export function ChatWindow() {
                 )}
               />
             </div>
-            <div>
-              <h3 className="font-bold text-foreground uppercase">{targetUser.name}</h3>
-              <p className="text-xs text-muted-foreground uppercase">
-                {isOnline ? 'ONLINE' : 'OFFLINE'} • {targetUser.role}
-              </p>
-            </div>
+          )}
+          <div className="overflow-hidden">
+            <h3 className="font-bold text-foreground uppercase truncate">{displayName}</h3>
+            <p className="text-xs text-muted-foreground uppercase truncate">
+              {isGroup
+                ? 'CANAL DO GRUPO'
+                : `${isOnline ? 'ONLINE' : 'OFFLINE'} • ${targetUser?.role || ''}`}
+            </p>
           </div>
-        ) : (
-          <h3 className="font-bold">USUÁRIO DESCONHECIDO</h3>
+        </div>
+        {isGroup && isMaster && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setManageOpen(true)}
+            className="ml-2 shrink-0"
+          >
+            <Settings className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">MEMBROS</span>
+          </Button>
         )}
       </div>
 
-      <ScrollArea className="flex-1 p-6">
+      <ScrollArea className="flex-1 p-4 md:p-6">
         <div className="space-y-4 pb-4">
           {roomMsgs.map((msg, idx) => {
             const isMe = msg.sender_id === currentUserId
@@ -122,7 +138,7 @@ export function ChatWindow() {
                 )}
                 <div
                   className={cn(
-                    'max-w-[75%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words',
+                    'max-w-[85%] md:max-w-[75%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words',
                     isMe
                       ? 'bg-primary text-primary-foreground rounded-tr-sm'
                       : 'bg-muted text-foreground rounded-tl-sm',
@@ -157,10 +173,11 @@ export function ChatWindow() {
             <Send className="h-5 w-5" />
           </Button>
         </div>
-        <p className="text-[10px] text-muted-foreground text-center mt-2 uppercase tracking-widest">
-          PRESSIONE ENTER PARA ENVIAR
-        </p>
       </div>
+
+      {activeRoom && isGroup && (
+        <ManageGroupDialog roomId={activeRoom.id} open={manageOpen} onOpenChange={setManageOpen} />
+      )}
     </div>
   )
 }
