@@ -36,7 +36,9 @@ export function ChatWindow() {
     }
   }, [roomMsgs])
 
-  if (isLoadingRoom) {
+  const isRoomLoading = isLoadingRoom || (activeRoomId && !activeRoom)
+
+  if (isRoomLoading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase h-full overflow-hidden min-w-0">
         <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
@@ -80,7 +82,7 @@ export function ChatWindow() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-full min-w-0 overflow-hidden relative">
+    <div className="flex-1 flex flex-col bg-background h-full min-w-0 overflow-hidden relative animate-fade-in">
       <div className="h-16 border-b flex items-center px-3 md:px-6 shrink-0 bg-card justify-between shadow-sm z-10">
         <div className="flex items-center gap-2 overflow-hidden">
           <Button
@@ -181,14 +183,14 @@ export function ChatWindow() {
             placeholder="DIGITE SUA MENSAGEM..."
             className="flex-1 min-h-[44px] max-h-32 bg-background border rounded-md px-3 py-2.5 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary uppercase transition-shadow"
             rows={1}
-            disabled={isLoadingRoom}
+            disabled={isRoomLoading}
           />
           <Button
             type="button"
             onClick={handleSend}
             size="icon"
             className="h-[44px] w-[44px] shrink-0 font-bold"
-            disabled={!input.trim() || isLoadingRoom}
+            disabled={!input.trim() || isRoomLoading}
           >
             <Send className="h-5 w-5" />
           </Button>

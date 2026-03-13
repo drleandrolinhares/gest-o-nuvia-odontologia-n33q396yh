@@ -287,7 +287,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         await supabase.from('chat_participants').insert(partsToInsert)
 
         setRooms((prev) => [...prev, data as ChatRoom])
-        openRoom(data.id)
+        await openRoom(data.id)
         logAudit(`CRIOU GRUPO DE CHAT: ${name}`)
       }
     } catch (err) {
@@ -346,22 +346,25 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       })
       if (roomId && typeof roomId === 'string') {
         const existingRoom = rooms.find((r) => r.id === roomId)
+        let roomToOpen = existingRoom
+
         if (!existingRoom) {
           const { data: newRoomData } = await supabase
             .from('chat_rooms')
             .select('*')
             .eq('id', roomId)
             .maybeSingle()
+
           if (newRoomData) {
-            setRooms((prev) =>
-              prev.find((r) => r.id === roomId)
-                ? prev
-                : [...prev, { ...newRoomData, other_user_id: userId } as ChatRoom],
-            )
+            roomToOpen = { ...newRoomData, other_user_id: userId } as ChatRoom
+            setRooms((prev) => (prev.find((r) => r.id === roomId) ? prev : [...prev, roomToOpen!]))
           }
         }
-        openRoom(roomId)
-        logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
+
+        if (roomToOpen) {
+          await openRoom(roomId)
+          logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
+        }
       }
     } catch (error: any) {
       console.warn('Error in openIndividualRoom:', error)
