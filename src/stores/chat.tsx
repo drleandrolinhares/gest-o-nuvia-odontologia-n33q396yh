@@ -38,7 +38,7 @@ interface ChatStore {
   isLoadingRoom: boolean
   openIndividualRoom: (userId: string) => Promise<void>
   openRoom: (roomId: string) => Promise<void>
-  createGroupRoom: (name: string) => Promise<void>
+  createGroupRoom: (name: string, participantIds?: string[]) => Promise<void>
   addGroupParticipant: (roomId: string, userId: string) => Promise<void>
   removeGroupParticipant: (roomId: string, userId: string) => Promise<void>
   getGroupParticipants: (roomId: string) => Promise<string[]>
@@ -254,7 +254,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     await loadMessages(roomId)
   }
 
-  const createGroupRoom = async (name: string) => {
+  const createGroupRoom = async (name: string, participantIds: string[] = []) => {
     if (!user || !user.id || !name.trim()) return
     setIsLoadingRoom(true)
     try {
@@ -265,7 +265,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .single()
       if (error) throw error
       if (data) {
-        await supabase.from('chat_participants').insert({ room_id: data.id, user_id: user.id })
+        const participants = Array.from(new Set([user.id, ...participantIds]))
+        const partsToInsert = participants.map((id) => ({ room_id: data.id, user_id: id }))
+        await supabase.from('chat_participants').insert(partsToInsert)
+
         setRooms((prev) => [...prev, data as ChatRoom])
         openRoom(data.id)
         logAudit(`CRIOU GRUPO DE CHAT: ${name}`)

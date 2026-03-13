@@ -35,7 +35,7 @@ export function ChatWindow() {
 
   if (isLoadingRoom) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase">
+      <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase h-full overflow-hidden min-w-0">
         <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
         <h3 className="text-lg font-bold">CARREGANDO CONVERSA...</h3>
       </div>
@@ -44,7 +44,7 @@ export function ChatWindow() {
 
   if (!activeRoomId || !activeRoom) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase">
+      <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-8 text-center uppercase h-full overflow-hidden min-w-0">
         <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
           <Users className="h-8 w-8 text-muted-foreground/50" />
         </div>
@@ -77,7 +77,7 @@ export function ChatWindow() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-full min-w-0">
+    <div className="flex-1 flex flex-col bg-background h-full min-w-0 overflow-hidden">
       <div className="h-16 border-b flex items-center px-4 md:px-6 shrink-0 bg-card justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
           {isGroup ? (

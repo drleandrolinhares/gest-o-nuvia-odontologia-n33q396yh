@@ -51,8 +51,16 @@ export function ChatSidebar() {
 
   return (
     <div className="w-80 flex flex-col bg-card border-r h-full shrink-0">
-      <div className="p-4 border-b">
-        <h2 className="text-xl font-bold text-nuvia-navy mb-4">MENSAGENS</h2>
+      <div className="p-4 border-b flex flex-col shrink-0 gap-4">
+        <h2 className="text-xl font-bold text-nuvia-navy">MENSAGENS</h2>
+        {isMaster && (
+          <Button
+            onClick={() => setCreateGroupOpen(true)}
+            className="w-full flex items-center justify-center gap-2 font-bold shadow-sm"
+          >
+            <Plus className="h-4 w-4" /> CRIAR GRUPO
+          </Button>
+        )}
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -70,16 +78,6 @@ export function ChatSidebar() {
               <div className="flex items-center gap-2">
                 <Users className="h-3 w-3" /> GRUPOS
               </div>
-              {isMaster && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 hover:bg-muted"
-                  onClick={() => setCreateGroupOpen(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
             </div>
             <div className="space-y-0.5 mt-1">
               {filteredGroups.map((room) => {
