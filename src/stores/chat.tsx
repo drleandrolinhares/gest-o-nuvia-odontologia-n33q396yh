@@ -232,17 +232,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       })
       if (error) throw error
       if (roomId) {
-        const { data: newRoomData } = await supabase
+        const { data: newRoomData, error: fetchError } = await supabase
           .from('chat_rooms')
           .select('*')
           .eq('id', roomId)
-          .single()
+          .maybeSingle()
+
+        if (fetchError) {
+          console.error('Error fetching chat room', fetchError)
+        }
 
         if (newRoomData) {
           setRooms((prev) => {
             if (prev.find((r) => r.id === roomId)) return prev
             return [...prev, { ...newRoomData, other_user_id: userId }] as ChatRoom[]
           })
+        } else if (!rooms.find((r) => r.id === roomId)) {
+          throw new Error('Não foi possível carregar os dados da sala.')
         }
 
         setActiveRoomId(roomId)
@@ -251,6 +257,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
       }
     } catch (error: any) {
+      console.error('Error opening individual room:', error)
       toast({
         title: 'Erro',
         description: 'Não foi possível iniciar a conversa.',
@@ -271,17 +278,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       })
       if (error) throw error
       if (roomId) {
-        const { data: newRoomData } = await supabase
+        const { data: newRoomData, error: fetchError } = await supabase
           .from('chat_rooms')
           .select('*')
           .eq('id', roomId)
-          .single()
+          .maybeSingle()
+
+        if (fetchError) {
+          console.error('Error fetching chat room', fetchError)
+        }
 
         if (newRoomData) {
           setRooms((prev) => {
             if (prev.find((r) => r.id === roomId)) return prev
             return [...prev, newRoomData as ChatRoom]
           })
+        } else if (!rooms.find((r) => r.id === roomId)) {
+          throw new Error('Não foi possível carregar os dados da sala.')
         }
 
         setActiveRoomId(roomId)
@@ -290,6 +303,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         logAudit(`ENTROU NO CANAL DO SETOR: ${dept}`)
       }
     } catch (error: any) {
+      console.error('Error opening group room:', error)
       toast({
         title: 'Erro',
         description: 'Não foi possível entrar no grupo.',
@@ -308,7 +322,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       .from('chat_messages')
       .insert({ room_id: roomId, sender_id: user.id, content: content.trim() })
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) {
       toast({
