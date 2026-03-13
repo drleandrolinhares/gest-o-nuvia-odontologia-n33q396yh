@@ -59,6 +59,7 @@ export default function Agenda() {
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
 
   const [agendaFilterType, setAgendaFilterType] = useState<'TODOS' | 'COLABORADOR' | 'SETOR'>(
     'TODOS',
@@ -144,6 +145,13 @@ export default function Agenda() {
     return agenda.filter((a) => !a.is_completed).map((item) => parseISO(item.date))
   }, [agenda])
 
+  const goToToday = () => {
+    const today = new Date()
+    setSelectedDate(today)
+    setCalendarMonth(today)
+    setFilterView('DIA')
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -160,18 +168,33 @@ export default function Agenda() {
 
       <div className="grid lg:grid-cols-12 gap-6 items-start">
         {/* Calendar Sidebar */}
-        <Card className="lg:col-span-4 p-2 shadow-sm order-2 lg:order-1">
+        <Card className="lg:col-span-4 p-2 shadow-sm order-2 lg:order-1 flex flex-col gap-1">
+          <div className="flex justify-between items-center px-4 pt-3 pb-2 border-b border-muted/60">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              NAVEGAÇÃO
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              className="h-7 px-3 text-[10px] font-bold tracking-widest text-primary border-primary/30 hover:bg-primary/10 hover:text-primary transition-colors uppercase"
+            >
+              HOJE
+            </Button>
+          </div>
           <Calendar
             mode="single"
             selected={selectedDate}
             onSelect={(day) => day && setSelectedDate(day)}
+            month={calendarMonth}
+            onMonthChange={setCalendarMonth}
             locale={ptBR}
             modifiers={{ booked: datesWithPendingEvents }}
             modifiersClassNames={{
               booked:
                 'relative font-bold text-primary after:content-[""] after:absolute after:bottom-1.5 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:bg-primary after:rounded-full',
             }}
-            className={'w-full mx-auto'}
+            className="w-full mx-auto pb-4"
           />
         </Card>
 
