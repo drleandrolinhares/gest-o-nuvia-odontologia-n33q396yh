@@ -212,6 +212,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const logAudit = async (action: string) => {
+    if (!user) return
+    await supabase.from('audit_logs').insert([
+      {
+        user_id: user.id,
+        action: action,
+      },
+    ])
+  }
+
   const openIndividualRoom = async (userId: string) => {
     if (!user) return
     setIsLoadingRoom(true)
@@ -222,10 +232,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       })
       if (error) throw error
       if (roomId) {
-        if (!rooms.find((r) => r.id === roomId)) await fetchMyRooms()
+        const { data: newRoomData } = await supabase
+          .from('chat_rooms')
+          .select('*')
+          .eq('id', roomId)
+          .single()
+
+        if (newRoomData) {
+          setRooms((prev) => {
+            if (prev.find((r) => r.id === roomId)) return prev
+            return [...prev, { ...newRoomData, other_user_id: userId }] as ChatRoom[]
+          })
+        }
+
         setActiveRoomId(roomId)
         markRoomAsRead(roomId)
         await loadMessages(roomId)
+        logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
       }
     } catch (error: any) {
       toast({
@@ -248,10 +271,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       })
       if (error) throw error
       if (roomId) {
-        if (!rooms.find((r) => r.id === roomId)) await fetchMyRooms()
+        const { data: newRoomData } = await supabase
+          .from('chat_rooms')
+          .select('*')
+          .eq('id', roomId)
+          .single()
+
+        if (newRoomData) {
+          setRooms((prev) => {
+            if (prev.find((r) => r.id === roomId)) return prev
+            return [...prev, newRoomData as ChatRoom]
+          })
+        }
+
         setActiveRoomId(roomId)
         markRoomAsRead(roomId)
         await loadMessages(roomId)
+        logAudit(`ENTROU NO CANAL DO SETOR: ${dept}`)
       }
     } catch (error: any) {
       toast({
@@ -277,7 +313,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (error) {
       toast({
         title: 'Erro',
-        description: 'Não foi possível enviar a mensagem.',
+        description: 'Não foi possível enviar a mensagem. Verifique sua conexão.',
         variant: 'destructive',
       })
       return
