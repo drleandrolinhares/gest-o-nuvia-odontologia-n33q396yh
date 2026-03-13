@@ -243,15 +243,30 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const loadMessages = async (roomId: string) => {
     if (!roomId) return
     try {
-      const { data } = await supabase
+      // AC: Session Validation before fetching messages
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão expirada')
+      }
+
+      const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true })
         .limit(300)
+
+      if (error) throw error
       if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Error in loadMessages:', err)
+      toast({
+        title: 'Erro ao carregar mensagens',
+        description: err.message || 'Verifique sua conexão ou realize login novamente.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -265,7 +280,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const openRoom = async (roomId: string) => {
-    if (!roomId) return
+    if (!roomId || !user?.id) return
+
+    // AC: Session Validation
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession()
+    if (error || !session) {
+      toast({
+        title: 'Sessão Expirada',
+        description: 'Por favor, faça login novamente para acessar o chat.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setActiveRoomId(roomId)
     markRoomAsRead(roomId)
     await loadMessages(roomId)
@@ -275,12 +305,19 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (!user || !user.id || !name.trim()) return
     setIsLoadingRoom(true)
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) throw new Error('Sessão expirada. Faça login novamente.')
+
       const { data, error } = await supabase
         .from('chat_rooms')
         .insert({ name: name.trim(), type: 'group' })
         .select()
         .single()
+
       if (error) throw error
+
       if (data) {
         const participants = Array.from(new Set([user.id, ...participantIds]))
         const partsToInsert = participants.map((id) => ({ room_id: data.id, user_id: id }))
@@ -290,10 +327,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         await openRoom(data.id)
         logAudit(`CRIOU GRUPO DE CHAT: ${name}`)
       }
-    } catch (err) {
+    } catch (err: any) {
       toast({
         title: 'Erro',
-        description: 'Não foi possível criar o grupo.',
+        description: err.message || 'Não foi possível criar o grupo.',
         variant: 'destructive',
       })
     } finally {
@@ -338,22 +375,44 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const openIndividualRoom = async (userId: string) => {
     if (!user || !user.id || !userId) return
+
+    // AC: Session Validation
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session) {
+      toast({
+        title: 'Sessão Expirada',
+        description: 'Faça login novamente para usar o chat.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoadingRoom(true)
     try {
-      const { data: roomId } = await supabase.rpc('get_or_create_individual_room', {
-        user1: user.id,
-        user2: userId,
-      })
+      const { data: roomId, error: rpcError } = await supabase.rpc(
+        'get_or_create_individual_room',
+        {
+          user1: user.id,
+          user2: userId,
+        },
+      )
+
+      if (rpcError) throw rpcError
+
       if (roomId && typeof roomId === 'string') {
         const existingRoom = rooms.find((r) => r.id === roomId)
         let roomToOpen = existingRoom
 
         if (!existingRoom) {
-          const { data: newRoomData } = await supabase
+          const { data: newRoomData, error: fetchError } = await supabase
             .from('chat_rooms')
             .select('*')
             .eq('id', roomId)
             .maybeSingle()
+
+          if (fetchError) throw fetchError
 
           if (newRoomData) {
             roomToOpen = { ...newRoomData, other_user_id: userId } as ChatRoom
@@ -367,7 +426,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error: any) {
-      console.warn('Error in openIndividualRoom:', error)
+      console.error('Error in openIndividualRoom:', error)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível instanciar a sala de chat.',
+        variant: 'destructive',
+      })
     } finally {
       setIsLoadingRoom(false)
     }
@@ -378,19 +442,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const sendMessage = async (roomId: string, content: string) => {
     if (!user || !user.id || !content.trim()) return
     try {
+      // AC: Verify session explicitly
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) throw new Error('Sessão expirada. Faça login novamente.')
+
       const { data, error } = await supabase
         .from('chat_messages')
         .insert({ room_id: roomId, sender_id: user.id, content: content.trim() })
         .select()
         .maybeSingle()
-      if (error) {
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível enviar a mensagem.',
-          variant: 'destructive',
-        })
-        return
-      }
+
+      if (error) throw error
+
       if (data) {
         setMessages((prev) => {
           const list = prev[roomId] || []
@@ -398,8 +463,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           return { ...prev, [roomId]: [...list, data as ChatMessage] }
         })
       }
-    } catch (err) {
-      console.warn('Error in sendMessage:', err)
+    } catch (err: any) {
+      console.error('Error in sendMessage:', err)
+      toast({
+        title: 'Falha no envio',
+        description: err.message || 'Não foi possível enviar a mensagem. Verifique a conexão.',
+        variant: 'destructive',
+      })
     }
   }
 

@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
   MapPin,
@@ -140,6 +140,23 @@ function PublicHomeContent() {
     return () => clearInterval(timer)
   }, [nextImage])
 
+  // AC: Route Protection & Route Synchronization
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0A192F]">
+        <Loader2 className="h-10 w-10 text-[#C69B56] animate-spin mb-4" />
+        <p className="text-[#C69B56] text-sm uppercase tracking-widest font-semibold">
+          Carregando...
+        </p>
+      </div>
+    )
+  }
+
+  // Prevents the routing engine from defaulting to public view if logged in
+  if (user) {
+    return <Navigate to="/admin" replace />
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
       <header className="absolute top-0 left-0 w-full z-50 bg-gradient-to-b from-[#0A192F]/90 to-transparent pb-10">
@@ -174,13 +191,7 @@ function PublicHomeContent() {
                 disabled={authLoading}
                 className="bg-transparent border border-white/30 text-white hover:bg-[#C69B56] hover:border-[#C69B56] hover:text-white tracking-widest uppercase text-[10px] font-bold h-10 px-6 rounded-none transition-all"
               >
-                {authLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : user ? (
-                  'Acessar Dashboard Admin'
-                ) : (
-                  'Acesso Restrito'
-                )}
+                Acesso Restrito
               </Button>
             </div>
 
@@ -217,13 +228,7 @@ function PublicHomeContent() {
                           disabled={authLoading}
                           className="w-full bg-[#C69B56] text-white hover:bg-[#b58c49] font-bold tracking-widest uppercase text-xs h-12 rounded-none transition-colors"
                         >
-                          {authLoading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : user ? (
-                            'Acessar Dashboard Admin'
-                          ) : (
-                            'Acesso Restrito'
-                          )}
+                          Acesso Restrito
                         </Button>
                       </SheetClose>
                     </div>
