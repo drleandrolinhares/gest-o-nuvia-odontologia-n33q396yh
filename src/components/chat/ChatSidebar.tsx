@@ -9,6 +9,7 @@ import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
 import { cn } from '@/lib/utils'
 import { CreateGroupDialog } from './CreateGroupDialog'
+import { toast } from '@/components/ui/use-toast'
 
 export function ChatSidebar() {
   const [search, setSearch] = useState('')
@@ -22,12 +23,11 @@ export function ChatSidebar() {
     openIndividualRoom,
     openRoom,
     isMasterUser,
+    isLoadingRoom,
   } = useChatStore()
 
   const validEmployees = useMemo(() => {
-    return employees.filter(
-      (e) => e.user_id && e.user_id !== currentUserId && e.status !== 'Desligado',
-    )
+    return employees.filter((e) => e.user_id !== currentUserId && e.status !== 'Desligado')
   }, [employees, currentUserId])
 
   const groupRooms = useMemo(() => {
@@ -90,9 +90,10 @@ export function ChatSidebar() {
                   <button
                     key={room.id}
                     type="button"
+                    disabled={isLoadingRoom}
                     onClick={() => openRoom(room.id)}
                     className={cn(
-                      'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left',
+                      'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed',
                       active && 'bg-primary/10 hover:bg-primary/15',
                     )}
                   >
@@ -134,20 +135,32 @@ export function ChatSidebar() {
             </div>
             <div className="space-y-0.5 mt-1">
               {filteredEmployees.map((emp) => {
-                const unread = getUnreadForUser(emp.user_id!)
-                const room = rooms.find(
-                  (r) => r.type === 'individual' && r.other_user_id === emp.user_id,
-                )
+                const unread = emp.user_id ? getUnreadForUser(emp.user_id) : 0
+                const room = emp.user_id
+                  ? rooms.find((r) => r.type === 'individual' && r.other_user_id === emp.user_id)
+                  : undefined
                 const active = room?.id === activeRoomId
-                const isOnline = onlineUsers.includes(emp.user_id!)
+                const isOnline = emp.user_id ? onlineUsers.includes(emp.user_id) : false
 
                 return (
                   <button
                     key={emp.id}
                     type="button"
-                    onClick={() => openIndividualRoom(emp.user_id!)}
+                    disabled={isLoadingRoom}
+                    onClick={() => {
+                      if (!emp.user_id) {
+                        toast({
+                          title: 'Ação Indisponível',
+                          description:
+                            'Este colaborador ainda não possui um acesso ao sistema vinculado. Não é possível iniciar o chat.',
+                          variant: 'destructive',
+                        })
+                        return
+                      }
+                      openIndividualRoom(emp.user_id)
+                    }}
                     className={cn(
-                      'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left',
+                      'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed',
                       active && 'bg-primary/10 hover:bg-primary/15',
                     )}
                   >
