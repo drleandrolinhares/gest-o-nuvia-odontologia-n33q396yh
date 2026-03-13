@@ -9,22 +9,14 @@ import Settings from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
 import Agenda from '@/pages/Agenda'
 import Acessos from '@/pages/Acessos'
-import PublicHome from '@/pages/PublicHome'
 import Login from '@/pages/Login'
 import Chat from '@/pages/Chat'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import { AppProvider } from '@/stores/main'
-import { AuthProvider, useAuth } from '@/hooks/use-auth'
+import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
 import { Toaster } from '@/components/ui/toaster'
-
-function RootRoute() {
-  const { user, loading } = useAuth()
-  if (loading) return <div className="min-h-screen bg-[#0A192F]" />
-  if (user) return <Navigate to="/admin/dashboard" replace />
-  return <PublicHome />
-}
 
 export default function App() {
   return (
@@ -32,7 +24,7 @@ export default function App() {
       <AppProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<RootRoute />} />
+            <Route path="/" element={<Navigate to="/admin/agenda" replace />} />
             <Route path="/login" element={<Login />} />
             <Route
               path="/admin"
@@ -44,9 +36,9 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Index />} />
+              <Route index element={<Navigate to="agenda" replace />} />
               <Route path="agenda" element={<Agenda />} />
+              <Route path="dashboard" element={<Index />} />
               <Route path="chat" element={<Chat />} />
               <Route path="acessos" element={<Acessos />} />
               <Route path="rh" element={<RH />} />

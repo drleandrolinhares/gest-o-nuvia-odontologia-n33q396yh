@@ -34,7 +34,7 @@ export default function Login() {
   const from =
     typeof locationFrom === 'string' && locationFrom !== '/' && locationFrom !== '/login'
       ? locationFrom
-      : '/admin'
+      : '/admin/agenda'
 
   useEffect(() => {
     // Prevent showing login to already authenticated users
@@ -59,7 +59,7 @@ export default function Login() {
         return
       }
 
-      // Successful login automatically navigates to DASH NUVIA or requested internal route
+      // Successful login automatically navigates to Agenda or requested internal route
       navigate(from, { replace: true })
     } catch (err) {
       toast({
@@ -174,7 +174,7 @@ export default function Login() {
                     Autenticando...
                   </>
                 ) : (
-                  'Entrar no Dash Nuvia'
+                  'Acessar Sistema'
                 )}
               </Button>
             </form>

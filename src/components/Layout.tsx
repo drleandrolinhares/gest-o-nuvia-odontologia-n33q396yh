@@ -21,8 +21,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { useChatStore } from '@/stores/chat'
 
 const navigation = [
-  { name: 'DASH NUVIA', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
+  { name: 'DASH NUVIA', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
   { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
   { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
@@ -85,7 +85,7 @@ export function Layout() {
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
       <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F]">
         <Link
-          to="/admin/dashboard"
+          to="/admin/agenda"
           className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
         >
           <NuviaLogo className="h-20 w-auto mx-auto" />
@@ -164,7 +164,7 @@ export function Layout() {
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
-        <Link to="/admin/dashboard" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
+        <Link to="/admin/agenda" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
           <NuviaLogo className="h-12 w-auto" />
         </Link>
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -195,21 +195,14 @@ export function Layout() {
             <Home className="w-4 h-4" />
             <span>/</span>
             <span className="text-slate-900">
-              {location.pathname === '/admin/dashboard' || location.pathname === '/admin'
-                ? 'DASHBOARD'
-                : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
+              {location.pathname === '/admin/agenda' || location.pathname === '/admin'
+                ? 'AGENDA'
+                : location.pathname === '/admin/dashboard'
+                  ? 'DASHBOARD'
+                  : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden lg:flex border-slate-200 text-slate-600 hover:bg-slate-50 uppercase tracking-widest text-xs font-bold"
-              asChild
-            >
-              <Link to="/">Ver Site Público</Link>
-            </Button>
-          </div>
+          <div className="flex items-center gap-4">{/* Action buttons could go here */}</div>
         </header>
 
         <div className="flex-1 p-4 md:p-8 overflow-auto">
