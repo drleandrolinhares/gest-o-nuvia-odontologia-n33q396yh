@@ -23,12 +23,15 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [keepSignedIn, setKeepSignedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
   const { signIn, user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
 
-  const from = location.state?.from?.pathname || '/admin'
+  // Ensure we don't redirect back to the public home if they hit login
+  const locationFrom = location.state?.from?.pathname
+  const from = locationFrom && locationFrom !== '/' ? locationFrom : '/admin'
 
   useEffect(() => {
     // Prevent infinite loops or showing login to already authenticated users
@@ -53,7 +56,7 @@ export default function Login() {
         return
       }
 
-      // Successful login automatically navigates to DASH NUVIA or requested route
+      // Successful login automatically navigates to DASH NUVIA or requested internal route
       navigate(from, { replace: true })
     } catch (err) {
       toast({
@@ -74,7 +77,7 @@ export default function Login() {
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-[#D4AF37]/10 rounded-full blur-[120px]"></div>
       </div>
 
-      <div className="w-full max-w-md relative z-10 flex flex-col items-center">
+      <div className="w-full max-w-md relative z-10 flex flex-col items-center animate-fade-in-up">
         <Link to="/" className="mb-8 block hover:opacity-90 transition-opacity">
           <img
             src={logoImg}

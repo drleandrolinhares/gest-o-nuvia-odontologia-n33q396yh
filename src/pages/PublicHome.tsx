@@ -112,6 +112,7 @@ function PublicHomeContent() {
 
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
+  // Ensure authenticated users can quickly access the dashboard without being trapped
   const handleAccessClick = useCallback(
     (e?: React.MouseEvent) => {
       if (e) e.preventDefault()
@@ -176,7 +177,7 @@ function PublicHomeContent() {
                 {authLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : user ? (
-                  'Acessar Sistema'
+                  'Acessar Dashboard Admin'
                 ) : (
                   'Acesso Restrito'
                 )}
@@ -219,7 +220,7 @@ function PublicHomeContent() {
                           {authLoading ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : user ? (
-                            'Acessar Sistema'
+                            'Acessar Dashboard Admin'
                           ) : (
                             'Acesso Restrito'
                           )}

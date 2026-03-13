@@ -24,30 +24,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    let mounted = true
 
-    supabase.auth
-      .getSession()
-      .then(({ data: { session }, error }) => {
+    const initializeAuth = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+
         if (error) {
           console.error('Erro ao buscar sessão ativa:', error)
         }
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
-      })
-      .catch((err) => {
-        console.error('Falha na inicialização da autenticação:', err)
-        setLoading(false)
-      })
 
-    return () => subscription.unsubscribe()
+        if (mounted) {
+          setSession(session)
+          setUser(session?.user ?? null)
+          setLoading(false)
+        }
+      } catch (err) {
+        console.error('Falha na inicialização da autenticação:', err)
+        if (mounted) setLoading(false)
+      }
+    }
+
+    initializeAuth()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (mounted) {
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+        // Only set loading to false here if we already initialized or if session is valid
+        // This prevents flickering unauthenticated states during rapid route changes
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string, keepSignedIn: boolean = false) => {

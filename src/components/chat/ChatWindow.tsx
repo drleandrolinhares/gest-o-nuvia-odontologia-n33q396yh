@@ -72,7 +72,7 @@ export function ChatWindow() {
     setInput('')
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -81,7 +81,7 @@ export function ChatWindow() {
 
   return (
     <div className="flex-1 flex flex-col bg-background h-full min-w-0 overflow-hidden relative">
-      <div className="h-16 border-b flex items-center px-3 md:px-6 shrink-0 bg-card justify-between">
+      <div className="h-16 border-b flex items-center px-3 md:px-6 shrink-0 bg-card justify-between shadow-sm z-10">
         <div className="flex items-center gap-2 overflow-hidden">
           <Button
             type="button"
@@ -151,7 +151,7 @@ export function ChatWindow() {
                 )}
                 <div
                   className={cn(
-                    'max-w-[85%] md:max-w-[75%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words',
+                    'max-w-[85%] md:max-w-[75%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words shadow-sm',
                     isMe
                       ? 'bg-primary text-primary-foreground rounded-tr-sm'
                       : 'bg-muted text-foreground rounded-tl-sm',
@@ -168,25 +168,27 @@ export function ChatWindow() {
               </div>
             )
           })}
-          <div ref={scrollRef} />
+          <div ref={scrollRef} className="h-1" />
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t bg-card shrink-0">
+      <div className="p-4 border-t bg-card shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
         <div className="flex gap-2 items-end">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="DIGITE SUA MENSAGEM..."
-            className="flex-1 min-h-[44px] max-h-32 bg-background border rounded-md px-3 py-2.5 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary uppercase"
+            className="flex-1 min-h-[44px] max-h-32 bg-background border rounded-md px-3 py-2.5 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary uppercase transition-shadow"
             rows={1}
+            disabled={isLoadingRoom}
           />
           <Button
             type="button"
             onClick={handleSend}
             size="icon"
-            className="h-[44px] w-[44px] shrink-0"
+            className="h-[44px] w-[44px] shrink-0 font-bold"
+            disabled={!input.trim() || isLoadingRoom}
           >
             <Send className="h-5 w-5" />
           </Button>
