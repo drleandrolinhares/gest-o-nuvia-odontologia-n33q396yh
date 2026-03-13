@@ -18,6 +18,7 @@ export type ChatRoom = {
   type: 'individual' | 'group'
   department: string | null
   other_user_id?: string
+  created_at?: string
 }
 
 export type ChatMessage = {
@@ -59,74 +60,88 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [activeRoomId])
 
   const fetchMyRooms = useCallback(async () => {
-    if (!user) return
-    const { data: myParts, error: partsError } = await supabase
-      .from('chat_participants')
-      .select('room_id')
-      .eq('user_id', user.id)
-
-    if (partsError) {
-      console.error('Error fetching chat participants', partsError)
-      return
-    }
-
-    if (!myParts || myParts.length === 0) {
-      setRooms([])
-      return
-    }
-
-    const roomIds = myParts.map((p) => p.room_id)
-    const { data: roomsData, error: roomsError } = await supabase
-      .from('chat_rooms')
-      .select('*')
-      .in('id', roomIds)
-
-    if (roomsError) {
-      console.error('Error fetching chat rooms', roomsError)
-      return
-    }
-
-    const indRooms = roomsData?.filter((r) => r.type === 'individual').map((r) => r.id) || []
-    const otherUsers: Record<string, string> = {}
-
-    if (indRooms.length > 0) {
-      const { data: others } = await supabase
+    if (!user || !user.id) return
+    try {
+      const { data: myParts, error: partsError } = await supabase
         .from('chat_participants')
-        .select('room_id, user_id')
-        .in('room_id', indRooms)
-        .neq('user_id', user.id)
-      others?.forEach((o) => {
-        otherUsers[o.room_id] = o.user_id
-      })
-    }
+        .select('room_id')
+        .eq('user_id', user.id)
 
-    setRooms(
-      roomsData?.map((r) => ({
-        ...r,
-        other_user_id: r.type === 'individual' ? otherUsers[r.id] : undefined,
-      })) || [],
-    )
+      if (partsError) {
+        console.error('Error fetching chat participants', partsError)
+        return
+      }
+
+      if (!myParts || myParts.length === 0) {
+        setRooms([])
+        return
+      }
+
+      const roomIds = myParts.map((p) => p.room_id)
+      if (roomIds.length === 0) return
+
+      const { data: roomsData, error: roomsError } = await supabase
+        .from('chat_rooms')
+        .select('*')
+        .in('id', roomIds)
+
+      if (roomsError) {
+        console.error('Error fetching chat rooms', roomsError)
+        return
+      }
+
+      const indRooms = roomsData?.filter((r) => r.type === 'individual').map((r) => r.id) || []
+      const otherUsers: Record<string, string> = {}
+
+      if (indRooms.length > 0) {
+        const { data: others } = await supabase
+          .from('chat_participants')
+          .select('room_id, user_id')
+          .in('room_id', indRooms)
+          .neq('user_id', user.id)
+        others?.forEach((o) => {
+          otherUsers[o.room_id] = o.user_id
+        })
+      }
+
+      setRooms(
+        roomsData?.map((r) => ({
+          ...r,
+          other_user_id: r.type === 'individual' ? otherUsers[r.id] : undefined,
+        })) || [],
+      )
+    } catch (err) {
+      console.warn('Error in fetchMyRooms:', err)
+    }
   }, [user])
 
   const fetchUnread = useCallback(async () => {
-    if (!user) return
-    const { data, error } = await supabase.rpc('get_unread_counts', { user_id_param: user.id })
-    if (error) {
-      console.error('Error fetching unread counts', error)
-      return
-    }
-    if (data) {
-      const counts: Record<string, number> = {}
-      data.forEach((r: any) => (counts[r.room_id] = Number(r.unread_count)))
-      setUnreadCounts(counts)
+    if (!user || !user.id) return
+    try {
+      const { data, error } = await supabase.rpc('get_unread_counts', { user_id_param: user.id })
+      if (error) {
+        console.error('Error fetching unread counts', error)
+        return
+      }
+      if (data) {
+        const counts: Record<string, number> = {}
+        data.forEach((r: any) => (counts[r.room_id] = Number(r.unread_count)))
+        setUnreadCounts(counts)
+      }
+    } catch (err) {
+      console.warn('Error in fetchUnread:', err)
     }
   }, [user])
 
   const markRoomAsRead = useCallback(
     async (roomId: string) => {
-      if (!user) return
-      await supabase.rpc('mark_room_read', { p_room_id: roomId, p_user_id: user.id })
-      setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 }))
+      if (!user || !user.id) return
+      try {
+        await supabase.rpc('mark_room_read', { p_room_id: roomId, p_user_id: user.id })
+        setUnreadCounts((prev) => ({ ...prev, [roomId]: 0 }))
+      } catch (err) {
+        console.warn('Error marking room as read:', err)
+      }
     },
     [user],
   )
@@ -153,7 +168,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   )
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !user.id) return
 
     fetchMyRooms()
     fetchUnread()
@@ -191,77 +206,114 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [user, fetchMyRooms, fetchUnread, handleNewMessage])
 
   const loadMessages = async (roomId: string) => {
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('room_id', roomId)
-      .order('created_at', { ascending: true })
-      .limit(300)
+    if (!roomId) return
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('room_id', roomId)
+        .order('created_at', { ascending: true })
+        .limit(300)
 
-    if (error) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as mensagens.',
-        variant: 'destructive',
-      })
-      return
-    }
+      if (error) {
+        console.error('Error loading messages', error)
+        toast({
+          title: 'Aviso',
+          description: 'Pode haver um atraso ao carregar o histórico de mensagens.',
+          variant: 'default',
+        })
+        return
+      }
 
-    if (data) {
-      setMessages((prev) => ({ ...prev, [roomId]: data }))
+      if (data) {
+        setMessages((prev) => ({ ...prev, [roomId]: data }))
+      }
+    } catch (err) {
+      console.warn('Error in loadMessages:', err)
     }
   }
 
   const logAudit = async (action: string) => {
-    if (!user) return
-    await supabase.from('audit_logs').insert([
-      {
-        user_id: user.id,
-        action: action,
-      },
-    ])
+    if (!user || !user.id) return
+    try {
+      await supabase.from('audit_logs').insert([
+        {
+          user_id: user.id,
+          action: action,
+        },
+      ])
+    } catch (err) {
+      console.warn('Error logging audit for chat:', err)
+    }
   }
 
   const openIndividualRoom = async (userId: string) => {
-    if (!user) return
+    if (!user || !user.id || !userId) return
     setIsLoadingRoom(true)
     try {
       const { data: roomId, error } = await supabase.rpc('get_or_create_individual_room', {
         user1: user.id,
         user2: userId,
       })
-      if (error) throw error
-      if (roomId) {
-        const { data: newRoomData, error: fetchError } = await supabase
-          .from('chat_rooms')
-          .select('*')
-          .eq('id', roomId)
-          .maybeSingle()
 
-        if (fetchError) {
-          console.error('Error fetching chat room', fetchError)
-        }
+      if (error) {
+        console.error('Error calling get_or_create_individual_room RPC:', error)
+        throw error
+      }
 
-        if (newRoomData) {
-          setRooms((prev) => {
-            if (prev.find((r) => r.id === roomId)) return prev
-            return [...prev, { ...newRoomData, other_user_id: userId }] as ChatRoom[]
-          })
-        } else if (!rooms.find((r) => r.id === roomId)) {
-          throw new Error('Não foi possível carregar os dados da sala.')
+      if (roomId && typeof roomId === 'string') {
+        const existingRoom = rooms.find((r) => r.id === roomId)
+
+        if (!existingRoom) {
+          const { data: newRoomData, error: fetchError } = await supabase
+            .from('chat_rooms')
+            .select('*')
+            .eq('id', roomId)
+            .maybeSingle()
+
+          if (fetchError) {
+            console.error('Error fetching chat room', fetchError)
+          }
+
+          if (newRoomData) {
+            setRooms((prev) => {
+              if (prev.find((r) => r.id === roomId)) return prev
+              return [...prev, { ...newRoomData, other_user_id: userId }] as ChatRoom[]
+            })
+          } else {
+            console.warn(
+              `Room with ID ${roomId} not found immediately after creation. Using fallback state.`,
+            )
+            setRooms((prev) => {
+              if (prev.find((r) => r.id === roomId)) return prev
+              return [
+                ...prev,
+                {
+                  id: roomId,
+                  type: 'individual',
+                  name: null,
+                  department: null,
+                  other_user_id: userId,
+                  created_at: new Date().toISOString(),
+                },
+              ] as ChatRoom[]
+            })
+          }
         }
 
         setActiveRoomId(roomId)
         markRoomAsRead(roomId)
         await loadMessages(roomId)
         logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
+      } else {
+        console.warn('Invalid room ID returned from RPC:', roomId)
       }
     } catch (error: any) {
       console.error('Error opening individual room:', error)
       toast({
-        title: 'Erro',
-        description: 'Não foi possível iniciar a conversa.',
-        variant: 'destructive',
+        title: 'Aviso',
+        description: 'Pode haver um pequeno atraso ao iniciar a conversa.',
+        variant: 'default',
       })
     } finally {
       setIsLoadingRoom(false)
@@ -269,45 +321,71 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const openGroupRoom = async (dept: string) => {
-    if (!user) return
+    if (!user || !user.id || !dept) return
     setIsLoadingRoom(true)
     try {
       const { data: roomId, error } = await supabase.rpc('get_or_create_group_room', {
         dept_name: dept,
         creator_id: user.id,
       })
-      if (error) throw error
-      if (roomId) {
-        const { data: newRoomData, error: fetchError } = await supabase
-          .from('chat_rooms')
-          .select('*')
-          .eq('id', roomId)
-          .maybeSingle()
 
-        if (fetchError) {
-          console.error('Error fetching chat room', fetchError)
-        }
+      if (error) {
+        console.error('Error calling get_or_create_group_room RPC:', error)
+        throw error
+      }
 
-        if (newRoomData) {
-          setRooms((prev) => {
-            if (prev.find((r) => r.id === roomId)) return prev
-            return [...prev, newRoomData as ChatRoom]
-          })
-        } else if (!rooms.find((r) => r.id === roomId)) {
-          throw new Error('Não foi possível carregar os dados da sala.')
+      if (roomId && typeof roomId === 'string') {
+        const existingRoom = rooms.find((r) => r.id === roomId)
+
+        if (!existingRoom) {
+          const { data: newRoomData, error: fetchError } = await supabase
+            .from('chat_rooms')
+            .select('*')
+            .eq('id', roomId)
+            .maybeSingle()
+
+          if (fetchError) {
+            console.error('Error fetching chat room', fetchError)
+          }
+
+          if (newRoomData) {
+            setRooms((prev) => {
+              if (prev.find((r) => r.id === roomId)) return prev
+              return [...prev, newRoomData as ChatRoom]
+            })
+          } else {
+            console.warn(
+              `Group room with ID ${roomId} not found immediately. Using fallback state.`,
+            )
+            setRooms((prev) => {
+              if (prev.find((r) => r.id === roomId)) return prev
+              return [
+                ...prev,
+                {
+                  id: roomId,
+                  type: 'group',
+                  name: dept,
+                  department: dept,
+                  created_at: new Date().toISOString(),
+                },
+              ] as ChatRoom[]
+            })
+          }
         }
 
         setActiveRoomId(roomId)
         markRoomAsRead(roomId)
         await loadMessages(roomId)
         logAudit(`ENTROU NO CANAL DO SETOR: ${dept}`)
+      } else {
+        console.warn('Invalid room ID returned from RPC:', roomId)
       }
     } catch (error: any) {
       console.error('Error opening group room:', error)
       toast({
-        title: 'Erro',
-        description: 'Não foi possível entrar no grupo.',
-        variant: 'destructive',
+        title: 'Aviso',
+        description: 'Pode haver um pequeno atraso ao entrar no grupo.',
+        variant: 'default',
       })
     } finally {
       setIsLoadingRoom(false)
@@ -317,28 +395,32 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const closeRoom = () => setActiveRoomId(null)
 
   const sendMessage = async (roomId: string, content: string) => {
-    if (!user || !content.trim()) return
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .insert({ room_id: roomId, sender_id: user.id, content: content.trim() })
-      .select()
-      .maybeSingle()
+    if (!user || !user.id || !content.trim()) return
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({ room_id: roomId, sender_id: user.id, content: content.trim() })
+        .select()
+        .maybeSingle()
 
-    if (error) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível enviar a mensagem. Verifique sua conexão.',
-        variant: 'destructive',
-      })
-      return
-    }
+      if (error) {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível enviar a mensagem. Verifique sua conexão.',
+          variant: 'destructive',
+        })
+        return
+      }
 
-    if (data) {
-      setMessages((prev) => {
-        const list = prev[roomId] || []
-        if (list.find((m) => m.id === data.id)) return prev
-        return { ...prev, [roomId]: [...list, data as ChatMessage] }
-      })
+      if (data) {
+        setMessages((prev) => {
+          const list = prev[roomId] || []
+          if (list.find((m) => m.id === data.id)) return prev
+          return { ...prev, [roomId]: [...list, data as ChatMessage] }
+        })
+      }
+    } catch (err) {
+      console.error('Error in sendMessage:', err)
     }
   }
 
