@@ -24,7 +24,7 @@ const navigation = [
   { name: 'DASH NUVIA', href: '/admin', icon: LayoutDashboard, exact: true },
   { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
   { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
-  { name: 'Recursos Humanos', href: '/admin/rh', icon: Users },
+  { name: 'RH', href: '/admin/rh', icon: Users },
   { name: 'Estoque', href: '/admin/estoque', icon: Package },
   { name: 'Acessos', href: '/admin/acessos', icon: Shield },
   { name: 'Logs', href: '/admin/auditoria', icon: FileText },

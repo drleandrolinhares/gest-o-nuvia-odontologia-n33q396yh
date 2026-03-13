@@ -12,7 +12,7 @@ export default function RH() {
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">RECURSOS HUMANOS</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">RH</h1>
         <p className="text-muted-foreground mt-1">
           GESTÃO CONSOLIDADA DE EQUIPE, INTEGRAÇÕES DE ONBOARDING E ROTINAS OPERACIONAIS.
         </p>

@@ -168,7 +168,7 @@ interface AppStore {
   removeSupplier: (id: string) => void
 }
 
-const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção']
+const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção', 'RH']
 const mockPackageTypes = ['Caixa', 'Unidade', 'Frasco', 'Pacote', 'Seringa']
 const mockSpecialties = [
   'Clínica Geral',

@@ -55,9 +55,7 @@ export default function Index() {
     <div className="space-y-8 animate-fade-in uppercase">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">DASHBOARD NUVIA</h1>
-        <p className="text-muted-foreground mt-1">
-          VISÃO GERAL DA GESTÃO DE RECURSOS HUMANOS E ESTOQUE CLÍNICO.
-        </p>
+        <p className="text-muted-foreground mt-1">VISÃO GERAL DA GESTÃO DE RH E ESTOQUE CLÍNICO.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
