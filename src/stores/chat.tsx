@@ -36,6 +36,7 @@ interface ChatStore {
   onlineUsers: string[]
   activeRoomId: string | null
   isLoadingRoom: boolean
+  isMasterUser: boolean
   openIndividualRoom: (userId: string) => Promise<void>
   openRoom: (roomId: string) => Promise<void>
   createGroupRoom: (name: string, participantIds?: string[]) => Promise<void>
@@ -56,12 +57,28 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null)
   const [isLoadingRoom, setIsLoadingRoom] = useState(false)
+  const [isMasterUser, setIsMasterUser] = useState(false)
 
   const activeRoomIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     activeRoomIdRef.current = activeRoomId
   }, [activeRoomId])
+
+  useEffect(() => {
+    if (!user || !user.id) {
+      setIsMasterUser(false)
+      return
+    }
+    supabase
+      .rpc('is_master_user', { user_uuid: user.id })
+      .then(({ data, error }) => {
+        if (!error && data !== null) {
+          setIsMasterUser(!!data)
+        }
+      })
+      .catch((err) => console.warn('Erro ao verificar permissão MASTER:', err))
+  }, [user])
 
   const fetchMyRooms = useCallback(async () => {
     if (!user || !user.id) return
@@ -392,6 +409,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         onlineUsers,
         activeRoomId,
         isLoadingRoom,
+        isMasterUser,
         openIndividualRoom,
         openRoom,
         createGroupRoom,

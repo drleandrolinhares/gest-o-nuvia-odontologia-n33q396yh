@@ -539,6 +539,7 @@ export type Database = {
           unread_count: number
         }[]
       }
+      is_master_user: { Args: { user_uuid: string }; Returns: boolean }
       mark_room_read: {
         Args: { p_room_id: string; p_user_id: string }
         Returns: undefined
@@ -880,6 +881,8 @@ export const Constants = {
 //   Policy "Users can view messages in their rooms" (SELECT, PERMISSIVE) roles={public}
 //     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = chat_messages.room_id) AND (cp.user_id = auth.uid()))))
 // Table: chat_participants
+//   Policy "Users can delete participants" (DELETE, PERMISSIVE) roles={public}
+//     USING: (is_master_user(auth.uid()) OR (user_id = auth.uid()))
 //   Policy "Users can insert themselves or others into rooms" (INSERT, PERMISSIVE) roles={public}
 //     WITH CHECK: (auth.role() = 'authenticated'::text)
 //   Policy "Users can update their own participant record" (UPDATE, PERMISSIVE) roles={public}
@@ -888,7 +891,7 @@ export const Constants = {
 //     USING: (room_id IN ( SELECT get_auth_user_rooms() AS get_auth_user_rooms))
 // Table: chat_rooms
 //   Policy "Users can create rooms" (INSERT, PERMISSIVE) roles={public}
-//     WITH CHECK: (auth.role() = 'authenticated'::text)
+//     WITH CHECK: ((auth.role() = 'authenticated'::text) AND ((type = 'individual'::text) OR ((type = 'group'::text) AND is_master_user(auth.uid()))))
 //   Policy "Users can view rooms they are in" (SELECT, PERMISSIVE) roles={public}
 //     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.id) AND (cp.user_id = auth.uid()))))
 // Table: documents
@@ -1005,6 +1008,18 @@ export const Constants = {
 //     VALUES (NEW.id, COALESCE(NEW.email, ''), COALESCE(NEW.raw_user_meta_data->>'name', 'Colaborador'));
 //     RETURN NEW;
 //   END;
+//   $function$
+//
+// FUNCTION is_master_user(uuid)
+//   CREATE OR REPLACE FUNCTION public.is_master_user(user_uuid uuid)
+//    RETURNS boolean
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     SELECT EXISTS (
+//       SELECT 1 FROM public.employees
+//       WHERE user_id = user_uuid AND 'MASTER' = ANY(team_category)
+//     );
 //   $function$
 //
 // FUNCTION mark_room_read(uuid, uuid)

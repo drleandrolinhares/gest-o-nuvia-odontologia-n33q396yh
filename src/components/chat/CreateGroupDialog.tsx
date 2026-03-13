@@ -119,10 +119,15 @@ export function CreateGroupDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoadingRoom}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoadingRoom}
+          >
             CANCELAR
           </Button>
-          <Button onClick={handleCreate} disabled={!name.trim() || isLoadingRoom}>
+          <Button type="button" onClick={handleCreate} disabled={!name.trim() || isLoadingRoom}>
             CRIAR GRUPO
           </Button>
         </DialogFooter>

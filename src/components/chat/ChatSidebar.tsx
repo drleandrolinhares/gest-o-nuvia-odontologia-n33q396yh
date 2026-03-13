@@ -14,14 +14,15 @@ export function ChatSidebar() {
   const [search, setSearch] = useState('')
   const [createGroupOpen, setCreateGroupOpen] = useState(false)
   const { employees, currentUserId } = useAppStore()
-  const { rooms, unreadCounts, onlineUsers, activeRoomId, openIndividualRoom, openRoom } =
-    useChatStore()
-
-  const isMaster = useMemo(() => {
-    return (
-      employees.find((e) => e.user_id === currentUserId)?.teamCategory?.includes('MASTER') || false
-    )
-  }, [employees, currentUserId])
+  const {
+    rooms,
+    unreadCounts,
+    onlineUsers,
+    activeRoomId,
+    openIndividualRoom,
+    openRoom,
+    isMasterUser,
+  } = useChatStore()
 
   const validEmployees = useMemo(() => {
     return employees.filter(
@@ -50,11 +51,12 @@ export function ChatSidebar() {
   }
 
   return (
-    <div className="w-80 flex flex-col bg-card border-r h-full shrink-0">
+    <div className="flex flex-col bg-card h-full shrink-0">
       <div className="p-4 border-b flex flex-col shrink-0 gap-4">
         <h2 className="text-xl font-bold text-nuvia-navy">MENSAGENS</h2>
-        {isMaster && (
+        {isMasterUser && (
           <Button
+            type="button"
             onClick={() => setCreateGroupOpen(true)}
             className="w-full flex items-center justify-center gap-2 font-bold shadow-sm"
           >
@@ -71,7 +73,7 @@ export function ChatSidebar() {
           />
         </div>
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-2 space-y-4">
           <div>
             <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
@@ -87,6 +89,7 @@ export function ChatSidebar() {
                 return (
                   <button
                     key={room.id}
+                    type="button"
                     onClick={() => openRoom(room.id)}
                     className={cn(
                       'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left',
@@ -141,6 +144,7 @@ export function ChatSidebar() {
                 return (
                   <button
                     key={emp.id}
+                    type="button"
                     onClick={() => openIndividualRoom(emp.user_id!)}
                     className={cn(
                       'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left',

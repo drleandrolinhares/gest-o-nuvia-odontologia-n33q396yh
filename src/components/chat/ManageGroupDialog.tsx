@@ -92,6 +92,7 @@ export function ManageGroupDialog({
                   <div className="shrink-0 ml-4">
                     {isMember ? (
                       <Button
+                        type="button"
                         variant="destructive"
                         size="sm"
                         onClick={() => handleRemove(emp.user_id!)}
@@ -103,6 +104,7 @@ export function ManageGroupDialog({
                       </Button>
                     ) : (
                       <Button
+                        type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => handleAdd(emp.user_id!)}

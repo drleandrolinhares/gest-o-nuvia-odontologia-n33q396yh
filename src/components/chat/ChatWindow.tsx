@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Send, Users, Loader2, Settings } from 'lucide-react'
+import { ArrowLeft, Send, Users, Loader2, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -11,7 +11,16 @@ import { ManageGroupDialog } from './ManageGroupDialog'
 export function ChatWindow() {
   const [input, setInput] = useState('')
   const [manageOpen, setManageOpen] = useState(false)
-  const { activeRoomId, rooms, messages, sendMessage, onlineUsers, isLoadingRoom } = useChatStore()
+  const {
+    activeRoomId,
+    rooms,
+    messages,
+    sendMessage,
+    onlineUsers,
+    isLoadingRoom,
+    isMasterUser,
+    closeRoom,
+  } = useChatStore()
   const { employees, currentUserId } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -20,12 +29,6 @@ export function ChatWindow() {
     () => (activeRoomId ? messages[activeRoomId] || [] : []),
     [messages, activeRoomId],
   )
-
-  const isMaster = useMemo(() => {
-    return (
-      employees.find((e) => e.user_id === currentUserId)?.teamCategory?.includes('MASTER') || false
-    )
-  }, [employees, currentUserId])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -77,9 +80,18 @@ export function ChatWindow() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-full min-w-0 overflow-hidden">
-      <div className="h-16 border-b flex items-center px-4 md:px-6 shrink-0 bg-card justify-between">
-        <div className="flex items-center gap-3 overflow-hidden">
+    <div className="flex-1 flex flex-col bg-background h-full min-w-0 overflow-hidden relative">
+      <div className="h-16 border-b flex items-center px-3 md:px-6 shrink-0 bg-card justify-between">
+        <div className="flex items-center gap-2 overflow-hidden">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="md:hidden shrink-0 -ml-1 mr-1"
+            onClick={closeRoom}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
           {isGroup ? (
             <div className="h-10 w-10 rounded-md bg-primary/20 flex items-center justify-center shrink-0">
               <Users className="h-5 w-5 text-primary" />
@@ -99,7 +111,7 @@ export function ChatWindow() {
               />
             </div>
           )}
-          <div className="overflow-hidden">
+          <div className="overflow-hidden ml-1">
             <h3 className="font-bold text-foreground uppercase truncate">{displayName}</h3>
             <p className="text-xs text-muted-foreground uppercase truncate">
               {isGroup
@@ -108,8 +120,9 @@ export function ChatWindow() {
             </p>
           </div>
         </div>
-        {isGroup && isMaster && (
+        {isGroup && isMasterUser && (
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={() => setManageOpen(true)}
@@ -121,7 +134,7 @@ export function ChatWindow() {
         )}
       </div>
 
-      <ScrollArea className="flex-1 p-4 md:p-6">
+      <ScrollArea className="flex-1 p-4 md:p-6 min-h-0">
         <div className="space-y-4 pb-4">
           {roomMsgs.map((msg, idx) => {
             const isMe = msg.sender_id === currentUserId
@@ -169,7 +182,12 @@ export function ChatWindow() {
             className="flex-1 min-h-[44px] max-h-32 bg-background border rounded-md px-3 py-2.5 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary uppercase"
             rows={1}
           />
-          <Button onClick={handleSend} size="icon" className="h-[44px] w-[44px] shrink-0">
+          <Button
+            type="button"
+            onClick={handleSend}
+            size="icon"
+            className="h-[44px] w-[44px] shrink-0"
+          >
             <Send className="h-5 w-5" />
           </Button>
         </div>
