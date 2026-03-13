@@ -2,6 +2,8 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: '14.4'
   }
@@ -521,47 +523,47 @@ export type Database = {
       }
       work_schedules: {
         Row: {
+          afternoon_end: string | null
           afternoon_snack_end: string | null
           afternoon_snack_start: string | null
+          afternoon_start: string | null
           created_at: string
           employee_id: string
-          afternoon_end: string | null
           id: string
+          morning_end: string | null
           morning_snack_end: string | null
           morning_snack_start: string | null
           morning_start: string | null
-          morning_end: string | null
-          afternoon_start: string | null
           total_daily_hours: number | null
           work_date: string
         }
         Insert: {
+          afternoon_end?: string | null
           afternoon_snack_end?: string | null
           afternoon_snack_start?: string | null
+          afternoon_start?: string | null
           created_at?: string
           employee_id: string
-          afternoon_end?: string | null
           id?: string
+          morning_end?: string | null
           morning_snack_end?: string | null
           morning_snack_start?: string | null
           morning_start?: string | null
-          morning_end?: string | null
-          afternoon_start?: string | null
           total_daily_hours?: number | null
           work_date: string
         }
         Update: {
+          afternoon_end?: string | null
           afternoon_snack_end?: string | null
           afternoon_snack_start?: string | null
+          afternoon_start?: string | null
           created_at?: string
           employee_id?: string
-          afternoon_end?: string | null
           id?: string
+          morning_end?: string | null
           morning_snack_end?: string | null
           morning_snack_start?: string | null
           morning_start?: string | null
-          morning_end?: string | null
-          afternoon_start?: string | null
           total_daily_hours?: number | null
           work_date?: string
         }
