@@ -14,15 +14,14 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
-import logoImg from '@/assets/img_3243-2f960.jpg'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { useChatStore } from '@/stores/chat'
 
 const navigation = [
-  { name: 'DASH NUVIA', href: '/admin', icon: LayoutDashboard, exact: true },
-  { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
+  { name: 'AGENDA', href: '/admin', icon: Calendar, exact: true },
+  { name: 'DASH NUVIA', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
   { name: 'RH', href: '/admin/rh', icon: Users },
   { name: 'Estoque', href: '/admin/estoque', icon: Package },
@@ -30,6 +29,47 @@ const navigation = [
   { name: 'Logs', href: '/admin/auditoria', icon: FileText },
   { name: 'Configurações', href: '/admin/configuracoes', icon: Settings },
 ]
+
+const NuviaLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 350 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path
+      d="M95 65 C95 85, 75 95, 55 90 C30 80, 25 50, 45 35 C65 20, 95 30, 105 50 C115 70, 95 90, 80 90"
+      stroke="currentColor"
+      strokeWidth="6"
+      strokeLinecap="round"
+    />
+    <path
+      d="M45 45 C35 55, 35 75, 55 80"
+      stroke="currentColor"
+      strokeWidth="6"
+      strokeLinecap="round"
+    />
+    <text
+      x="130"
+      y="45"
+      fontFamily="sans-serif"
+      fontSize="38"
+      fontWeight="300"
+      letterSpacing="0.05em"
+      fill="currentColor"
+    >
+      N U V I Λ
+    </text>
+    <text x="130" y="75" fontFamily="serif" fontSize="24" fill="currentColor">
+      Odontologia
+    </text>
+    <text
+      x="130"
+      y="95"
+      fontFamily="sans-serif"
+      fontSize="10"
+      letterSpacing="0.1em"
+      fill="currentColor"
+    >
+      BY SOUZA FILHO
+    </text>
+  </svg>
+)
 
 export function Layout() {
   const { signOut, user } = useAuth()
@@ -41,13 +81,12 @@ export function Layout() {
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
-      <div className="p-6 flex items-center justify-center border-b border-white/5 bg-[#0A192F]">
-        <Link to="/admin" className="block w-full text-center hover:opacity-80 transition-opacity">
-          <img
-            src={logoImg}
-            alt="Nuvia Odontologia"
-            className="h-12 w-auto mx-auto object-contain mix-blend-screen invert grayscale contrast-150"
-          />
+      <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F]">
+        <Link
+          to="/admin"
+          className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
+        >
+          <NuviaLogo className="h-16 w-auto mx-auto" />
         </Link>
       </div>
 
@@ -123,12 +162,8 @@ export function Layout() {
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
-        <Link to="/admin" className="hover:opacity-80 transition-opacity">
-          <img
-            src={logoImg}
-            alt="Nuvia Odontologia"
-            className="h-8 w-auto object-contain mix-blend-screen invert grayscale contrast-150"
-          />
+        <Link to="/admin" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
+          <NuviaLogo className="h-10 w-auto" />
         </Link>
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
@@ -154,18 +189,20 @@ export function Layout() {
       {/* Main Content */}
       <main className="flex-1 md:pl-72 flex flex-col min-h-screen overflow-hidden">
         <header className="hidden md:flex h-16 bg-white border-b border-slate-200 items-center px-8 justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
             <Home className="w-4 h-4" />
             <span>/</span>
-            <span className="font-medium text-slate-900 capitalize">
-              {location.pathname.split('/')[2] || 'Dash Nuvia'}
+            <span className="text-slate-900">
+              {location.pathname === '/admin' || location.pathname === '/admin/'
+                ? 'AGENDA'
+                : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
             </span>
           </div>
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
               size="sm"
-              className="hidden lg:flex border-slate-200 text-slate-600 hover:bg-slate-50"
+              className="hidden lg:flex border-slate-200 text-slate-600 hover:bg-slate-50 uppercase tracking-widest text-xs font-bold"
               asChild
             >
               <Link to="/">Ver Site Público</Link>

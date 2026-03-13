@@ -90,6 +90,7 @@ export type AgendaItem = {
   involvesThirdParty?: boolean
   thirdPartyDetails?: string
   createdBy?: string
+  is_completed?: boolean
 }
 export type AccessItem = {
   id: string
@@ -174,6 +175,7 @@ interface AppStore {
   addDocument: (n: string) => void
   removeDocument: (id: string) => void
   addAgendaItem: (i: Omit<AgendaItem, 'id'>) => void
+  updateAgendaItem: (id: string, i: Partial<AgendaItem>) => void
   removeAgendaItem: (id: string) => void
   addAccess: (i: Omit<AccessItem, 'id'>) => void
   updateAccess: (id: string, i: Partial<AccessItem>) => void
@@ -196,7 +198,7 @@ const mockSpecialties = [
   'Endodontia',
   'Odontopediatria',
 ]
-const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria']
+const mockAgendaTypes = ['Consulta', 'Reunião', 'Viagem', 'Lembrete', 'Auditoria', 'Comissão']
 
 const mEmp = (d: any): Employee => ({
   id: d.id,
@@ -263,6 +265,7 @@ const mAg = (d: any): AgendaItem => ({
   involvesThirdParty: d.involves_third_party,
   thirdPartyDetails: d.third_party_details,
   createdBy: d.created_by,
+  is_completed: d.is_completed,
 })
 const mAcc = (d: any): AccessItem => ({
   id: d.id,
@@ -885,6 +888,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             involves_third_party: i.involvesThirdParty,
             third_party_details: i.thirdPartyDetails,
             created_by: i.createdBy,
+            is_completed: i.is_completed || false,
           },
         ])
         .select()
@@ -898,6 +902,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+
+  const updateAgendaItem = useCallback(
+    (id: string, i: Partial<AgendaItem>) => {
+      const payload: any = {}
+      if (i.title !== undefined) payload.title = i.title
+      if (i.date !== undefined) payload.date = i.date
+      if (i.time !== undefined) payload.time = i.time
+      if (i.location !== undefined) payload.location = i.location
+      if (i.type !== undefined) payload.type = i.type
+      if (i.assignedTo !== undefined) payload.assigned_to = i.assignedTo
+      if (i.involvesThirdParty !== undefined) payload.involves_third_party = i.involvesThirdParty
+      if (i.thirdPartyDetails !== undefined) payload.third_party_details = i.thirdPartyDetails
+      if (i.createdBy !== undefined) payload.created_by = i.createdBy
+      if (i.is_completed !== undefined) payload.is_completed = i.is_completed
+
+      supabase
+        .from('agenda')
+        .update(payload)
+        .eq('id', id)
+        .then(({ error }) => {
+          if (!error) {
+            setAgenda((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
+            logAction(`ATUALIZOU AGENDA ID: ${id}`)
+          }
+        })
+    },
+    [logAction],
+  )
+
   const removeAgendaItem = useCallback(
     (id: string) => {
       supabase
@@ -1142,6 +1175,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addDocument,
       removeDocument,
       addAgendaItem,
+      updateAgendaItem,
       removeAgendaItem,
       addAccess,
       updateAccess,
@@ -1198,6 +1232,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addDocument,
       removeDocument,
       addAgendaItem,
+      updateAgendaItem,
       removeAgendaItem,
       addAccess,
       updateAccess,

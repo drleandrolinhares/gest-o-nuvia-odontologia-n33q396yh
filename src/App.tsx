@@ -36,8 +36,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Index />} />
-              <Route path="agenda" element={<Agenda />} />
+              <Route index element={<Agenda />} />
+              <Route path="dashboard" element={<Index />} />
               <Route path="chat" element={<Chat />} />
               <Route path="acessos" element={<Acessos />} />
               <Route path="rh" element={<RH />} />

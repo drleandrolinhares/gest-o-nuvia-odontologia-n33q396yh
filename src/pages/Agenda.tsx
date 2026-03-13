@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import useAppStore, { AgendaItem } from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -26,6 +27,7 @@ import {
   Stethoscope,
   User,
   CalendarDays,
+  DollarSign,
 } from 'lucide-react'
 import { isSameDay, isSameWeek, isSameMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -35,6 +37,7 @@ export default function Agenda() {
     agenda,
     addAgendaItem,
     removeAgendaItem,
+    updateAgendaItem,
     currentUserId,
     employees,
     departments,
@@ -78,6 +81,7 @@ export default function Agenda() {
         involvesThirdParty,
         thirdPartyDetails: involvesThirdParty ? thirdPartyDetails.toUpperCase() : '',
         createdBy: currentUser?.name || 'ADMIN',
+        is_completed: false,
       })
       setOpenAdd(false)
       resetForm()
@@ -101,10 +105,38 @@ export default function Agenda() {
     if (t.includes('VIAGEM')) return <MapPin className="h-5 w-5 text-emerald-500" />
     if (t.includes('LEMBRETE')) return <Bell className="h-5 w-5 text-amber-500" />
     if (t.includes('CONSULTA')) return <Stethoscope className="h-5 w-5 text-[#D81B84]" />
+    if (t.includes('COMISSÃO')) return <DollarSign className="h-5 w-5 text-emerald-600" />
     return <Clock className="h-5 w-5 text-primary" />
   }
 
-  const filteredAgenda = agenda
+  const allAgendaItems = useMemo(() => {
+    const dbItems = agenda.filter((a) => !a.is_completed)
+
+    const dbCommissionsMap = new Set(
+      agenda
+        .filter((a) => a.type.toUpperCase() === 'COMISSÃO')
+        .map((a) => `${a.assignedTo}||${a.date}`),
+    )
+
+    const virtuals: AgendaItem[] = activeEmployees
+      .filter((e) => e.role.toUpperCase().includes('DENTISTA') && e.bonusDueDate)
+      .filter((e) => !dbCommissionsMap.has(`${e.id}||${e.bonusDueDate}`))
+      .map((e) => ({
+        id: `virtual||${e.id}||${e.bonusDueDate}`,
+        title: `PAGAMENTO COMISSÃO - ${e.name}`,
+        date: e.bonusDueDate as string,
+        time: '08:00',
+        location: 'FINANCEIRO',
+        type: 'Comissão',
+        assignedTo: e.id,
+        is_completed: false,
+        createdBy: 'SISTEMA',
+      }))
+
+    return [...dbItems, ...virtuals]
+  }, [agenda, activeEmployees])
+
+  const filteredAgenda = allAgendaItems
     .filter((item) => {
       if (!selectedDate) return true
       const itemDate = parseISO(item.date)
@@ -127,7 +159,7 @@ export default function Agenda() {
         new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime(),
     )
 
-  const datesWithEvents = agenda.map((item) => parseISO(item.date))
+  const datesWithEvents = allAgendaItems.map((item) => parseISO(item.date))
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
@@ -277,17 +309,19 @@ export default function Agenda() {
                         </div>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeAgendaItem(item.id)
-                      }}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
+                    {item.id.startsWith('virtual||') ? null : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeAgendaItem(item.id)
+                        }}
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ))
@@ -497,7 +531,40 @@ export default function Agenda() {
                 CRIADO POR: {selectedItem.createdBy || 'SISTEMA'}
               </p>
 
-              <div className="flex justify-end pt-4 border-t">
+              <div className="flex justify-end pt-4 border-t gap-3 items-center w-full">
+                {selectedItem.type.toUpperCase() === 'COMISSÃO' && (
+                  <div className="flex items-center space-x-2 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100 mr-auto">
+                    <Checkbox
+                      id="pagamento-concluido"
+                      checked={selectedItem.is_completed}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          if (selectedItem.id.startsWith('virtual||')) {
+                            addAgendaItem({
+                              title: selectedItem.title,
+                              date: selectedItem.date,
+                              time: selectedItem.time,
+                              location: selectedItem.location,
+                              type: selectedItem.type,
+                              assignedTo: selectedItem.assignedTo,
+                              is_completed: true,
+                              createdBy: 'SISTEMA',
+                            })
+                          } else {
+                            updateAgendaItem(selectedItem.id, { is_completed: true })
+                          }
+                          setSelectedItem(null)
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor="pagamento-concluido"
+                      className="text-xs font-bold text-emerald-900 cursor-pointer uppercase"
+                    >
+                      PAGAMENTO CONCLUÍDO
+                    </label>
+                  </div>
+                )}
                 <Button variant="outline" onClick={() => setSelectedItem(null)}>
                   FECHAR
                 </Button>
