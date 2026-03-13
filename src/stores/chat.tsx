@@ -184,6 +184,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       )
       .subscribe()
 
+    const participantChannel = supabase
+      .channel('chat_participants_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_participants',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchUnread()
+        },
+      )
+      .subscribe()
+
     const presenceChannel = supabase.channel('chat_presence', {
       config: { presence: { key: user.id } },
     })
@@ -201,6 +217,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     return () => {
       supabase.removeChannel(messageChannel)
+      supabase.removeChannel(participantChannel)
       supabase.removeChannel(presenceChannel)
     }
   }, [user, fetchMyRooms, fetchUnread, handleNewMessage])

@@ -60,6 +60,9 @@ export function Layout() {
             const isActive = item.exact
               ? location.pathname === item.href || location.pathname === `${item.href}/`
               : location.pathname.startsWith(item.href)
+
+            const hasUnread = item.name === 'MENSAGENS' && totalUnread > 0
+
             return (
               <Link
                 key={item.name}
@@ -76,12 +79,15 @@ export function Layout() {
                   className={cn(
                     'mr-3 flex-shrink-0 h-5 w-5',
                     isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
+                    hasUnread && !isActive && 'text-red-400 animate-pulse',
                   )}
                   aria-hidden="true"
                 />
-                {item.name}
-                {item.name === 'MENSAGENS' && totalUnread > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                <span className={cn(hasUnread && 'text-red-400 animate-pulse font-bold')}>
+                  {item.name}
+                </span>
+                {hasUnread && (
+                  <span className="ml-auto bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]">
                     {totalUnread > 99 ? '99+' : totalUnread}
                   </span>
                 )}
@@ -129,7 +135,7 @@ export function Layout() {
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 relative">
               <Menu className="h-6 w-6" />
               {totalUnread > 0 && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+                <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#0A192F]"></span>
               )}
             </Button>
           </SheetTrigger>
