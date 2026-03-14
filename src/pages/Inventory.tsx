@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import useAppStore, { type InventoryItem, type TemporaryOutflow } from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -65,6 +65,7 @@ export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState('')
   const [barcodeQuery, setBarcodeQuery] = useState('')
   const [showLowStock, setShowLowStock] = useState(false)
+  const [showActiveOutflows, setShowActiveOutflows] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<string[]>([])
 
   const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
@@ -104,6 +105,16 @@ export default function Inventory() {
   const sixtyDays = new Date()
   sixtyDays.setDate(now.getDate() + 60)
 
+  useEffect(() => {
+    if (showActiveOutflows) {
+      const groupsWithOutflows = inventory
+        .filter((item) => temporaryOutflows.some((t) => t.inventory_id === item.id))
+        .map((item) => item.name.toUpperCase())
+
+      setExpandedGroups((prev) => [...new Set([...prev, ...groupsWithOutflows])])
+    }
+  }, [showActiveOutflows, inventory, temporaryOutflows])
+
   const filteredInventory = useMemo(() => {
     return inventory.filter((item) => {
       const matchSpecialty = selectedSpecialty === 'all' || item.specialty === selectedSpecialty
@@ -113,10 +124,21 @@ export default function Inventory() {
         !!item.brand?.toLowerCase().includes(searchLower)
       const matchBarcode = !barcodeQuery || (item.barcode && item.barcode.includes(barcodeQuery))
       const matchLowStock = showLowStock ? isCriticalStock(item) : true
+      const matchActiveOutflows = showActiveOutflows
+        ? temporaryOutflows.some((t) => t.inventory_id === item.id)
+        : true
 
-      return matchSpecialty && matchSearch && matchLowStock && matchBarcode
+      return matchSpecialty && matchSearch && matchLowStock && matchBarcode && matchActiveOutflows
     })
-  }, [inventory, selectedSpecialty, searchQuery, barcodeQuery, showLowStock])
+  }, [
+    inventory,
+    selectedSpecialty,
+    searchQuery,
+    barcodeQuery,
+    showLowStock,
+    showActiveOutflows,
+    temporaryOutflows,
+  ])
 
   const groupedInventory = useMemo(() => {
     const groups: Record<string, InventoryItem[]> = {}
@@ -200,7 +222,22 @@ export default function Inventory() {
             <p className="text-muted-foreground mt-1">GERENCIE EMBALAGENS, CÓDIGOS E LOTES.</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <Button
+            variant={showActiveOutflows ? 'default' : 'outline'}
+            onClick={() => setShowActiveOutflows(!showActiveOutflows)}
+            className={cn(
+              'whitespace-nowrap shadow-sm font-bold transition-all',
+              showActiveOutflows
+                ? 'bg-amber-500 hover:bg-amber-600 text-white border-transparent'
+                : 'text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700',
+            )}
+          >
+            <Clock
+              className={cn('w-4 h-4 mr-2', showActiveOutflows ? 'text-white' : 'text-amber-600')}
+            />
+            BAIXAS TEMPORÁRIAS ATIVAS
+          </Button>
           <Button
             className="bg-[#D81B84] hover:bg-[#B71770] text-white whitespace-nowrap shadow-sm font-bold"
             onClick={() => setIsAdding(true)}

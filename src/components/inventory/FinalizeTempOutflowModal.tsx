@@ -40,7 +40,7 @@ export function FinalizeTempOutflowModal({
       usedQuantity: z.coerce.number().min(0, 'Inválido'),
       returnedQuantity: z.coerce.number().min(0, 'Inválido'),
     })
-    .refine((val) => val.usedQuantity + val.returnedQuantity === total, {
+    .refine((val) => Number(val.usedQuantity) + Number(val.returnedQuantity) === total, {
       message: `A soma deve ser exatamente igual ao total (${total}).`,
       path: ['returnedQuantity'],
     })
@@ -77,8 +77,8 @@ export function FinalizeTempOutflowModal({
   if (!data) return null
 
   const { outflow, item } = data
-  const currentUsed = form.watch('usedQuantity') || 0
-  const currentReturned = form.watch('returnedQuantity') || 0
+  const currentUsed = Number(form.watch('usedQuantity') || 0)
+  const currentReturned = Number(form.watch('returnedQuantity') || 0)
   const isMatching = currentUsed + currentReturned === total
 
   return (

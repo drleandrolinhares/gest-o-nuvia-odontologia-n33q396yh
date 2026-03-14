@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -37,6 +37,7 @@ import {
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
+import { useToast } from '@/hooks/use-toast'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
@@ -102,7 +103,11 @@ export function AddInventoryModal({
   baseItemName?: string
 }) {
   const { addInventoryItem, packageTypes, specialties, inventoryOptions } = useAppStore()
+  const { toast } = useToast()
+
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+  const [keepFields, setKeepFields] = useState(false)
+  const barcodeInputRef = useRef<HTMLInputElement>(null)
 
   const storageRooms = inventoryOptions.filter(
     (o) => o.category === 'STORAGE_ROOM' || o.category === 'SALA_ARMAZENAMENTO',
@@ -145,11 +150,11 @@ export function AddInventoryModal({
     if (open) {
       if (baseItemName) {
         form.setValue('name', baseItemName)
-      } else {
+      } else if (!keepFields) {
         form.reset()
       }
     }
-  }, [open, baseItemName, form])
+  }, [open, baseItemName, form, keepFields])
 
   const pCostRaw = form.watch('packageCost')
   const pCost = parseCurrency(pCostRaw || 0)
@@ -219,8 +224,29 @@ export function AddInventoryModal({
       criticalObservations: v.criticalObservations || '',
       specialtyDetails,
     })
-    form.reset()
-    onOpenChange(false)
+
+    toast({
+      title: 'SUCESSO',
+      description: 'PRODUTO CADASTRADO COM SUCESSO.',
+    })
+
+    if (keepFields) {
+      form.setValue('barcode', '')
+      form.setValue('name', '')
+      form.setValue('implantDiameter', '')
+      form.setValue('implantHeight', '')
+      form.setValue('prostheticDiameter', '')
+      form.setValue('prostheticHeight', '')
+      form.setValue('prostheticCollarHeight', '')
+      form.setValue('prostheticAngle', '')
+
+      setTimeout(() => {
+        barcodeInputRef.current?.focus()
+      }, 100)
+    } else {
+      form.reset()
+      onOpenChange(false)
+    }
   }
 
   return (
@@ -229,7 +255,7 @@ export function AddInventoryModal({
         open={open}
         onOpenChange={(val) => {
           onOpenChange(val)
-          if (!val && !baseItemName) form.reset()
+          if (!val && !keepFields && !baseItemName) form.reset()
         }}
       >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto uppercase">
@@ -271,6 +297,10 @@ export function AddInventoryModal({
                           placeholder="BIPAR OU DIGITAR CÓDIGO..."
                           className="bg-white border-blue-200 shadow-sm h-12 text-lg font-mono tracking-widest uppercase"
                           {...field}
+                          ref={(e) => {
+                            field.ref(e)
+                            barcodeInputRef.current = e
+                          }}
                           value={field.value || ''}
                         />
                       </FormControl>
@@ -923,16 +953,27 @@ export function AddInventoryModal({
                 />
               </div>
 
-              <div className="flex justify-end gap-3 mt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  CANCELAR
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-[#D81B84] hover:bg-[#B71770] text-white uppercase font-bold"
-                >
-                  {baseItemName ? 'CADASTRAR COMPRA' : 'CADASTRAR PRODUTO'}
-                </Button>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 bg-muted/20 p-4 rounded-xl border border-muted/50">
+                <div className="flex items-center gap-3">
+                  <Switch checked={keepFields} onCheckedChange={setKeepFields} id="keep-fields" />
+                  <label
+                    htmlFor="keep-fields"
+                    className="text-xs font-bold uppercase text-muted-foreground cursor-pointer"
+                  >
+                    MANTER CAMPOS PREENCHIDOS (CADASTRO SEQUENCIAL)
+                  </label>
+                </div>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    CANCELAR
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-[#D81B84] hover:bg-[#B71770] text-white uppercase font-bold"
+                  >
+                    {baseItemName ? 'CADASTRAR COMPRA' : 'CADASTRAR PRODUTO'}
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
