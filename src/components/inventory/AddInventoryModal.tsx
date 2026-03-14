@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -24,17 +24,39 @@ import {
 } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import { Switch } from '@/components/ui/switch'
 import { formatCurrency, cn } from '@/lib/utils'
-import { CalendarIcon, Calculator, PackageSearch } from 'lucide-react'
+import {
+  CalendarIcon,
+  Calculator,
+  PackageSearch,
+  Barcode as BarcodeIcon,
+  Tag,
+  Zap,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 
+const parseCurrency = (val: string | number) => {
+  if (typeof val === 'number') return val
+  return Number(val.replace(/\D/g, '')) / 100
+}
+
+const formatCurrencyInput = (val: string | number) => {
+  const num = parseCurrency(val)
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(num)
+}
+
 const schema = z.object({
   name: z.string().min(1, 'Obrigatório'),
+  barcode: z.string().optional(),
   brand: z.string().optional(),
   specialty: z.string().optional(),
-  packageCost: z.coerce.number().min(0),
+  packageCost: z.union([z.string(), z.number()]).transform(parseCurrency),
   packageType: z.string().min(1, 'Obrigatório'),
   itemsPerBox: z.coerce.number().min(1),
   quantity: z.coerce.number().min(0),
@@ -42,10 +64,18 @@ const schema = z.object({
   expirationDate: z.date().optional(),
   storageLocation: z.string().min(1, 'Obrigatório'),
   minStock: z.coerce.number().min(0),
-  barcode: z.string().optional(),
   lastBrand: z.string().optional(),
-  lastValue: z.coerce.number().optional(),
+  lastValue: z.union([z.string(), z.number()]).optional().transform(parseCurrency),
   notes: z.string().optional(),
+
+  // Condicionais
+  implantBrand: z.string().optional(),
+  isProstheticComponent: z.boolean().optional(),
+  prostheticType: z.string().optional(),
+  prostheticAngle: z.string().optional(),
+  prostheticCollarHeight: z.string().optional(),
+  prostheticDiameter: z.string().optional(),
+  prostheticHeight: z.string().optional(),
 })
 
 export function AddInventoryModal({
@@ -62,34 +92,89 @@ export function AddInventoryModal({
     resolver: zodResolver(schema),
     defaultValues: {
       name: '',
+      barcode: '',
       brand: '',
       specialty: '',
       packageCost: 0,
-      packageType: 'Caixa',
+      packageType: 'CAIXA',
       itemsPerBox: 1,
       quantity: 0,
       storageLocation: '',
       minStock: 0,
-      barcode: '',
       lastBrand: '',
       lastValue: 0,
       notes: '',
+      implantBrand: '',
+      isProstheticComponent: false,
+      prostheticType: '',
+      prostheticAngle: '',
+      prostheticCollarHeight: '',
+      prostheticDiameter: '',
+      prostheticHeight: '',
     },
   })
 
-  const pCost = form.watch('packageCost') || 0
+  const pCostRaw = form.watch('packageCost')
+  const pCost = parseCurrency(pCostRaw || 0)
   const qty = form.watch('quantity') || 0
-
   const totalCost = qty * pCost
 
+  const currentSpecialty = form.watch('specialty')
+  const isProstheticComponent = form.watch('isProstheticComponent')
+  const prostheticType = form.watch('prostheticType')
+  const prostheticDiameter = form.watch('prostheticDiameter')
+
+  // Resetar campos condicionais ao trocar especialidade
+  useEffect(() => {
+    if (currentSpecialty !== 'IMPLANTODONTIA') {
+      form.setValue('implantBrand', '')
+    }
+    if (currentSpecialty !== 'PRÓTESE') {
+      form.setValue('isProstheticComponent', false)
+      form.setValue('prostheticType', '')
+      form.setValue('prostheticAngle', '')
+      form.setValue('prostheticCollarHeight', '')
+      form.setValue('prostheticDiameter', '')
+      form.setValue('prostheticHeight', '')
+    }
+  }, [currentSpecialty, form])
+
   const onSubmit = (v: z.infer<typeof schema>) => {
+    const specialtyDetails: any = {}
+    if (v.specialty === 'IMPLANTODONTIA' && v.implantBrand) {
+      specialtyDetails.implantBrand = v.implantBrand
+    }
+    if (v.specialty === 'PRÓTESE' && v.isProstheticComponent) {
+      specialtyDetails.isProstheticComponent = true
+      specialtyDetails.prostheticType = v.prostheticType
+      if (v.prostheticType === 'MINI PILAR RETO') {
+        specialtyDetails.prostheticCollarHeight = v.prostheticCollarHeight
+      } else if (v.prostheticType === 'MINI PILAR ANGULADO') {
+        specialtyDetails.prostheticAngle = v.prostheticAngle
+        specialtyDetails.prostheticCollarHeight = v.prostheticCollarHeight
+      } else if (v.prostheticType === 'MUNHÃO UNIVERSAL') {
+        specialtyDetails.prostheticDiameter = v.prostheticDiameter
+        specialtyDetails.prostheticHeight = v.prostheticHeight
+      }
+    }
+
     addInventoryItem({
-      ...v,
+      name: v.name,
+      barcode: v.barcode,
+      brand: v.brand || '',
+      specialty: v.specialty,
+      packageCost: v.packageCost,
+      packageType: v.packageType,
+      itemsPerBox: v.itemsPerBox,
+      quantity: v.quantity,
+      storageLocation: v.storageLocation,
+      minStock: v.minStock,
       entryDate: v.entryDate ? v.entryDate.toISOString() : undefined,
       expirationDate: v.expirationDate ? v.expirationDate.toISOString() : undefined,
       lastBrand: v.lastBrand || '',
       lastValue: v.lastValue || 0,
       notes: v.notes || '',
+      specialtyDetails,
     })
     form.reset()
     onOpenChange(false)
@@ -125,6 +210,32 @@ export function AddInventoryModal({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 py-4">
+              {/* Barcode Highlight Box */}
+              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row gap-4 items-end relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 opacity-5 pointer-events-none">
+                  <BarcodeIcon className="w-40 h-40" />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="barcode"
+                  render={({ field }) => (
+                    <FormItem className="flex-1 w-full relative z-10">
+                      <FormLabel className="text-slate-700 font-bold flex items-center gap-2">
+                        <BarcodeIcon className="w-4 h-4" /> CÓDIGO DE BARRAS
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="BIPAR OU DIGITAR..."
+                          className="bg-white border-slate-300 shadow-sm h-12 text-lg font-mono tracking-widest"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -162,7 +273,7 @@ export function AddInventoryModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>ESPECIALIDADE</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="uppercase">
                             <SelectValue placeholder="SELECIONE" />
@@ -181,6 +292,189 @@ export function AddInventoryModal({
                   )}
                 />
               </div>
+
+              {/* Conditional Specialty Logic */}
+              {currentSpecialty === 'IMPLANTODONTIA' && (
+                <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 animate-fade-in">
+                  <h4 className="font-bold text-indigo-900 flex items-center gap-2 mb-3 text-sm">
+                    <Tag className="w-4 h-4" /> DETALHES DE IMPLANTODONTIA
+                  </h4>
+                  <FormField
+                    control={form.control}
+                    name="implantBrand"
+                    render={({ field }) => (
+                      <FormItem className="w-full md:w-1/2">
+                        <FormLabel>MARCA DO IMPLANTE</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="EX: NEODENT, STRAUMANN..."
+                            className="uppercase bg-white"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {currentSpecialty === 'PRÓTESE' && (
+                <div className="p-4 bg-violet-50/50 rounded-xl border border-violet-100 animate-fade-in space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-violet-900 flex items-center gap-2 text-sm">
+                      <Zap className="w-4 h-4" /> DETALHES DE PRÓTESE
+                    </h4>
+                    <FormField
+                      control={form.control}
+                      name="isProstheticComponent"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0">
+                          <FormLabel className="font-bold text-violet-800 cursor-pointer">
+                            COMPONENTE PROTÉTICO
+                          </FormLabel>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {isProstheticComponent && (
+                    <div className="grid gap-4 border-t border-violet-200/50 pt-4 animate-fade-in-up">
+                      <FormField
+                        control={form.control}
+                        name="prostheticType"
+                        render={({ field }) => (
+                          <FormItem className="w-full md:w-1/2">
+                            <FormLabel>TIPO DO COMPONENTE</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="uppercase bg-white">
+                                  <SelectValue placeholder="SELECIONE O TIPO" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="MINI PILAR RETO">MINI PILAR RETO</SelectItem>
+                                <SelectItem value="MINI PILAR ANGULADO">
+                                  MINI PILAR ANGULADO
+                                </SelectItem>
+                                <SelectItem value="MUNHÃO UNIVERSAL">MUNHÃO UNIVERSAL</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {prostheticType === 'MINI PILAR RETO' && (
+                        <FormField
+                          control={form.control}
+                          name="prostheticCollarHeight"
+                          render={({ field }) => (
+                            <FormItem className="w-full md:w-1/3 animate-fade-in">
+                              <FormLabel>ALTURA DA CINTA</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="EX: 2.5 MM"
+                                  className="uppercase bg-white"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {prostheticType === 'MINI PILAR ANGULADO' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                          <FormField
+                            control={form.control}
+                            name="prostheticAngle"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>ÂNGULO</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="uppercase bg-white">
+                                      <SelectValue placeholder="SELECIONE" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="17 GRAUS">17 GRAUS</SelectItem>
+                                    <SelectItem value="30 GRAUS">30 GRAUS</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="prostheticCollarHeight"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>ALTURA DA CINTA</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="EX: 3.5 MM"
+                                    className="uppercase bg-white"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+
+                      {prostheticType === 'MUNHÃO UNIVERSAL' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                          <FormField
+                            control={form.control}
+                            name="prostheticDiameter"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>DIÂMETRO</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="EX: 3.3"
+                                    className="uppercase bg-white"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          {prostheticDiameter && (
+                            <FormField
+                              control={form.control}
+                              name="prostheticHeight"
+                              render={({ field }) => (
+                                <FormItem className="animate-fade-in">
+                                  <FormLabel>ALTURA</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="EX: 4 MM"
+                                      className="uppercase bg-white"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="p-5 bg-blue-50/50 rounded-xl border border-blue-100 grid gap-5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-3 opacity-5">
@@ -226,13 +520,14 @@ export function AddInventoryModal({
                     name="packageCost"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>VALOR EMB. FECHADA (R$)</FormLabel>
+                        <FormLabel>VALOR EMB. FECHADA</FormLabel>
                         <FormControl>
                           <Input
-                            type="number"
-                            step="0.01"
-                            className="bg-white uppercase"
-                            {...field}
+                            type="text"
+                            className="bg-white"
+                            placeholder="R$ 0,00"
+                            value={formatCurrencyInput(field.value)}
+                            onChange={(e) => field.onChange(e.target.value)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -245,7 +540,7 @@ export function AddInventoryModal({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>TIPO EMBALAGEM</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="bg-white uppercase">
                               <SelectValue placeholder="SELECIONE" />
@@ -352,7 +647,7 @@ export function AddInventoryModal({
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
                 <FormField
                   control={form.control}
                   name="storageLocation"
@@ -378,19 +673,6 @@ export function AddInventoryModal({
                       <FormLabel>ESTOQUE MÍNIMO (AVISO)</FormLabel>
                       <FormControl>
                         <Input type="number" className="uppercase" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="barcode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>CÓDIGO DE BARRAS</FormLabel>
-                      <FormControl>
-                        <Input placeholder="BIPAR OU DIGITAR..." className="uppercase" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -425,9 +707,15 @@ export function AddInventoryModal({
                     name="lastValue"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>VALOR DA ÚLTIMA COMPRA (R$)</FormLabel>
+                        <FormLabel>VALOR DA ÚLTIMA COMPRA</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" className="uppercase" {...field} />
+                          <Input
+                            type="text"
+                            placeholder="R$ 0,00"
+                            className="uppercase"
+                            value={formatCurrencyInput(field.value || 0)}
+                            onChange={(e) => field.onChange(e.target.value)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -63,13 +63,11 @@ export default function WorkSchedule() {
   const [department, setDepartment] = useState<string>('all')
   const [drafts, setDrafts] = useState<Record<string, Partial<TWorkSchedule>>>({})
 
-  // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedSector, setSelectedSector] = useState<string>('')
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
 
-  // Form states
   const [empName, setEmpName] = useState('')
   const [empRole, setEmpRole] = useState('')
   const [empDepartment, setEmpDepartment] = useState('')
@@ -122,7 +120,7 @@ export default function WorkSchedule() {
     const points: { time: number; type: 'start' | 'end'; id: string; breakType: string }[] = []
 
     employees.forEach((emp) => {
-      if (department !== 'all' && emp.department !== department) return
+      if (department !== 'all' && emp.department.toUpperCase() !== department.toUpperCase()) return
       const s = getScheduleForDay(emp.id, dateStr)
 
       if (s.morning_snack_start && s.morning_snack_end) {
@@ -178,7 +176,9 @@ export default function WorkSchedule() {
 
   const displayDepartments = useMemo(() => {
     if (department !== 'all') return [department]
-    return departments.filter((d) => activeEmployees.some((e) => e.department === d))
+    return departments.filter((d) =>
+      activeEmployees.some((e) => e.department.toUpperCase() === d.toUpperCase()),
+    )
   }, [departments, activeEmployees, department])
 
   const handleOpenAdd = (dept: string) => {
@@ -195,7 +195,7 @@ export default function WorkSchedule() {
     await addEmployee({
       name: empName.toUpperCase(),
       role: empRole.toUpperCase(),
-      department: empDepartment,
+      department: empDepartment.toUpperCase(),
       status: 'Ativo',
       hireDate: new Date().toISOString(),
       salary: '',
@@ -223,7 +223,7 @@ export default function WorkSchedule() {
     await updateEmployee(editingEmployee.id, {
       name: empName.toUpperCase(),
       role: empRole.toUpperCase(),
-      department: empDepartment,
+      department: empDepartment.toUpperCase(),
     })
     setIsEditModalOpen(false)
   }
@@ -300,7 +300,7 @@ export default function WorkSchedule() {
             </SelectItem>
             {departments.map((d) => (
               <SelectItem key={d} value={d} className="font-medium">
-                {d}
+                {d.toUpperCase()}
               </SelectItem>
             ))}
           </SelectContent>
@@ -344,17 +344,16 @@ export default function WorkSchedule() {
                 <TableBody>
                   {displayDepartments.map((dept) => {
                     const emps = activeEmployees
-                      .filter((e) => e.department === dept)
+                      .filter((e) => e.department.toUpperCase() === dept.toUpperCase())
                       .sort((a, b) => a.name.localeCompare(b.name))
                     return (
                       <React.Fragment key={dept}>
-                        {/* Sector Header (DRE Style) */}
                         <TableRow className="bg-[#0A192F] hover:bg-[#0A192F] border-b-0">
                           <TableCell colSpan={6} className="p-0">
                             <div className="px-4 py-2.5 flex items-center justify-between">
                               <h3 className="font-extrabold tracking-widest text-[#D4AF37] flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
-                                {dept}
+                                {dept.toUpperCase()}
                               </h3>
                               <Button
                                 size="sm"
@@ -536,12 +535,12 @@ export default function WorkSchedule() {
         )}
       </div>
 
-      {/* Add Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="uppercase">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary" /> ADICIONAR COLABORADOR ({selectedSector})
+              <Plus className="h-5 w-5 text-primary" /> ADICIONAR COLABORADOR (
+              {selectedSector.toUpperCase()})
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveNew} className="space-y-4 mt-4">
@@ -574,7 +573,7 @@ export default function WorkSchedule() {
                 <SelectContent>
                   {departments.map((d) => (
                     <SelectItem key={d} value={d}>
-                      {d}
+                      {d.toUpperCase()}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -590,7 +589,6 @@ export default function WorkSchedule() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="uppercase">
           <DialogHeader>
@@ -618,7 +616,7 @@ export default function WorkSchedule() {
                 <SelectContent>
                   {departments.map((d) => (
                     <SelectItem key={d} value={d}>
-                      {d}
+                      {d.toUpperCase()}
                     </SelectItem>
                   ))}
                 </SelectContent>

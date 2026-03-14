@@ -4,7 +4,19 @@ import { cn } from '@/lib/utils'
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, onChange, ...props }, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      if (typeof e.target.value === 'string') {
+        const start = e.target.selectionStart
+        const end = e.target.selectionEnd
+        e.target.value = e.target.value.toUpperCase()
+        try {
+          e.target.setSelectionRange(start, end)
+        } catch (err) {}
+      }
+      onChange?.(e)
+    }
+
     return (
       <textarea
         className={cn(
@@ -12,6 +24,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           className,
         )}
         ref={ref}
+        onChange={handleChange}
         {...props}
       />
     )

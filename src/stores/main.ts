@@ -77,6 +77,7 @@ export type InventoryItem = {
   notes?: string
   barcode?: string
   purchaseHistory?: PurchaseRecord[]
+  specialtyDetails?: any
 }
 export type DocumentItem = { id: string; name: string; date: string }
 export type AgendaItem = {
@@ -209,24 +210,34 @@ interface AppStore {
   ) => Promise<void>
 }
 
-const mockDepartments = ['Odontologia', 'Operacional', 'Administrativo', 'Recepção', 'RH']
-const mockPackageTypes = ['Caixa', 'Unidade', 'Frasco', 'Pacote', 'Seringa']
+const mockDepartments = [
+  'ODONTOLOGIA',
+  'OPERACIONAL',
+  'ADMINISTRATIVO',
+  'RECEPÇÃO',
+  'RH',
+  "ASB'S",
+  'COMERCIAL/FINANCEIRO',
+  'CRC LEAD',
+]
+const mockPackageTypes = ['CAIXA', 'UNIDADE', 'FRASCO', 'PACOTE', 'SERINGA']
 const mockSpecialties = [
-  'Clínica Geral',
-  'Ortodontia',
-  'Implantodontia',
-  'Endodontia',
-  'Odontopediatria',
+  'CLÍNICA GERAL',
+  'ORTODONTIA',
+  'IMPLANTODONTIA',
+  'ENDODONTIA',
+  'ODONTOPEDIATRIA',
+  'PRÓTESE',
 ]
 const mockAgendaTypes = [
-  'Consulta',
-  'Reunião',
-  'Viagem',
-  'Lembrete',
-  'Auditoria',
-  'Comissão',
-  'Bônus',
-  'Férias',
+  'CONSULTA',
+  'REUNIÃO',
+  'VIAGEM',
+  'LEMBRETE',
+  'AUDITORIA',
+  'COMISSÃO',
+  'BÔNUS',
+  'FÉRIAS',
 ]
 
 const mEmp = (d: any): Employee => ({
@@ -282,6 +293,7 @@ const mInv = (d: any): InventoryItem => ({
   notes: d.notes,
   barcode: d.barcode,
   purchaseHistory: d.purchase_history,
+  specialtyDetails: d.specialty_details,
 })
 const mAg = (d: any): AgendaItem => ({
   id: d.id,
@@ -473,8 +485,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addDepartment = useCallback(
     (n: string) => {
-      setDepartments((p) => [...p, n])
-      logAction(`CRIOU DEPARTAMENTO: ${n}`)
+      setDepartments((p) => [...p, n.toUpperCase()])
+      logAction(`CRIOU DEPARTAMENTO: ${n.toUpperCase()}`)
     },
     [logAction],
   )
@@ -487,8 +499,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
   const addPackageType = useCallback(
     (n: string) => {
-      setPackageTypes((p) => [...p, n])
-      logAction(`CRIOU TIPO DE EMBALAGEM: ${n}`)
+      setPackageTypes((p) => [...p, n.toUpperCase()])
+      logAction(`CRIOU TIPO DE EMBALAGEM: ${n.toUpperCase()}`)
     },
     [logAction],
   )
@@ -501,8 +513,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
   const addSpecialty = useCallback(
     (n: string) => {
-      setSpecialties((p) => [...p, n])
-      logAction(`CRIOU ESPECIALIDADE: ${n}`)
+      setSpecialties((p) => [...p, n.toUpperCase()])
+      logAction(`CRIOU ESPECIALIDADE: ${n.toUpperCase()}`)
     },
     [logAction],
   )
@@ -515,8 +527,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
   const addAgendaType = useCallback(
     (n: string) => {
-      setAgendaTypes((p) => [...p, n])
-      logAction(`CRIOU TIPO DE COMPROMISSO: ${n}`)
+      setAgendaTypes((p) => [...p, n.toUpperCase()])
+      logAction(`CRIOU TIPO DE COMPROMISSO: ${n.toUpperCase()}`)
     },
     [logAction],
   )
@@ -601,7 +613,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             notes: i.notes,
             barcode: i.barcode,
             purchase_history: ph,
-          },
+            specialty_details: i.specialtyDetails || {},
+          } as any,
         ])
         .select()
         .single()
@@ -652,7 +665,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         supabase
           .from('inventory')
           .update({
-            purchase_history: nh,
+            purchase_history: nh as any,
             quantity: nq,
             package_cost: r.price,
             expiration_date: r.expirationDate || item.expirationDate,

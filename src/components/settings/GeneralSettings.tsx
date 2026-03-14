@@ -28,28 +28,28 @@ export function GeneralSettings() {
 
   const handleAddDept = (e: React.FormEvent) => {
     e.preventDefault()
-    if (newDept.trim() && !departments.includes(newDept.trim())) {
+    if (newDept.trim() && !departments.includes(newDept.trim().toUpperCase())) {
       addDepartment(newDept.trim())
       setNewDept('')
     }
   }
   const handleAddPkg = (e: React.FormEvent) => {
     e.preventDefault()
-    if (newPkg.trim() && !packageTypes.includes(newPkg.trim())) {
+    if (newPkg.trim() && !packageTypes.includes(newPkg.trim().toUpperCase())) {
       addPackageType(newPkg.trim())
       setNewPkg('')
     }
   }
   const handleAddSpec = (e: React.FormEvent) => {
     e.preventDefault()
-    if (newSpec.trim() && !specialties.includes(newSpec.trim())) {
+    if (newSpec.trim() && !specialties.includes(newSpec.trim().toUpperCase())) {
       addSpecialty(newSpec.trim())
       setNewSpec('')
     }
   }
   const handleAddAgendaType = (e: React.FormEvent) => {
     e.preventDefault()
-    if (newAgendaType.trim() && !agendaTypes.includes(newAgendaType.trim())) {
+    if (newAgendaType.trim() && !agendaTypes.includes(newAgendaType.trim().toUpperCase())) {
       addAgendaType(newAgendaType.trim())
       setNewAgendaType('')
     }
