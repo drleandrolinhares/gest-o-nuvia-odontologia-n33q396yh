@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import useAppStore, { type InventoryItem } from '@/stores/main'
 import { formatCurrency } from '@/lib/utils'
 import { Package, Calculator, History, ShoppingCart, Trash2, MapPin, Box } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 export function EditInventoryModal({
   item,
@@ -33,6 +34,7 @@ export function EditInventoryModal({
   onNewPurchase: () => void
 }) {
   const { updateInventoryQuantity, deleteInventoryItem, suppliers } = useAppStore()
+  const { toast } = useToast()
 
   const [manualQty, setManualQty] = useState(item?.quantity || 0)
 
@@ -52,9 +54,21 @@ export function EditInventoryModal({
     updateInventoryQuantity(item.id, manualQty)
   }
 
-  const handleDelete = () => {
-    deleteInventoryItem(item.id)
-    onOpenChange(false)
+  const handleDelete = async () => {
+    const res = await deleteInventoryItem(item.id)
+    if (res.success) {
+      toast({
+        title: 'SUCESSO',
+        description: 'PRODUTO EXCLUÍDO COM SUCESSO',
+      })
+      onOpenChange(false)
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'ERRO',
+        description: 'NÃO FOI POSSÍVEL EXCLUIR O PRODUTO.',
+      })
+    }
   }
 
   const getSupplierName = (id?: string) => {

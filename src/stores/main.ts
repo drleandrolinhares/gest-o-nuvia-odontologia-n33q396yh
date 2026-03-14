@@ -181,7 +181,7 @@ interface AppStore {
   toggleTask: (c: string, t: string) => void
   addInventoryItem: (i: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, q: number) => void
-  deleteInventoryItem: (id: string) => void
+  deleteInventoryItem: (id: string) => Promise<{ success: boolean; error?: any }>
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
   addInventoryOption: (category: string, value: string, label?: string) => void
   removeInventoryOption: (id: string) => void
@@ -695,20 +695,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+
   const deleteInventoryItem = useCallback(
-    (id: string) => {
-      supabase
-        .from('inventory')
-        .delete()
-        .eq('id', id)
-        .then(() => {
-          setInventory((p) => p.filter((i) => i.id !== id))
-          logAction(`REMOVEU PRODUTO ID: ${id}`)
-        })
-        .catch((err) => console.warn('Erro ao deletar produto no inventário', err))
+    async (id: string) => {
+      try {
+        const { error } = await supabase.from('inventory').delete().eq('id', id)
+        if (error) throw error
+        setInventory((p) => p.filter((i) => i.id !== id))
+        logAction(`REMOVEU PRODUTO ID: ${id}`)
+        return { success: true }
+      } catch (err: any) {
+        console.warn('Erro ao deletar produto no inventário', err)
+        return { success: false, error: err }
+      }
     },
     [logAction],
   )
+
   const addPurchaseHistory = useCallback(
     (itemId: string, r: Omit<PurchaseRecord, 'id'>) => {
       setInventory((prev) => {

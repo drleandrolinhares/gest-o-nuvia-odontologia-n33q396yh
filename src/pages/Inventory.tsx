@@ -31,6 +31,7 @@ import {
   ChevronRight,
   ChevronDown,
   CornerDownRight,
+  Trash2,
 } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
@@ -39,9 +40,22 @@ import { EditInventoryModal } from '@/components/inventory/EditInventoryModal'
 import { NewPurchaseModal } from '@/components/inventory/NewPurchaseModal'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { useToast } from '@/hooks/use-toast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export default function Inventory() {
-  const { inventory, specialties } = useAppStore()
+  const { inventory, specialties, isAdmin, deleteInventoryItem } = useAppStore()
+  const { toast } = useToast()
+
   const [isAdding, setIsAdding] = useState(false)
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -52,6 +66,25 @@ export default function Inventory() {
   const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null)
   const [itemToPurchase, setItemToPurchase] = useState<InventoryItem | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return
+    const res = await deleteInventoryItem(itemToDelete.id)
+    if (res.success) {
+      toast({
+        title: 'SUCESSO',
+        description: 'PRODUTO EXCLUÍDO COM SUCESSO',
+      })
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'ERRO',
+        description: 'NÃO FOI POSSÍVEL EXCLUIR O PRODUTO.',
+      })
+    }
+    setItemToDelete(null)
+  }
 
   const isCriticalStock = (item: InventoryItem) => {
     return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock
@@ -428,15 +461,31 @@ export default function Inventory() {
                             className="align-middle py-4 text-center"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
-                              onClick={() => setItemToDecrease(item)}
-                              disabled={item.quantity === 0}
-                            >
-                              <MinusCircle className="w-3 h-3 mr-1" /> BAIXAR
-                            </Button>
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
+                                onClick={() => setItemToDecrease(item)}
+                                disabled={item.quantity === 0}
+                              >
+                                <MinusCircle className="w-3 h-3 mr-1" /> BAIXAR
+                              </Button>
+                              {isAdmin && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setItemToDelete(item)
+                                  }}
+                                  title="EXCLUIR"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       )
@@ -487,6 +536,26 @@ export default function Inventory() {
           if (!val) setItemToPurchase(null)
         }}
       />
+
+      <AlertDialog open={!!itemToDelete} onOpenChange={(val) => !val && setItemToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="uppercase">EXCLUIR PRODUTO</AlertDialogTitle>
+            <AlertDialogDescription className="uppercase font-bold text-red-600">
+              TEM CERTEZA QUE DESEJA EXCLUIR ESTE ITEM DO ESTOQUE?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="uppercase">CANCELAR</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700 text-white uppercase font-bold"
+            >
+              EXCLUIR
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
