@@ -473,6 +473,48 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_temporary_outflows: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          inventory_id: string
+          quantity: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          inventory_id: string
+          quantity: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          inventory_id?: string
+          quantity?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'inventory_temporary_outflows_employee_id_fkey'
+            columns: ['employee_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inventory_temporary_outflows_inventory_id_fkey'
+            columns: ['inventory_id']
+            isOneToOne: false
+            referencedRelation: 'inventory'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       onboarding: {
         Row: {
           created_at: string
@@ -903,6 +945,13 @@ export const Constants = {
 //   label: text (nullable)
 //   value: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: inventory_temporary_outflows
+//   id: uuid (not null, default: gen_random_uuid())
+//   inventory_id: uuid (not null)
+//   employee_id: uuid (not null)
+//   quantity: integer (not null)
+//   status: text (not null, default: 'PENDING'::text)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: onboarding
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -976,6 +1025,12 @@ export const Constants = {
 //   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
 // Table: inventory_settings
 //   PRIMARY KEY inventory_settings_pkey: PRIMARY KEY (id)
+// Table: inventory_temporary_outflows
+//   FOREIGN KEY inventory_temporary_outflows_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+//   FOREIGN KEY inventory_temporary_outflows_inventory_id_fkey: FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE
+//   PRIMARY KEY inventory_temporary_outflows_pkey: PRIMARY KEY (id)
+//   CHECK inventory_temporary_outflows_quantity_check: CHECK ((quantity > 0))
+//   CHECK inventory_temporary_outflows_status_check: CHECK ((status = ANY (ARRAY['PENDING'::text, 'FINALIZED'::text, 'RETURNED'::text])))
 // Table: onboarding
 //   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
 // Table: profiles
@@ -1041,6 +1096,10 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: inventory_settings
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: inventory_temporary_outflows
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true

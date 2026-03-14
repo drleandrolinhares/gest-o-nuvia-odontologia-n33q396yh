@@ -208,7 +208,8 @@ interface AppStore {
   ) => Promise<{ success: boolean; error?: any }>
   finalizeTemporaryOutflow: (
     id: string,
-    action: 'FINALIZED' | 'RETURNED',
+    usedQty: number,
+    returnedQty: number,
   ) => Promise<{ success: boolean; error?: any }>
   addEmployee: (
     e: Omit<Employee, 'id'> & { password?: string },
@@ -885,10 +886,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const finalizeTemporaryOutflow = useCallback(
-    async (id: string, action: 'FINALIZED' | 'RETURNED') => {
+    async (id: string, usedQty: number, returnedQty: number) => {
       const { data, error } = await supabase
         .from('inventory_temporary_outflows' as any)
-        .update({ status: action })
+        .update({ status: 'FINALIZED' })
         .eq('id', id)
         .select()
         .single()
@@ -898,15 +899,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data) {
         setTemporaryOutflows((p) => p.filter((t) => t.id !== id))
 
-        if (action === 'FINALIZED') {
+        if (usedQty > 0) {
           const invItem = storeRef.current.inventory?.find((i) => i.id === data.inventory_id)
           if (invItem) {
-            updateInventoryQuantity(invItem.id, Math.max(0, invItem.quantity - data.quantity))
+            updateInventoryQuantity(invItem.id, Math.max(0, invItem.quantity - usedQty))
           }
         }
 
         logAction(
-          `BAIXA TEMPORÁRIA ${action === 'FINALIZED' ? 'FINALIZADA (ESTOQUE REDUZIDO)' : 'DEVOLVIDA'} ID: ${id}`,
+          `RECONCILIADA BAIXA TEMPORÁRIA ID: ${id} (USOU: ${usedQty}, DEVOLVEU: ${returnedQty})`,
         )
         return { success: true }
       }

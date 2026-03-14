@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import useAppStore, { type InventoryItem } from '@/stores/main'
+import useAppStore, { type InventoryItem, type TemporaryOutflow } from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
@@ -35,13 +35,13 @@ import {
   Trash2,
   Clock,
   CheckCircle,
-  RotateCcw,
 } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
 import { DecreaseStockModal } from '@/components/inventory/DecreaseStockModal'
 import { EditInventoryModal } from '@/components/inventory/EditInventoryModal'
 import { TemporaryOutflowModal } from '@/components/inventory/TemporaryOutflowModal'
+import { FinalizeTempOutflowModal } from '@/components/inventory/FinalizeTempOutflowModal'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useToast } from '@/hooks/use-toast'
@@ -57,14 +57,7 @@ import {
 } from '@/components/ui/alert-dialog'
 
 export default function Inventory() {
-  const {
-    inventory,
-    specialties,
-    isAdmin,
-    deleteInventoryItem,
-    temporaryOutflows,
-    finalizeTemporaryOutflow,
-  } = useAppStore()
+  const { inventory, specialties, isAdmin, deleteInventoryItem, temporaryOutflows } = useAppStore()
   const { toast } = useToast()
 
   const [isAdding, setIsAdding] = useState(false)
@@ -78,6 +71,10 @@ export default function Inventory() {
   const [itemForTempOutflow, setItemForTempOutflow] = useState<InventoryItem | null>(null)
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null)
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
+  const [outflowToFinalize, setOutflowToFinalize] = useState<{
+    outflow: TemporaryOutflow
+    item: InventoryItem
+  } | null>(null)
 
   const [purchaseBaseItemName, setPurchaseBaseItemName] = useState<string>('')
 
@@ -97,25 +94,6 @@ export default function Inventory() {
       })
     }
     setItemToDelete(null)
-  }
-
-  const handleFinalizeTemp = async (id: string, action: 'FINALIZED' | 'RETURNED') => {
-    const res = await finalizeTemporaryOutflow(id, action)
-    if (res.success) {
-      toast({
-        title: 'SUCESSO',
-        description:
-          action === 'FINALIZED'
-            ? 'BAIXA EFETIVADA (ESTOQUE DEDUZIDO).'
-            : 'ITEM DEVOLVIDO AO ESTOQUE.',
-      })
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'ERRO',
-        description: 'NÃO FOI POSSÍVEL FINALIZAR A OPERAÇÃO.',
-      })
-    }
   }
 
   const isCriticalStock = (item: InventoryItem) => {
@@ -339,76 +317,6 @@ export default function Inventory() {
         </Card>
       </div>
 
-      {temporaryOutflows.length > 0 && (
-        <Card className="mb-6 border-amber-200 shadow-sm rounded-xl overflow-hidden animate-fade-in">
-          <div className="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center justify-between">
-            <h3 className="font-black text-amber-800 flex items-center gap-2 uppercase tracking-widest text-sm">
-              <Clock className="w-5 h-5 text-amber-600" />
-              BAIXAS TEMPORÁRIAS ATIVAS
-            </h3>
-            <span className="bg-amber-200 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full">
-              {temporaryOutflows.length} PENDENTES
-            </span>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-amber-50/30">
-                <TableHead className="font-semibold text-amber-900/70">PRODUTO</TableHead>
-                <TableHead className="font-semibold text-amber-900/70">COLABORADOR</TableHead>
-                <TableHead className="font-semibold text-amber-900/70 text-center">
-                  QUANTIDADE
-                </TableHead>
-                <TableHead className="font-semibold text-amber-900/70 text-center">DATA</TableHead>
-                <TableHead className="font-semibold text-amber-900/70 text-center">AÇÕES</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {temporaryOutflows.map((temp) => {
-                const invItem = inventory.find((i) => i.id === temp.inventory_id)
-                return (
-                  <TableRow key={temp.id} className="bg-white">
-                    <TableCell className="font-bold text-amber-900 uppercase">
-                      {invItem ? invItem.name : 'PRODUTO EXCLUÍDO'}
-                    </TableCell>
-                    <TableCell className="font-semibold text-muted-foreground uppercase">
-                      {temp.employees?.name || 'NÃO INFORMADO'}
-                    </TableCell>
-                    <TableCell className="text-center font-black text-lg text-amber-600">
-                      {temp.quantity}
-                    </TableCell>
-                    <TableCell className="text-center text-xs font-bold text-muted-foreground">
-                      {format(new Date(temp.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 px-3 text-[10px] text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 font-bold uppercase"
-                          onClick={() => handleFinalizeTemp(temp.id, 'FINALIZED')}
-                          title="EFETIVAR BAIXA (DEDUZ DO ESTOQUE)"
-                        >
-                          <CheckCircle className="w-3.5 h-3.5 mr-1" /> EFETIVAR
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 px-3 text-[10px] text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 font-bold uppercase"
-                          onClick={() => handleFinalizeTemp(temp.id, 'RETURNED')}
-                          title="DEVOLVER AO ESTOQUE (CANCELA BAIXA)"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5 mr-1" /> DEVOLVER
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
-
       <Card className="shadow-sm border-muted rounded-xl overflow-hidden">
         <Table>
           <TableHeader>
@@ -483,166 +391,225 @@ export default function Inventory() {
                       const isProsthesisOrImplant =
                         item.specialty === 'PRÓTESE' || item.specialty === 'IMPLANTODONTIA'
 
+                      const itemOutflows = temporaryOutflows.filter(
+                        (t) => t.inventory_id === item.id,
+                      )
+
                       return (
-                        <TableRow
-                          key={item.id}
-                          className="hover:bg-muted/10 cursor-pointer transition-colors bg-white"
-                          onClick={() => setItemToEdit(item)}
-                        >
-                          <TableCell className="align-top py-4 pl-10">
-                            <div className="flex flex-col gap-1.5 mb-2">
-                              <div className="font-bold text-nuvia-navy text-xs leading-none uppercase flex items-center gap-2">
-                                <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground" />
-                                {item.criticalObservations &&
-                                  item.criticalObservations.trim() !== '' && (
-                                    <AlertTriangle
-                                      className="w-5 h-5 text-amber-500 fill-amber-100 flex-shrink-0 drop-shadow-sm"
-                                      title={`OBSERVAÇÕES CRÍTICAS: ${item.criticalObservations}`}
-                                    />
-                                  )}
-                                {formatSpecs(item)}
-                              </div>
-                              {isCriticalStock(item) && (
-                                <div className="text-red-600 text-[10px] font-extrabold tracking-wider uppercase flex items-center w-fit ml-5">
-                                  ESTOQUE CRÍTICO
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex flex-col gap-1 mt-2 ml-5">
-                              {item.barcode && (
-                                <div className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 uppercase">
-                                  <Barcode className="h-3 w-3" /> CÓD: {item.barcode}
-                                </div>
-                              )}
-                              {item.specialty && (
-                                <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 uppercase mt-0.5">
-                                  <Stethoscope className="h-3 w-3" /> {item.specialty}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-top py-4">
-                            <span className="inline-block px-2 py-0.5 bg-muted rounded-md text-[10px] font-bold mb-1.5 uppercase">
-                              {item.packageType}
-                            </span>
-                            <div className="text-xs font-semibold text-muted-foreground mb-0.5 uppercase">
-                              {item.itemsPerBox} ITENS / EMB.
-                            </div>
-                            <div className="text-[10px] font-bold text-blue-700 flex flex-col gap-1 mt-2 bg-blue-50 px-2 py-1.5 rounded w-fit">
-                              <div className="flex items-center gap-1.5">
-                                <MapPin className="w-3 h-3" /> SALA:{' '}
-                                {item.storageRoom || 'NÃO INF.'}
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <Box className="w-3 h-3" /> ARMÁRIO:{' '}
-                                {item.cabinetNumber || 'NÃO INF.'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-top py-4">
-                            <div className="flex flex-col gap-1.5 uppercase">
-                              {item.expirationDate ? (
-                                <div
-                                  className={cn(
-                                    'text-[10px] font-bold flex items-center gap-1.5 w-fit px-2 py-0.5 rounded',
-                                    isExpired
-                                      ? 'bg-red-100 text-red-700'
-                                      : isExpiringSoon
-                                        ? 'bg-orange-100 text-orange-700'
-                                        : 'bg-emerald-50 text-emerald-700',
-                                  )}
-                                >
-                                  <CalendarClock className="h-3.5 w-3.5" /> VAL:{' '}
-                                  {format(new Date(item.expirationDate), 'dd/MM/yyyy', {
-                                    locale: ptBR,
-                                  })}
-                                  {isExpired && ' (VENCIDO)'}
-                                  {isExpiringSoon && ' (ATENÇÃO)'}
-                                </div>
-                              ) : (
-                                <div className="text-[10px] text-muted-foreground flex items-center gap-1.5">
-                                  <CalendarClock className="h-3 w-3" /> VAL: N/I
-                                </div>
-                              )}
-                              <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1.5 mt-1">
-                                <Package className="h-3 w-3" /> NFE:{' '}
-                                {item.nfeNumber || 'NÃO INFORMADA'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="align-middle py-4 font-bold text-muted-foreground uppercase text-xs">
-                            {formatCurrency(item.packageCost)}
-                          </TableCell>
-                          <TableCell className="align-middle py-4 text-center">
-                            <span
-                              className={cn(
-                                'inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-full font-black text-xs uppercase',
-                                isCriticalStock(item)
-                                  ? 'bg-red-100 text-red-700'
-                                  : 'bg-slate-100 text-slate-700',
-                              )}
-                            >
-                              {item.quantity}
-                            </span>
-                          </TableCell>
-                          <TableCell
-                            className="align-middle py-4 text-center"
-                            onClick={(e) => e.stopPropagation()}
+                        <React.Fragment key={item.id}>
+                          <TableRow
+                            className="hover:bg-muted/10 cursor-pointer transition-colors bg-white"
+                            onClick={() => setItemToEdit(item)}
                           >
-                            <div className="flex items-center justify-center gap-2">
-                              {isProsthesisOrImplant ? (
-                                <>
+                            <TableCell className="align-top py-4 pl-10">
+                              <div className="flex flex-col gap-1.5 mb-2">
+                                <div className="font-bold text-nuvia-navy text-xs leading-none uppercase flex items-center gap-2">
+                                  <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground" />
+                                  {item.criticalObservations &&
+                                    item.criticalObservations.trim() !== '' && (
+                                      <AlertTriangle
+                                        className="w-5 h-5 text-amber-500 fill-amber-100 flex-shrink-0 drop-shadow-sm"
+                                        title={`OBSERVAÇÕES CRÍTICAS: ${item.criticalObservations}`}
+                                      />
+                                    )}
+                                  {formatSpecs(item)}
+                                </div>
+                                {isCriticalStock(item) && (
+                                  <div className="text-red-600 text-[10px] font-extrabold tracking-wider uppercase flex items-center w-fit ml-5">
+                                    ESTOQUE CRÍTICO
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex flex-col gap-1 mt-2 ml-5">
+                                {item.barcode && (
+                                  <div className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 uppercase">
+                                    <Barcode className="h-3 w-3" /> CÓD: {item.barcode}
+                                  </div>
+                                )}
+                                {item.specialty && (
+                                  <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 uppercase mt-0.5">
+                                    <Stethoscope className="h-3 w-3" /> {item.specialty}
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="align-top py-4">
+                              <span className="inline-block px-2 py-0.5 bg-muted rounded-md text-[10px] font-bold mb-1.5 uppercase">
+                                {item.packageType}
+                              </span>
+                              <div className="text-xs font-semibold text-muted-foreground mb-0.5 uppercase">
+                                {item.itemsPerBox} ITENS / EMB.
+                              </div>
+                              <div className="text-[10px] font-bold text-blue-700 flex flex-col gap-1 mt-2 bg-blue-50 px-2 py-1.5 rounded w-fit">
+                                <div className="flex items-center gap-1.5">
+                                  <MapPin className="w-3 h-3" /> SALA:{' '}
+                                  {item.storageRoom || 'NÃO INF.'}
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <Box className="w-3 h-3" /> ARMÁRIO:{' '}
+                                  {item.cabinetNumber || 'NÃO INF.'}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="align-top py-4">
+                              <div className="flex flex-col gap-1.5 uppercase">
+                                {item.expirationDate ? (
+                                  <div
+                                    className={cn(
+                                      'text-[10px] font-bold flex items-center gap-1.5 w-fit px-2 py-0.5 rounded',
+                                      isExpired
+                                        ? 'bg-red-100 text-red-700'
+                                        : isExpiringSoon
+                                          ? 'bg-orange-100 text-orange-700'
+                                          : 'bg-emerald-50 text-emerald-700',
+                                    )}
+                                  >
+                                    <CalendarClock className="h-3.5 w-3.5" /> VAL:{' '}
+                                    {format(new Date(item.expirationDate), 'dd/MM/yyyy', {
+                                      locale: ptBR,
+                                    })}
+                                    {isExpired && ' (VENCIDO)'}
+                                    {isExpiringSoon && ' (ATENÇÃO)'}
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                                    <CalendarClock className="h-3 w-3" /> VAL: N/I
+                                  </div>
+                                )}
+                                <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1.5 mt-1">
+                                  <Package className="h-3 w-3" /> NFE:{' '}
+                                  {item.nfeNumber || 'NÃO INFORMADA'}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="align-middle py-4 font-bold text-muted-foreground uppercase text-xs">
+                              {formatCurrency(item.packageCost)}
+                            </TableCell>
+                            <TableCell className="align-middle py-4 text-center">
+                              <span
+                                className={cn(
+                                  'inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-full font-black text-xs uppercase',
+                                  isCriticalStock(item)
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-slate-100 text-slate-700',
+                                )}
+                              >
+                                {item.quantity}
+                              </span>
+                            </TableCell>
+                            <TableCell
+                              className="align-middle py-4 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="flex items-center justify-center gap-2">
+                                {isProsthesisOrImplant ? (
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
+                                      onClick={() => setItemToDecrease(item)}
+                                      disabled={item.quantity === 0}
+                                      title="BAIXA DEFINITIVA"
+                                    >
+                                      <MinusCircle className="w-3 h-3 md:mr-1" />{' '}
+                                      <span className="hidden md:inline">DEFINITIVA</span>
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 px-2 text-[10px] text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 transition-colors uppercase font-bold"
+                                      onClick={() => setItemForTempOutflow(item)}
+                                      disabled={item.quantity === 0}
+                                      title="BAIXA TEMPORÁRIA"
+                                    >
+                                      <Clock className="w-3 h-3 md:mr-1" />{' '}
+                                      <span className="hidden md:inline">TEMPORÁRIA</span>
+                                    </Button>
+                                  </>
+                                ) : (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
                                     onClick={() => setItemToDecrease(item)}
                                     disabled={item.quantity === 0}
-                                    title="BAIXA DEFINITIVA"
                                   >
-                                    <MinusCircle className="w-3 h-3 md:mr-1" />{' '}
-                                    <span className="hidden md:inline">DEFINITIVA</span>
+                                    <MinusCircle className="w-3 h-3 mr-1" /> BAIXAR
                                   </Button>
+                                )}
+                                {isAdmin && (
                                   <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 px-2 text-[10px] text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 transition-colors uppercase font-bold"
-                                    onClick={() => setItemForTempOutflow(item)}
-                                    disabled={item.quantity === 0}
-                                    title="BAIXA TEMPORÁRIA"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setItemToDelete(item)
+                                    }}
+                                    title="EXCLUIR"
                                   >
-                                    <Clock className="w-3 h-3 md:mr-1" />{' '}
-                                    <span className="hidden md:inline">TEMPORÁRIA</span>
+                                    <Trash2 className="w-4 h-4" />
                                   </Button>
-                                </>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
-                                  onClick={() => setItemToDecrease(item)}
-                                  disabled={item.quantity === 0}
-                                >
-                                  <MinusCircle className="w-3 h-3 mr-1" /> BAIXAR
-                                </Button>
-                              )}
-                              {isAdmin && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setItemToDelete(item)
-                                  }}
-                                  title="EXCLUIR"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+
+                          {itemOutflows.length > 0 && (
+                            <TableRow className="bg-amber-50/40 hover:bg-amber-50/60 border-b-2 border-amber-100/50">
+                              <TableCell colSpan={6} className="p-0">
+                                <div className="px-10 py-4">
+                                  <h4 className="text-[11px] font-black text-amber-800 flex items-center gap-2 mb-3 uppercase tracking-widest bg-amber-100/50 w-fit px-3 py-1 rounded-full">
+                                    <Clock className="w-3.5 h-3.5" /> BAIXAS TEMPORÁRIAS ATIVAS PARA
+                                    ESTE PRODUTO
+                                  </h4>
+                                  <div className="grid gap-2">
+                                    {itemOutflows.map((outflow) => (
+                                      <div
+                                        key={outflow.id}
+                                        className="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-amber-200/60 p-3 rounded-lg shadow-sm gap-3 animate-fade-in"
+                                      >
+                                        <div className="flex items-center gap-4 flex-wrap">
+                                          <span className="font-extrabold text-sm text-slate-800 uppercase flex items-center gap-1.5">
+                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-[10px] border border-slate-200">
+                                              {outflow.employees?.name?.charAt(0)}
+                                            </div>
+                                            {outflow.employees?.name}
+                                          </span>
+                                          <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
+                                          <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-black">
+                                            {outflow.quantity} UN RETIRADA(S)
+                                          </span>
+                                          <span className="text-xs text-muted-foreground font-bold flex items-center gap-1">
+                                            <CalendarClock className="w-3.5 h-3.5" />
+                                            {format(
+                                              new Date(outflow.created_at),
+                                              'dd/MM/yyyy HH:mm',
+                                              { locale: ptBR },
+                                            )}
+                                          </span>
+                                        </div>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 text-xs font-bold text-emerald-700 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800 uppercase tracking-wider shadow-sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setOutflowToFinalize({ outflow, item })
+                                          }}
+                                        >
+                                          <CheckCircle className="w-3.5 h-3.5 mr-1.5" /> RECONCILIAR
+                                          BAIXA
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
                       )
                     })}
                 </React.Fragment>
@@ -688,6 +655,12 @@ export default function Inventory() {
         open={!!itemForTempOutflow}
         onOpenChange={(val) => {
           if (!val) setItemForTempOutflow(null)
+        }}
+      />
+      <FinalizeTempOutflowModal
+        data={outflowToFinalize}
+        onOpenChange={(val) => {
+          if (!val) setOutflowToFinalize(null)
         }}
       />
       <EditInventoryModal
