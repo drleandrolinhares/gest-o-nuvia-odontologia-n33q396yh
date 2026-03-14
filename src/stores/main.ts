@@ -84,6 +84,15 @@ export type InventoryItem = {
   cabinetNumber?: string
   criticalObservations?: string
 }
+export type TemporaryOutflow = {
+  id: string
+  inventory_id: string
+  employee_id: string
+  quantity: number
+  status: 'PENDING' | 'FINALIZED' | 'RETURNED'
+  created_at: string
+  employees?: { name: string }
+}
 export type DocumentItem = { id: string; name: string; date: string }
 export type AgendaItem = {
   id: string
@@ -164,6 +173,7 @@ interface AppStore {
   onboarding: OnboardingCandidate[]
   inventory: InventoryItem[]
   inventoryOptions: InventoryOption[]
+  temporaryOutflows: TemporaryOutflow[]
   documents: DocumentItem[]
   agenda: AgendaItem[]
   acessos: AccessItem[]
@@ -191,6 +201,15 @@ interface AppStore {
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
   addInventoryOption: (category: string, value: string, label?: string) => void
   removeInventoryOption: (id: string) => void
+  addTemporaryOutflow: (
+    inventory_id: string,
+    employee_id: string,
+    quantity: number,
+  ) => Promise<{ success: boolean; error?: any }>
+  finalizeTemporaryOutflow: (
+    id: string,
+    action: 'FINALIZED' | 'RETURNED',
+  ) => Promise<{ success: boolean; error?: any }>
   addEmployee: (
     e: Omit<Employee, 'id'> & { password?: string },
   ) => Promise<{ success: boolean; error?: any }>
@@ -381,6 +400,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
   const [inventoryOptions, setInventoryOptions] = useState<InventoryOption[]>([])
+  const [temporaryOutflows, setTemporaryOutflows] = useState<TemporaryOutflow[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>([])
   const [documents, setDocuments] = useState<DocumentItem[]>([])
@@ -392,10 +412,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees })
+  const storeRef = useRef({ user, employees, inventory })
   useEffect(() => {
-    storeRef.current = { user, employees }
-  }, [user, employees])
+    storeRef.current = { user, employees, inventory }
+  }, [user, employees, inventory])
 
   useEffect(() => {
     if (user) {
@@ -421,6 +441,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .from('inventory_settings' as any)
           .select('*')
           .then((r) => setInventoryOptions(handleResponse(r, mOpt))),
+        supabase
+          .from('inventory_temporary_outflows' as any)
+          .select('*, employees(name)')
+          .eq('status', 'PENDING')
+          .then((r) => {
+            if (!r.error) setTemporaryOutflows(r.data || [])
+          }),
         supabase
           .from('agenda')
           .select('*')
@@ -481,6 +508,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setEmployees([])
       setInventory([])
       setInventoryOptions([])
+      setTemporaryOutflows([])
       setAuditLogs([])
       setBonusTypes([])
       setEmployeeDocuments([])
@@ -835,6 +863,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .catch((err) => console.warn('Erro ao remover opção', err))
     },
     [logAction],
+  )
+
+  const addTemporaryOutflow = useCallback(
+    async (inventory_id: string, employee_id: string, quantity: number) => {
+      const { data, error } = await supabase
+        .from('inventory_temporary_outflows' as any)
+        .insert([{ inventory_id, employee_id, quantity, status: 'PENDING' }])
+        .select('*, employees(name)')
+        .single()
+
+      if (error) return { success: false, error }
+      if (data) {
+        setTemporaryOutflows((p) => [data, ...p])
+        logAction(`BAIXA TEMPORÁRIA: ${quantity} UN PARA COLAB ID: ${employee_id}`)
+        return { success: true }
+      }
+      return { success: false }
+    },
+    [logAction],
+  )
+
+  const finalizeTemporaryOutflow = useCallback(
+    async (id: string, action: 'FINALIZED' | 'RETURNED') => {
+      const { data, error } = await supabase
+        .from('inventory_temporary_outflows' as any)
+        .update({ status: action })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) return { success: false, error }
+
+      if (data) {
+        setTemporaryOutflows((p) => p.filter((t) => t.id !== id))
+
+        if (action === 'FINALIZED') {
+          const invItem = storeRef.current.inventory?.find((i) => i.id === data.inventory_id)
+          if (invItem) {
+            updateInventoryQuantity(invItem.id, Math.max(0, invItem.quantity - data.quantity))
+          }
+        }
+
+        logAction(
+          `BAIXA TEMPORÁRIA ${action === 'FINALIZED' ? 'FINALIZADA (ESTOQUE REDUZIDO)' : 'DEVOLVIDA'} ID: ${id}`,
+        )
+        return { success: true }
+      }
+      return { success: false }
+    },
+    [logAction, updateInventoryQuantity],
   )
 
   const addEmployee = useCallback(
@@ -1444,6 +1522,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       onboarding,
       inventory,
       inventoryOptions,
+      temporaryOutflows,
       documents,
       agenda,
       acessos,
@@ -1468,6 +1547,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPurchaseHistory,
       addInventoryOption,
       removeInventoryOption,
+      addTemporaryOutflow,
+      finalizeTemporaryOutflow,
       addEmployee,
       updateEmployee,
       updateEmployeePassword,
@@ -1511,6 +1592,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       onboarding,
       inventory,
       inventoryOptions,
+      temporaryOutflows,
       documents,
       agenda,
       acessos,
@@ -1535,6 +1617,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPurchaseHistory,
       addInventoryOption,
       removeInventoryOption,
+      addTemporaryOutflow,
+      finalizeTemporaryOutflow,
       addEmployee,
       updateEmployee,
       updateEmployeePassword,

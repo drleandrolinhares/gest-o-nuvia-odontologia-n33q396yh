@@ -41,12 +41,14 @@ import { QuickProductSearchModal } from '@/components/inventory/QuickProductSear
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
 
-const parseCurrency = (val: string | number) => {
+const parseCurrency = (val: string | number | undefined | null) => {
+  if (!val) return 0
   if (typeof val === 'number') return val
   return Number(val.replace(/\D/g, '')) / 100
 }
 
-const formatCurrencyInput = (val: string | number) => {
+const formatCurrencyInput = (val: string | number | undefined | null) => {
+  if (val === '' || val === undefined || val === null) return ''
   const num = parseCurrency(val)
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num)
 }
@@ -56,16 +58,25 @@ const schema = z.object({
   barcode: z.string().optional(),
   brand: z.string().optional(),
   specialty: z.string().optional(),
-  packageCost: z.union([z.string(), z.number()]).transform(parseCurrency),
+  packageCost: z.union([z.string(), z.number()]).optional().transform(parseCurrency),
   packageType: z.string().min(1, 'Obrigatório'),
-  itemsPerBox: z.coerce.number().min(1),
-  quantity: z.coerce.number().min(0),
+  itemsPerBox: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((v) => Number(v) || 0),
+  quantity: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((v) => Number(v) || 0),
   entryDate: z.date().optional(),
   expirationDate: z.date().optional(),
   storageRoom: z.string().optional(),
   cabinetNumber: z.string().optional(),
   nfeNumber: z.string().optional(),
-  minStock: z.coerce.number().min(0),
+  minStock: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((v) => Number(v) || 0),
   lastBrand: z.string().optional(),
   lastValue: z.union([z.string(), z.number()]).optional().transform(parseCurrency),
   notes: z.string().optional(),
@@ -106,16 +117,16 @@ export function AddInventoryModal({
       barcode: '',
       brand: '',
       specialty: '',
-      packageCost: 0,
+      packageCost: '' as any,
       packageType: 'CAIXA',
-      itemsPerBox: 1,
-      quantity: 0,
+      itemsPerBox: '' as any,
+      quantity: '' as any,
       storageRoom: '',
       cabinetNumber: '',
       nfeNumber: '',
-      minStock: 0,
+      minStock: '' as any,
       lastBrand: '',
-      lastValue: 0,
+      lastValue: '' as any,
       notes: '',
       criticalObservations: '',
       implantBrand: '',
@@ -142,7 +153,8 @@ export function AddInventoryModal({
 
   const pCostRaw = form.watch('packageCost')
   const pCost = parseCurrency(pCostRaw || 0)
-  const qty = form.watch('quantity') || 0
+  const qtyRaw = form.watch('quantity')
+  const qty = Number(qtyRaw) || 0
   const totalCost = qty * pCost
   const currentSpecialty = form.watch('specialty')
   const isProstheticComponent = form.watch('isProstheticComponent')
@@ -190,15 +202,15 @@ export function AddInventoryModal({
       barcode: v.barcode,
       brand: v.brand || '',
       specialty: v.specialty,
-      packageCost: v.packageCost,
+      packageCost: v.packageCost || 0,
       packageType: v.packageType,
-      itemsPerBox: v.itemsPerBox,
-      quantity: v.quantity,
+      itemsPerBox: v.itemsPerBox || 1,
+      quantity: v.quantity || 0,
       storageLocation: `${v.storageRoom || ''} - ${v.cabinetNumber || ''}`,
       storageRoom: v.storageRoom || '',
       cabinetNumber: v.cabinetNumber || '',
       nfeNumber: v.nfeNumber || '',
-      minStock: v.minStock,
+      minStock: v.minStock || 0,
       entryDate: v.entryDate ? v.entryDate.toISOString() : undefined,
       expirationDate: v.expirationDate ? v.expirationDate.toISOString() : undefined,
       lastBrand: v.lastBrand || '',
@@ -255,9 +267,11 @@ export function AddInventoryModal({
                       </FormLabel>
                       <FormControl>
                         <Input
+                          autoFocus
                           placeholder="BIPAR OU DIGITAR CÓDIGO..."
                           className="bg-white border-blue-200 shadow-sm h-12 text-lg font-mono tracking-widest uppercase"
                           {...field}
+                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -605,7 +619,12 @@ export function AddInventoryModal({
                       <FormItem>
                         <FormLabel>QTD. COMPRADA</FormLabel>
                         <FormControl>
-                          <Input type="number" className="bg-white uppercase" {...field} />
+                          <Input
+                            type="number"
+                            className="bg-white uppercase"
+                            {...field}
+                            value={field.value ?? ''}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -618,7 +637,12 @@ export function AddInventoryModal({
                       <FormItem>
                         <FormLabel>ITENS NA EMBALAGEM</FormLabel>
                         <FormControl>
-                          <Input type="number" className="bg-white uppercase" {...field} />
+                          <Input
+                            type="number"
+                            className="bg-white uppercase"
+                            {...field}
+                            value={field.value ?? ''}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -811,7 +835,12 @@ export function AddInventoryModal({
                     <FormItem>
                       <FormLabel>ESTOQUE MÍNIMO</FormLabel>
                       <FormControl>
-                        <Input type="number" className="uppercase" {...field} />
+                        <Input
+                          type="number"
+                          className="uppercase"
+                          {...field}
+                          value={field.value ?? ''}
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -850,7 +879,7 @@ export function AddInventoryModal({
                             type="text"
                             placeholder="R$ 0,00"
                             className="uppercase"
-                            value={formatCurrencyInput(field.value || 0)}
+                            value={formatCurrencyInput(field.value)}
                             onChange={(e) => field.onChange(e.target.value)}
                           />
                         </FormControl>

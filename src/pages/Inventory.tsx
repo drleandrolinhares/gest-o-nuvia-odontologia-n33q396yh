@@ -33,11 +33,15 @@ import {
   ChevronDown,
   CornerDownRight,
   Trash2,
+  Clock,
+  CheckCircle,
+  RotateCcw,
 } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
 import { DecreaseStockModal } from '@/components/inventory/DecreaseStockModal'
 import { EditInventoryModal } from '@/components/inventory/EditInventoryModal'
+import { TemporaryOutflowModal } from '@/components/inventory/TemporaryOutflowModal'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useToast } from '@/hooks/use-toast'
@@ -53,7 +57,14 @@ import {
 } from '@/components/ui/alert-dialog'
 
 export default function Inventory() {
-  const { inventory, specialties, isAdmin, deleteInventoryItem } = useAppStore()
+  const {
+    inventory,
+    specialties,
+    isAdmin,
+    deleteInventoryItem,
+    temporaryOutflows,
+    finalizeTemporaryOutflow,
+  } = useAppStore()
   const { toast } = useToast()
 
   const [isAdding, setIsAdding] = useState(false)
@@ -64,6 +75,7 @@ export default function Inventory() {
   const [expandedGroups, setExpandedGroups] = useState<string[]>([])
 
   const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
+  const [itemForTempOutflow, setItemForTempOutflow] = useState<InventoryItem | null>(null)
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null)
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
 
@@ -85,6 +97,25 @@ export default function Inventory() {
       })
     }
     setItemToDelete(null)
+  }
+
+  const handleFinalizeTemp = async (id: string, action: 'FINALIZED' | 'RETURNED') => {
+    const res = await finalizeTemporaryOutflow(id, action)
+    if (res.success) {
+      toast({
+        title: 'SUCESSO',
+        description:
+          action === 'FINALIZED'
+            ? 'BAIXA EFETIVADA (ESTOQUE DEDUZIDO).'
+            : 'ITEM DEVOLVIDO AO ESTOQUE.',
+      })
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'ERRO',
+        description: 'NÃO FOI POSSÍVEL FINALIZAR A OPERAÇÃO.',
+      })
+    }
   }
 
   const isCriticalStock = (item: InventoryItem) => {
@@ -308,6 +339,76 @@ export default function Inventory() {
         </Card>
       </div>
 
+      {temporaryOutflows.length > 0 && (
+        <Card className="mb-6 border-amber-200 shadow-sm rounded-xl overflow-hidden animate-fade-in">
+          <div className="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center justify-between">
+            <h3 className="font-black text-amber-800 flex items-center gap-2 uppercase tracking-widest text-sm">
+              <Clock className="w-5 h-5 text-amber-600" />
+              BAIXAS TEMPORÁRIAS ATIVAS
+            </h3>
+            <span className="bg-amber-200 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full">
+              {temporaryOutflows.length} PENDENTES
+            </span>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-amber-50/30">
+                <TableHead className="font-semibold text-amber-900/70">PRODUTO</TableHead>
+                <TableHead className="font-semibold text-amber-900/70">COLABORADOR</TableHead>
+                <TableHead className="font-semibold text-amber-900/70 text-center">
+                  QUANTIDADE
+                </TableHead>
+                <TableHead className="font-semibold text-amber-900/70 text-center">DATA</TableHead>
+                <TableHead className="font-semibold text-amber-900/70 text-center">AÇÕES</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {temporaryOutflows.map((temp) => {
+                const invItem = inventory.find((i) => i.id === temp.inventory_id)
+                return (
+                  <TableRow key={temp.id} className="bg-white">
+                    <TableCell className="font-bold text-amber-900 uppercase">
+                      {invItem ? invItem.name : 'PRODUTO EXCLUÍDO'}
+                    </TableCell>
+                    <TableCell className="font-semibold text-muted-foreground uppercase">
+                      {temp.employees?.name || 'NÃO INFORMADO'}
+                    </TableCell>
+                    <TableCell className="text-center font-black text-lg text-amber-600">
+                      {temp.quantity}
+                    </TableCell>
+                    <TableCell className="text-center text-xs font-bold text-muted-foreground">
+                      {format(new Date(temp.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-3 text-[10px] text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 font-bold uppercase"
+                          onClick={() => handleFinalizeTemp(temp.id, 'FINALIZED')}
+                          title="EFETIVAR BAIXA (DEDUZ DO ESTOQUE)"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5 mr-1" /> EFETIVAR
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-3 text-[10px] text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 font-bold uppercase"
+                          onClick={() => handleFinalizeTemp(temp.id, 'RETURNED')}
+                          title="DEVOLVER AO ESTOQUE (CANCELA BAIXA)"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 mr-1" /> DEVOLVER
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
+
       <Card className="shadow-sm border-muted rounded-xl overflow-hidden">
         <Table>
           <TableHeader>
@@ -379,6 +480,8 @@ export default function Inventory() {
                       const expDate = item.expirationDate ? new Date(item.expirationDate) : null
                       const isExpired = expDate && expDate < now
                       const isExpiringSoon = expDate && expDate >= now && expDate <= sixtyDays
+                      const isProsthesisOrImplant =
+                        item.specialty === 'PRÓTESE' || item.specialty === 'IMPLANTODONTIA'
 
                       return (
                         <TableRow
@@ -487,15 +590,42 @@ export default function Inventory() {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
-                                onClick={() => setItemToDecrease(item)}
-                                disabled={item.quantity === 0}
-                              >
-                                <MinusCircle className="w-3 h-3 mr-1" /> BAIXAR
-                              </Button>
+                              {isProsthesisOrImplant ? (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
+                                    onClick={() => setItemToDecrease(item)}
+                                    disabled={item.quantity === 0}
+                                    title="BAIXA DEFINITIVA"
+                                  >
+                                    <MinusCircle className="w-3 h-3 md:mr-1" />{' '}
+                                    <span className="hidden md:inline">DEFINITIVA</span>
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 px-2 text-[10px] text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300 transition-colors uppercase font-bold"
+                                    onClick={() => setItemForTempOutflow(item)}
+                                    disabled={item.quantity === 0}
+                                    title="BAIXA TEMPORÁRIA"
+                                  >
+                                    <Clock className="w-3 h-3 md:mr-1" />{' '}
+                                    <span className="hidden md:inline">TEMPORÁRIA</span>
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
+                                  onClick={() => setItemToDecrease(item)}
+                                  disabled={item.quantity === 0}
+                                >
+                                  <MinusCircle className="w-3 h-3 mr-1" /> BAIXAR
+                                </Button>
+                              )}
                               {isAdmin && (
                                 <Button
                                   variant="ghost"
@@ -551,6 +681,13 @@ export default function Inventory() {
         open={!!itemToDecrease}
         onOpenChange={(val) => {
           if (!val) setItemToDecrease(null)
+        }}
+      />
+      <TemporaryOutflowModal
+        item={itemForTempOutflow}
+        open={!!itemForTempOutflow}
+        onOpenChange={(val) => {
+          if (!val) setItemForTempOutflow(null)
         }}
       />
       <EditInventoryModal
