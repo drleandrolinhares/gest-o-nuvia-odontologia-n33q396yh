@@ -140,10 +140,13 @@ export function QuickProductSearchModal({
                 >
                   <div className="min-w-0 flex-1 pr-4">
                     <div className="font-black text-base text-foreground uppercase truncate flex items-center gap-2">
-                      {item.name}
-                      {item.criticalObservations && (
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      {item.criticalObservations && item.criticalObservations.trim() !== '' && (
+                        <AlertTriangle
+                          className="w-5 h-5 text-amber-500 fill-amber-100 flex-shrink-0 drop-shadow-sm"
+                          title="OBSERVAÇÃO CRÍTICA"
+                        />
                       )}
+                      {item.name}
                     </div>
                     <div className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-1.5 mt-1 truncate">
                       <Tag className="w-3 h-3 flex-shrink-0" /> {item.brand || 'SEM MARCA'} •{' '}
@@ -188,7 +191,11 @@ export function QuickProductSearchModal({
           {selectedProduct && (
             <div className="space-y-6 animate-fade-in pb-4">
               <div className="flex flex-col gap-1">
-                <h3 className="text-2xl font-black text-[#D81B84] uppercase leading-tight">
+                <h3 className="text-2xl font-black text-[#D81B84] uppercase leading-tight flex items-center gap-2">
+                  {selectedProduct.criticalObservations &&
+                    selectedProduct.criticalObservations.trim() !== '' && (
+                      <AlertTriangle className="w-7 h-7 text-amber-500 fill-amber-100 flex-shrink-0 drop-shadow-sm" />
+                    )}
                   {selectedProduct.name}
                 </h3>
                 <p className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-2">

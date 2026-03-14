@@ -377,6 +377,7 @@ export type Database = {
           brand: string | null
           cabinet_number: string | null
           created_at: string
+          critical_observations: string | null
           entry_date: string | null
           expiration_date: string | null
           id: string
@@ -401,6 +402,7 @@ export type Database = {
           brand?: string | null
           cabinet_number?: string | null
           created_at?: string
+          critical_observations?: string | null
           entry_date?: string | null
           expiration_date?: string | null
           id?: string
@@ -425,6 +427,7 @@ export type Database = {
           brand?: string | null
           cabinet_number?: string | null
           created_at?: string
+          critical_observations?: string | null
           entry_date?: string | null
           expiration_date?: string | null
           id?: string
@@ -893,6 +896,7 @@ export const Constants = {
 //   nfe_number: text (nullable)
 //   storage_room: text (nullable)
 //   cabinet_number: text (nullable)
+//   critical_observations: text (nullable)
 // Table: inventory_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   category: text (not null)

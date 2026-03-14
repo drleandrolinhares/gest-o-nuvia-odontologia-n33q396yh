@@ -121,6 +121,9 @@ export default function Inventory() {
       .map(([name, items]) => {
         const totalQuantity = items.reduce((acc, i) => acc + i.quantity, 0)
         const isCritical = items.some((i) => isCriticalStock(i))
+        const hasCriticalObservations = items.some(
+          (i) => i.criticalObservations && i.criticalObservations.trim() !== '',
+        )
         const totalValue = items.reduce((acc, i) => acc + i.quantity * i.packageCost, 0)
         return {
           name,
@@ -128,6 +131,7 @@ export default function Inventory() {
           totalQuantity,
           totalValue,
           isCritical,
+          hasCriticalObservations,
         }
       })
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -341,6 +345,12 @@ export default function Inventory() {
                         ) : (
                           <ChevronRight className="w-5 h-5 text-muted-foreground" />
                         )}
+                        {group.hasCriticalObservations && (
+                          <AlertTriangle
+                            className="w-6 h-6 text-amber-500 fill-amber-100 flex-shrink-0 drop-shadow-sm"
+                            title="CONTÉM OBSERVAÇÕES CRÍTICAS"
+                          />
+                        )}
                         {group.name}
                         {group.isCritical && (
                           <span className="ml-2 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-extrabold tracking-wider uppercase shadow-sm flex items-center animate-pulse">
@@ -380,13 +390,14 @@ export default function Inventory() {
                             <div className="flex flex-col gap-1.5 mb-2">
                               <div className="font-bold text-nuvia-navy text-xs leading-none uppercase flex items-center gap-2">
                                 <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground" />
+                                {item.criticalObservations &&
+                                  item.criticalObservations.trim() !== '' && (
+                                    <AlertTriangle
+                                      className="w-5 h-5 text-amber-500 fill-amber-100 flex-shrink-0 drop-shadow-sm"
+                                      title={`OBSERVAÇÕES CRÍTICAS: ${item.criticalObservations}`}
+                                    />
+                                  )}
                                 {formatSpecs(item)}
-                                {item.criticalObservations && (
-                                  <AlertTriangle
-                                    className="w-4 h-4 text-amber-500 flex-shrink-0 ml-1"
-                                    title="OBSERVAÇÕES CRÍTICAS"
-                                  />
-                                )}
                               </div>
                               {isCriticalStock(item) && (
                                 <div className="text-red-600 text-[10px] font-extrabold tracking-wider uppercase flex items-center w-fit ml-5">
