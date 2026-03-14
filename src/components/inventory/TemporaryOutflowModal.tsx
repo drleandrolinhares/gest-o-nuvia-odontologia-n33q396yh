@@ -27,10 +27,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import useAppStore, { type InventoryItem } from '@/stores/main'
+import { useToast } from '@/hooks/use-toast'
 
 const schema = z.object({
   employeeId: z.string().min(1, 'Obrigatório'),
   quantity: z.coerce.number().min(1, 'A quantidade deve ser maior que 0'),
+  destination: z.string().min(1, 'Informe o destino ou observação'),
 })
 
 export function TemporaryOutflowModal({
@@ -43,14 +45,15 @@ export function TemporaryOutflowModal({
   onOpenChange: (val: boolean) => void
 }) {
   const { employees, addTemporaryOutflow } = useAppStore()
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { employeeId: '', quantity: 1 },
+    defaultValues: { employeeId: '', quantity: 1, destination: '' },
   })
 
   useEffect(() => {
-    if (open) form.reset({ employeeId: '', quantity: 1 })
+    if (open) form.reset({ employeeId: '', quantity: 1, destination: '' })
   }, [open, form])
 
   const onSubmit = async (v: z.infer<typeof schema>) => {
@@ -59,8 +62,17 @@ export function TemporaryOutflowModal({
       form.setError('quantity', { message: 'Quantidade excede o estoque atual' })
       return
     }
-    await addTemporaryOutflow(item.id, v.employeeId, v.quantity)
-    onOpenChange(false)
+    const res = await addTemporaryOutflow(item.id, v.employeeId, v.quantity, v.destination)
+    if (res.success) {
+      toast({ title: 'SUCESSO', description: 'BAIXA TEMPORÁRIA REGISTRADA.' })
+      onOpenChange(false)
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'ERRO',
+        description: 'FALHA AO REGISTRAR BAIXA TEMPORÁRIA.',
+      })
+    }
   }
 
   if (!item) return null
@@ -70,8 +82,8 @@ export function TemporaryOutflowModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="uppercase text-amber-600">Baixa Temporária</DialogTitle>
-          <DialogDescription className="uppercase font-semibold">
-            Atribua itens a um colaborador para uso ou teste sem deduzir definitivamente do estoque.
+          <DialogDescription className="uppercase font-semibold text-xs">
+            ATRIBUA ITENS A UM COLABORADOR PARA USO OU TESTE SEM DEDUZIR DEFINITIVAMENTE DO ESTOQUE.
           </DialogDescription>
         </DialogHeader>
 
@@ -109,6 +121,26 @@ export function TemporaryOutflowModal({
                         ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="destination"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="uppercase font-bold text-muted-foreground tracking-wider">
+                    Destino / Observação
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="EX: TESTE EM CADEIRA 3"
+                      {...field}
+                      className="uppercase font-bold"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

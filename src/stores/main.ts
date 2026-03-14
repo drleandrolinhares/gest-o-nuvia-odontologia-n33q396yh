@@ -93,6 +93,16 @@ export type TemporaryOutflow = {
   created_at: string
   employees?: { name: string }
 }
+export type InventoryMovement = {
+  id: string
+  inventory_id: string
+  user_id: string
+  type: string
+  quantity: number
+  recipient: string
+  created_at: string
+  profiles?: { name: string }
+}
 export type DocumentItem = { id: string; name: string; date: string }
 export type AgendaItem = {
   id: string
@@ -205,12 +215,19 @@ interface AppStore {
     inventory_id: string,
     employee_id: string,
     quantity: number,
+    destination: string,
   ) => Promise<{ success: boolean; error?: any }>
   finalizeTemporaryOutflow: (
     id: string,
     usedQty: number,
     returnedQty: number,
   ) => Promise<{ success: boolean; error?: any }>
+  registerDefinitiveOutflow: (
+    inventory_id: string,
+    quantity: number,
+    recipient: string,
+  ) => Promise<{ success: boolean; error?: any }>
+  getInventoryMovements: (inventory_id: string) => Promise<InventoryMovement[]>
   addEmployee: (
     e: Omit<Employee, 'id'> & { password?: string },
   ) => Promise<{ success: boolean; error?: any }>
@@ -724,6 +741,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+
   const updateInventoryQuantity = useCallback(
     (id: string, q: number) => {
       supabase
@@ -866,8 +884,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const registerDefinitiveOutflow = useCallback(
+    async (inventory_id: string, quantity: number, recipient: string) => {
+      const item = storeRef.current.inventory.find((i) => i.id === inventory_id)
+      if (!item) return { success: false }
+      const newQty = Math.max(0, item.quantity - quantity)
+
+      const { error: invErr } = await supabase
+        .from('inventory')
+        .update({ quantity: newQty })
+        .eq('id', inventory_id)
+
+      if (invErr) return { success: false, error: invErr }
+
+      setInventory((p) => p.map((i) => (i.id === inventory_id ? { ...i, quantity: newQty } : i)))
+
+      const user = storeRef.current.user
+      if (user) {
+        await supabase.from('inventory_movements' as any).insert([
+          {
+            inventory_id,
+            user_id: user.id,
+            type: 'SAÍDA',
+            quantity,
+            recipient,
+          },
+        ])
+      }
+
+      logAction(`BAIXA DEFINITIVA: ${quantity} UN DO PRODUTO ID: ${inventory_id}`)
+      return { success: true }
+    },
+    [logAction],
+  )
+
   const addTemporaryOutflow = useCallback(
-    async (inventory_id: string, employee_id: string, quantity: number) => {
+    async (inventory_id: string, employee_id: string, quantity: number, destination: string) => {
       const { data, error } = await supabase
         .from('inventory_temporary_outflows' as any)
         .insert([{ inventory_id, employee_id, quantity, status: 'PENDING' }])
@@ -877,6 +929,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (error) return { success: false, error }
       if (data) {
         setTemporaryOutflows((p) => [data, ...p])
+
+        const user = storeRef.current.user
+        const emp = storeRef.current.employees.find((e) => e.id === employee_id)
+        const recipientStr = `Colab: ${emp?.name || 'Desconhecido'} - ${destination}`
+
+        if (user) {
+          await supabase.from('inventory_movements' as any).insert([
+            {
+              inventory_id,
+              user_id: user.id,
+              type: 'BAIXA TEMPORÁRIA',
+              quantity,
+              recipient: recipientStr,
+            },
+          ])
+        }
+
         logAction(`BAIXA TEMPORÁRIA: ${quantity} UN PARA COLAB ID: ${employee_id}`)
         return { success: true }
       }
@@ -906,6 +975,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         }
 
+        const user = storeRef.current.user
+        const movements = []
+        if (usedQty > 0) {
+          movements.push({
+            inventory_id: data.inventory_id,
+            user_id: user?.id,
+            type: 'SAÍDA',
+            quantity: usedQty,
+            recipient: 'RECONCILIAÇÃO DE BAIXA TEMPORÁRIA (USO)',
+          })
+        }
+        if (returnedQty > 0) {
+          movements.push({
+            inventory_id: data.inventory_id,
+            user_id: user?.id,
+            type: 'RETORNO',
+            quantity: returnedQty,
+            recipient: 'RECONCILIAÇÃO DE BAIXA TEMPORÁRIA (RETORNO)',
+          })
+        }
+
+        if (movements.length > 0 && user) {
+          await supabase.from('inventory_movements' as any).insert(movements)
+        }
+
         logAction(
           `RECONCILIADA BAIXA TEMPORÁRIA ID: ${id} (USOU: ${usedQty}, DEVOLVEU: ${returnedQty})`,
         )
@@ -915,6 +1009,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction, updateInventoryQuantity],
   )
+
+  const getInventoryMovements = useCallback(async (inventory_id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('inventory_movements' as any)
+        .select('*, profiles(name)')
+        .eq('inventory_id', inventory_id)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data || []
+    } catch (err) {
+      console.error('Error fetching inventory movements:', err)
+      return []
+    }
+  }, [])
 
   const addEmployee = useCallback(
     async (e: Omit<Employee, 'id'> & { password?: string }) => {
@@ -1550,6 +1659,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeInventoryOption,
       addTemporaryOutflow,
       finalizeTemporaryOutflow,
+      registerDefinitiveOutflow,
+      getInventoryMovements,
       addEmployee,
       updateEmployee,
       updateEmployeePassword,
@@ -1620,6 +1731,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeInventoryOption,
       addTemporaryOutflow,
       finalizeTemporaryOutflow,
+      registerDefinitiveOutflow,
+      getInventoryMovements,
       addEmployee,
       updateEmployee,
       updateEmployeePassword,

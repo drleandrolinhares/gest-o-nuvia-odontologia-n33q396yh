@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/form'
 import useAppStore, { type InventoryItem } from '@/stores/main'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
 
 export function DecreaseStockModal({
   item,
@@ -31,24 +32,27 @@ export function DecreaseStockModal({
   open: boolean
   onOpenChange: (val: boolean) => void
 }) {
-  const { updateInventoryQuantity } = useAppStore()
+  const { registerDefinitiveOutflow } = useAppStore()
+  const { toast } = useToast()
   const [outflowType, setOutflowType] = useState<'partial' | 'total'>('partial')
 
   const schema = z.object({
     quantity: z.coerce.number().min(1, 'A quantidade deve ser maior que 0'),
+    recipient: z.string().min(1, 'Informe o destinatário ou paciente'),
   })
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
       quantity: 1,
+      recipient: '',
     },
   })
 
   useEffect(() => {
     if (open) {
       setOutflowType('partial')
-      form.reset({ quantity: 1 })
+      form.reset({ quantity: 1, recipient: '' })
     }
   }, [open, form])
 
@@ -60,7 +64,7 @@ export function DecreaseStockModal({
     }
   }, [outflowType, item, form])
 
-  const onSubmit = (v: z.infer<typeof schema>) => {
+  const onSubmit = async (v: z.infer<typeof schema>) => {
     if (!item) return
     const qtyToRemove = outflowType === 'total' ? item.quantity : v.quantity
 
@@ -69,9 +73,13 @@ export function DecreaseStockModal({
       return
     }
 
-    const newQty = item.quantity - qtyToRemove
-    updateInventoryQuantity(item.id, newQty)
-    onOpenChange(false)
+    const res = await registerDefinitiveOutflow(item.id, qtyToRemove, v.recipient)
+    if (res.success) {
+      toast({ title: 'SUCESSO', description: 'BAIXA REGISTRADA COM SUCESSO.' })
+      onOpenChange(false)
+    } else {
+      toast({ variant: 'destructive', title: 'ERRO', description: 'FALHA AO REGISTRAR BAIXA.' })
+    }
   }
 
   if (!item) return null
@@ -80,27 +88,35 @@ export function DecreaseStockModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Registrar Saída de Estoque</DialogTitle>
-          <DialogDescription>Registre a retirada ou uso de produtos do estoque.</DialogDescription>
+          <DialogTitle className="uppercase">Registrar Saída de Estoque</DialogTitle>
+          <DialogDescription className="uppercase text-xs font-semibold">
+            REGISTRE A RETIRADA OU USO DEFINITIVO DE PRODUTOS DO ESTOQUE.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-muted/50 p-4 rounded-lg flex flex-col gap-1 mb-2 border border-border/50">
+        <div className="bg-muted/50 p-4 rounded-lg flex flex-col gap-1 mb-2 border border-border/50 uppercase">
           <h4 className="font-semibold text-sm text-foreground">{item.name}</h4>
-          <div className="text-xs text-muted-foreground">
-            Estoque Atual: <span className="font-bold text-foreground">{item.quantity}</span>
+          <div className="text-xs text-muted-foreground font-bold tracking-wider">
+            Estoque Atual:{' '}
+            <span className="font-black text-foreground text-sm">{item.quantity}</span>
           </div>
         </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-3">
-              <FormLabel>Tipo de Saída</FormLabel>
+              <FormLabel className="uppercase font-bold text-muted-foreground tracking-wider">
+                Tipo de Saída
+              </FormLabel>
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   type="button"
                   variant={outflowType === 'partial' ? 'default' : 'outline'}
                   onClick={() => setOutflowType('partial')}
-                  className={cn(outflowType === 'partial' ? 'bg-blue-600 hover:bg-blue-700' : '')}
+                  className={cn(
+                    'uppercase font-bold',
+                    outflowType === 'partial' ? 'bg-blue-600 hover:bg-blue-700 text-white' : '',
+                  )}
                 >
                   Saída Parcial
                 </Button>
@@ -108,7 +124,10 @@ export function DecreaseStockModal({
                   type="button"
                   variant={outflowType === 'total' ? 'default' : 'outline'}
                   onClick={() => setOutflowType('total')}
-                  className={cn(outflowType === 'total' ? 'bg-blue-600 hover:bg-blue-700' : '')}
+                  className={cn(
+                    'uppercase font-bold',
+                    outflowType === 'total' ? 'bg-blue-600 hover:bg-blue-700 text-white' : '',
+                  )}
                 >
                   Saída Total (Zerar)
                 </Button>
@@ -121,9 +140,17 @@ export function DecreaseStockModal({
                 name="quantity"
                 render={({ field }) => (
                   <FormItem className="animate-fade-in">
-                    <FormLabel>Quantidade a remover</FormLabel>
+                    <FormLabel className="uppercase font-bold text-muted-foreground tracking-wider">
+                      Quantidade a remover
+                    </FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} max={item.quantity} min={1} />
+                      <Input
+                        type="number"
+                        {...field}
+                        max={item.quantity}
+                        min={1}
+                        className="uppercase font-bold"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -131,11 +158,36 @@ export function DecreaseStockModal({
               />
             )}
 
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <FormField
+              control={form.control}
+              name="recipient"
+              render={({ field }) => (
+                <FormItem className="animate-fade-in">
+                  <FormLabel className="uppercase font-bold text-muted-foreground tracking-wider">
+                    Entregue para / Paciente
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="EX: PACIENTE MARIA OU CADEIRA 1"
+                      {...field}
+                      className="uppercase font-bold"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="uppercase font-bold"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" variant="destructive">
+              <Button type="submit" variant="destructive" className="uppercase font-bold">
                 Confirmar Saída
               </Button>
             </div>
