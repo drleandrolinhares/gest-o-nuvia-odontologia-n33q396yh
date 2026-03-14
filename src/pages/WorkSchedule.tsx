@@ -184,8 +184,8 @@ export default function WorkSchedule() {
   const handleOpenAdd = (dept: string) => {
     setSelectedSector(dept)
     setEmpName('')
-    setEmpRole('Colaborador')
-    setEmpDepartment(dept)
+    setEmpRole('COLABORADOR')
+    setEmpDepartment(dept.toUpperCase())
     setIsAddModalOpen(true)
   }
 
@@ -211,9 +211,9 @@ export default function WorkSchedule() {
 
   const handleOpenEdit = (emp: Employee) => {
     setEditingEmployee(emp)
-    setEmpName(emp.name)
-    setEmpRole(emp.role)
-    setEmpDepartment(emp.department)
+    setEmpName(emp.name.toUpperCase())
+    setEmpRole(emp.role.toUpperCase())
+    setEmpDepartment(emp.department.toUpperCase())
     setIsEditModalOpen(true)
   }
 
@@ -231,7 +231,7 @@ export default function WorkSchedule() {
   const handleDelete = (emp: Employee) => {
     if (
       window.confirm(
-        `Tem certeza que deseja remover o colaborador ${emp.name}? Todos os registros de escala serão perdidos.`,
+        `TEM CERTEZA QUE DESEJA REMOVER O COLABORADOR ${emp.name}? TODOS OS REGISTROS DE ESCALA SERÃO PERDIDOS.`,
       )
     ) {
       deleteEmployee(emp.id)
@@ -278,7 +278,7 @@ export default function WorkSchedule() {
             onChange={(e) => {
               if (e.target.value) setSelectedDate(new Date(e.target.value + 'T12:00:00'))
             }}
-            className="w-[180px] font-bold text-center bg-white border-0 shadow-none focus-visible:ring-0 text-base"
+            className="w-[180px] font-bold text-center bg-white border-0 shadow-none focus-visible:ring-0 text-base uppercase"
           />
           <Button
             variant="outline"
@@ -291,15 +291,15 @@ export default function WorkSchedule() {
         </div>
 
         <Select value={department} onValueChange={setDepartment}>
-          <SelectTrigger className="w-full md:w-[280px] h-11 bg-slate-50 border-slate-200">
+          <SelectTrigger className="w-full md:w-[280px] h-11 bg-slate-50 border-slate-200 uppercase">
             <SelectValue placeholder="FILTRAR POR SETOR" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="font-bold">
+            <SelectItem value="all" className="font-bold uppercase">
               TODOS OS SETORES
             </SelectItem>
             {departments.map((d) => (
-              <SelectItem key={d} value={d} className="font-medium">
+              <SelectItem key={d} value={d} className="font-medium uppercase">
                 {d.toUpperCase()}
               </SelectItem>
             ))}
@@ -311,7 +311,7 @@ export default function WorkSchedule() {
         {displayDepartments.length === 0 ? (
           <Card className="shadow-sm border-muted overflow-hidden p-10 text-center flex flex-col items-center gap-2">
             <AlertTriangle className="h-8 w-8 text-muted-foreground/50" />
-            <p className="text-muted-foreground font-bold">
+            <p className="text-muted-foreground font-bold uppercase">
               NENHUM SETOR ENCONTRADO COM COLABORADORES ATIVOS.
             </p>
           </Card>
@@ -321,22 +321,22 @@ export default function WorkSchedule() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-100/50">
-                    <TableHead className="font-bold text-slate-700 w-[250px]">
+                    <TableHead className="font-bold text-slate-700 w-[250px] uppercase">
                       COLABORADOR
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[200px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[200px] uppercase">
                       MANHÃ (ENTRADA-SAÍDA)
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[200px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[200px] uppercase">
                       TARDE (ENTRADA-SAÍDA)
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[160px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[160px] uppercase">
                       LANCHE MANHÃ
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[160px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[160px] uppercase">
                       LANCHE TARDE
                     </TableHead>
-                    <TableHead className="font-bold text-slate-700 text-center w-[100px]">
+                    <TableHead className="font-bold text-slate-700 text-center w-[100px] uppercase">
                       AÇÕES
                     </TableHead>
                   </TableRow>
@@ -351,14 +351,14 @@ export default function WorkSchedule() {
                         <TableRow className="bg-[#0A192F] hover:bg-[#0A192F] border-b-0">
                           <TableCell colSpan={6} className="p-0">
                             <div className="px-4 py-2.5 flex items-center justify-between">
-                              <h3 className="font-extrabold tracking-widest text-[#D4AF37] flex items-center gap-2">
+                              <h3 className="font-extrabold tracking-widest text-[#D4AF37] flex items-center gap-2 uppercase">
                                 <span className="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
                                 {dept.toUpperCase()}
                               </h3>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 text-[#D4AF37] hover:bg-white/10 hover:text-white transition-colors text-[10px] font-bold tracking-widest"
+                                className="h-7 text-[#D4AF37] hover:bg-white/10 hover:text-white transition-colors text-[10px] font-bold tracking-widest uppercase"
                                 onClick={() => handleOpenAdd(dept)}
                               >
                                 <Plus className="h-3.5 w-3.5 mr-1" /> ADICIONAR
@@ -371,7 +371,7 @@ export default function WorkSchedule() {
                           <TableRow>
                             <TableCell
                               colSpan={6}
-                              className="text-center py-6 text-muted-foreground bg-slate-50/50 text-xs font-bold"
+                              className="text-center py-6 text-muted-foreground bg-slate-50/50 text-xs font-bold uppercase"
                             >
                               NENHUM COLABORADOR NESTE SETOR
                             </TableCell>
@@ -388,10 +388,10 @@ export default function WorkSchedule() {
                               key={emp.id}
                               className="hover:bg-slate-50 border-b border-slate-100 group"
                             >
-                              <TableCell className="font-bold text-[#0A192F] py-3">
+                              <TableCell className="font-bold text-[#0A192F] py-3 uppercase">
                                 <div className="flex flex-col">
                                   <span>{emp.name}</span>
-                                  <span className="text-[10px] text-muted-foreground font-semibold">
+                                  <span className="text-[10px] text-muted-foreground font-semibold uppercase">
                                     {emp.role}
                                   </span>
                                 </div>
@@ -538,23 +538,26 @@ export default function WorkSchedule() {
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="uppercase">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 uppercase">
               <Plus className="h-5 w-5 text-primary" /> ADICIONAR COLABORADOR (
               {selectedSector.toUpperCase()})
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveNew} className="space-y-4 mt-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">NOME COMPLETO *</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase">
+                NOME COMPLETO *
+              </label>
               <Input
                 value={empName}
                 onChange={(e) => setEmpName(e.target.value)}
                 required
                 placeholder="NOME DO COLABORADOR"
+                className="uppercase"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">
                 CARGO / FUNÇÃO *
               </label>
               <Input
@@ -562,17 +565,20 @@ export default function WorkSchedule() {
                 onChange={(e) => setEmpRole(e.target.value)}
                 required
                 placeholder="EX: RECEPCIONISTA"
+                className="uppercase"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">SETOR *</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase">
+                SETOR *
+              </label>
               <Select value={empDepartment} onValueChange={setEmpDepartment}>
-                <SelectTrigger>
+                <SelectTrigger className="uppercase">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {departments.map((d) => (
-                    <SelectItem key={d} value={d}>
+                    <SelectItem key={d} value={d} className="uppercase">
                       {d.toUpperCase()}
                     </SelectItem>
                   ))}
@@ -592,30 +598,44 @@ export default function WorkSchedule() {
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="uppercase">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 uppercase">
               <Pencil className="h-5 w-5 text-primary" /> EDITAR COLABORADOR
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSaveEdit} className="space-y-4 mt-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">NOME COMPLETO *</label>
-              <Input value={empName} onChange={(e) => setEmpName(e.target.value)} required />
+              <label className="text-xs font-semibold text-muted-foreground uppercase">
+                NOME COMPLETO *
+              </label>
+              <Input
+                value={empName}
+                onChange={(e) => setEmpName(e.target.value)}
+                required
+                className="uppercase"
+              />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">
                 CARGO / FUNÇÃO *
               </label>
-              <Input value={empRole} onChange={(e) => setEmpRole(e.target.value)} required />
+              <Input
+                value={empRole}
+                onChange={(e) => setEmpRole(e.target.value)}
+                required
+                className="uppercase"
+              />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">SETOR *</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase">
+                SETOR *
+              </label>
               <Select value={empDepartment} onValueChange={setEmpDepartment}>
-                <SelectTrigger>
+                <SelectTrigger className="uppercase">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {departments.map((d) => (
-                    <SelectItem key={d} value={d}>
+                    <SelectItem key={d} value={d} className="uppercase">
                       {d.toUpperCase()}
                     </SelectItem>
                   ))}

@@ -38,6 +38,19 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 
+const IMPLANT_BRANDS = [
+  'NEODENT',
+  'STRAUMANN',
+  'SIN',
+  'INP',
+  'DENTFLEX',
+  'FGM',
+  'TITANIUM FIX',
+  'OUTRA',
+]
+const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
+const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
+
 const parseCurrency = (val: string | number) => {
   if (typeof val === 'number') return val
   return Number(val.replace(/\D/g, '')) / 100
@@ -70,6 +83,8 @@ const schema = z.object({
 
   // Condicionais
   implantBrand: z.string().optional(),
+  implantDiameter: z.string().optional(),
+  implantHeight: z.string().optional(),
   isProstheticComponent: z.boolean().optional(),
   prostheticType: z.string().optional(),
   prostheticAngle: z.string().optional(),
@@ -105,6 +120,8 @@ export function AddInventoryModal({
       lastValue: 0,
       notes: '',
       implantBrand: '',
+      implantDiameter: '',
+      implantHeight: '',
       isProstheticComponent: false,
       prostheticType: '',
       prostheticAngle: '',
@@ -124,10 +141,11 @@ export function AddInventoryModal({
   const prostheticType = form.watch('prostheticType')
   const prostheticDiameter = form.watch('prostheticDiameter')
 
-  // Resetar campos condicionais ao trocar especialidade
   useEffect(() => {
     if (currentSpecialty !== 'IMPLANTODONTIA') {
       form.setValue('implantBrand', '')
+      form.setValue('implantDiameter', '')
+      form.setValue('implantHeight', '')
     }
     if (currentSpecialty !== 'PRÓTESE') {
       form.setValue('isProstheticComponent', false)
@@ -141,9 +159,13 @@ export function AddInventoryModal({
 
   const onSubmit = (v: z.infer<typeof schema>) => {
     const specialtyDetails: any = {}
-    if (v.specialty === 'IMPLANTODONTIA' && v.implantBrand) {
-      specialtyDetails.implantBrand = v.implantBrand
+
+    if (v.specialty === 'IMPLANTODONTIA') {
+      if (v.implantBrand) specialtyDetails.implantBrand = v.implantBrand
+      if (v.implantDiameter) specialtyDetails.implantDiameter = v.implantDiameter
+      if (v.implantHeight) specialtyDetails.implantHeight = v.implantHeight
     }
+
     if (v.specialty === 'PRÓTESE' && v.isProstheticComponent) {
       specialtyDetails.isProstheticComponent = true
       specialtyDetails.prostheticType = v.prostheticType
@@ -191,7 +213,7 @@ export function AddInventoryModal({
       >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto uppercase">
           <DialogHeader className="flex flex-row items-center justify-between pr-8">
-            <DialogTitle className="text-2xl font-bold text-nuvia-navy">
+            <DialogTitle className="text-2xl font-bold text-nuvia-navy uppercase">
               NOVO PRODUTO NO ESTOQUE
             </DialogTitle>
             <Button
@@ -210,9 +232,8 @@ export function AddInventoryModal({
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6 py-4">
-              {/* Barcode Highlight Box */}
-              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200/60 shadow-sm flex flex-col md:flex-row gap-4 items-end relative overflow-hidden">
-                <div className="absolute -right-4 -top-4 opacity-5 pointer-events-none">
+              <div className="bg-blue-50/80 p-5 rounded-xl border-2 border-blue-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-end relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 opacity-10 pointer-events-none text-blue-600">
                   <BarcodeIcon className="w-40 h-40" />
                 </div>
                 <FormField
@@ -220,13 +241,13 @@ export function AddInventoryModal({
                   name="barcode"
                   render={({ field }) => (
                     <FormItem className="flex-1 w-full relative z-10">
-                      <FormLabel className="text-slate-700 font-bold flex items-center gap-2">
+                      <FormLabel className="text-blue-900 font-extrabold flex items-center gap-2 uppercase tracking-widest">
                         <BarcodeIcon className="w-4 h-4" /> CÓDIGO DE BARRAS
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="BIPAR OU DIGITAR..."
-                          className="bg-white border-slate-300 shadow-sm h-12 text-lg font-mono tracking-widest"
+                          placeholder="BIPAR OU DIGITAR CÓDIGO..."
+                          className="bg-white border-blue-200 shadow-sm h-12 text-lg font-mono tracking-widest"
                           {...field}
                         />
                       </FormControl>
@@ -293,46 +314,99 @@ export function AddInventoryModal({
                 />
               </div>
 
-              {/* Conditional Specialty Logic */}
               {currentSpecialty === 'IMPLANTODONTIA' && (
-                <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 animate-fade-in">
-                  <h4 className="font-bold text-indigo-900 flex items-center gap-2 mb-3 text-sm">
-                    <Tag className="w-4 h-4" /> DETALHES DE IMPLANTODONTIA
+                <div className="p-5 bg-blue-50/80 rounded-xl border border-blue-200 shadow-sm animate-fade-in space-y-4">
+                  <h4 className="font-extrabold text-blue-900 flex items-center gap-2 text-sm uppercase">
+                    <Tag className="w-4 h-4" /> DETALHES TÉCNICOS DE IMPLANTODONTIA
                   </h4>
-                  <FormField
-                    control={form.control}
-                    name="implantBrand"
-                    render={({ field }) => (
-                      <FormItem className="w-full md:w-1/2">
-                        <FormLabel>MARCA DO IMPLANTE</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="EX: NEODENT, STRAUMANN..."
-                            className="uppercase bg-white"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="implantBrand"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-800">MARCA DO IMPLANTE</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                <SelectValue placeholder="SELECIONE" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {IMPLANT_BRANDS.map((brand) => (
+                                <SelectItem key={brand} value={brand} className="uppercase">
+                                  {brand}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="implantDiameter"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-800">DIÂMETRO DO IMPLANTE</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                <SelectValue placeholder="SELECIONE" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {IMPLANT_DIAMETERS.map((d) => (
+                                <SelectItem key={d} value={d} className="uppercase">
+                                  {d} MM
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="implantHeight"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-blue-800">ALTURA DO IMPLANTE</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                <SelectValue placeholder="SELECIONE" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {IMPLANT_HEIGHTS.map((h) => (
+                                <SelectItem key={h} value={h} className="uppercase">
+                                  {h} MM
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               )}
 
               {currentSpecialty === 'PRÓTESE' && (
-                <div className="p-4 bg-violet-50/50 rounded-xl border border-violet-100 animate-fade-in space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-violet-900 flex items-center gap-2 text-sm">
-                      <Zap className="w-4 h-4" /> DETALHES DE PRÓTESE
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl shadow-sm">
+                    <h4 className="font-extrabold text-slate-800 flex items-center gap-2 text-sm uppercase">
+                      <Zap className="w-4 h-4 text-amber-500" /> COMPONENTE PROTÉTICO
                     </h4>
                     <FormField
                       control={form.control}
                       name="isProstheticComponent"
                       render={({ field }) => (
                         <FormItem className="flex items-center gap-2 space-y-0">
-                          <FormLabel className="font-bold text-violet-800 cursor-pointer">
-                            COMPONENTE PROTÉTICO
-                          </FormLabel>
                           <FormControl>
                             <Switch checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
@@ -342,85 +416,47 @@ export function AddInventoryModal({
                   </div>
 
                   {isProstheticComponent && (
-                    <div className="grid gap-4 border-t border-violet-200/50 pt-4 animate-fade-in-up">
-                      <FormField
-                        control={form.control}
-                        name="prostheticType"
-                        render={({ field }) => (
-                          <FormItem className="w-full md:w-1/2">
-                            <FormLabel>TIPO DO COMPONENTE</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="uppercase bg-white">
-                                  <SelectValue placeholder="SELECIONE O TIPO" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="MINI PILAR RETO">MINI PILAR RETO</SelectItem>
-                                <SelectItem value="MINI PILAR ANGULADO">
-                                  MINI PILAR ANGULADO
-                                </SelectItem>
-                                <SelectItem value="MUNHÃO UNIVERSAL">MUNHÃO UNIVERSAL</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {prostheticType === 'MINI PILAR RETO' && (
+                    <div className="p-5 bg-blue-50/80 rounded-xl border border-blue-200 shadow-sm animate-fade-in-up space-y-4">
+                      <h4 className="font-extrabold text-blue-900 flex items-center gap-2 text-sm uppercase">
+                        <Tag className="w-4 h-4" /> ESPECIFICAÇÕES DO COMPONENTE
+                      </h4>
+                      <div className="grid gap-4">
                         <FormField
                           control={form.control}
-                          name="prostheticCollarHeight"
+                          name="prostheticType"
                           render={({ field }) => (
-                            <FormItem className="w-full md:w-1/3 animate-fade-in">
-                              <FormLabel>ALTURA DA CINTA</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="EX: 2.5 MM"
-                                  className="uppercase bg-white"
-                                  {...field}
-                                />
-                              </FormControl>
+                            <FormItem className="w-full md:w-1/2">
+                              <FormLabel className="text-blue-800">TIPO DE COMPONENTE</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                    <SelectValue placeholder="SELECIONE O TIPO" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="MINI PILAR RETO">MINI PILAR RETO</SelectItem>
+                                  <SelectItem value="MINI PILAR ANGULADO">
+                                    MINI PILAR ANGULADO
+                                  </SelectItem>
+                                  <SelectItem value="MUNHÃO UNIVERSAL">MUNHÃO UNIVERSAL</SelectItem>
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
-                      )}
 
-                      {prostheticType === 'MINI PILAR ANGULADO' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                          <FormField
-                            control={form.control}
-                            name="prostheticAngle"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>ÂNGULO</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className="uppercase bg-white">
-                                      <SelectValue placeholder="SELECIONE" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="17 GRAUS">17 GRAUS</SelectItem>
-                                    <SelectItem value="30 GRAUS">30 GRAUS</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                        {prostheticType === 'MINI PILAR RETO' && (
                           <FormField
                             control={form.control}
                             name="prostheticCollarHeight"
                             render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>ALTURA DA CINTA</FormLabel>
+                              <FormItem className="w-full md:w-1/3 animate-fade-in">
+                                <FormLabel className="text-blue-800">ALTURA DA CINTA</FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="EX: 3.5 MM"
-                                    className="uppercase bg-white"
+                                    placeholder="EX: 2.5 MM"
+                                    className="uppercase bg-white border-blue-200"
                                     {...field}
                                   />
                                 </FormControl>
@@ -428,39 +464,41 @@ export function AddInventoryModal({
                               </FormItem>
                             )}
                           />
-                        </div>
-                      )}
+                        )}
 
-                      {prostheticType === 'MUNHÃO UNIVERSAL' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                          <FormField
-                            control={form.control}
-                            name="prostheticDiameter"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>DIÂMETRO</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="EX: 3.3"
-                                    className="uppercase bg-white"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          {prostheticDiameter && (
+                        {prostheticType === 'MINI PILAR ANGULADO' && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
                             <FormField
                               control={form.control}
-                              name="prostheticHeight"
+                              name="prostheticAngle"
                               render={({ field }) => (
-                                <FormItem className="animate-fade-in">
-                                  <FormLabel>ALTURA</FormLabel>
+                                <FormItem>
+                                  <FormLabel className="text-blue-800">ÂNGULO</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                        <SelectValue placeholder="SELECIONE" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="17 GRAUS">17 GRAUS</SelectItem>
+                                      <SelectItem value="30 GRAUS">30 GRAUS</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="prostheticCollarHeight"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-blue-800">ALTURA DA CINTA</FormLabel>
                                   <FormControl>
                                     <Input
-                                      placeholder="EX: 4 MM"
-                                      className="uppercase bg-white"
+                                      placeholder="EX: 3.5 MM"
+                                      className="uppercase bg-white border-blue-200"
                                       {...field}
                                     />
                                   </FormControl>
@@ -468,19 +506,60 @@ export function AddInventoryModal({
                                 </FormItem>
                               )}
                             />
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        )}
+
+                        {prostheticType === 'MUNHÃO UNIVERSAL' && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                            <FormField
+                              control={form.control}
+                              name="prostheticDiameter"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-blue-800">DIÂMETRO</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="EX: 3.3"
+                                      className="uppercase bg-white border-blue-200"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            {prostheticDiameter && (
+                              <FormField
+                                control={form.control}
+                                name="prostheticHeight"
+                                render={({ field }) => (
+                                  <FormItem className="animate-fade-in">
+                                    <FormLabel className="text-blue-800">ALTURA</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="EX: 4 MM"
+                                        className="uppercase bg-white border-blue-200"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               )}
 
-              <div className="p-5 bg-blue-50/50 rounded-xl border border-blue-100 grid gap-5 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-3 opacity-5">
+              <div className="p-5 bg-slate-50/80 rounded-xl border border-slate-200 grid gap-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-5 pointer-events-none">
                   <Calculator className="w-32 h-32" />
                 </div>
-                <h4 className="font-semibold text-blue-900 flex items-center gap-2 relative z-10">
+                <h4 className="font-semibold text-slate-800 flex items-center gap-2 relative z-10 uppercase">
                   INFORMAÇÕES DE COMPRA E EMBALAGEM
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
@@ -559,15 +638,17 @@ export function AddInventoryModal({
                     )}
                   />
                 </div>
-                <div className="pt-3 border-t border-blue-200/50 flex justify-between items-center relative z-10">
-                  <span className="text-sm font-semibold text-blue-800">VALOR TOTAL DA COMPRA</span>
-                  <div className="text-2xl font-black text-blue-700">
+                <div className="pt-3 border-t border-slate-200 flex justify-between items-center relative z-10">
+                  <span className="text-sm font-semibold text-slate-600 uppercase">
+                    VALOR TOTAL DA COMPRA
+                  </span>
+                  <div className="text-2xl font-black text-slate-800">
                     {formatCurrency(totalCost)}
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                 <FormField
                   control={form.control}
                   name="entryDate"
@@ -647,7 +728,7 @@ export function AddInventoryModal({
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                 <FormField
                   control={form.control}
                   name="storageLocation"
@@ -680,8 +761,8 @@ export function AddInventoryModal({
                 />
               </div>
 
-              <div className="space-y-4 pt-4 border-t">
-                <h4 className="font-semibold text-muted-foreground text-sm">
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <h4 className="font-semibold text-muted-foreground text-sm uppercase">
                   HISTÓRICO & NOTAS (OPCIONAL)
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
@@ -740,11 +821,15 @@ export function AddInventoryModal({
                   )}
                 />
               </div>
-              <div className="flex justify-end gap-3 mt-2">
+
+              <div className="flex justify-end gap-3 mt-4">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   CANCELAR
                 </Button>
-                <Button type="submit" className="bg-[#D81B84] hover:bg-[#B71770] text-white">
+                <Button
+                  type="submit"
+                  className="bg-[#D81B84] hover:bg-[#B71770] text-white uppercase font-bold"
+                >
                   CADASTRAR PRODUTO
                 </Button>
               </div>

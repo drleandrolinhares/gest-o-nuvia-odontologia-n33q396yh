@@ -19,6 +19,7 @@ import {
   Barcode,
   Factory,
   ClipboardList,
+  Zap,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -227,6 +228,76 @@ export function QuickProductSearchModal({
                   icon={CalendarClock}
                 />
               </div>
+
+              {selectedProduct.specialty === 'IMPLANTODONTIA' &&
+                selectedProduct.specialtyDetails && (
+                  <div className="space-y-3 pt-2">
+                    <h4 className="font-black text-xs text-blue-900 tracking-widest border-b border-blue-100 pb-2 flex items-center gap-2">
+                      <Tag className="w-3.5 h-3.5" /> DETALHES TÉCNICOS (IMPLANTE)
+                    </h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      <DetailItem
+                        label="MARCA"
+                        value={selectedProduct.specialtyDetails.implantBrand || '-'}
+                      />
+                      <DetailItem
+                        label="DIÂMETRO"
+                        value={
+                          selectedProduct.specialtyDetails.implantDiameter
+                            ? selectedProduct.specialtyDetails.implantDiameter + ' MM'
+                            : '-'
+                        }
+                      />
+                      <DetailItem
+                        label="ALTURA"
+                        value={
+                          selectedProduct.specialtyDetails.implantHeight
+                            ? selectedProduct.specialtyDetails.implantHeight + ' MM'
+                            : '-'
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+              {selectedProduct.specialty === 'PRÓTESE' &&
+                selectedProduct.specialtyDetails?.isProstheticComponent && (
+                  <div className="space-y-3 pt-2">
+                    <h4 className="font-black text-xs text-blue-900 tracking-widest border-b border-blue-100 pb-2 flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5" /> DETALHES TÉCNICOS (COMPONENTE PROTÉTICO)
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <DetailItem
+                        label="TIPO"
+                        value={selectedProduct.specialtyDetails.prostheticType || '-'}
+                      />
+                      {selectedProduct.specialtyDetails.prostheticAngle && (
+                        <DetailItem
+                          label="ÂNGULO"
+                          value={selectedProduct.specialtyDetails.prostheticAngle}
+                        />
+                      )}
+                      {selectedProduct.specialtyDetails.prostheticCollarHeight && (
+                        <DetailItem
+                          label="CINTA"
+                          value={selectedProduct.specialtyDetails.prostheticCollarHeight}
+                        />
+                      )}
+                      {selectedProduct.specialtyDetails.prostheticDiameter && (
+                        <DetailItem
+                          label="DIÂMETRO"
+                          value={selectedProduct.specialtyDetails.prostheticDiameter}
+                        />
+                      )}
+                      {selectedProduct.specialtyDetails.prostheticHeight && (
+                        <DetailItem
+                          label="ALTURA"
+                          value={selectedProduct.specialtyDetails.prostheticHeight}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
 
               <div className="space-y-3 pt-2">
                 <h4 className="font-black text-xs text-muted-foreground tracking-widest border-b pb-2 flex items-center gap-2">

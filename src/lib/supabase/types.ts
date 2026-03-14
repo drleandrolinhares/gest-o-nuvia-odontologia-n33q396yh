@@ -390,6 +390,7 @@ export type Database = {
           purchase_history: Json | null
           quantity: number | null
           specialty: string | null
+          specialty_details: Json | null
           storage_location: string | null
         }
         Insert: {
@@ -410,6 +411,7 @@ export type Database = {
           purchase_history?: Json | null
           quantity?: number | null
           specialty?: string | null
+          specialty_details?: Json | null
           storage_location?: string | null
         }
         Update: {
@@ -430,6 +432,7 @@ export type Database = {
           purchase_history?: Json | null
           quantity?: number | null
           specialty?: string | null
+          specialty_details?: Json | null
           storage_location?: string | null
         }
         Relationships: []
@@ -853,6 +856,7 @@ export const Constants = {
 //   barcode: text (nullable)
 //   purchase_history: jsonb (nullable, default: '[]'::jsonb)
 //   created_at: timestamp with time zone (not null, default: now())
+//   specialty_details: jsonb (nullable, default: '{}'::jsonb)
 // Table: onboarding
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
