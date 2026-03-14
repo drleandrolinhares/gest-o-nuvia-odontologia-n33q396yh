@@ -4,17 +4,28 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2, Plus, Box, LayoutGrid } from 'lucide-react'
 import useAppStore from '@/stores/main'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export function InventorySettings() {
   const { inventoryOptions, addInventoryOption, removeInventoryOption } = useAppStore()
 
   const categories = [
-    { id: 'SALA_ARMAZENAMENTO', label: 'SALAS DE ARMAZENAMENTO' },
+    { id: 'storage_room', label: 'SALAS DE ARMAZENAMENTO' },
     { id: 'MARCA_IMPLANTE', label: 'MARCAS DE IMPLANTE' },
     { id: 'TIPO_COMPONENTE', label: 'TIPOS DE COMPONENTE' },
   ]
 
   const [newValues, setNewValues] = useState<Record<string, string>>({})
+  const [optionToDelete, setOptionToDelete] = useState<string | null>(null)
 
   const handleAdd = (e: React.FormEvent, category: string) => {
     e.preventDefault()
@@ -25,25 +36,41 @@ export function InventorySettings() {
     }
   }
 
+  const handleDelete = () => {
+    if (optionToDelete) {
+      removeInventoryOption(optionToDelete)
+      setOptionToDelete(null)
+    }
+  }
+
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 uppercase">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 uppercase animate-fade-in-up">
       {categories.map((cat) => {
         const options = inventoryOptions
-          .filter((o) => o.category === cat.id)
+          .filter((o) => {
+            if (cat.id === 'storage_room') {
+              return (
+                o.category.toLowerCase() === 'storage_room' ||
+                o.category === 'STORAGE_ROOM' ||
+                o.category === 'SALA_ARMAZENAMENTO'
+              )
+            }
+            return o.category === cat.id
+          })
           .sort((a, b) => a.value.localeCompare(b.value))
 
         return (
           <Card key={cat.id}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-nuvia-navy text-sm">
-                {cat.id === 'SALA_ARMAZENAMENTO' ? (
+              <CardTitle className="flex items-center gap-2 text-nuvia-navy text-sm font-bold">
+                {cat.id === 'storage_room' ? (
                   <LayoutGrid className="h-4 w-4 text-emerald-500" />
                 ) : (
                   <Box className="h-4 w-4 text-blue-500" />
                 )}
                 {cat.label}
               </CardTitle>
-              <CardDescription className="uppercase text-xs">
+              <CardDescription className="uppercase text-xs font-semibold">
                 OPÇÕES PARA OS FORMULÁRIOS
               </CardDescription>
             </CardHeader>
@@ -53,9 +80,13 @@ export function InventorySettings() {
                   placeholder="NOVA OPÇÃO..."
                   value={newValues[cat.id] || ''}
                   onChange={(e) => setNewValues((p) => ({ ...p, [cat.id]: e.target.value }))}
-                  className="uppercase"
+                  className="uppercase font-bold text-xs"
                 />
-                <Button type="submit" disabled={!newValues[cat.id]?.trim()}>
+                <Button
+                  type="submit"
+                  disabled={!newValues[cat.id]?.trim()}
+                  className="font-bold text-xs"
+                >
                   <Plus className="h-4 w-4 mr-2" /> ADD
                 </Button>
               </form>
@@ -71,8 +102,8 @@ export function InventorySettings() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0"
-                      onClick={() => removeInventoryOption(opt.id)}
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 shrink-0"
+                      onClick={() => setOptionToDelete(opt.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -88,6 +119,32 @@ export function InventorySettings() {
           </Card>
         )
       })}
+
+      <AlertDialog
+        open={!!optionToDelete}
+        onOpenChange={(open) => !open && setOptionToDelete(null)}
+      >
+        <AlertDialogContent className="uppercase">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-black text-nuvia-navy">
+              EXCLUIR OPÇÃO?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-semibold text-muted-foreground">
+              TEM CERTEZA QUE DESEJA EXCLUIR ESTA OPÇÃO? ELA NÃO ESTARÁ MAIS DISPONÍVEL NOS
+              FORMULÁRIOS.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-bold">CANCELAR</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold"
+            >
+              EXCLUIR
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

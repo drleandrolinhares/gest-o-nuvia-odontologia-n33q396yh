@@ -375,6 +375,7 @@ export type Database = {
         Row: {
           barcode: string | null
           brand: string | null
+          cabinet_number: string | null
           created_at: string
           entry_date: string | null
           expiration_date: string | null
@@ -384,6 +385,7 @@ export type Database = {
           last_value: number | null
           min_stock: number | null
           name: string
+          nfe_number: string | null
           notes: string | null
           package_cost: number | null
           package_type: string | null
@@ -392,10 +394,12 @@ export type Database = {
           specialty: string | null
           specialty_details: Json | null
           storage_location: string | null
+          storage_room: string | null
         }
         Insert: {
           barcode?: string | null
           brand?: string | null
+          cabinet_number?: string | null
           created_at?: string
           entry_date?: string | null
           expiration_date?: string | null
@@ -405,6 +409,7 @@ export type Database = {
           last_value?: number | null
           min_stock?: number | null
           name: string
+          nfe_number?: string | null
           notes?: string | null
           package_cost?: number | null
           package_type?: string | null
@@ -413,10 +418,12 @@ export type Database = {
           specialty?: string | null
           specialty_details?: Json | null
           storage_location?: string | null
+          storage_room?: string | null
         }
         Update: {
           barcode?: string | null
           brand?: string | null
+          cabinet_number?: string | null
           created_at?: string
           entry_date?: string | null
           expiration_date?: string | null
@@ -426,6 +433,7 @@ export type Database = {
           last_value?: number | null
           min_stock?: number | null
           name?: string
+          nfe_number?: string | null
           notes?: string | null
           package_cost?: number | null
           package_type?: string | null
@@ -434,6 +442,31 @@ export type Database = {
           specialty?: string | null
           specialty_details?: Json | null
           storage_location?: string | null
+          storage_room?: string | null
+        }
+        Relationships: []
+      }
+      inventory_settings: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          label: string | null
+          value: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          value: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          value?: string
         }
         Relationships: []
       }
@@ -857,6 +890,15 @@ export const Constants = {
 //   purchase_history: jsonb (nullable, default: '[]'::jsonb)
 //   created_at: timestamp with time zone (not null, default: now())
 //   specialty_details: jsonb (nullable, default: '{}'::jsonb)
+//   nfe_number: text (nullable)
+//   storage_room: text (nullable)
+//   cabinet_number: text (nullable)
+// Table: inventory_settings
+//   id: uuid (not null, default: gen_random_uuid())
+//   category: text (not null)
+//   label: text (nullable)
+//   value: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: onboarding
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -928,6 +970,8 @@ export const Constants = {
 //   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 // Table: inventory
 //   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
+// Table: inventory_settings
+//   PRIMARY KEY inventory_settings_pkey: PRIMARY KEY (id)
 // Table: onboarding
 //   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
 // Table: profiles
@@ -989,6 +1033,10 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: inventory
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: inventory_settings
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true

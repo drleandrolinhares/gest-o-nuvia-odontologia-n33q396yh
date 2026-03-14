@@ -152,6 +152,7 @@ interface AppStore {
   fetchError: string | null
   currentUserId: string | null
   isAdmin: boolean
+  isMaster: boolean
   can: (module: string, action: string) => boolean
   departments: string[]
   packageTypes: string[]
@@ -181,6 +182,10 @@ interface AppStore {
   toggleTask: (c: string, t: string) => void
   addInventoryItem: (i: Omit<InventoryItem, 'id'>) => void
   updateInventoryQuantity: (id: string, q: number) => void
+  updateInventoryItemDetails: (
+    id: string,
+    data: Partial<InventoryItem>,
+  ) => Promise<{ success: boolean; error?: any }>
   deleteInventoryItem: (id: string) => Promise<{ success: boolean; error?: any }>
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
   addInventoryOption: (category: string, value: string, label?: string) => void
@@ -503,6 +508,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     )
   }, [employees, user])
 
+  const isMaster = useMemo(() => {
+    if (!user) return false
+    const me = employees.find((e) => e.user_id === user.id)
+    if (!me) return false
+    const cats = me.teamCategory || []
+    return cats.includes('MASTER')
+  }, [employees, user])
+
   const can = useCallback(
     (module: string, action: string) => {
       if (isAdmin) return true
@@ -692,6 +705,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         })
         .catch((err) => console.warn('Erro ao atualizar quantidade no inventário', err))
+    },
+    [logAction],
+  )
+
+  const updateInventoryItemDetails = useCallback(
+    async (id: string, data: Partial<InventoryItem>) => {
+      const payload: any = {}
+      if (data.quantity !== undefined) payload.quantity = data.quantity
+      if (data.storageRoom !== undefined) payload.storage_room = data.storageRoom || null
+      if (data.cabinetNumber !== undefined) payload.cabinet_number = data.cabinetNumber || null
+
+      try {
+        const { error } = await supabase.from('inventory').update(payload).eq('id', id)
+        if (error) throw error
+
+        setInventory((p) => p.map((i) => (i.id === id ? { ...i, ...data } : i)))
+        logAction(`ATUALIZOU DADOS DO PRODUTO ID: ${id}`)
+        return { success: true }
+      } catch (err: any) {
+        console.warn('Erro ao atualizar dados do produto no inventário', err)
+        return { success: false, error: err }
+      }
     },
     [logAction],
   )
@@ -1067,7 +1102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (i.type !== undefined) payload.type = i.type
       if (i.assignedTo !== undefined) payload.assigned_to = i.assignedTo
       if (i.involvesThirdParty !== undefined) payload.involves_third_party = i.involvesThirdParty
-      if (i.thirdPartyDetails !== undefined) payload.third_party_details = i.thirdPartyDetails
+      if (i.thirdPartyDetails !== undefined) payload.thirdPartyDetails = i.thirdPartyDetails
       if (i.createdBy !== undefined) payload.created_by = i.createdBy
       if (i.is_completed !== undefined) payload.is_completed = i.is_completed
 
@@ -1377,6 +1412,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       fetchError,
       currentUserId,
       isAdmin,
+      isMaster,
       can,
       departments,
       packageTypes,
@@ -1406,6 +1442,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
+      updateInventoryItemDetails,
       deleteInventoryItem,
       addPurchaseHistory,
       addInventoryOption,
@@ -1442,6 +1479,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       fetchError,
       currentUserId,
       isAdmin,
+      isMaster,
       can,
       departments,
       packageTypes,
@@ -1471,6 +1509,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toggleTask,
       addInventoryItem,
       updateInventoryQuantity,
+      updateInventoryItemDetails,
       deleteInventoryItem,
       addPurchaseHistory,
       addInventoryOption,

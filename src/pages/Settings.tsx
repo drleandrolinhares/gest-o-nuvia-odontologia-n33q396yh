@@ -7,33 +7,33 @@ import { InventorySettings } from '@/components/settings/InventorySettings'
 import useAppStore from '@/stores/main'
 
 export default function Settings() {
-  const { isAdmin } = useAppStore()
+  const { isMaster } = useAppStore()
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">CONFIGURAÇÕES</h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1 font-semibold">
           GERENCIE AS PARAMETRIZAÇÕES E FORNECEDORES DO SISTEMA.
         </p>
       </div>
 
       <Tabs defaultValue="geral" className="w-full">
         <TabsList className="mb-6 flex flex-wrap w-full max-w-4xl h-auto">
-          <TabsTrigger value="geral" className="py-2 px-4 flex-1">
+          <TabsTrigger value="geral" className="py-2 px-4 flex-1 font-bold tracking-widest">
             GERAL
           </TabsTrigger>
-          <TabsTrigger value="fornecedores" className="py-2 px-4 flex-1">
+          <TabsTrigger value="fornecedores" className="py-2 px-4 flex-1 font-bold tracking-widest">
             FORNECEDORES
           </TabsTrigger>
-          <TabsTrigger value="usuarios" className="py-2 px-4 flex-1">
+          <TabsTrigger value="usuarios" className="py-2 px-4 flex-1 font-bold tracking-widest">
             USUÁRIOS
           </TabsTrigger>
-          <TabsTrigger value="bonificacoes" className="py-2 px-4 flex-1">
+          <TabsTrigger value="bonificacoes" className="py-2 px-4 flex-1 font-bold tracking-widest">
             BONIFICAÇÕES
           </TabsTrigger>
-          {isAdmin && (
-            <TabsTrigger value="estoque" className="py-2 px-4 flex-1">
+          {isMaster && (
+            <TabsTrigger value="estoque" className="py-2 px-4 flex-1 font-bold tracking-widest">
               ESTOQUE
             </TabsTrigger>
           )}
@@ -55,7 +55,7 @@ export default function Settings() {
           <BonusSettings />
         </TabsContent>
 
-        {isAdmin && (
+        {isMaster && (
           <TabsContent value="estoque">
             <InventorySettings />
           </TabsContent>

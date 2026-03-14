@@ -94,7 +94,12 @@ export function AddInventoryModal({
   const { addInventoryItem, packageTypes, specialties, inventoryOptions } = useAppStore()
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
 
-  const storageRooms = inventoryOptions.filter((o) => o.category === 'SALA_ARMAZENAMENTO')
+  const storageRooms = inventoryOptions.filter(
+    (o) =>
+      o.category.toLowerCase() === 'storage_room' ||
+      o.category === 'STORAGE_ROOM' ||
+      o.category === 'SALA_ARMAZENAMENTO',
+  )
   const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
 
@@ -415,7 +420,7 @@ export function AddInventoryModal({
                   </div>
 
                   {isProstheticComponent && (
-                    <div className="p-5 bg-blue-50/80 rounded-xl border border-blue-200 shadow-sm animate-fade-in-up space-y-4">
+                    <div className="p-5 bg-blue-50/80 rounded-xl border-blue-200 shadow-sm animate-fade-in-up space-y-4 border">
                       <h4 className="font-extrabold text-blue-900 flex items-center gap-2 text-sm uppercase">
                         <Tag className="w-4 h-4" /> ESPECIFICAÇÕES DO COMPONENTE
                       </h4>

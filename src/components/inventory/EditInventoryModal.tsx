@@ -9,6 +9,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Table,
   TableBody,
   TableCell,
@@ -19,7 +26,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import useAppStore, { type InventoryItem } from '@/stores/main'
 import { formatCurrency } from '@/lib/utils'
-import { Package, Calculator, History, ShoppingCart, Trash2, MapPin, Box } from 'lucide-react'
+import { Package, Calculator, History, ShoppingCart, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 export function EditInventoryModal({
@@ -33,13 +40,32 @@ export function EditInventoryModal({
   onOpenChange: (val: boolean) => void
   onNewPurchase: () => void
 }) {
-  const { updateInventoryQuantity, deleteInventoryItem, suppliers } = useAppStore()
+  const {
+    updateInventoryQuantity,
+    updateInventoryItemDetails,
+    deleteInventoryItem,
+    suppliers,
+    inventoryOptions,
+  } = useAppStore()
   const { toast } = useToast()
 
   const [manualQty, setManualQty] = useState(item?.quantity || 0)
+  const [storageRoom, setStorageRoom] = useState(item?.storageRoom || '')
+  const [cabinetNumber, setCabinetNumber] = useState(item?.cabinetNumber || '')
+
+  const storageRooms = inventoryOptions.filter(
+    (o) =>
+      o.category.toLowerCase() === 'storage_room' ||
+      o.category === 'STORAGE_ROOM' ||
+      o.category === 'SALA_ARMAZENAMENTO',
+  )
 
   useEffect(() => {
-    if (item) setManualQty(item.quantity)
+    if (item) {
+      setManualQty(item.quantity)
+      setStorageRoom(item.storageRoom || '')
+      setCabinetNumber(item.cabinetNumber || '')
+    }
   }, [item])
 
   if (!item) return null
@@ -50,8 +76,22 @@ export function EditInventoryModal({
     ? recentHistory.reduce((acc, h) => acc + h.price, 0) / recentHistory.length
     : 0
 
-  const handleManualUpdate = () => {
-    updateInventoryQuantity(item.id, manualQty)
+  const handleManualUpdate = async () => {
+    if (updateInventoryItemDetails) {
+      const res = await updateInventoryItemDetails(item.id, {
+        quantity: manualQty,
+        storageRoom,
+        cabinetNumber,
+      })
+      if (res.success) {
+        toast({ title: 'SUCESSO', description: 'DADOS ATUALIZADOS COM SUCESSO.' })
+      } else {
+        toast({ variant: 'destructive', title: 'ERRO', description: 'FALHA AO ATUALIZAR DADOS.' })
+      }
+    } else {
+      updateInventoryQuantity(item.id, manualQty)
+      toast({ title: 'SUCESSO', description: 'QUANTIDADE ATUALIZADA COM SUCESSO.' })
+    }
   }
 
   const handleDelete = async () => {
@@ -83,7 +123,7 @@ export function EditInventoryModal({
         <DialogHeader className="flex flex-row items-start justify-between pr-8">
           <div>
             <DialogTitle className="text-2xl font-bold text-[#D81B84]">{item.name}</DialogTitle>
-            <DialogDescription className="uppercase mt-1">
+            <DialogDescription className="uppercase mt-1 font-bold">
               {item.brand} • {item.specialty || 'SEM ESPECIALIDADE'} • {item.packageType}
             </DialogDescription>
           </div>
@@ -109,68 +149,80 @@ export function EditInventoryModal({
           </div>
         </DialogHeader>
 
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-center gap-8 mt-4 mb-2 shadow-sm">
-          <div>
-            <div className="text-[10px] font-black text-blue-900 tracking-widest uppercase mb-1">
-              SALA DE ARMAZENAMENTO
-            </div>
-            <div className="font-bold text-base text-blue-800 uppercase flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              {item.storageRoom || 'NÃO INFORMADA'}
-            </div>
-          </div>
-          <div>
-            <div className="text-[10px] font-black text-blue-900 tracking-widest uppercase mb-1">
-              NÚMERO DO ARMÁRIO
-            </div>
-            <div className="font-bold text-base text-blue-800 uppercase flex items-center gap-2">
-              <Box className="w-4 h-4" />
-              {item.cabinetNumber || 'NÃO INFORMADO'}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <Card className="border-l-4 border-l-blue-500 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+          <Card className="border-l-4 border-l-blue-500 shadow-sm md:col-span-2">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
-                <Package className="h-4 w-4 text-blue-500" /> ATUALIZAÇÃO MANUAL
+              <CardTitle className="text-sm font-bold flex items-center gap-2 text-blue-900">
+                <Package className="h-4 w-4 text-blue-500" /> ATUALIZAÇÃO DE ESTOQUE E LOCAL
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-end gap-3">
-                <div className="space-y-1 flex-1">
-                  <label className="text-xs font-semibold text-muted-foreground">
-                    QUANTIDADE EM ESTOQUE
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">
+                    QTD. EM ESTOQUE
                   </label>
                   <Input
                     type="number"
                     value={manualQty}
                     onChange={(e) => setManualQty(Number(e.target.value))}
-                    className="font-bold text-lg h-12 uppercase"
+                    className="font-black text-lg h-10 uppercase"
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">
+                    SALA ARMAZENAMENTO
+                  </label>
+                  <Select value={storageRoom} onValueChange={setStorageRoom}>
+                    <SelectTrigger className="h-10 uppercase font-bold text-xs">
+                      <SelectValue placeholder="SELECIONE..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {storageRooms.map((r) => (
+                        <SelectItem
+                          key={r.id}
+                          value={r.value}
+                          className="uppercase font-bold text-xs"
+                        >
+                          {r.value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">
+                    Nº DO ARMÁRIO
+                  </label>
+                  <Input
+                    value={cabinetNumber}
+                    onChange={(e) => setCabinetNumber(e.target.value)}
+                    className="font-bold text-sm h-10 uppercase"
+                    placeholder="EX: A1"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 flex justify-end">
                 <Button
                   onClick={handleManualUpdate}
-                  className="h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-black tracking-widest text-xs"
                 >
-                  SALVAR
+                  SALVAR ALTERAÇÕES
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-emerald-500 shadow-sm">
+          <Card className="border-l-4 border-l-emerald-500 shadow-sm h-full flex flex-col justify-center">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
-                <Calculator className="h-4 w-4 text-emerald-500" /> PREÇO MÉDIO DAS ÚLTIMAS 5
-                COMPRAS
+              <CardTitle className="text-sm font-bold flex items-center gap-2 text-emerald-900">
+                <Calculator className="h-4 w-4 text-emerald-500" /> CUSTO MÉDIO (ÚLT. 5)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-black text-emerald-600">{formatCurrency(avgPrice)}</div>
               <p className="text-xs text-muted-foreground mt-1 font-bold">
-                CUSTO ATUAL REGISTRADO: {formatCurrency(item.packageCost)}
+                REGISTRO ATUAL: {formatCurrency(item.packageCost)}
               </p>
             </CardContent>
           </Card>
@@ -195,30 +247,28 @@ export function EditInventoryModal({
                 <TableBody>
                   {recentHistory.map((h) => (
                     <TableRow key={h.id}>
-                      <TableCell className="font-medium text-xs">
+                      <TableCell className="font-bold text-xs text-muted-foreground">
                         {new Date(h.date).toLocaleDateString('pt-BR')}
                       </TableCell>
-                      <TableCell className="text-xs font-semibold text-muted-foreground">
+                      <TableCell className="text-xs font-black">
                         {getSupplierName(h.supplierId)}
                       </TableCell>
                       <TableCell className="text-xs">
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1 font-bold text-muted-foreground">
                           {h.lot ? (
-                            <span className="font-mono bg-muted px-1 py-0.5 rounded w-fit">
+                            <span className="font-mono bg-muted px-1.5 py-0.5 rounded w-fit text-[10px]">
                               LT: {h.lot}
                             </span>
                           ) : (
                             <span>-</span>
                           )}
-                          {h.nfeNumber && (
-                            <span className="text-muted-foreground">NFE: {h.nfeNumber}</span>
-                          )}
+                          {h.nfeNumber && <span>NFE: {h.nfeNumber}</span>}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center font-black text-base">
+                      <TableCell className="text-center font-black text-base text-nuvia-navy">
                         {h.quantity}
                       </TableCell>
-                      <TableCell className="text-right font-bold">
+                      <TableCell className="text-right font-black text-nuvia-navy">
                         {formatCurrency(h.price)}
                       </TableCell>
                     </TableRow>
@@ -227,7 +277,7 @@ export function EditInventoryModal({
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="text-center py-6 text-muted-foreground font-bold"
+                        className="text-center py-6 text-muted-foreground font-bold text-xs"
                       >
                         NENHUM REGISTRO DE COMPRA ENCONTRADO.
                       </TableCell>
