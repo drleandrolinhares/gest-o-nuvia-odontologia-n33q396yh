@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input'
 import {
   Package,
   Box,
+  MapPin,
   Stethoscope,
   CalendarClock,
   Search,
@@ -37,7 +38,6 @@ import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
 import { DecreaseStockModal } from '@/components/inventory/DecreaseStockModal'
 import { EditInventoryModal } from '@/components/inventory/EditInventoryModal'
-import { NewPurchaseModal } from '@/components/inventory/NewPurchaseModal'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useToast } from '@/hooks/use-toast'
@@ -65,8 +65,9 @@ export default function Inventory() {
 
   const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null)
-  const [itemToPurchase, setItemToPurchase] = useState<InventoryItem | null>(null)
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
+
+  const [purchaseBaseItemName, setPurchaseBaseItemName] = useState<string>('')
 
   const confirmDelete = async () => {
     if (!itemToDelete) return
@@ -380,6 +381,12 @@ export default function Inventory() {
                               <div className="font-bold text-nuvia-navy text-xs leading-none uppercase flex items-center gap-2">
                                 <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground" />
                                 {formatSpecs(item)}
+                                {item.criticalObservations && (
+                                  <AlertTriangle
+                                    className="w-4 h-4 text-amber-500 flex-shrink-0 ml-1"
+                                    title="OBSERVAÇÕES CRÍTICAS"
+                                  />
+                                )}
                               </div>
                               {isCriticalStock(item) && (
                                 <div className="text-red-600 text-[10px] font-extrabold tracking-wider uppercase flex items-center w-fit ml-5">
@@ -407,8 +414,15 @@ export default function Inventory() {
                             <div className="text-xs font-semibold text-muted-foreground mb-0.5 uppercase">
                               {item.itemsPerBox} ITENS / EMB.
                             </div>
-                            <div className="text-[10px] font-bold text-blue-700 flex items-center gap-1 mt-2 bg-blue-50 px-2 py-0.5 rounded w-fit">
-                              <Box className="w-3 h-3" /> {item.storageRoom || 'SALA NÃO INF.'}
+                            <div className="text-[10px] font-bold text-blue-700 flex flex-col gap-1 mt-2 bg-blue-50 px-2 py-1.5 rounded w-fit">
+                              <div className="flex items-center gap-1.5">
+                                <MapPin className="w-3 h-3" /> SALA:{' '}
+                                {item.storageRoom || 'NÃO INF.'}
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Box className="w-3 h-3" /> ARMÁRIO:{' '}
+                                {item.cabinetNumber || 'NÃO INF.'}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="align-top py-4">
@@ -513,7 +527,14 @@ export default function Inventory() {
         </Table>
       </Card>
 
-      <AddInventoryModal open={isAdding} onOpenChange={setIsAdding} />
+      <AddInventoryModal
+        open={isAdding}
+        onOpenChange={(val) => {
+          setIsAdding(val)
+          if (!val) setPurchaseBaseItemName('')
+        }}
+        baseItemName={purchaseBaseItemName}
+      />
       <DecreaseStockModal
         item={itemToDecrease}
         open={!!itemToDecrease}
@@ -527,13 +548,9 @@ export default function Inventory() {
         onOpenChange={(val) => {
           if (!val) setItemToEdit(null)
         }}
-        onNewPurchase={() => setItemToPurchase(itemToEdit)}
-      />
-      <NewPurchaseModal
-        item={itemToPurchase}
-        open={!!itemToPurchase}
-        onOpenChange={(val) => {
-          if (!val) setItemToPurchase(null)
+        onNewPurchase={() => {
+          setPurchaseBaseItemName(itemToEdit?.name || '')
+          setIsAdding(true)
         }}
       />
 

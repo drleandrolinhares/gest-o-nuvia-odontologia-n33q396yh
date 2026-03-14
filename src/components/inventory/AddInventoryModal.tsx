@@ -48,10 +48,7 @@ const parseCurrency = (val: string | number) => {
 
 const formatCurrencyInput = (val: string | number) => {
   const num = parseCurrency(val)
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(num)
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(num)
 }
 
 const schema = z.object({
@@ -72,7 +69,7 @@ const schema = z.object({
   lastBrand: z.string().optional(),
   lastValue: z.union([z.string(), z.number()]).optional().transform(parseCurrency),
   notes: z.string().optional(),
-
+  criticalObservations: z.string().optional(),
   implantBrand: z.string().optional(),
   implantDiameter: z.string().optional(),
   implantHeight: z.string().optional(),
@@ -87,18 +84,17 @@ const schema = z.object({
 export function AddInventoryModal({
   open,
   onOpenChange,
+  baseItemName,
 }: {
   open: boolean
   onOpenChange: (val: boolean) => void
+  baseItemName?: string
 }) {
   const { addInventoryItem, packageTypes, specialties, inventoryOptions } = useAppStore()
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
 
   const storageRooms = inventoryOptions.filter(
-    (o) =>
-      o.category.toLowerCase() === 'storage_room' ||
-      o.category === 'STORAGE_ROOM' ||
-      o.category === 'SALA_ARMAZENAMENTO',
+    (o) => o.category === 'STORAGE_ROOM' || o.category === 'SALA_ARMAZENAMENTO',
   )
   const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
@@ -121,6 +117,7 @@ export function AddInventoryModal({
       lastBrand: '',
       lastValue: 0,
       notes: '',
+      criticalObservations: '',
       implantBrand: '',
       implantDiameter: '',
       implantHeight: '',
@@ -133,11 +130,20 @@ export function AddInventoryModal({
     },
   })
 
+  useEffect(() => {
+    if (open) {
+      if (baseItemName) {
+        form.setValue('name', baseItemName)
+      } else {
+        form.reset()
+      }
+    }
+  }, [open, baseItemName, form])
+
   const pCostRaw = form.watch('packageCost')
   const pCost = parseCurrency(pCostRaw || 0)
   const qty = form.watch('quantity') || 0
   const totalCost = qty * pCost
-
   const currentSpecialty = form.watch('specialty')
   const isProstheticComponent = form.watch('isProstheticComponent')
   const prostheticType = form.watch('prostheticType')
@@ -160,13 +166,11 @@ export function AddInventoryModal({
 
   const onSubmit = (v: z.infer<typeof schema>) => {
     const specialtyDetails: any = {}
-
     if (v.specialty === 'IMPLANTODONTIA') {
       if (v.implantBrand) specialtyDetails.implantBrand = v.implantBrand
       if (v.implantDiameter) specialtyDetails.implantDiameter = v.implantDiameter
       if (v.implantHeight) specialtyDetails.implantHeight = v.implantHeight
     }
-
     if (v.specialty === 'PRÓTESE' && v.isProstheticComponent) {
       specialtyDetails.isProstheticComponent = true
       specialtyDetails.prostheticType = v.prostheticType
@@ -200,6 +204,7 @@ export function AddInventoryModal({
       lastBrand: v.lastBrand || '',
       lastValue: v.lastValue || 0,
       notes: v.notes || '',
+      criticalObservations: v.criticalObservations || '',
       specialtyDetails,
     })
     form.reset()
@@ -212,13 +217,13 @@ export function AddInventoryModal({
         open={open}
         onOpenChange={(val) => {
           onOpenChange(val)
-          if (!val) form.reset()
+          if (!val && !baseItemName) form.reset()
         }}
       >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto uppercase">
           <DialogHeader className="flex flex-row items-center justify-between pr-8">
             <DialogTitle className="text-2xl font-bold text-nuvia-navy uppercase">
-              NOVO PRODUTO NO ESTOQUE
+              {baseItemName ? 'NOVA COMPRA (MESMO PRODUTO)' : 'NOVO PRODUTO NO ESTOQUE'}
             </DialogTitle>
             <Button
               type="button"
@@ -272,6 +277,7 @@ export function AddInventoryModal({
                         <Input
                           placeholder="EX: MINI PILAR"
                           className="border-[#D81B84] focus-visible:ring-[#D81B84] uppercase"
+                          disabled={!!baseItemName}
                           {...field}
                         />
                       </FormControl>
@@ -332,7 +338,7 @@ export function AddInventoryModal({
                           <FormLabel className="text-blue-800">MARCA DO IMPLANTE</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                              <SelectTrigger className="uppercase bg-white border-blue-200">
                                 <SelectValue placeholder="SELECIONE" />
                               </SelectTrigger>
                             </FormControl>
@@ -344,7 +350,6 @@ export function AddInventoryModal({
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -356,7 +361,7 @@ export function AddInventoryModal({
                           <FormLabel className="text-blue-800">DIÂMETRO DO IMPLANTE</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                              <SelectTrigger className="uppercase bg-white border-blue-200">
                                 <SelectValue placeholder="SELECIONE" />
                               </SelectTrigger>
                             </FormControl>
@@ -368,7 +373,6 @@ export function AddInventoryModal({
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -380,7 +384,7 @@ export function AddInventoryModal({
                           <FormLabel className="text-blue-800">ALTURA DO IMPLANTE</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                              <SelectTrigger className="uppercase bg-white border-blue-200">
                                 <SelectValue placeholder="SELECIONE" />
                               </SelectTrigger>
                             </FormControl>
@@ -392,7 +396,6 @@ export function AddInventoryModal({
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -433,7 +436,7 @@ export function AddInventoryModal({
                               <FormLabel className="text-blue-800">TIPO DE COMPONENTE</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                  <SelectTrigger className="uppercase bg-white border-blue-200">
                                     <SelectValue placeholder="SELECIONE O TIPO" />
                                   </SelectTrigger>
                                 </FormControl>
@@ -445,7 +448,6 @@ export function AddInventoryModal({
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <FormMessage />
                             </FormItem>
                           )}
                         />
@@ -478,7 +480,6 @@ export function AddInventoryModal({
                                     ))}
                                   </SelectContent>
                                 </Select>
-                                <FormMessage />
                               </FormItem>
                             )}
                           />
@@ -494,7 +495,7 @@ export function AddInventoryModal({
                                   <FormLabel className="text-blue-800">ÂNGULO</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                      <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                      <SelectTrigger className="uppercase bg-white border-blue-200">
                                         <SelectValue placeholder="SELECIONE" />
                                       </SelectTrigger>
                                     </FormControl>
@@ -503,7 +504,6 @@ export function AddInventoryModal({
                                       <SelectItem value="30 GRAUS">30 GRAUS</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                  <FormMessage />
                                 </FormItem>
                               )}
                             />
@@ -528,7 +528,6 @@ export function AddInventoryModal({
                                         ))}
                                       </SelectContent>
                                     </Select>
-                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -546,7 +545,7 @@ export function AddInventoryModal({
                                   <FormLabel className="text-blue-800">DIÂMETRO</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
-                                      <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                      <SelectTrigger className="uppercase bg-white border-blue-200">
                                         <SelectValue placeholder="SELECIONE" />
                                       </SelectTrigger>
                                     </FormControl>
@@ -555,7 +554,6 @@ export function AddInventoryModal({
                                       <SelectItem value="4,5 MM">4,5 MM</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                  <FormMessage />
                                 </FormItem>
                               )}
                             />
@@ -580,7 +578,6 @@ export function AddInventoryModal({
                                         ))}
                                       </SelectContent>
                                     </Select>
-                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -608,12 +605,7 @@ export function AddInventoryModal({
                       <FormItem>
                         <FormLabel>QTD. COMPRADA</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            className="bg-white uppercase"
-                            placeholder="EX: 10"
-                            {...field}
-                          />
+                          <Input type="number" className="bg-white uppercase" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -722,7 +714,6 @@ export function AddInventoryModal({
                           />
                         </PopoverContent>
                       </Popover>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -760,7 +751,6 @@ export function AddInventoryModal({
                           />
                         </PopoverContent>
                       </Popover>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -773,7 +763,6 @@ export function AddInventoryModal({
                       <FormControl>
                         <Input placeholder="EX: 123456" className="uppercase" {...field} />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -800,7 +789,6 @@ export function AddInventoryModal({
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -813,7 +801,6 @@ export function AddInventoryModal({
                       <FormControl>
                         <Input placeholder="EX: A1" className="uppercase" {...field} />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -826,7 +813,6 @@ export function AddInventoryModal({
                       <FormControl>
                         <Input type="number" className="uppercase" {...field} />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -850,7 +836,6 @@ export function AddInventoryModal({
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -869,7 +854,6 @@ export function AddInventoryModal({
                             onChange={(e) => field.onChange(e.target.value)}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -887,7 +871,24 @@ export function AddInventoryModal({
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="criticalObservations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-amber-600 font-bold">
+                        OBSERVAÇÕES CRÍTICAS
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-500 bg-amber-50/30"
+                          placeholder="NOTAS CRÍTICAS QUE GERAM ALERTA (EX: PRODUTO FRÁGIL, VERIFICAR LOTE)..."
+                          {...field}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
@@ -901,7 +902,7 @@ export function AddInventoryModal({
                   type="submit"
                   className="bg-[#D81B84] hover:bg-[#B71770] text-white uppercase font-bold"
                 >
-                  CADASTRAR PRODUTO
+                  {baseItemName ? 'CADASTRAR COMPRA' : 'CADASTRAR PRODUTO'}
                 </Button>
               </div>
             </form>

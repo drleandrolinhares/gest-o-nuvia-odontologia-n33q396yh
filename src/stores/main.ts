@@ -82,6 +82,7 @@ export type InventoryItem = {
   nfeNumber?: string
   storageRoom?: string
   cabinetNumber?: string
+  criticalObservations?: string
 }
 export type DocumentItem = { id: string; name: string; date: string }
 export type AgendaItem = {
@@ -316,6 +317,7 @@ const mInv = (d: any): InventoryItem => ({
   nfeNumber: d.nfe_number,
   storageRoom: d.storage_room,
   cabinetNumber: d.cabinet_number,
+  criticalObservations: d.critical_observations,
 })
 const mAg = (d: any): AgendaItem => ({
   id: d.id,
@@ -678,6 +680,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             nfe_number: i.nfeNumber || null,
             storage_room: i.storageRoom || null,
             cabinet_number: i.cabinetNumber || null,
+            critical_observations: i.criticalObservations || null,
           } as any,
         ])
         .select()
@@ -712,9 +715,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateInventoryItemDetails = useCallback(
     async (id: string, data: Partial<InventoryItem>) => {
       const payload: any = {}
+      if (data.name !== undefined) payload.name = data.name
+      if (data.barcode !== undefined) payload.barcode = data.barcode
+      if (data.brand !== undefined) payload.brand = data.brand
+      if (data.specialty !== undefined) payload.specialty = data.specialty
+      if (data.packageCost !== undefined) payload.package_cost = data.packageCost
+      if (data.packageType !== undefined) payload.package_type = data.packageType
+      if (data.itemsPerBox !== undefined) payload.items_per_box = data.itemsPerBox
       if (data.quantity !== undefined) payload.quantity = data.quantity
       if (data.storageRoom !== undefined) payload.storage_room = data.storageRoom || null
       if (data.cabinetNumber !== undefined) payload.cabinet_number = data.cabinetNumber || null
+      if (data.nfeNumber !== undefined) payload.nfe_number = data.nfeNumber || null
+      if (data.minStock !== undefined) payload.min_stock = data.minStock
+      if (data.entryDate !== undefined) payload.entry_date = data.entryDate
+      if (data.expirationDate !== undefined) payload.expiration_date = data.expirationDate
+      if (data.lastBrand !== undefined) payload.last_brand = data.lastBrand
+      if (data.lastValue !== undefined) payload.last_value = data.lastValue
+      if (data.notes !== undefined) payload.notes = data.notes
+      if (data.criticalObservations !== undefined)
+        payload.critical_observations = data.criticalObservations || null
+      if (data.specialtyDetails !== undefined) payload.specialty_details = data.specialtyDetails
+      if (data.storageLocation !== undefined) payload.storage_location = data.storageLocation
 
       try {
         const { error } = await supabase.from('inventory').update(payload).eq('id', id)

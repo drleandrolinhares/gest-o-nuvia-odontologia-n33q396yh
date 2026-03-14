@@ -20,18 +20,29 @@ import {
   Factory,
   ClipboardList,
   Zap,
+  AlertTriangle,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-function DetailItem({ label, value, icon: Icon }: { label: string; value: string; icon?: any }) {
+function DetailItem({
+  label,
+  value,
+  icon: Icon,
+  valueClass,
+}: {
+  label: string
+  value: string
+  icon?: any
+  valueClass?: string
+}) {
   return (
     <div className="flex flex-col gap-1 bg-muted/20 p-3 rounded-lg border border-muted/50">
       <span className="text-[10px] font-black text-muted-foreground flex items-center gap-1.5 uppercase tracking-widest">
         {Icon && <Icon className="w-3.5 h-3.5" />}
         {label}
       </span>
-      <span className="text-sm font-bold uppercase truncate" title={value}>
+      <span className={cn('text-sm font-bold uppercase truncate', valueClass)} title={value}>
         {value}
       </span>
     </div>
@@ -128,8 +139,11 @@ export function QuickProductSearchModal({
                   onClick={() => setSelectedProduct(item)}
                 >
                   <div className="min-w-0 flex-1 pr-4">
-                    <div className="font-black text-base text-foreground uppercase truncate">
+                    <div className="font-black text-base text-foreground uppercase truncate flex items-center gap-2">
                       {item.name}
+                      {item.criticalObservations && (
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      )}
                     </div>
                     <div className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-1.5 mt-1 truncate">
                       <Tag className="w-3 h-3 flex-shrink-0" /> {item.brand || 'SEM MARCA'} •{' '}
@@ -182,6 +196,20 @@ export function QuickProductSearchModal({
                   {selectedProduct.specialty || 'SEM ESPECIALIDADE'}
                 </p>
               </div>
+
+              {selectedProduct.criticalObservations && (
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3 mt-4 shadow-sm animate-fade-in">
+                  <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-[10px] font-black text-amber-900 tracking-widest uppercase mb-1">
+                      OBSERVAÇÕES CRÍTICAS
+                    </div>
+                    <div className="font-bold text-sm text-amber-800 uppercase leading-snug">
+                      {selectedProduct.criticalObservations}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-center gap-8 mt-4 mb-2 shadow-sm">
                 <div>
