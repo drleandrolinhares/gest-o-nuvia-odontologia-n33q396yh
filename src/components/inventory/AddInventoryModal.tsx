@@ -247,7 +247,7 @@ export function AddInventoryModal({
                       <FormControl>
                         <Input
                           placeholder="BIPAR OU DIGITAR CÓDIGO..."
-                          className="bg-white border-blue-200 shadow-sm h-12 text-lg font-mono tracking-widest"
+                          className="bg-white border-blue-200 shadow-sm h-12 text-lg font-mono tracking-widest uppercase"
                           {...field}
                         />
                       </FormControl>
@@ -453,13 +453,27 @@ export function AddInventoryModal({
                             render={({ field }) => (
                               <FormItem className="w-full md:w-1/3 animate-fade-in">
                                 <FormLabel className="text-blue-800">ALTURA DA CINTA</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="EX: 2.5 MM"
-                                    className="uppercase bg-white border-blue-200"
-                                    {...field}
-                                  />
-                                </FormControl>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="uppercase bg-white border-blue-200">
+                                      <SelectValue placeholder="SELECIONE" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {[
+                                      '0,8 MM',
+                                      '1,5 MM',
+                                      '2,5 MM',
+                                      '3,5 MM',
+                                      '4,5 MM',
+                                      '5,0 MM',
+                                    ].map((opt) => (
+                                      <SelectItem key={opt} value={opt}>
+                                        {opt}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -489,23 +503,32 @@ export function AddInventoryModal({
                                 </FormItem>
                               )}
                             />
-                            <FormField
-                              control={form.control}
-                              name="prostheticCollarHeight"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-blue-800">ALTURA DA CINTA</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="EX: 3.5 MM"
-                                      className="uppercase bg-white border-blue-200"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            {form.watch('prostheticAngle') && (
+                              <FormField
+                                control={form.control}
+                                name="prostheticCollarHeight"
+                                render={({ field }) => (
+                                  <FormItem className="animate-fade-in">
+                                    <FormLabel className="text-blue-800">ALTURA DA CINTA</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="uppercase bg-white border-blue-200">
+                                          <SelectValue placeholder="SELECIONE" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {['1,5 MM', '2,5 MM', '3,5 MM'].map((opt) => (
+                                          <SelectItem key={opt} value={opt}>
+                                            {opt}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            )}
                           </div>
                         )}
 
@@ -517,31 +540,42 @@ export function AddInventoryModal({
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-blue-800">DIÂMETRO</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="EX: 3.3"
-                                      className="uppercase bg-white border-blue-200"
-                                      {...field}
-                                    />
-                                  </FormControl>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger className="uppercase bg-white border-blue-200 focus:ring-blue-400">
+                                        <SelectValue placeholder="SELECIONE" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="3,3 MM">3,3 MM</SelectItem>
+                                      <SelectItem value="4,5 MM">4,5 MM</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-                            {prostheticDiameter && (
+                            {form.watch('prostheticDiameter') && (
                               <FormField
                                 control={form.control}
                                 name="prostheticHeight"
                                 render={({ field }) => (
                                   <FormItem className="animate-fade-in">
                                     <FormLabel className="text-blue-800">ALTURA</FormLabel>
-                                    <FormControl>
-                                      <Input
-                                        placeholder="EX: 4 MM"
-                                        className="uppercase bg-white border-blue-200"
-                                        {...field}
-                                      />
-                                    </FormControl>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="uppercase bg-white border-blue-200">
+                                          <SelectValue placeholder="SELECIONE" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {['4 MM', '6 MM'].map((opt) => (
+                                          <SelectItem key={opt} value={opt}>
+                                            {opt}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                   </FormItem>
                                 )}

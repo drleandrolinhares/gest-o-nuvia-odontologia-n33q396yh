@@ -23,14 +23,14 @@ import useAppStore from '@/stores/main'
 
 const navigation = [
   { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
-  { name: 'DASH NUVIA', href: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
   { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
   { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
-  { name: 'Estoque', href: '/admin/estoque', icon: Package },
-  { name: 'Acessos', href: '/admin/acessos', icon: Shield },
-  { name: 'Logs', href: '/admin/auditoria', icon: FileText },
-  { name: 'Configurações', href: '/admin/configuracoes', icon: Settings },
+  { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
+  { name: 'ACESSOS', href: '/admin/acessos', icon: Shield },
+  { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
+  { name: 'CONFIGURAÇÕES', href: '/admin/configuracoes', icon: Settings },
 ]
 
 const NuviaLogo = ({ className }: { className?: string }) => (
@@ -166,12 +166,12 @@ export function Layout() {
           </div>
           <div className="ml-3 overflow-hidden">
             <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-            <p className="text-xs text-slate-400 truncate">Administrador</p>
+            <p className="text-xs text-slate-400 truncate uppercase">Administrador</p>
           </div>
         </div>
         <Button
           variant="ghost"
-          className="w-full justify-start text-slate-300 hover:text-white hover:bg-white/5"
+          className="w-full justify-start text-slate-300 hover:text-white hover:bg-white/5 uppercase"
           onClick={() => signOut()}
         >
           <LogOut className="mr-3 h-5 w-5 text-slate-400" />
@@ -183,7 +183,6 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-      {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
         <Link to="/admin/agenda" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
           <NuviaLogo className="h-12 w-auto" />
@@ -204,12 +203,10 @@ export function Layout() {
         </Sheet>
       </div>
 
-      {/* Desktop Sidebar */}
       <div className="hidden md:flex w-72 flex-col fixed inset-y-0 z-10">
         <SidebarContent />
       </div>
 
-      {/* Main Content */}
       <main className="flex-1 md:pl-72 flex flex-col min-h-screen overflow-hidden">
         <header className="hidden md:flex h-16 bg-white border-b border-slate-200 items-center px-8 justify-between sticky top-0 z-10">
           <div className="flex items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
@@ -223,7 +220,7 @@ export function Layout() {
                   : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
             </span>
           </div>
-          <div className="flex items-center gap-4">{/* Action buttons could go here */}</div>
+          <div className="flex items-center gap-4"></div>
         </header>
 
         <div className="flex-1 p-4 md:p-8 overflow-auto">

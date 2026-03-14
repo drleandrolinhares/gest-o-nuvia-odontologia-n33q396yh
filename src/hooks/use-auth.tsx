@@ -52,7 +52,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (isMounted) {
         setSession(session)
         setUser(session?.user ?? null)
-        setLoading(false)
+
+        // Prevent setting loading to false on the immediate INITIAL_SESSION
+        // to avoid a flash of unauthenticated state while getSession is still working.
+        if (event !== 'INITIAL_SESSION') {
+          setLoading(false)
+        }
       }
     })
 
