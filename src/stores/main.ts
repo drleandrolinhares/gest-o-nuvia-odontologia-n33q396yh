@@ -58,6 +58,7 @@ export type PurchaseRecord = {
   expirationDate?: string
   lot?: string
   supplierId?: string
+  nfeNumber?: string
 }
 export type InventoryItem = {
   id: string
@@ -78,6 +79,9 @@ export type InventoryItem = {
   barcode?: string
   purchaseHistory?: PurchaseRecord[]
   specialtyDetails?: any
+  nfeNumber?: string
+  storageRoom?: string
+  cabinetNumber?: string
 }
 export type DocumentItem = { id: string; name: string; date: string }
 export type AgendaItem = {
@@ -135,6 +139,12 @@ export type WorkSchedule = {
   afternoon_snack_end: string | null
   total_daily_hours: number | null
 }
+export type InventoryOption = {
+  id: string
+  category: string
+  label?: string
+  value: string
+}
 
 interface AppStore {
   isAuthenticated: boolean
@@ -151,6 +161,7 @@ interface AppStore {
   alerts: string[]
   onboarding: OnboardingCandidate[]
   inventory: InventoryItem[]
+  inventoryOptions: InventoryOption[]
   documents: DocumentItem[]
   agenda: AgendaItem[]
   acessos: AccessItem[]
@@ -172,6 +183,8 @@ interface AppStore {
   updateInventoryQuantity: (id: string, q: number) => void
   deleteInventoryItem: (id: string) => void
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
+  addInventoryOption: (category: string, value: string, label?: string) => void
+  removeInventoryOption: (id: string) => void
   addEmployee: (
     e: Omit<Employee, 'id'> & { password?: string },
   ) => Promise<{ success: boolean; error?: any }>
@@ -295,6 +308,9 @@ const mInv = (d: any): InventoryItem => ({
   barcode: d.barcode,
   purchaseHistory: d.purchase_history,
   specialtyDetails: d.specialty_details,
+  nfeNumber: d.nfe_number,
+  storageRoom: d.storage_room,
+  cabinetNumber: d.cabinet_number,
 })
 const mAg = (d: any): AgendaItem => ({
   id: d.id,
@@ -336,6 +352,12 @@ const mOnb = (d: any): OnboardingCandidate => ({
   tasks: d.tasks,
 })
 const mDoc = (d: any): DocumentItem => ({ id: d.id, name: d.name, date: d.date })
+const mOpt = (d: any): InventoryOption => ({
+  id: d.id,
+  category: d.category,
+  label: d.label,
+  value: d.value,
+})
 
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
@@ -351,6 +373,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [agendaTypes, setAgendaTypes] = useState(mockAgendaTypes)
   const [employees, setEmployees] = useState<Employee[]>([])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
+  const [inventoryOptions, setInventoryOptions] = useState<InventoryOption[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [onboarding, setOnboarding] = useState<OnboardingCandidate[]>([])
   const [documents, setDocuments] = useState<DocumentItem[]>([])
@@ -387,6 +410,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .from('inventory')
           .select('*')
           .then((r) => setInventory(handleResponse(r, mInv))),
+        supabase
+          .from('inventory_settings' as any)
+          .select('*')
+          .then((r) => setInventoryOptions(handleResponse(r, mOpt))),
         supabase
           .from('agenda')
           .select('*')
@@ -446,6 +473,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCurrentUserId(null)
       setEmployees([])
       setInventory([])
+      setInventoryOptions([])
       setAuditLogs([])
       setBonusTypes([])
       setEmployeeDocuments([])
@@ -609,6 +637,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 price: i.packageCost,
                 quantity: i.quantity,
                 expirationDate: i.expirationDate,
+                nfeNumber: i.nfeNumber,
               },
             ]
           : []
@@ -633,6 +662,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             barcode: i.barcode,
             purchase_history: ph,
             specialty_details: i.specialtyDetails || {},
+            nfe_number: i.nfeNumber || null,
+            storage_room: i.storageRoom || null,
+            cabinet_number: i.cabinetNumber || null,
           } as any,
         ])
         .select()
@@ -691,6 +723,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             quantity: nq,
             package_cost: r.price,
             expiration_date: r.expirationDate || item.expirationDate,
+            ...(r.nfeNumber ? { nfe_number: r.nfeNumber } : {}),
           })
           .eq('id', itemId)
           .then(() => logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`))
@@ -703,10 +736,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 quantity: nq,
                 packageCost: r.price,
                 expirationDate: r.expirationDate || item.expirationDate,
+                nfeNumber: r.nfeNumber || i.nfeNumber,
               }
             : i,
         )
       })
+    },
+    [logAction],
+  )
+
+  const addInventoryOption = useCallback(
+    (category: string, value: string, label?: string) => {
+      supabase
+        .from('inventory_settings' as any)
+        .insert([{ category, value, label }])
+        .select()
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setInventoryOptions((p) => [...p, mOpt(data)])
+            logAction(`CRIOU OPÇÃO DE ESTOQUE: ${category} - ${value}`)
+          }
+        })
+        .catch((err) => console.warn('Erro ao criar opção', err))
+    },
+    [logAction],
+  )
+
+  const removeInventoryOption = useCallback(
+    (id: string) => {
+      supabase
+        .from('inventory_settings' as any)
+        .delete()
+        .eq('id', id)
+        .then(() => {
+          setInventoryOptions((p) => p.filter((o) => o.id !== id))
+          logAction(`REMOVEU OPÇÃO DE ESTOQUE ID: ${id}`)
+        })
+        .catch((err) => console.warn('Erro ao remover opção', err))
     },
     [logAction],
   )
@@ -1316,6 +1383,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       alerts,
       onboarding,
       inventory,
+      inventoryOptions,
       documents,
       agenda,
       acessos,
@@ -1337,6 +1405,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateInventoryQuantity,
       deleteInventoryItem,
       addPurchaseHistory,
+      addInventoryOption,
+      removeInventoryOption,
       addEmployee,
       updateEmployee,
       updateEmployeePassword,
@@ -1378,6 +1448,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       alerts,
       onboarding,
       inventory,
+      inventoryOptions,
       documents,
       agenda,
       acessos,
@@ -1399,6 +1470,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateInventoryQuantity,
       deleteInventoryItem,
       addPurchaseHistory,
+      addInventoryOption,
+      removeInventoryOption,
       addEmployee,
       updateEmployee,
       updateEmployeePassword,

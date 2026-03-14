@@ -45,6 +45,7 @@ export function NewPurchaseModal({
     supplierId: z.string().optional(),
     lot: z.string().optional(),
     expirationDate: z.string().optional(),
+    nfeNumber: z.string().optional(),
   })
 
   const form = useForm<z.infer<typeof schema>>({
@@ -55,6 +56,7 @@ export function NewPurchaseModal({
       supplierId: '',
       lot: '',
       expirationDate: '',
+      nfeNumber: '',
     },
   })
 
@@ -67,6 +69,7 @@ export function NewPurchaseModal({
       lot: v.lot?.toUpperCase() || undefined,
       supplierId: v.supplierId || undefined,
       expirationDate: v.expirationDate ? new Date(v.expirationDate).toISOString() : undefined,
+      nfeNumber: v.nfeNumber || undefined,
     })
     form.reset()
     onOpenChange(false)
@@ -176,6 +179,20 @@ export function NewPurchaseModal({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="nfeNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>NÚMERO DA NFE</FormLabel>
+                  <FormControl>
+                    <Input placeholder="EX: 123456" className="uppercase" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

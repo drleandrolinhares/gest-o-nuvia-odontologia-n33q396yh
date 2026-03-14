@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import useAppStore, { type InventoryItem } from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -28,6 +28,9 @@ import {
   MinusCircle,
   ScanBarcode,
   Barcode,
+  ChevronRight,
+  ChevronDown,
+  CornerDownRight,
 } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import { AddInventoryModal } from '@/components/inventory/AddInventoryModal'
@@ -44,6 +47,7 @@ export default function Inventory() {
   const [searchQuery, setSearchQuery] = useState('')
   const [barcodeQuery, setBarcodeQuery] = useState('')
   const [showLowStock, setShowLowStock] = useState(false)
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([])
 
   const [itemToDecrease, setItemToDecrease] = useState<InventoryItem | null>(null)
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null)
@@ -58,20 +62,48 @@ export default function Inventory() {
   sixtyDays.setDate(now.getDate() + 60)
 
   const filteredInventory = useMemo(() => {
-    return inventory
-      .filter((item) => {
-        const matchSpecialty = selectedSpecialty === 'all' || item.specialty === selectedSpecialty
-        const searchLower = searchQuery.toLowerCase()
-        const matchSearch =
-          item.name.toLowerCase().includes(searchLower) ||
-          !!item.brand?.toLowerCase().includes(searchLower)
-        const matchBarcode = !barcodeQuery || (item.barcode && item.barcode.includes(barcodeQuery))
-        const matchLowStock = showLowStock ? isCriticalStock(item) : true
+    return inventory.filter((item) => {
+      const matchSpecialty = selectedSpecialty === 'all' || item.specialty === selectedSpecialty
+      const searchLower = searchQuery.toLowerCase()
+      const matchSearch =
+        item.name.toLowerCase().includes(searchLower) ||
+        !!item.brand?.toLowerCase().includes(searchLower)
+      const matchBarcode = !barcodeQuery || (item.barcode && item.barcode.includes(barcodeQuery))
+      const matchLowStock = showLowStock ? isCriticalStock(item) : true
 
-        return matchSpecialty && matchSearch && matchLowStock && matchBarcode
+      return matchSpecialty && matchSearch && matchLowStock && matchBarcode
+    })
+  }, [inventory, selectedSpecialty, searchQuery, barcodeQuery, showLowStock])
+
+  const groupedInventory = useMemo(() => {
+    const groups: Record<string, InventoryItem[]> = {}
+    filteredInventory.forEach((item) => {
+      const key = item.name.toUpperCase()
+      if (!groups[key]) groups[key] = []
+      groups[key].push(item)
+    })
+
+    return Object.entries(groups)
+      .map(([name, items]) => {
+        const totalQuantity = items.reduce((acc, i) => acc + i.quantity, 0)
+        const isCritical = items.some((i) => isCriticalStock(i))
+        const totalValue = items.reduce((acc, i) => acc + i.quantity * i.packageCost, 0)
+        return {
+          name,
+          items: items.sort((a, b) => (a.brand || '').localeCompare(b.brand || '')),
+          totalQuantity,
+          totalValue,
+          isCritical,
+        }
       })
       .sort((a, b) => a.name.localeCompare(b.name))
-  }, [inventory, selectedSpecialty, searchQuery, barcodeQuery, showLowStock])
+  }, [filteredInventory])
+
+  const toggleGroup = (name: string) => {
+    setExpandedGroups((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
+    )
+  }
 
   const totalCapital = filteredInventory.reduce(
     (acc, item) => acc + item.quantity * item.packageCost,
@@ -91,6 +123,23 @@ export default function Inventory() {
     const topVal = Object.entries(valBySpec).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
     return { maxVolSpec: topVol[0], maxVol: topVol[1], maxValSpec: topVal[0], maxVal: topVal[1] }
   }, [inventory])
+
+  const formatSpecs = (item: InventoryItem) => {
+    const specs = []
+    if (item.brand) specs.push(item.brand)
+    if (item.specialtyDetails) {
+      const sd = item.specialtyDetails
+      if (sd.implantBrand) specs.push(sd.implantBrand)
+      if (sd.implantDiameter) specs.push(`Ø ${sd.implantDiameter}`)
+      if (sd.implantHeight) specs.push(`ALT ${sd.implantHeight}`)
+      if (sd.prostheticType) specs.push(sd.prostheticType)
+      if (sd.prostheticAngle) specs.push(sd.prostheticAngle)
+      if (sd.prostheticCollarHeight) specs.push(`CINTA ${sd.prostheticCollarHeight}`)
+      if (sd.prostheticDiameter) specs.push(`Ø ${sd.prostheticDiameter}`)
+      if (sd.prostheticHeight) specs.push(`ALT ${sd.prostheticHeight}`)
+    }
+    return specs.join(' • ') || 'SEM ESPECIFICAÇÕES'
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
@@ -229,14 +278,12 @@ export default function Inventory() {
                 PRODUTO / DETALHES
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground">
-                EMBALAGEM & ITENS
+                EMBALAGEM & SALA
               </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">
-                VALIDADE / LOCAL
-              </TableHead>
-              <TableHead className="font-semibold text-muted-foreground">CUSTO EMB.</TableHead>
+              <TableHead className="font-semibold text-muted-foreground">VALIDADE / LOTE</TableHead>
+              <TableHead className="font-semibold text-muted-foreground">CUSTO</TableHead>
               <TableHead className="font-semibold text-muted-foreground text-center">
-                QTD.
+                QTD. TOTAL
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground text-center">
                 AÇÕES
@@ -244,110 +291,161 @@ export default function Inventory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredInventory.map((item) => {
-              const expDate = item.expirationDate ? new Date(item.expirationDate) : null
-              const isExpired = expDate && expDate < now
-              const isExpiringSoon = expDate && expDate >= now && expDate <= sixtyDays
+            {groupedInventory.map((group) => {
+              const isExpanded = expandedGroups.includes(group.name)
 
               return (
-                <TableRow
-                  key={item.id}
-                  className="hover:bg-muted/10 cursor-pointer transition-colors"
-                  onClick={() => setItemToEdit(item)}
-                >
-                  <TableCell className="align-top py-4">
-                    <div className="flex items-start flex-col gap-1.5 mb-2">
-                      <div className="font-bold text-[#D81B84] text-base leading-none uppercase">
-                        {item.name}
-                      </div>
-                      {isCriticalStock(item) && (
-                        <div className="bg-red-600 text-white text-[10px] px-2 py-0.5 mt-0.5 rounded font-extrabold tracking-wider uppercase shadow-sm flex items-center w-fit animate-pulse">
-                          <AlertTriangle className="w-3 h-3 mr-1" /> ESTOQUE CRÍTICO
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1 mt-2">
-                      {item.barcode && (
-                        <div className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase">
-                          <Barcode className="h-3.5 w-3.5" /> CÓD: {item.barcode}
-                        </div>
-                      )}
-                      {item.specialty && (
-                        <div className="text-xs text-muted-foreground flex items-center gap-1.5 uppercase mt-1">
-                          <Stethoscope className="h-3.5 w-3.5" /> {item.specialty}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="align-top py-4">
-                    <span className="inline-block px-2.5 py-0.5 border border-muted-foreground/20 rounded-full text-[10px] font-semibold mb-1.5 uppercase">
-                      {item.packageType}
-                    </span>
-                    <div className="text-xs text-muted-foreground mb-0.5 uppercase">
-                      {item.itemsPerBox} ITEM(S) / EMB.
-                    </div>
-                  </TableCell>
-                  <TableCell className="align-top py-4">
-                    <div className="flex flex-col gap-1.5 uppercase">
-                      {item.expirationDate ? (
-                        <div
-                          className={cn(
-                            'text-xs font-bold flex items-center gap-1.5 w-fit px-2 py-0.5 rounded',
-                            isExpired
-                              ? 'bg-red-100 text-red-700'
-                              : isExpiringSoon
-                                ? 'bg-orange-100 text-orange-700'
-                                : 'bg-emerald-50 text-emerald-700',
-                          )}
-                        >
-                          <CalendarClock className="h-3.5 w-3.5" /> VAL:{' '}
-                          {format(new Date(item.expirationDate), 'dd/MM/yyyy', { locale: ptBR })}
-                          {isExpired && ' (VENCIDO)'}
-                          {isExpiringSoon && ' (ATENÇÃO)'}
-                        </div>
-                      ) : (
-                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <CalendarClock className="h-3.5 w-3.5" /> VAL: N/I
-                        </div>
-                      )}
-                      <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                        <Package className="h-3.5 w-3.5" /> {item.storageLocation}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="align-middle py-4 font-medium text-muted-foreground uppercase">
-                    {formatCurrency(item.packageCost)}
-                  </TableCell>
-                  <TableCell className="align-middle py-4 text-center">
-                    <span
-                      className={cn(
-                        'inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm uppercase',
-                        isCriticalStock(item)
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-muted text-foreground',
-                      )}
-                    >
-                      {item.quantity}
-                    </span>
-                  </TableCell>
-                  <TableCell
-                    className="align-middle py-4 text-center"
-                    onClick={(e) => e.stopPropagation()}
+                <React.Fragment key={group.name}>
+                  <TableRow
+                    className="hover:bg-muted/10 cursor-pointer transition-colors border-b-2 bg-slate-50/50"
+                    onClick={() => toggleGroup(group.name)}
                   >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
-                      onClick={() => setItemToDecrease(item)}
-                      disabled={item.quantity === 0}
-                    >
-                      <MinusCircle className="w-3.5 h-3.5 mr-1.5" /> BAIXAR
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                    <TableCell className="py-4 font-black text-[#D81B84] text-base uppercase">
+                      <div className="flex items-center gap-2">
+                        {isExpanded ? (
+                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                        )}
+                        {group.name}
+                        {group.isCritical && (
+                          <span className="ml-2 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded font-extrabold tracking-wider uppercase shadow-sm flex items-center animate-pulse">
+                            <AlertTriangle className="w-3 h-3 mr-1" /> CRÍTICO
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 text-xs font-bold text-muted-foreground">
+                      {group.items.length} VARIAÇÕES
+                    </TableCell>
+                    <TableCell className="py-4"></TableCell>
+                    <TableCell className="py-4 font-bold text-muted-foreground">
+                      {formatCurrency(group.totalValue)}
+                    </TableCell>
+                    <TableCell className="py-4 text-center">
+                      <span className="inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm bg-blue-100 text-blue-700">
+                        {group.totalQuantity}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-4 text-center"></TableCell>
+                  </TableRow>
+
+                  {isExpanded &&
+                    group.items.map((item) => {
+                      const expDate = item.expirationDate ? new Date(item.expirationDate) : null
+                      const isExpired = expDate && expDate < now
+                      const isExpiringSoon = expDate && expDate >= now && expDate <= sixtyDays
+
+                      return (
+                        <TableRow
+                          key={item.id}
+                          className="hover:bg-muted/10 cursor-pointer transition-colors bg-white"
+                          onClick={() => setItemToEdit(item)}
+                        >
+                          <TableCell className="align-top py-4 pl-10">
+                            <div className="flex flex-col gap-1.5 mb-2">
+                              <div className="font-bold text-nuvia-navy text-xs leading-none uppercase flex items-center gap-2">
+                                <CornerDownRight className="w-3.5 h-3.5 text-muted-foreground" />
+                                {formatSpecs(item)}
+                              </div>
+                              {isCriticalStock(item) && (
+                                <div className="text-red-600 text-[10px] font-extrabold tracking-wider uppercase flex items-center w-fit ml-5">
+                                  ESTOQUE CRÍTICO
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-col gap-1 mt-2 ml-5">
+                              {item.barcode && (
+                                <div className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 uppercase">
+                                  <Barcode className="h-3 w-3" /> CÓD: {item.barcode}
+                                </div>
+                              )}
+                              {item.specialty && (
+                                <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 uppercase mt-0.5">
+                                  <Stethoscope className="h-3 w-3" /> {item.specialty}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top py-4">
+                            <span className="inline-block px-2 py-0.5 bg-muted rounded-md text-[10px] font-bold mb-1.5 uppercase">
+                              {item.packageType}
+                            </span>
+                            <div className="text-xs font-semibold text-muted-foreground mb-0.5 uppercase">
+                              {item.itemsPerBox} ITENS / EMB.
+                            </div>
+                            <div className="text-[10px] font-bold text-blue-700 flex items-center gap-1 mt-2 bg-blue-50 px-2 py-0.5 rounded w-fit">
+                              <Box className="w-3 h-3" /> {item.storageRoom || 'SALA NÃO INF.'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-top py-4">
+                            <div className="flex flex-col gap-1.5 uppercase">
+                              {item.expirationDate ? (
+                                <div
+                                  className={cn(
+                                    'text-[10px] font-bold flex items-center gap-1.5 w-fit px-2 py-0.5 rounded',
+                                    isExpired
+                                      ? 'bg-red-100 text-red-700'
+                                      : isExpiringSoon
+                                        ? 'bg-orange-100 text-orange-700'
+                                        : 'bg-emerald-50 text-emerald-700',
+                                  )}
+                                >
+                                  <CalendarClock className="h-3.5 w-3.5" /> VAL:{' '}
+                                  {format(new Date(item.expirationDate), 'dd/MM/yyyy', {
+                                    locale: ptBR,
+                                  })}
+                                  {isExpired && ' (VENCIDO)'}
+                                  {isExpiringSoon && ' (ATENÇÃO)'}
+                                </div>
+                              ) : (
+                                <div className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+                                  <CalendarClock className="h-3 w-3" /> VAL: N/I
+                                </div>
+                              )}
+                              <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1.5 mt-1">
+                                <Package className="h-3 w-3" /> NFE:{' '}
+                                {item.nfeNumber || 'NÃO INFORMADA'}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="align-middle py-4 font-bold text-muted-foreground uppercase text-xs">
+                            {formatCurrency(item.packageCost)}
+                          </TableCell>
+                          <TableCell className="align-middle py-4 text-center">
+                            <span
+                              className={cn(
+                                'inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-full font-black text-xs uppercase',
+                                isCriticalStock(item)
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-slate-100 text-slate-700',
+                              )}
+                            >
+                              {item.quantity}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className="align-middle py-4 text-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 px-2 text-[10px] text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors uppercase font-bold"
+                              onClick={() => setItemToDecrease(item)}
+                              disabled={item.quantity === 0}
+                            >
+                              <MinusCircle className="w-3 h-3 mr-1" /> BAIXAR
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                </React.Fragment>
               )
             })}
-            {filteredInventory.length === 0 && (
+
+            {groupedInventory.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={6}

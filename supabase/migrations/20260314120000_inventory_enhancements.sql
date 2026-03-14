@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS public.inventory_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category TEXT NOT NULL,
+    label TEXT,
+    value TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.inventory ADD COLUMN IF NOT EXISTS nfe_number TEXT;
+ALTER TABLE public.inventory ADD COLUMN IF NOT EXISTS storage_room TEXT;
+ALTER TABLE public.inventory ADD COLUMN IF NOT EXISTS cabinet_number TEXT;
+
+ALTER TABLE public.inventory_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all authenticated users" ON public.inventory_settings FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+INSERT INTO public.inventory_settings (category, value) VALUES
+('SALA_ARMAZENAMENTO', 'ESTOQUE PRINCIPAL'),
+('SALA_ARMAZENAMENTO', 'SALA CLÍNICA 1'),
+('SALA_ARMAZENAMENTO', 'SALA CLÍNICA 2'),
+('SALA_ARMAZENAMENTO', 'RECEPÇÃO'),
+('MARCA_IMPLANTE', 'NEODENT'),
+('MARCA_IMPLANTE', 'STRAUMANN'),
+('MARCA_IMPLANTE', 'SIN'),
+('MARCA_IMPLANTE', 'INP'),
+('TIPO_COMPONENTE', 'MINI PILAR RETO'),
+('TIPO_COMPONENTE', 'MINI PILAR ANGULADO'),
+('TIPO_COMPONENTE', 'MUNHÃO UNIVERSAL')
+ON CONFLICT DO NOTHING;
+

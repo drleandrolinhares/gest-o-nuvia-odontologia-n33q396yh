@@ -38,16 +38,6 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 
-const IMPLANT_BRANDS = [
-  'NEODENT',
-  'STRAUMANN',
-  'SIN',
-  'INP',
-  'DENTFLEX',
-  'FGM',
-  'TITANIUM FIX',
-  'OUTRA',
-]
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
 
@@ -75,13 +65,14 @@ const schema = z.object({
   quantity: z.coerce.number().min(0),
   entryDate: z.date().optional(),
   expirationDate: z.date().optional(),
-  storageLocation: z.string().min(1, 'Obrigatório'),
+  storageRoom: z.string().optional(),
+  cabinetNumber: z.string().optional(),
+  nfeNumber: z.string().optional(),
   minStock: z.coerce.number().min(0),
   lastBrand: z.string().optional(),
   lastValue: z.union([z.string(), z.number()]).optional().transform(parseCurrency),
   notes: z.string().optional(),
 
-  // Condicionais
   implantBrand: z.string().optional(),
   implantDiameter: z.string().optional(),
   implantHeight: z.string().optional(),
@@ -100,8 +91,12 @@ export function AddInventoryModal({
   open: boolean
   onOpenChange: (val: boolean) => void
 }) {
-  const { addInventoryItem, packageTypes, specialties } = useAppStore()
+  const { addInventoryItem, packageTypes, specialties, inventoryOptions } = useAppStore()
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+
+  const storageRooms = inventoryOptions.filter((o) => o.category === 'SALA_ARMAZENAMENTO')
+  const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
+  const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -114,7 +109,9 @@ export function AddInventoryModal({
       packageType: 'CAIXA',
       itemsPerBox: 1,
       quantity: 0,
-      storageLocation: '',
+      storageRoom: '',
+      cabinetNumber: '',
+      nfeNumber: '',
       minStock: 0,
       lastBrand: '',
       lastValue: 0,
@@ -139,7 +136,6 @@ export function AddInventoryModal({
   const currentSpecialty = form.watch('specialty')
   const isProstheticComponent = form.watch('isProstheticComponent')
   const prostheticType = form.watch('prostheticType')
-  const prostheticDiameter = form.watch('prostheticDiameter')
 
   useEffect(() => {
     if (currentSpecialty !== 'IMPLANTODONTIA') {
@@ -189,7 +185,10 @@ export function AddInventoryModal({
       packageType: v.packageType,
       itemsPerBox: v.itemsPerBox,
       quantity: v.quantity,
-      storageLocation: v.storageLocation,
+      storageLocation: `${v.storageRoom || ''} - ${v.cabinetNumber || ''}`,
+      storageRoom: v.storageRoom || '',
+      cabinetNumber: v.cabinetNumber || '',
+      nfeNumber: v.nfeNumber || '',
       minStock: v.minStock,
       entryDate: v.entryDate ? v.entryDate.toISOString() : undefined,
       expirationDate: v.expirationDate ? v.expirationDate.toISOString() : undefined,
@@ -266,7 +265,7 @@ export function AddInventoryModal({
                       <FormLabel>NOME DO MATERIAL</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="EX: RESINA A2"
+                          placeholder="EX: MINI PILAR"
                           className="border-[#D81B84] focus-visible:ring-[#D81B84] uppercase"
                           {...field}
                         />
@@ -280,7 +279,7 @@ export function AddInventoryModal({
                   name="brand"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>MARCA</FormLabel>
+                      <FormLabel>MARCA DO PRODUTO</FormLabel>
                       <FormControl>
                         <Input placeholder="EX: 3M, FGM..." className="uppercase" {...field} />
                       </FormControl>
@@ -333,9 +332,9 @@ export function AddInventoryModal({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {IMPLANT_BRANDS.map((brand) => (
-                                <SelectItem key={brand} value={brand} className="uppercase">
-                                  {brand}
+                              {implantBrands.map((opt) => (
+                                <SelectItem key={opt.id} value={opt.value} className="uppercase">
+                                  {opt.value}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -434,11 +433,11 @@ export function AddInventoryModal({
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="MINI PILAR RETO">MINI PILAR RETO</SelectItem>
-                                  <SelectItem value="MINI PILAR ANGULADO">
-                                    MINI PILAR ANGULADO
-                                  </SelectItem>
-                                  <SelectItem value="MUNHÃO UNIVERSAL">MUNHÃO UNIVERSAL</SelectItem>
+                                  {componentTypes.map((opt) => (
+                                    <SelectItem key={opt.id} value={opt.value}>
+                                      {opt.value}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -682,7 +681,7 @@ export function AddInventoryModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-slate-100 pt-4">
                 <FormField
                   control={form.control}
                   name="entryDate"
@@ -760,21 +759,54 @@ export function AddInventoryModal({
                     </FormItem>
                   )}
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                 <FormField
                   control={form.control}
-                  name="storageLocation"
+                  name="nfeNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>LOCAL DE ARMAZENAMENTO</FormLabel>
+                      <FormLabel>NÚMERO DA NFE</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="EX: SALA 1 - ARMÁRIO A"
-                          className="uppercase"
-                          {...field}
-                        />
+                        <Input placeholder="EX: 123456" className="uppercase" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4">
+                <FormField
+                  control={form.control}
+                  name="storageRoom"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SALA DE ARMAZENAMENTO</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="uppercase">
+                            <SelectValue placeholder="SELECIONE" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {storageRooms.map((opt) => (
+                            <SelectItem key={opt.id} value={opt.value} className="uppercase">
+                              {opt.value}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cabinetNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NÚMERO DO ARMÁRIO</FormLabel>
+                      <FormControl>
+                        <Input placeholder="EX: A1" className="uppercase" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -785,7 +817,7 @@ export function AddInventoryModal({
                   name="minStock"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ESTOQUE MÍNIMO (AVISO)</FormLabel>
+                      <FormLabel>ESTOQUE MÍNIMO</FormLabel>
                       <FormControl>
                         <Input type="number" className="uppercase" {...field} />
                       </FormControl>

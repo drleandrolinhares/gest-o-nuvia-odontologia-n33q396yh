@@ -19,7 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import useAppStore, { type InventoryItem } from '@/stores/main'
 import { formatCurrency } from '@/lib/utils'
-import { Package, Calculator, History, ShoppingCart, Trash2 } from 'lucide-react'
+import { Package, Calculator, History, ShoppingCart, Trash2, MapPin, Box } from 'lucide-react'
 
 export function EditInventoryModal({
   item,
@@ -95,6 +95,27 @@ export function EditInventoryModal({
           </div>
         </DialogHeader>
 
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-center gap-8 mt-4 mb-2 shadow-sm">
+          <div>
+            <div className="text-[10px] font-black text-blue-900 tracking-widest uppercase mb-1">
+              SALA DE ARMAZENAMENTO
+            </div>
+            <div className="font-bold text-base text-blue-800 uppercase flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              {item.storageRoom || 'NÃO INFORMADA'}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-black text-blue-900 tracking-widest uppercase mb-1">
+              NÚMERO DO ARMÁRIO
+            </div>
+            <div className="font-bold text-base text-blue-800 uppercase flex items-center gap-2">
+              <Box className="w-4 h-4" />
+              {item.cabinetNumber || 'NÃO INFORMADO'}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
           <Card className="border-l-4 border-l-blue-500 shadow-sm">
             <CardHeader className="pb-2">
@@ -152,7 +173,7 @@ export function EditInventoryModal({
                   <TableRow>
                     <TableHead className="font-bold">DATA</TableHead>
                     <TableHead className="font-bold">FORNECEDOR</TableHead>
-                    <TableHead className="font-bold">LOTE / VALIDADE</TableHead>
+                    <TableHead className="font-bold">LOTE / NFE</TableHead>
                     <TableHead className="text-center font-bold">QTD.</TableHead>
                     <TableHead className="text-right font-bold">VALOR TOTAL</TableHead>
                   </TableRow>
@@ -167,16 +188,18 @@ export function EditInventoryModal({
                         {getSupplierName(h.supplierId)}
                       </TableCell>
                       <TableCell className="text-xs">
-                        {h.lot ? (
-                          <span className="font-mono bg-muted px-1 py-0.5 rounded">{h.lot}</span>
-                        ) : (
-                          '-'
-                        )}
-                        {h.expirationDate && (
-                          <div className="text-orange-600 mt-1">
-                            VAL: {new Date(h.expirationDate).toLocaleDateString('pt-BR')}
-                          </div>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          {h.lot ? (
+                            <span className="font-mono bg-muted px-1 py-0.5 rounded w-fit">
+                              LT: {h.lot}
+                            </span>
+                          ) : (
+                            <span>-</span>
+                          )}
+                          {h.nfeNumber && (
+                            <span className="text-muted-foreground">NFE: {h.nfeNumber}</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-center font-black text-base">
                         {h.quantity}

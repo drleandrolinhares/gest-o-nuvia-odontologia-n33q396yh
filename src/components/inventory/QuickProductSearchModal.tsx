@@ -183,8 +183,29 @@ export function QuickProductSearchModal({
                 </p>
               </div>
 
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-center gap-8 mt-4 mb-2 shadow-sm">
+                <div>
+                  <div className="text-[10px] font-black text-blue-900 tracking-widest uppercase mb-1">
+                    SALA DE ARMAZENAMENTO
+                  </div>
+                  <div className="font-bold text-base text-blue-800 uppercase flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    {selectedProduct.storageRoom || 'NÃO INFORMADA'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-black text-blue-900 tracking-widest uppercase mb-1">
+                    NÚMERO DO ARMÁRIO
+                  </div>
+                  <div className="font-bold text-base text-blue-800 uppercase flex items-center gap-2">
+                    <Box className="w-4 h-4" />
+                    {selectedProduct.cabinetNumber || 'NÃO INFORMADO'}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 text-blue-900 p-4 rounded-xl border border-blue-100 flex flex-col justify-center shadow-sm">
+                <div className="bg-slate-50 text-slate-900 p-4 rounded-xl border border-slate-200 flex flex-col justify-center shadow-sm">
                   <div className="text-[10px] font-black tracking-widest mb-1 opacity-70">
                     QTD. EM ESTOQUE
                   </div>
@@ -213,11 +234,6 @@ export function QuickProductSearchModal({
                   icon={ClipboardList}
                 />
                 <DetailItem
-                  label="ARMAZENAMENTO"
-                  value={selectedProduct.storageLocation}
-                  icon={MapPin}
-                />
-                <DetailItem
                   label="CÓDIGO DE BARRAS"
                   value={selectedProduct.barcode || 'NÃO INFORMADO'}
                   icon={Barcode}
@@ -226,6 +242,11 @@ export function QuickProductSearchModal({
                   label="VALIDADE"
                   value={formatDate(selectedProduct.expirationDate)}
                   icon={CalendarClock}
+                />
+                <DetailItem
+                  label="NÚMERO DA NFE"
+                  value={selectedProduct.nfeNumber || 'NÃO INFORMADO'}
+                  icon={ClipboardList}
                 />
               </div>
 

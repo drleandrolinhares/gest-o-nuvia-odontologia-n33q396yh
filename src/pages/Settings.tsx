@@ -3,8 +3,12 @@ import { GeneralSettings } from '@/components/settings/GeneralSettings'
 import { SuppliersManagement } from '@/components/settings/SuppliersManagement'
 import { UsersList } from '@/components/settings/UsersList'
 import { BonusSettings } from '@/components/settings/BonusSettings'
+import { InventorySettings } from '@/components/settings/InventorySettings'
+import useAppStore from '@/stores/main'
 
 export default function Settings() {
+  const { isAdmin } = useAppStore()
+
   return (
     <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
       <div>
@@ -15,19 +19,24 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="geral" className="w-full">
-        <TabsList className="mb-6 grid w-full grid-cols-1 md:grid-cols-4 max-w-4xl h-auto">
-          <TabsTrigger value="geral" className="py-2">
+        <TabsList className="mb-6 flex flex-wrap w-full max-w-4xl h-auto">
+          <TabsTrigger value="geral" className="py-2 px-4 flex-1">
             GERAL
           </TabsTrigger>
-          <TabsTrigger value="fornecedores" className="py-2">
+          <TabsTrigger value="fornecedores" className="py-2 px-4 flex-1">
             FORNECEDORES
           </TabsTrigger>
-          <TabsTrigger value="usuarios" className="py-2">
+          <TabsTrigger value="usuarios" className="py-2 px-4 flex-1">
             USUÁRIOS
           </TabsTrigger>
-          <TabsTrigger value="bonificacoes" className="py-2">
+          <TabsTrigger value="bonificacoes" className="py-2 px-4 flex-1">
             BONIFICAÇÕES
           </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="estoque" className="py-2 px-4 flex-1">
+              ESTOQUE
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="geral">
@@ -45,6 +54,12 @@ export default function Settings() {
         <TabsContent value="bonificacoes">
           <BonusSettings />
         </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="estoque">
+            <InventorySettings />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
