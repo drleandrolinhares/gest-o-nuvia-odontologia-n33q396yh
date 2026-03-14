@@ -12,7 +12,9 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         e.target.value = e.target.value.toUpperCase()
         try {
           e.target.setSelectionRange(start, end)
-        } catch (err) {}
+        } catch (err) {
+          // Ignore for types that don't support selection range
+        }
       }
       onChange?.(e)
     }
