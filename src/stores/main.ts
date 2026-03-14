@@ -139,6 +139,7 @@ export type WorkSchedule = {
 interface AppStore {
   isAuthenticated: boolean
   isDataLoading: boolean
+  fetchError: string | null
   currentUserId: string | null
   isAdmin: boolean
   can: (module: string, action: string) => boolean
@@ -342,6 +343,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isDataLoading, setIsDataLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [departments, setDepartments] = useState(mockDepartments)
   const [packageTypes, setPackageTypes] = useState(mockPackageTypes)
@@ -369,49 +371,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (user) {
       setIsAuthenticated(true)
       setIsDataLoading(true)
+      setFetchError(null)
+
+      const handleResponse = <T>(r: any, mapper?: (d: any) => T): T[] => {
+        if (r.error) throw r.error
+        return mapper ? (r.data || []).map(mapper) : r.data || []
+      }
+
       Promise.all([
         supabase
           .from('employees')
           .select('*')
-          .then((r) => setEmployees((r.data || []).map(mEmp))),
+          .then((r) => setEmployees(handleResponse(r, mEmp))),
         supabase
           .from('inventory')
           .select('*')
-          .then((r) => setInventory((r.data || []).map(mInv))),
+          .then((r) => setInventory(handleResponse(r, mInv))),
         supabase
           .from('agenda')
           .select('*')
-          .then((r) => setAgenda((r.data || []).map(mAg))),
+          .then((r) => setAgenda(handleResponse(r, mAg))),
         supabase
           .from('acessos')
           .select('*')
-          .then((r) => setAcessos((r.data || []).map(mAcc))),
+          .then((r) => setAcessos(handleResponse(r, mAcc))),
         supabase
           .from('suppliers')
           .select('*')
-          .then((r) => setSuppliers((r.data || []).map(mSup))),
+          .then((r) => setSuppliers(handleResponse(r, mSup))),
         supabase
           .from('onboarding')
           .select('*')
-          .then((r) => setOnboarding((r.data || []).map(mOnb))),
+          .then((r) => setOnboarding(handleResponse(r, mOnb))),
         supabase
           .from('documents')
           .select('*')
-          .then((r) => setDocuments((r.data || []).map(mDoc))),
+          .then((r) => setDocuments(handleResponse(r, mDoc))),
         supabase
           .from('bonus_settings')
           .select('*')
-          .then((r) => setBonusTypes(r.data || [])),
+          .then((r) => setBonusTypes(handleResponse(r))),
         supabase
           .from('employee_documents')
           .select('*')
-          .then((r) => setEmployeeDocuments(r.data || [])),
+          .then((r) => setEmployeeDocuments(handleResponse(r))),
         supabase
           .from('audit_logs')
           .select('*, profiles(name)')
           .order('created_at', { ascending: false })
           .limit(50)
-          .then((r) =>
+          .then((r) => {
+            if (r.error) throw r.error
             setAuditLogs(
               (r.data || []).map((d) => ({
                 id: d.id,
@@ -419,11 +429,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 action: d.action,
                 timestamp: d.created_at,
               })),
-            ),
-          ),
-      ]).finally(() => {
-        setIsDataLoading(false)
-      })
+            )
+          }),
+      ])
+        .catch((err) => {
+          console.error('Initial data fetch error:', err)
+          setFetchError(
+            'Falha ao sincronizar dados do sistema. Verifique sua conexão e tente novamente.',
+          )
+        })
+        .finally(() => {
+          setIsDataLoading(false)
+        })
     } else {
       setIsAuthenticated(false)
       setCurrentUserId(null)
@@ -433,6 +450,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setBonusTypes([])
       setEmployeeDocuments([])
       setWorkSchedules([])
+      setFetchError(null)
       setIsDataLoading(false)
     }
   }, [user])
@@ -481,6 +499,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...p,
           ])
       })
+      .catch((err) => console.warn('Falha ao registrar log de auditoria', err))
   }, [])
 
   const addDepartment = useCallback(
@@ -624,6 +643,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`CRIOU PRODUTO: ${i.name}`)
           }
         })
+        .catch((err) => console.warn('Erro ao adicionar produto no inventário', err))
     },
     [logAction],
   )
@@ -639,6 +659,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`ATUALIZOU ESTOQUE ID: ${id} PARA ${q}`)
           }
         })
+        .catch((err) => console.warn('Erro ao atualizar quantidade no inventário', err))
     },
     [logAction],
   )
@@ -652,6 +673,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setInventory((p) => p.filter((i) => i.id !== id))
           logAction(`REMOVEU PRODUTO ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao deletar produto no inventário', err))
     },
     [logAction],
   )
@@ -672,6 +694,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           })
           .eq('id', itemId)
           .then(() => logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`))
+          .catch((err) => console.warn('Erro ao adicionar histórico de compra', err))
         return prev.map((i) =>
           i.id === itemId
             ? {
@@ -841,14 +864,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal
       if (e.vacationDueDate !== undefined) payload.vacation_due_date = e.vacationDueDate || null
 
-      const { error } = await supabase.from('employees').update(payload).eq('id', id)
-
-      if (!error) {
-        setEmployees((p) => p.map((emp) => (emp.id === id ? { ...emp, ...e } : emp)))
-        logAction(`ATUALIZOU DADOS DO COLABORADOR ID: ${id}`)
-        return { success: true }
+      try {
+        const { error } = await supabase.from('employees').update(payload).eq('id', id)
+        if (!error) {
+          setEmployees((p) => p.map((emp) => (emp.id === id ? { ...emp, ...e } : emp)))
+          logAction(`ATUALIZOU DADOS DO COLABORADOR ID: ${id}`)
+          return { success: true }
+        }
+        return { success: false, error }
+      } catch (err) {
+        return { success: false, error: err }
       }
-      return { success: false, error }
     },
     [logAction],
   )
@@ -879,6 +905,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setEmployees((p) => p.filter((e) => e.id !== id))
           logAction(`REMOVEU COLABORADOR: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao remover colaborador', err))
     },
     [logAction],
   )
@@ -892,6 +919,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setEmployees((p) => p.map((e) => (e.id === id ? { ...e, status: s as any } : e)))
           logAction(`ALTEROU STATUS COLAB ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao atualizar status do colaborador', err))
     },
     [logAction],
   )
@@ -909,6 +937,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`ADICIONOU DOC: ${n}`)
           }
         })
+        .catch((err) => console.warn('Erro ao adicionar documento', err))
     },
     [logAction],
   )
@@ -922,6 +951,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setDocuments((p) => p.filter((d) => d.id !== id))
           logAction(`REMOVEU DOC ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao remover documento', err))
     },
     [logAction],
   )
@@ -952,6 +982,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`CRIOU AGENDA: ${i.title}`)
           }
         })
+        .catch((err) => console.warn('Erro ao adicionar item na agenda', err))
     },
     [logAction],
   )
@@ -980,6 +1011,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`ATUALIZOU AGENDA ID: ${id}`)
           }
         })
+        .catch((err) => console.warn('Erro ao atualizar item na agenda', err))
     },
     [logAction],
   )
@@ -994,6 +1026,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setAgenda((p) => p.filter((i) => i.id !== id))
           logAction(`REMOVEU AGENDA ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao remover item na agenda', err))
     },
     [logAction],
   )
@@ -1019,6 +1052,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`CRIOU ACESSO: ${i.platform}`)
           }
         })
+        .catch((err) => console.warn('Erro ao criar acesso', err))
     },
     [logAction],
   )
@@ -1038,6 +1072,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
           logAction(`ATUALIZOU ACESSO ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao atualizar acesso', err))
     },
     [logAction],
   )
@@ -1051,6 +1086,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setAcessos((p) => p.filter((i) => i.id !== id))
           logAction(`REMOVEU ACESSO ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao remover acesso', err))
     },
     [logAction],
   )
@@ -1079,6 +1115,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`CRIOU FORNECEDOR: ${i.name}`)
           }
         })
+        .catch((err) => console.warn('Erro ao criar fornecedor', err))
     },
     [logAction],
   )
@@ -1101,6 +1138,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
           logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao atualizar fornecedor', err))
     },
     [logAction],
   )
@@ -1114,6 +1152,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setSuppliers((p) => p.filter((i) => i.id !== id))
           logAction(`REMOVEU FORNECEDOR ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao remover fornecedor', err))
     },
     [logAction],
   )
@@ -1129,6 +1168,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (data) setBonusTypes((p) => [...p, data])
           logAction(`ADICIONOU TIPO DE BONIFICAÇÃO: ${name}`)
         })
+        .catch((err) => console.warn('Erro ao adicionar tipo de bonificação', err))
     },
     [logAction],
   )
@@ -1143,31 +1183,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setBonusTypes((p) => p.filter((b) => b.id !== id))
           logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
         })
+        .catch((err) => console.warn('Erro ao remover tipo de bonificação', err))
     },
     [logAction],
   )
 
   const addEmployeeDocument = useCallback(
     async (employeeId: string, fileName: string, file: File) => {
-      return new Promise<void>((resolve) => {
+      return new Promise<void>((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = async () => {
-          const base64 = reader.result as string
-          const { data } = await supabase
-            .from('employee_documents')
-            .insert([
-              {
-                employee_id: employeeId,
-                file_name: fileName,
-                file_path: base64,
-              },
-            ])
-            .select()
-            .single()
-          if (data) setEmployeeDocuments((p) => [...p, data])
-          logAction(`ANEXOU DOCUMENTO: ${fileName}`)
-          resolve()
+          try {
+            const base64 = reader.result as string
+            const { data, error } = await supabase
+              .from('employee_documents')
+              .insert([
+                {
+                  employee_id: employeeId,
+                  file_name: fileName,
+                  file_path: base64,
+                },
+              ])
+              .select()
+              .single()
+
+            if (error) throw error
+            if (data) setEmployeeDocuments((p) => [...p, data])
+            logAction(`ANEXOU DOCUMENTO: ${fileName}`)
+            resolve()
+          } catch (err) {
+            console.error('Erro ao salvar documento:', err)
+            reject(err)
+          }
         }
+        reader.onerror = (err) => reject(err)
         reader.readAsDataURL(file)
       })
     },
@@ -1176,60 +1225,76 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const removeEmployeeDocument = useCallback(
     async (id: string) => {
-      await supabase.from('employee_documents').delete().eq('id', id)
-      setEmployeeDocuments((p) => p.filter((d) => d.id !== id))
-      logAction(`REMOVEU DOCUMENTO ID: ${id}`)
+      try {
+        const { error } = await supabase.from('employee_documents').delete().eq('id', id)
+        if (error) throw error
+        setEmployeeDocuments((p) => p.filter((d) => d.id !== id))
+        logAction(`REMOVEU DOCUMENTO ID: ${id}`)
+      } catch (err) {
+        console.warn('Erro ao remover documento', err)
+      }
     },
     [logAction],
   )
 
   const fetchWorkSchedules = useCallback(async (start: string, end: string) => {
-    const { data } = await supabase
-      .from('work_schedules' as any)
-      .select('*')
-      .gte('work_date', start)
-      .lte('work_date', end)
-    if (data) {
-      setWorkSchedules((prev) => {
-        const others = prev.filter((p) => p.work_date < start || p.work_date > end)
-        return [...others, ...data]
-      })
+    try {
+      const { data, error } = await supabase
+        .from('work_schedules' as any)
+        .select('*')
+        .gte('work_date', start)
+        .lte('work_date', end)
+
+      if (error) throw error
+      if (data) {
+        setWorkSchedules((prev) => {
+          const others = prev.filter((p) => p.work_date < start || p.work_date > end)
+          return [...others, ...data]
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching work schedules:', err)
     }
   }, [])
 
   const upsertWorkSchedule = useCallback(
     async (s: Partial<WorkSchedule> & { employee_id: string; work_date: string }) => {
-      const { data, error } = await supabase
-        .from('work_schedules' as any)
-        .upsert(
-          {
-            employee_id: s.employee_id,
-            work_date: s.work_date,
-            morning_start: s.morning_start || null,
-            morning_end: s.morning_end || null,
-            afternoon_start: s.afternoon_start || null,
-            afternoon_end: s.afternoon_end || null,
-            morning_snack_start: s.morning_snack_start || null,
-            morning_snack_end: s.morning_snack_end || null,
-            afternoon_snack_start: s.afternoon_snack_start || null,
-            afternoon_snack_end: s.afternoon_snack_end || null,
-            total_daily_hours: s.total_daily_hours || 0,
-          },
-          { onConflict: 'employee_id, work_date' },
-        )
-        .select()
-        .single()
-
-      if (data) {
-        setWorkSchedules((prev) => {
-          const exists = prev.find(
-            (p) =>
-              p.id === data.id ||
-              (p.employee_id === data.employee_id && p.work_date === data.work_date),
+      try {
+        const { data, error } = await supabase
+          .from('work_schedules' as any)
+          .upsert(
+            {
+              employee_id: s.employee_id,
+              work_date: s.work_date,
+              morning_start: s.morning_start || null,
+              morning_end: s.morning_end || null,
+              afternoon_start: s.afternoon_start || null,
+              afternoon_end: s.afternoon_end || null,
+              morning_snack_start: s.morning_snack_start || null,
+              morning_snack_end: s.morning_snack_end || null,
+              afternoon_snack_start: s.afternoon_snack_start || null,
+              afternoon_snack_end: s.afternoon_snack_end || null,
+              total_daily_hours: s.total_daily_hours || 0,
+            },
+            { onConflict: 'employee_id, work_date' },
           )
-          if (exists) return prev.map((p) => (p.id === exists.id ? data : p))
-          return [...prev, data]
-        })
+          .select()
+          .single()
+
+        if (error) throw error
+        if (data) {
+          setWorkSchedules((prev) => {
+            const exists = prev.find(
+              (p) =>
+                p.id === data.id ||
+                (p.employee_id === data.employee_id && p.work_date === data.work_date),
+            )
+            if (exists) return prev.map((p) => (p.id === exists.id ? data : p))
+            return [...prev, data]
+          })
+        }
+      } catch (err) {
+        console.error('Error upserting work schedule:', err)
       }
     },
     [],
@@ -1239,6 +1304,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       isAuthenticated,
       isDataLoading,
+      fetchError,
       currentUserId,
       isAdmin,
       can,
@@ -1300,6 +1366,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [
       isAuthenticated,
       isDataLoading,
+      fetchError,
       currentUserId,
       isAdmin,
       can,

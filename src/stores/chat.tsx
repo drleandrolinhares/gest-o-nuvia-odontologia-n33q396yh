@@ -89,7 +89,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .from('chat_participants')
         .select('room_id')
         .eq('user_id', user.id)
-      if (partsError || !myParts || myParts.length === 0) {
+
+      if (partsError) throw partsError
+
+      if (!myParts || myParts.length === 0) {
         setRooms([])
         return
       }
@@ -99,17 +102,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .from('chat_rooms')
         .select('*')
         .in('id', roomIds)
-      if (roomsError) return
+
+      if (roomsError) throw roomsError
 
       const indRooms = roomsData?.filter((r) => r.type === 'individual').map((r) => r.id) || []
       const otherUsers: Record<string, string> = {}
 
       if (indRooms.length > 0) {
-        const { data: others } = await supabase
+        const { data: others, error: othersError } = await supabase
           .from('chat_participants')
           .select('room_id, user_id')
           .in('room_id', indRooms)
           .neq('user_id', user.id)
+
+        if (othersError) throw othersError
+
         others?.forEach((o) => {
           otherUsers[o.room_id] = o.user_id
         })
@@ -129,7 +136,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const fetchUnread = useCallback(async () => {
     if (!user || !user.id) return
     try {
-      const { data } = await supabase.rpc('get_unread_counts', { user_id_param: user.id })
+      const { data, error } = await supabase.rpc('get_unread_counts', { user_id_param: user.id })
+      if (error) throw error
       if (data) {
         const counts: Record<string, number> = {}
         data.forEach((r: any) => (counts[r.room_id] = Number(r.unread_count)))
@@ -149,7 +157,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           if (prev[roomId] === 0 || prev[roomId] === undefined) return prev
           return { ...prev, [roomId]: 0 }
         })
-        await supabase.rpc('mark_room_read', { p_room_id: roomId, p_user_id: user.id })
+        const { error } = await supabase.rpc('mark_room_read', {
+          p_room_id: roomId,
+          p_user_id: user.id,
+        })
+        if (error) throw error
       } catch (err) {
         console.warn('Error in markRoomAsRead:', err)
       }
@@ -182,8 +194,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (!roomId) return
     const {
       data: { session },
+      error: sessionError,
     } = await supabase.auth.getSession()
-    if (!session) {
+
+    if (sessionError || !session) {
       throw new Error('Sessão expirada. Verifique seu login.')
     }
 
@@ -332,8 +346,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     try {
       const {
         data: { session },
+        error: sessionError,
       } = await supabase.auth.getSession()
-      if (!session) throw new Error('Sessão expirada. Faça login novamente.')
+
+      if (sessionError || !session) throw new Error('Sessão expirada. Faça login novamente.')
 
       const { data, error } = await supabase
         .from('chat_rooms')
@@ -346,7 +362,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       if (data) {
         const participants = Array.from(new Set([user.id, ...participantIds]))
         const partsToInsert = participants.map((id) => ({ room_id: data.id, user_id: id }))
-        await supabase.from('chat_participants').insert(partsToInsert)
+        const { error: partError } = await supabase.from('chat_participants').insert(partsToInsert)
+        if (partError) throw partError
 
         setRooms((prev) => [...prev, data as ChatRoom])
         setActiveRoomId(data.id)
@@ -363,7 +380,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const addGroupParticipant = async (roomId: string, userId: string) => {
     try {
-      await supabase.from('chat_participants').insert({ room_id: roomId, user_id: userId })
+      const { error } = await supabase
+        .from('chat_participants')
+        .insert({ room_id: roomId, user_id: userId })
+      if (error) throw error
       logAudit(`ADICIONOU USUÁRIO AO GRUPO ID: ${roomId}`)
     } catch (err) {
       console.warn('Error in addGroupParticipant:', err)
@@ -372,7 +392,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const removeGroupParticipant = async (roomId: string, userId: string) => {
     try {
-      await supabase.from('chat_participants').delete().match({ room_id: roomId, user_id: userId })
+      const { error } = await supabase
+        .from('chat_participants')
+        .delete()
+        .match({ room_id: roomId, user_id: userId })
+      if (error) throw error
+
       logAudit(`REMOVEU USUÁRIO DO GRUPO ID: ${roomId}`)
       if (userId === user?.id) {
         setRooms((prev) => prev.filter((r) => r.id !== roomId))
@@ -388,10 +413,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const getGroupParticipants = async (roomId: string) => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('chat_participants')
         .select('user_id')
         .eq('room_id', roomId)
+      if (error) throw error
       return (data?.map((d) => d.user_id).filter(Boolean) as string[]) || []
     } catch (err) {
       console.warn('Error in getGroupParticipants:', err)
@@ -407,8 +433,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     try {
       const {
         data: { session },
+        error: sessionError,
       } = await supabase.auth.getSession()
-      if (!session) {
+
+      if (sessionError || !session) {
         throw new Error('Sessão expirada. Faça login novamente para usar o chat.')
       }
 
@@ -475,8 +503,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     try {
       const {
         data: { session },
+        error: sessionError,
       } = await supabase.auth.getSession()
-      if (!session) throw new Error('Sessão expirada. Faça login novamente.')
+
+      if (sessionError || !session) throw new Error('Sessão expirada. Faça login novamente.')
 
       const { data, error } = await supabase
         .from('chat_messages')

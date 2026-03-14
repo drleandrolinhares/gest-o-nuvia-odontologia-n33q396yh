@@ -8,6 +8,7 @@ interface AuthContextType {
   signIn: (email: string, pass: string, keepSignedIn?: boolean) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
   loading: boolean
+  authError: string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -22,24 +23,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
     let isMounted = true
 
     const initSession = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+        const { data, error } = await supabase.auth.getSession()
+
+        if (error) {
+          throw error
+        }
 
         if (isMounted) {
-          setSession(session)
-          setUser(session?.user ?? null)
+          setSession(data.session)
+          setUser(data.session?.user ?? null)
           setLoading(false)
         }
       } catch (err) {
         console.error('Error fetching session:', err)
-        if (isMounted) setLoading(false)
+        if (isMounted) {
+          setAuthError('Não foi possível verificar a sessão. Verifique sua conexão de rede.')
+          setLoading(false)
+        }
       }
     }
 
@@ -68,16 +75,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const signIn = async (email: string, password: string, keepSignedIn: boolean = false) => {
-    localStorage.setItem('keepSignedIn', keepSignedIn ? 'true' : 'false')
-    return await supabase.auth.signInWithPassword({ email, password })
+    try {
+      localStorage.setItem('keepSignedIn', keepSignedIn ? 'true' : 'false')
+      return await supabase.auth.signInWithPassword({ email, password })
+    } catch (error) {
+      return { error }
+    }
   }
 
   const signOut = async () => {
-    return await supabase.auth.signOut()
+    try {
+      return await supabase.auth.signOut()
+    } catch (error) {
+      return { error }
+    }
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, signIn, signOut, loading }}>
+    <AuthContext.Provider value={{ user, session, signIn, signOut, loading, authError }}>
       {children}
     </AuthContext.Provider>
   )

@@ -17,43 +17,46 @@ import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
 import { Toaster } from '@/components/ui/toaster'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Navigate to="/admin/agenda" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <ChatProvider>
-                    <Layout />
-                  </ChatProvider>
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="agenda" replace />} />
-              <Route path="agenda" element={<Agenda />} />
-              <Route path="dashboard" element={<Index />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="acessos" element={<Acessos />} />
-              <Route path="rh" element={<RH />} />
-              <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
-              <Route path="rh/escala" element={<WorkSchedule />} />
-              <Route path="estoque" element={<Inventory />} />
-              <Route path="configuracoes" element={<Settings />} />
-              <Route path="auditoria" element={<AuditLog />} />
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Navigate to="/admin/agenda" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <ChatProvider>
+                      <Layout />
+                    </ChatProvider>
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="agenda" replace />} />
+                <Route path="agenda" element={<Agenda />} />
+                <Route path="dashboard" element={<Index />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="acessos" element={<Acessos />} />
+                <Route path="rh" element={<RH />} />
+                <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
+                <Route path="rh/escala" element={<WorkSchedule />} />
+                <Route path="estoque" element={<Inventory />} />
+                <Route path="configuracoes" element={<Settings />} />
+                <Route path="auditoria" element={<AuditLog />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-        <Toaster />
-      </AppProvider>
-    </AuthProvider>
+            </Routes>
+          </Router>
+          <Toaster />
+        </AppProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
