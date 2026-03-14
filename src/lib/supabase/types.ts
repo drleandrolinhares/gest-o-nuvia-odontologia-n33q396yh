@@ -449,6 +449,51 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          id: string
+          inventory_id: string
+          quantity: number
+          recipient: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inventory_id: string
+          quantity: number
+          recipient?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inventory_id?: string
+          quantity?: number
+          recipient?: string | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'inventory_movements_inventory_id_fkey'
+            columns: ['inventory_id']
+            isOneToOne: false
+            referencedRelation: 'inventory'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'inventory_movements_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       inventory_settings: {
         Row: {
           category: string
@@ -939,6 +984,14 @@ export const Constants = {
 //   storage_room: text (nullable)
 //   cabinet_number: text (nullable)
 //   critical_observations: text (nullable)
+// Table: inventory_movements
+//   id: uuid (not null, default: gen_random_uuid())
+//   inventory_id: uuid (not null)
+//   user_id: uuid (nullable)
+//   type: text (not null)
+//   quantity: integer (not null)
+//   recipient: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: inventory_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   category: text (not null)
@@ -1023,6 +1076,10 @@ export const Constants = {
 //   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 // Table: inventory
 //   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
+// Table: inventory_movements
+//   FOREIGN KEY inventory_movements_inventory_id_fkey: FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE
+//   PRIMARY KEY inventory_movements_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY inventory_movements_user_id_fkey: FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE SET NULL
 // Table: inventory_settings
 //   PRIMARY KEY inventory_settings_pkey: PRIMARY KEY (id)
 // Table: inventory_temporary_outflows
@@ -1092,6 +1149,10 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: inventory
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: inventory_movements
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true

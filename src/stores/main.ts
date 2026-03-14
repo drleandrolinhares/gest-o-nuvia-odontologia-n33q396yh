@@ -117,6 +117,10 @@ export type AgendaItem = {
   createdBy?: string
   is_completed?: boolean
 }
+
+export type ManualStep = { id: string; text: string; completed?: boolean }
+export type TroubleshootingFaq = { id: string; question: string; answer: string }
+
 export type AccessItem = {
   id: string
   platform: string
@@ -124,7 +128,18 @@ export type AccessItem = {
   login: string
   pass: string
   instructions: string
+  sector?: string
+  access_level?: string
+  logo_url?: string
+  description?: string
+  target_users?: string
+  frequency?: string
+  video_url?: string
+  manual_steps?: ManualStep[]
+  troubleshooting?: TroubleshootingFaq[]
+  security_note?: string
 }
+
 export type Supplier = {
   id: string
   name: string
@@ -376,6 +391,16 @@ const mAcc = (d: any): AccessItem => ({
   login: d.login,
   pass: d.pass,
   instructions: d.instructions,
+  sector: d.sector || 'GERAL',
+  access_level: d.access_level || 'ACESSO GERAL',
+  logo_url: d.logo_url || '',
+  description: d.description || '',
+  target_users: d.target_users || '',
+  frequency: d.frequency || '',
+  video_url: d.video_url || '',
+  manual_steps: d.manual_steps || [],
+  troubleshooting: d.troubleshooting || [],
+  security_note: d.security_note || '',
 })
 const mSup = (d: any): Supplier => ({
   id: d.id,
@@ -1355,7 +1380,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
             url: i.url,
             login: i.login,
             pass: i.pass,
-            instructions: i.instructions,
+            instructions: i.instructions || '',
+            sector: i.sector || 'GERAL',
+            access_level: i.access_level || 'ACESSO GERAL',
+            logo_url: i.logo_url || '',
+            description: i.description || '',
+            target_users: i.target_users || '',
+            frequency: i.frequency || '',
+            video_url: i.video_url || '',
+            manual_steps: (i.manual_steps as any) || [],
+            troubleshooting: (i.troubleshooting as any) || [],
+            security_note: i.security_note || '',
           },
         ])
         .select()
@@ -1380,6 +1415,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           login: i.login,
           pass: i.pass,
           instructions: i.instructions,
+          sector: i.sector,
+          access_level: i.access_level,
+          logo_url: i.logo_url,
+          description: i.description,
+          target_users: i.target_users,
+          frequency: i.frequency,
+          video_url: i.video_url,
+          manual_steps: i.manual_steps as any,
+          troubleshooting: i.troubleshooting as any,
+          security_note: i.security_note,
         })
         .eq('id', id)
         .then(() => {

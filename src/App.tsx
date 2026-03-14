@@ -9,6 +9,7 @@ import Settings from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
 import Agenda from '@/pages/Agenda'
 import Acessos from '@/pages/Acessos'
+import AcessoManual from '@/pages/AcessoManual'
 import Login from '@/pages/Login'
 import Chat from '@/pages/Chat'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -43,6 +44,7 @@ export default function App() {
                 <Route path="dashboard" element={<Index />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="acessos" element={<Acessos />} />
+                <Route path="acessos/:id" element={<AcessoManual />} />
                 <Route path="rh" element={<RH />} />
                 <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
                 <Route path="rh/escala" element={<WorkSchedule />} />
