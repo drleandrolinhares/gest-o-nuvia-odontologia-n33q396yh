@@ -519,10 +519,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pricingHistory, setPricingHistory] = useState<PricingHistory[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees, inventory, appSettings })
+  const storeRef = useRef({ user, employees, inventory, appSettings, pricingHistory })
   useEffect(() => {
-    storeRef.current = { user, employees, inventory, appSettings }
-  }, [user, employees, inventory, appSettings])
+    storeRef.current = { user, employees, inventory, appSettings, pricingHistory }
+  }, [user, employees, inventory, appSettings, pricingHistory])
 
   useEffect(() => {
     if (user) {
@@ -1910,6 +1910,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? `ATUALIZOU TABELA DE PREÇOS: ${priceData.work_type}`
             : `CRIOU TABELA DE PREÇOS: ${priceData.work_type}`,
         )
+
+        const todayStr = new Date().toISOString().split('T')[0]
+        const hasToday = storeRef.current.pricingHistory.some(
+          (h) => h.execution_date === todayStr && h.user_id === storeRef.current.user?.id,
+        )
+        if (!hasToday) {
+          addPricingHistory(todayStr).catch((err) =>
+            console.warn('Erro ao auto-registrar histórico de precificação', err),
+          )
+        }
+
         return { success: true }
       } catch (error) {
         console.error('Error saving price list:', error)

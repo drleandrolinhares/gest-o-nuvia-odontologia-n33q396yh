@@ -218,9 +218,9 @@ export function HourlyCostTab() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 overflow-auto bg-slate-50/50 custom-scrollbar p-6">
+          <div className="flex-1 overflow-y-auto bg-slate-50/50 custom-scrollbar p-6 max-h-[55vh]">
             <div className="border rounded-xl shadow-sm bg-white overflow-x-auto">
-              <Table className="min-w-[800px]">
+              <Table className="min-w-[800px] relative">
                 <TableHeader className="bg-slate-100 sticky top-0 z-10 shadow-sm">
                   <TableRow>
                     <TableHead className="font-bold text-slate-700">DESCRIÇÃO</TableHead>

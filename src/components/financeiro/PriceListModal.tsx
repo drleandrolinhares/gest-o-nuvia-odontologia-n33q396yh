@@ -143,9 +143,9 @@ export function PriceListModal({ item, open, onOpenChange }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid md:grid-cols-2 h-full max-h-[80vh] overflow-y-auto">
+        <div className="grid md:grid-cols-2 h-[80vh] md:h-[650px] max-h-[85vh]">
           {/* LEFT SIDE - FORM */}
-          <div className="p-6 bg-white space-y-6">
+          <div className="p-6 bg-white space-y-6 overflow-y-auto custom-scrollbar">
             <form id="price-form" onSubmit={handleSave} className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-sm font-extrabold text-slate-500 uppercase tracking-widest border-b pb-2">
@@ -289,7 +289,7 @@ export function PriceListModal({ item, open, onOpenChange }: Props) {
           </div>
 
           {/* RIGHT SIDE - ANALYSIS */}
-          <div className="bg-slate-900 p-6 text-white flex flex-col">
+          <div className="bg-slate-900 p-6 text-white flex flex-col overflow-y-auto custom-scrollbar">
             <h3 className="text-sm font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-700 pb-4 mb-6 flex items-center justify-between">
               <span>ANÁLISE DE RENTABILIDADE</span>
               {stats.margin < 10 && (
@@ -366,9 +366,19 @@ export function PriceListModal({ item, open, onOpenChange }: Props) {
                   </span>
                 </div>
               </div>
+
+              {stats.margin < 10 && (
+                <div className="mt-4 bg-red-500/10 border border-red-500/50 rounded-lg p-4 flex items-center gap-3 animate-in fade-in zoom-in">
+                  <AlertTriangle className="h-8 w-8 text-red-500 shrink-0 animate-pulse" />
+                  <p className="text-xs font-bold text-red-400 leading-snug">
+                    ATENÇÃO: A MARGEM DE LUCRO DESTE SERVIÇO ESTÁ ABAIXO DE 10%. REVISE OS CUSTOS OU
+                    O PREÇO DE VENDA PARA EVITAR PREJUÍZO.
+                  </p>
+                </div>
+              )}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-700 flex justify-end gap-3">
+            <div className="mt-8 pt-6 border-t border-slate-700 flex justify-end gap-3 shrink-0">
               <Button
                 type="button"
                 variant="outline"
