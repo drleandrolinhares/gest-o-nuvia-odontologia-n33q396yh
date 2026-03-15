@@ -602,6 +602,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     value: Number(
                       item.value ?? item.calculated_monthly_cost ?? item.gross_base_value ?? 0,
                     ),
+                    gross_base_value:
+                      item.gross_base_value !== undefined
+                        ? Number(item.gross_base_value)
+                        : undefined,
+                    periodicity_type: item.periodicity_type || undefined,
+                    calculated_monthly_cost:
+                      item.calculated_monthly_cost !== undefined
+                        ? Number(item.calculated_monthly_cost)
+                        : undefined,
                   }),
                 ),
                 hourly_cost_monthly_hours: Number(r.data.hourly_cost_monthly_hours),
@@ -939,7 +948,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.cabinetNumber !== undefined) payload.cabinet_number = data.cabinetNumber || null
       if (data.nfeNumber !== undefined) payload.nfe_number = data.nfeNumber || null
       if (data.minStock !== undefined) payload.minStock = data.minStock
-      if (data.entryDate !== undefined) payload.entry_date = data.entryDate
+      if (data.entryDate !== undefined) payload.entryDate = data.entryDate
       if (data.expirationDate !== undefined) payload.expiration_date = data.expirationDate
       if (data.lastBrand !== undefined) payload.last_brand = data.lastBrand
       if (data.lastValue !== undefined) payload.last_value = data.lastValue
