@@ -3,13 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -38,9 +31,8 @@ export function HourlyCostTab() {
   const [items, setItems] = useState<FixedItem[]>([])
 
   const [modalOpen, setModalOpen] = useState(false)
-  const [newDesc, setNewDesc] = useState('')
-  const [newGross, setNewGross] = useState('')
-  const [newPeriod, setNewPeriod] = useState<'Mensal' | 'Anual'>('Mensal')
+  const [newName, setNewName] = useState('')
+  const [newValue, setNewValue] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
@@ -51,31 +43,24 @@ export function HourlyCostTab() {
   }, [appSettings])
 
   const totalFixed = items.reduce(
-    (acc, curr) => acc + Number(curr.calculated_monthly_cost ?? curr.value ?? 0),
+    (acc, curr) => acc + Number(curr.value ?? curr.calculated_monthly_cost ?? 0),
     0,
   )
   const costPerMinute = Number(hours) > 0 ? totalFixed / (Number(hours) * 60) : 0
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault()
-    if (newDesc.trim() && Number(newGross) >= 0) {
-      const gross = Number(newGross)
-      const monthly = newPeriod === 'Mensal' ? gross : gross / 12
+    if (newName.trim() && Number(newValue) >= 0) {
       setItems([
         ...items,
         {
           id: crypto.randomUUID(),
-          description: newDesc.toUpperCase(),
-          gross_base_value: gross,
-          periodicity_type: newPeriod,
-          calculated_monthly_cost: monthly,
-          name: newDesc.toUpperCase(),
-          value: monthly,
+          name: newName.toUpperCase(),
+          value: Number(newValue),
         },
       ])
-      setNewDesc('')
-      setNewGross('')
-      setNewPeriod('Mensal')
+      setNewName('')
+      setNewValue('')
     }
   }
 
@@ -106,8 +91,7 @@ export function HourlyCostTab() {
             <Calculator className="h-5 w-5 text-nuvia-navy" /> CÁLCULO DE CUSTO HORA
           </CardTitle>
           <CardDescription className="text-xs uppercase font-semibold">
-            INFORME AS HORAS TRABALHADAS E OS CUSTOS FIXOS (RATEADOS OU INTEGRAIS) PARA CALCULAR O
-            CUSTO POR MINUTO CLÍNICO.
+            INFORME AS HORAS TRABALHADAS E OS CUSTOS FIXOS PARA CALCULAR O CUSTO POR MINUTO CLÍNICO.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6 space-y-6">
@@ -136,10 +120,10 @@ export function HourlyCostTab() {
                 className="w-full bg-nuvia-navy hover:bg-slate-800 shadow-md h-12 text-sm"
                 size="lg"
               >
-                GERENCIAR RATEIO ({items.length} ITENS)
+                GERENCIAR DESPESAS ({items.length} ITENS)
               </Button>
               <p className="text-[10px] text-muted-foreground uppercase font-bold text-center">
-                ATUALIZE O RATEIO MENSAL E ANUAL
+                ATUALIZE OS VALORES MENSAIS
               </p>
             </div>
           </div>
@@ -174,10 +158,10 @@ export function HourlyCostTab() {
       </div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col uppercase">
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col uppercase">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2 font-black text-nuvia-navy">
-              <List className="h-5 w-5 text-primary" /> RATEIO DE DESPESAS FIXAS
+              <List className="h-5 w-5 text-primary" /> DETALHAMENTO DE DESPESAS FIXAS
             </DialogTitle>
           </DialogHeader>
 
@@ -187,36 +171,23 @@ export function HourlyCostTab() {
           >
             <Input
               required
-              placeholder="DESCRIÇÃO (EX: CRO, ALUGUEL)"
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
+              placeholder="DESCRIÇÃO (EX: CRO, ALUGUEL, SALÁRIO)"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
               className="flex-1 bg-white font-bold"
             />
             <Input
               required
               type="number"
               step="0.01"
-              placeholder="VALOR BRUTO (R$)"
-              value={newGross}
-              onChange={(e) => setNewGross(e.target.value)}
-              className="w-full sm:w-40 bg-white font-bold"
+              placeholder="VALOR MENSAL (R$)"
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              className="w-full sm:w-48 bg-white font-bold"
             />
-            <Select value={newPeriod} onValueChange={(v: any) => setNewPeriod(v)}>
-              <SelectTrigger className="w-full sm:w-48 bg-white font-bold">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Mensal" className="font-bold">
-                  MENSAL (INTEGRAL)
-                </SelectItem>
-                <SelectItem value="Anual" className="font-bold">
-                  ANUAL (RATEADO)
-                </SelectItem>
-              </SelectContent>
-            </Select>
             <Button
               type="submit"
-              disabled={!newDesc || !newGross}
+              disabled={!newName || !newValue}
               className="w-full sm:w-auto font-bold shadow-sm"
             >
               <Plus className="h-4 w-4" /> ADICIONAR
@@ -229,13 +200,7 @@ export function HourlyCostTab() {
                 <TableRow>
                   <TableHead className="font-bold text-slate-700 uppercase">DESCRIÇÃO</TableHead>
                   <TableHead className="font-bold text-slate-700 text-right uppercase">
-                    VALOR BRUTO BASE
-                  </TableHead>
-                  <TableHead className="font-bold text-slate-700 text-center uppercase">
-                    TIPO DE LANÇAMENTO
-                  </TableHead>
-                  <TableHead className="font-bold text-slate-700 text-right uppercase">
-                    CUSTO MENSAL
+                    VALOR MENSAL (R$)
                   </TableHead>
                   <TableHead className="font-bold text-slate-700 text-center w-[80px] uppercase">
                     AÇÃO
@@ -246,20 +211,10 @@ export function HourlyCostTab() {
                 {items.map((item) => (
                   <TableRow key={item.id} className="hover:bg-slate-50">
                     <TableCell className="font-bold text-slate-800">
-                      {item.description || item.name}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatCurrency(item.gross_base_value ?? item.value ?? 0)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span
-                        className={`px-2.5 py-1 rounded text-[10px] font-black tracking-widest uppercase ${item.periodicity_type === 'Anual' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}
-                      >
-                        {item.periodicity_type || 'MENSAL'}
-                      </span>
+                      {item.name || item.description}
                     </TableCell>
                     <TableCell className="text-right font-black text-emerald-700">
-                      {formatCurrency(item.calculated_monthly_cost ?? item.value ?? 0)}
+                      {formatCurrency(item.value ?? item.calculated_monthly_cost ?? 0)}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button
@@ -276,7 +231,7 @@ export function HourlyCostTab() {
                 {items.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={3}
                       className="text-center py-12 text-muted-foreground font-semibold uppercase tracking-widest"
                     >
                       NENHUMA DESPESA FIXA CADASTRADA.
@@ -286,11 +241,8 @@ export function HourlyCostTab() {
               </TableBody>
               <TableFooter className="bg-slate-100 sticky bottom-0">
                 <TableRow>
-                  <TableCell
-                    colSpan={3}
-                    className="text-right font-black uppercase tracking-widest text-slate-700"
-                  >
-                    TOTAL MENSAL (COMPETÊNCIA):
+                  <TableCell className="text-right font-black uppercase tracking-widest text-slate-700">
+                    TOTAL MENSAL:
                   </TableCell>
                   <TableCell className="text-right font-black text-lg text-emerald-700">
                     {formatCurrency(totalFixed)}

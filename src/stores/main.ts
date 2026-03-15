@@ -183,12 +183,12 @@ export type InventoryOption = {
 
 export type FixedItem = {
   id: string
-  description: string
-  gross_base_value: number
-  periodicity_type: 'Mensal' | 'Anual'
-  calculated_monthly_cost: number
-  name?: string
-  value?: number
+  name: string
+  value: number
+  description?: string
+  gross_base_value?: number
+  periodicity_type?: 'Mensal' | 'Anual'
+  calculated_monthly_cost?: number
 }
 
 export type AppSettings = {
@@ -598,14 +598,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 hourly_cost_fixed_items: (r.data.hourly_cost_fixed_items || []).map(
                   (item: any) => ({
                     id: item.id || crypto.randomUUID(),
-                    description: item.description || item.name || '',
-                    gross_base_value: Number(item.gross_base_value ?? item.value ?? 0),
-                    periodicity_type: item.periodicity_type || 'Mensal',
-                    calculated_monthly_cost: Number(
-                      item.calculated_monthly_cost ?? item.value ?? 0,
+                    name: item.name || item.description || '',
+                    value: Number(
+                      item.value ?? item.calculated_monthly_cost ?? item.gross_base_value ?? 0,
                     ),
-                    name: item.name,
-                    value: item.value,
                   }),
                 ),
                 hourly_cost_monthly_hours: Number(r.data.hourly_cost_monthly_hours),
