@@ -340,6 +340,7 @@ export type Database = {
           address: string | null
           address_complement: string | null
           address_number: string | null
+          bank_name: string | null
           birth_date: string | null
           bonus_due_date: string | null
           bonus_rules: string | null
@@ -356,6 +357,8 @@ export type Database = {
           last_access: string | null
           name: string
           phone: string | null
+          pix_key: string | null
+          pix_type: string | null
           rg: string | null
           role: string
           salary: string | null
@@ -372,6 +375,7 @@ export type Database = {
           address?: string | null
           address_complement?: string | null
           address_number?: string | null
+          bank_name?: string | null
           birth_date?: string | null
           bonus_due_date?: string | null
           bonus_rules?: string | null
@@ -388,6 +392,8 @@ export type Database = {
           last_access?: string | null
           name: string
           phone?: string | null
+          pix_key?: string | null
+          pix_type?: string | null
           rg?: string | null
           role: string
           salary?: string | null
@@ -404,6 +410,7 @@ export type Database = {
           address?: string | null
           address_complement?: string | null
           address_number?: string | null
+          bank_name?: string | null
           birth_date?: string | null
           bonus_due_date?: string | null
           bonus_rules?: string | null
@@ -420,6 +427,8 @@ export type Database = {
           last_access?: string | null
           name?: string
           phone?: string | null
+          pix_key?: string | null
+          pix_type?: string | null
           rg?: string | null
           role?: string
           salary?: string | null
@@ -1116,6 +1125,9 @@ export const Constants = {
 //   bonus_type: text (nullable)
 //   bonus_rules: text (nullable)
 //   bonus_due_date: text (nullable)
+//   pix_key: text (nullable)
+//   pix_type: text (nullable)
+//   bank_name: text (nullable)
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)

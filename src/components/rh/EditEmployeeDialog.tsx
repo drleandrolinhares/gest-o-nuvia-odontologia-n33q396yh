@@ -74,7 +74,7 @@ const formSchema = z
     bonusType: z.string().optional(),
     bonusRules: z.string().optional(),
     bonusDueDate: z.string().optional(),
-    pixKey: z.string().optional(),
+    pixNumber: z.string().optional(),
     pixType: z.string().optional(),
     bankName: z.string().optional(),
   })
@@ -153,7 +153,7 @@ export function EditEmployeeDialog({
       bonusType: '',
       bonusRules: '',
       bonusDueDate: '',
-      pixKey: '',
+      pixNumber: '',
       pixType: '',
       bankName: '',
     },
@@ -183,7 +183,7 @@ export function EditEmployeeDialog({
           bonusType: employee.bonusType || '',
           bonusRules: employee.bonusRules || '',
           bonusDueDate: employee.bonusDueDate || '',
-          pixKey: employee.pixKey || '',
+          pixNumber: employee.pixNumber || '',
           pixType: employee.pixType || '',
           bankName: employee.bankName || '',
         })
@@ -449,10 +449,10 @@ export function EditEmployeeDialog({
                         />
                         <FormField
                           control={form.control}
-                          name="pixKey"
+                          name="pixNumber"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>CHAVE PIX</FormLabel>
+                              <FormLabel>NÚMERO DO PIX</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}

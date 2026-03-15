@@ -41,7 +41,7 @@ export type Employee = {
   bonusType?: string
   bonusRules?: string
   bonusDueDate?: string
-  pixKey?: string
+  pixNumber?: string
   pixType?: string
   bankName?: string
 }
@@ -391,7 +391,7 @@ const mEmp = (d: any): Employee => ({
   bonusType: d.bonus_type || '',
   bonusRules: d.bonus_rules || '',
   bonusDueDate: d.bonus_due_date || '',
-  pixKey: d.pix_key || '',
+  pixNumber: d.pix_number || d.pix_key || '',
   pixType: d.pix_type || '',
   bankName: d.bank_name || '',
 })
@@ -1220,7 +1220,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             bonus_type: e.bonusType || '',
             bonus_rules: e.bonusRules || '',
             bonus_due_date: e.bonusDueDate || null,
-            pix_key: e.pixKey || null,
+            pix_number: e.pixNumber || null,
             pix_type: e.pixType || null,
             bank_name: e.bankName || null,
             user_id: userId || null,
@@ -1313,7 +1313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.bonusType !== undefined) payload.bonus_type = e.bonusType
       if (e.bonusRules !== undefined) payload.bonus_rules = e.bonusRules
       if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
-      if (e.pixKey !== undefined) payload.pix_key = e.pixKey || null
+      if (e.pixNumber !== undefined) payload.pix_number = e.pixNumber || null
       if (e.pixType !== undefined) payload.pix_type = e.pixType || null
       if (e.bankName !== undefined) payload.bank_name = e.bankName || null
 
