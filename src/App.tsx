@@ -14,6 +14,7 @@ import Acessos from '@/pages/Acessos'
 import AcessoManual from '@/pages/AcessoManual'
 import Login from '@/pages/Login'
 import Chat from '@/pages/Chat'
+import SAC from '@/pages/SAC'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import ForceChangePassword from '@/pages/ForceChangePassword'
@@ -47,6 +48,7 @@ export default function App() {
                 <Route path="agenda" element={<Agenda />} />
                 <Route path="dashboard" element={<Index />} />
                 <Route path="chat" element={<Chat />} />
+                <Route path="sac" element={<SAC />} />
                 <Route path="acessos" element={<Acessos />} />
                 <Route path="acessos/:id" element={<AcessoManual />} />
                 <Route path="rh" element={<RH />} />

@@ -17,8 +17,8 @@ import {
   DollarSign,
   PanelLeftClose,
   PanelLeftOpen,
-  Key,
   ChevronDown,
+  HeadphonesIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -127,6 +127,7 @@ export function Layout() {
         { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
         { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
         { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
+        { name: 'SAC', href: '/admin/sac', icon: HeadphonesIcon },
       ],
     },
     {

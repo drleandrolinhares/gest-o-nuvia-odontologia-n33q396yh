@@ -262,6 +262,22 @@ export type SystemRole = {
   created_at?: string
 }
 
+export type SacRecord = {
+  id: string
+  type: 'RECLAMAÇÃO' | 'SUGESTÃO'
+  patient_name: string
+  receiving_employee_id?: string
+  responsible_employee_id?: string
+  status: 'RECEBIDO' | 'SENDO TRATADO' | 'RESOLVIDO'
+  sector: string
+  description: string
+  solution_details?: string
+  received_at: string
+  limit_at: string
+  solved_at?: string
+  created_at: string
+}
+
 interface AppStore {
   isAuthenticated: boolean
   isDataLoading: boolean
@@ -293,6 +309,7 @@ interface AppStore {
   rolePermissions: RolePermission[]
   roles: SystemRole[]
   consultorios: Consultorio[]
+  sacRecords: SacRecord[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -383,6 +400,11 @@ interface AppStore {
     items: Consultorio[],
     newMonthlyHours: number,
   ) => Promise<{ success: boolean; error?: any }>
+  addSacRecord: (
+    r: Omit<SacRecord, 'id' | 'created_at' | 'received_at' | 'limit_at'>,
+  ) => Promise<{ success: boolean; error?: any }>
+  updateSacRecord: (id: string, r: Partial<SacRecord>) => Promise<{ success: boolean; error?: any }>
+  deleteSacRecord: (id: string) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -414,6 +436,7 @@ const mockAgendaTypes = [
   'BÔNUS',
   'FÉRIAS',
   'PEDIDO',
+  'SAC',
 ]
 
 const mEmp = (d: any): Employee => ({
@@ -578,6 +601,22 @@ const mPrice = (d: any): PriceItem => ({
   fixed_cost: Number(d.fixed_cost) || 0,
 })
 
+const mSac = (d: any): SacRecord => ({
+  id: d.id,
+  type: d.type,
+  patient_name: d.patient_name,
+  receiving_employee_id: d.receiving_employee_id || undefined,
+  responsible_employee_id: d.responsible_employee_id || undefined,
+  status: d.status,
+  sector: d.sector,
+  description: d.description,
+  solution_details: d.solution_details || undefined,
+  received_at: d.received_at,
+  limit_at: d.limit_at,
+  solved_at: d.solved_at || undefined,
+  created_at: d.created_at,
+})
+
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -608,6 +647,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([])
   const [roles, setRoles] = useState<SystemRole[]>([])
   const [consultorios, setConsultorios] = useState<Consultorio[]>([])
+  const [sacRecords, setSacRecords] = useState<SacRecord[]>([])
   const [alerts] = useState<string[]>([])
 
   const storeRef = useRef({ user, employees, inventory, roles, consultorios })
@@ -687,6 +727,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (!r.error) setConsultorios(r.data || [])
           }),
         supabase
+          .from('sac_records' as any)
+          .select('*')
+          .order('created_at', { ascending: false })
+          .then((r) => setSacRecords(handleResponse(r, mSac))),
+        supabase
           .from('app_settings' as any)
           .select('*')
           .limit(1)
@@ -757,6 +802,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRolePermissions([])
       setRoles([])
       setConsultorios([])
+      setSacRecords([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -2198,6 +2244,106 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [updateAppSettings, logAction],
   )
 
+  const addSacRecord = useCallback(
+    async (r: Omit<SacRecord, 'id' | 'created_at' | 'received_at' | 'limit_at'>) => {
+      const limitHours = r.type === 'RECLAMAÇÃO' ? 24 : 48
+      const limit_at = new Date(Date.now() + limitHours * 60 * 60 * 1000).toISOString()
+
+      try {
+        const { data, error } = await supabase
+          .from('sac_records' as any)
+          .insert([
+            {
+              type: r.type,
+              patient_name: r.patient_name,
+              receiving_employee_id: r.receiving_employee_id || null,
+              responsible_employee_id: r.responsible_employee_id || null,
+              status: r.status || 'RECEBIDO',
+              sector: r.sector,
+              description: r.description,
+              limit_at: limit_at,
+            },
+          ])
+          .select()
+          .single()
+
+        if (error) throw error
+        if (data) {
+          setSacRecords((prev) => [mSac(data), ...prev])
+          logAction(`REGISTROU OPORTUNIDADE (SAC): ${r.type} - ${r.patient_name}`)
+
+          if (r.responsible_employee_id) {
+            addAgendaItem({
+              title: `NOVO SAC: ${r.type} - ${r.patient_name}`,
+              date: limit_at.split('T')[0],
+              time: new Date(limit_at).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              location: r.sector || 'SISTEMA',
+              type: 'SAC',
+              assignedTo: r.responsible_employee_id,
+            })
+          }
+          return { success: true }
+        }
+        return { success: false }
+      } catch (err) {
+        console.warn('Erro ao criar SAC:', err)
+        return { success: false, error: err }
+      }
+    },
+    [logAction, addAgendaItem],
+  )
+
+  const updateSacRecord = useCallback(
+    async (id: string, r: Partial<SacRecord>) => {
+      const payload: any = { ...r }
+      if (r.status === 'RESOLVIDO' && !r.solved_at) {
+        payload.solved_at = new Date().toISOString()
+      }
+
+      // Prevent overriding with undefined on update
+      Object.keys(payload).forEach((key) => (payload[key] === undefined ? delete payload[key] : {}))
+
+      try {
+        const { error } = await supabase
+          .from('sac_records' as any)
+          .update(payload)
+          .eq('id', id)
+        if (error) throw error
+
+        setSacRecords((prev) => prev.map((s) => (s.id === id ? { ...s, ...payload } : s)))
+        logAction(`ATUALIZOU OPORTUNIDADE (SAC) ID: ${id}`)
+        return { success: true }
+      } catch (err) {
+        console.warn('Erro ao atualizar SAC:', err)
+        return { success: false, error: err }
+      }
+    },
+    [logAction],
+  )
+
+  const deleteSacRecord = useCallback(
+    async (id: string) => {
+      try {
+        const { error } = await supabase
+          .from('sac_records' as any)
+          .delete()
+          .eq('id', id)
+        if (error) throw error
+
+        setSacRecords((prev) => prev.filter((s) => s.id !== id))
+        logAction(`REMOVEU OPORTUNIDADE (SAC) ID: ${id}`)
+        return { success: true }
+      } catch (err) {
+        console.warn('Erro ao deletar SAC:', err)
+        return { success: false, error: err }
+      }
+    },
+    [logAction],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -2230,6 +2376,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       rolePermissions,
       roles,
       consultorios,
+      sacRecords,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2285,6 +2432,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateRole,
       deleteRole,
       syncConsultorios,
+      addSacRecord,
+      updateSacRecord,
+      deleteSacRecord,
     }),
     [
       isAuthenticated,
@@ -2317,6 +2467,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       rolePermissions,
       roles,
       consultorios,
+      sacRecords,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2372,6 +2523,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateRole,
       deleteRole,
       syncConsultorios,
+      addSacRecord,
+      updateSacRecord,
+      deleteSacRecord,
     ],
   )
 
