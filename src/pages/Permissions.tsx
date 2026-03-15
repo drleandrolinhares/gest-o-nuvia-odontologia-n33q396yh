@@ -35,10 +35,6 @@ export default function Permissions() {
   const [formState, setFormState] = useState<Record<string, RolePermission>>({})
   const [isSaving, setIsSaving] = useState(false)
 
-  if (!isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />
-  }
-
   useEffect(() => {
     if (selectedRole) {
       const newState: Record<string, RolePermission> = {}
@@ -60,6 +56,10 @@ export default function Permissions() {
       setFormState({})
     }
   }, [selectedRole, rolePermissions])
+
+  if (!isAdmin) {
+    return <Navigate to="/admin/dashboard" replace />
+  }
 
   const handleCheck = (module: string, field: keyof RolePermission, checked: boolean) => {
     setFormState((prev) => ({
