@@ -11,31 +11,61 @@ export type Database = {
     Tables: {
       acessos: {
         Row: {
+          access_level: string | null
           created_at: string
+          description: string | null
+          frequency: string | null
           id: string
           instructions: string | null
           login: string
+          logo_url: string | null
+          manual_steps: Json | null
           pass: string
           platform: string
+          sector: string | null
+          security_note: string | null
+          target_users: string | null
+          troubleshooting: Json | null
           url: string
+          video_url: string | null
         }
         Insert: {
+          access_level?: string | null
           created_at?: string
+          description?: string | null
+          frequency?: string | null
           id?: string
           instructions?: string | null
           login: string
+          logo_url?: string | null
+          manual_steps?: Json | null
           pass: string
           platform: string
+          sector?: string | null
+          security_note?: string | null
+          target_users?: string | null
+          troubleshooting?: Json | null
           url?: string
+          video_url?: string | null
         }
         Update: {
+          access_level?: string | null
           created_at?: string
+          description?: string | null
+          frequency?: string | null
           id?: string
           instructions?: string | null
           login?: string
+          logo_url?: string | null
+          manual_steps?: Json | null
           pass?: string
           platform?: string
+          sector?: string | null
+          security_note?: string | null
+          target_users?: string | null
+          troubleshooting?: Json | null
           url?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -878,6 +908,16 @@ export const Constants = {
 //   pass: text (not null)
 //   instructions: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   sector: text (nullable, default: 'GERAL'::text)
+//   access_level: text (nullable, default: 'ACESSO GERAL'::text)
+//   logo_url: text (nullable)
+//   description: text (nullable)
+//   target_users: text (nullable)
+//   frequency: text (nullable)
+//   video_url: text (nullable)
+//   manual_steps: jsonb (nullable, default: '[]'::jsonb)
+//   troubleshooting: jsonb (nullable, default: '[]'::jsonb)
+//   security_note: text (nullable)
 // Table: agenda
 //   id: uuid (not null, default: gen_random_uuid())
 //   title: text (not null)
