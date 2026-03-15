@@ -119,6 +119,10 @@ export type AgendaItem = {
   thirdPartyDetails?: string
   createdBy?: string
   is_completed?: boolean
+  requester_id?: string
+  received_at?: string
+  completed_at?: string
+  created_at?: string
 }
 
 export type ManualStep = { id: string; text: string; completed?: boolean }
@@ -409,6 +413,7 @@ const mockAgendaTypes = [
   'COMISSÃO',
   'BÔNUS',
   'FÉRIAS',
+  'PEDIDO',
 ]
 
 const mEmp = (d: any): Employee => ({
@@ -485,6 +490,10 @@ const mAg = (d: any): AgendaItem => ({
   thirdPartyDetails: d.third_party_details,
   createdBy: d.created_by,
   is_completed: d.is_completed,
+  requester_id: d.requester_id,
+  received_at: d.received_at,
+  completed_at: d.completed_at,
+  created_at: d.created_at,
 })
 const mAcc = (d: any): AccessItem => ({
   id: d.id,
@@ -1613,6 +1622,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             third_party_details: i.thirdPartyDetails,
             created_by: i.createdBy,
             is_completed: i.is_completed || false,
+            requester_id: i.requester_id || null,
+            received_at: i.received_at || null,
+            completed_at: i.completed_at || null,
           },
         ])
         .select()
@@ -1641,6 +1653,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (i.thirdPartyDetails !== undefined) payload.thirdPartyDetails = i.thirdPartyDetails
       if (i.createdBy !== undefined) payload.created_by = i.createdBy
       if (i.is_completed !== undefined) payload.is_completed = i.is_completed
+      if (i.requester_id !== undefined) payload.requester_id = i.requester_id
+      if (i.received_at !== undefined) payload.received_at = i.received_at
+      if (i.completed_at !== undefined) payload.completed_at = i.completed_at
 
       supabase
         .from('agenda')
