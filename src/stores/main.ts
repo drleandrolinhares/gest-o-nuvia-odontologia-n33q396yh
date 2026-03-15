@@ -181,7 +181,12 @@ export type InventoryOption = {
   value: string
 }
 
-export type FixedExpenseDetail = { id: string; description: string; amount: number }
+export type FixedExpenseDetail = {
+  id: string
+  description: string
+  amount: number
+  is_annual?: boolean
+}
 export type FixedExpense = {
   id: string
   label: string
@@ -481,6 +486,7 @@ const mAppSet = (d: any): AppSettings => ({
               id: det.id || crypto.randomUUID(),
               description: det.description || '',
               amount: Number(det.amount) || 0,
+              is_annual: Boolean(det.is_annual) || false,
             }))
           : [],
       }))

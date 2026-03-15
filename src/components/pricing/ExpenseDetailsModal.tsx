@@ -4,11 +4,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { Plus, Trash2, DollarSign } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { FixedExpenseDetail } from '@/stores/main'
@@ -45,18 +45,21 @@ export function ExpenseDetailsModal({
   }, [open, details])
 
   const addItem = () => {
-    setItems([...items, { id: crypto.randomUUID(), description: '', amount: 0 }])
+    setItems([...items, { id: crypto.randomUUID(), description: '', amount: 0, is_annual: false }])
   }
 
   const removeItem = (id: string) => {
     setItems(items.filter((i) => i.id !== id))
   }
 
-  const updateItem = (id: string, field: keyof FixedExpenseDetail, value: string | number) => {
+  const updateItem = (id: string, field: keyof FixedExpenseDetail, value: any) => {
     setItems(items.map((i) => (i.id === id ? { ...i, [field]: value } : i)))
   }
 
-  const total = items.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0)
+  const total = items.reduce((acc, curr) => {
+    const amount = Number(curr.amount) || 0
+    return acc + (curr.is_annual ? amount / 12 : amount)
+  }, 0)
 
   const handleSave = () => {
     onSave(items, total)
@@ -84,7 +87,7 @@ export function ExpenseDetailsModal({
               <TableHeader className="bg-slate-50">
                 <TableRow>
                   <TableHead className="font-bold text-slate-600">DESCRIÇÃO</TableHead>
-                  <TableHead className="font-bold text-slate-600 w-[200px]">VALOR (R$)</TableHead>
+                  <TableHead className="font-bold text-slate-600 w-[240px]">VALOR (R$)</TableHead>
                   <TableHead className="w-[80px] text-center">AÇÕES</TableHead>
                 </TableRow>
               </TableHeader>
@@ -100,16 +103,32 @@ export function ExpenseDetailsModal({
                       />
                     </TableCell>
                     <TableCell className="p-3 align-top">
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={item.amount || ''}
-                          onChange={(e) => updateItem(item.id, 'amount', e.target.value)}
-                          className="pl-9 bg-white font-medium shadow-sm border-slate-200"
-                        />
+                      <div className="flex flex-col gap-3">
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={item.amount || ''}
+                            onChange={(e) => updateItem(item.id, 'amount', e.target.value)}
+                            className="pl-9 bg-white font-medium shadow-sm border-slate-200"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={item.is_annual || false}
+                            onCheckedChange={(checked) => updateItem(item.id, 'is_annual', checked)}
+                          />
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            PAGAMENTO ANUAL
+                          </span>
+                        </div>
+                        {item.is_annual && (
+                          <div className="text-[10px] text-primary font-bold bg-primary/5 p-1.5 rounded-md border border-primary/10">
+                            PROVISÃO MENSAL: {formatCurrency((Number(item.amount) || 0) / 12)}
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="p-3 text-center align-top">
@@ -153,7 +172,7 @@ export function ExpenseDetailsModal({
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col items-center sm:items-start w-full sm:w-auto bg-slate-50 px-6 py-3 rounded-xl border border-slate-200">
               <span className="text-[10px] font-black tracking-widest text-muted-foreground uppercase mb-1">
-                SOMA TOTAL
+                SOMA TOTAL (MENSAL)
               </span>
               <span className="text-2xl font-black text-primary tracking-tight">
                 {formatCurrency(total)}
