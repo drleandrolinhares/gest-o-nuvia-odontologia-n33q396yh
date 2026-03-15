@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, Save, Calculator, DollarSign, List, Clock, Pencil } from 'lucide-react'
+import { Plus, Trash2, Save, Calculator, DollarSign, List, Clock, Pencil, Info } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -23,11 +23,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 type EditableFixedExpense = FixedExpense & { inputValue: string }
 
 export function HourlyCostCalculator() {
-  const { appSettings, updateAppSettings } = useAppStore()
+  const { appSettings, updateAppSettings, isMaster, isAdmin } = useAppStore()
   const { toast } = useToast()
 
   const [monthlyHours, setMonthlyHours] = useState(
@@ -44,6 +45,8 @@ export function HourlyCostCalculator() {
   const [isConsultoriosModalOpen, setIsConsultoriosModalOpen] = useState(false)
   const [isLossModalOpen, setIsLossModalOpen] = useState(false)
   const [isEvalModalOpen, setIsEvalModalOpen] = useState(false)
+
+  const canEditMetrics = isMaster || isAdmin
 
   useEffect(() => {
     if (appSettings) {
@@ -263,109 +266,187 @@ export function HourlyCostCalculator() {
       </div>
 
       <div className="md:col-span-4 space-y-6">
-        <Card className="bg-primary/5 border-primary/20 sticky top-6">
-          <CardHeader>
-            <CardTitle className="text-primary text-lg">RESUMO DO CUSTO</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black text-muted-foreground tracking-widest">
-                  HORAS TRABALHADAS (MÊS)
-                </label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-6 text-[10px] px-2 bg-primary/5 text-primary hover:bg-primary/10 border-primary/20 shadow-sm transition-colors"
-                  onClick={() => setIsConsultoriosModalOpen(true)}
-                >
-                  <Clock className="h-3 w-3 mr-1" /> DEFINIR HORAS
-                </Button>
-              </div>
-              <Input
-                type="number"
-                value={monthlyHours}
-                onChange={(e) => setMonthlyHours(e.target.value)}
-                className="font-black text-lg bg-white border-primary/20 shadow-sm"
-              />
-            </div>
-
-            <div className="pt-3 border-t border-primary/10 space-y-3">
-              <div>
-                <p className="text-[10px] font-black tracking-widest text-muted-foreground uppercase mb-1">
-                  TOTAL DE CUSTOS FIXOS (MÊS)
-                </p>
-                <p className="text-xl font-black text-slate-800 tracking-tight">
+        <TooltipProvider>
+          <Card className="bg-slate-50/50 border-slate-200 sticky top-6">
+            <CardHeader>
+              <CardTitle className="text-slate-800 text-lg">RESUMO DO CUSTO</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 1. TOTAL CUSTOS FIXOS */}
+              <div className="bg-[#000080] p-4 rounded-xl shadow-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="text-[10px] font-black text-[#FFD700] tracking-widest uppercase">
+                    TOTAL CUSTOS FIXOS
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-[#FFD700] opacity-80 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Soma de todas as despesas fixas e operacionais mensais da clínica.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-2xl font-black text-[#FFD700] tracking-tight">
                   {formatCurrency(totalFixedCosts)}
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                    PERDAS PREVISTAS ({lossPct}%)
-                  </label>
+              {/* 2. HORAS TRABALHADAS MÊS */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">
+                      HORAS TRABALHADAS MÊS
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Total de horas de funcionamento da clínica projetadas para o mês.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 text-slate-400 hover:text-primary"
-                    onClick={() => setIsLossModalOpen(true)}
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px] px-2"
+                    onClick={() => setIsConsultoriosModalOpen(true)}
                   >
-                    <Pencil className="h-3 w-3" />
+                    <Clock className="h-3 w-3 mr-1" /> DEFINIR HORAS
                   </Button>
                 </div>
-                <p className="text-sm font-bold text-slate-600">
-                  {predictedLossesHours.toFixed(1)} HORAS
+                <Input
+                  type="number"
+                  value={monthlyHours}
+                  onChange={(e) => setMonthlyHours(e.target.value)}
+                  className="font-black text-lg bg-slate-50 border-slate-200"
+                />
+              </div>
+
+              {/* 3. PERDAS PREVISTAS */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">
+                      PERDAS PREVISTAS
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Percentual estimado de tempo ocioso ou perdido. Reduz as horas produtivas.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  {canEditMetrics && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 text-slate-400 hover:text-primary"
+                      onClick={() => setIsLossModalOpen(true)}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">
+                  desmarcação, faltas, ociosidade ({lossPct}%)
+                </p>
+                <p className="text-lg font-black text-slate-800">
+                  {effectiveHours.toFixed(1)} HORAS
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
-                  TOTAL CUSTO HORA (BASE)
-                </label>
-                <p className="text-sm font-bold text-slate-600">
+              {/* 4. TOTAL CUSTO HORA */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">
+                    TOTAL CUSTO HORA
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        Custo por hora considerando apenas as horas efetivamente produtivas (após
+                        perdas).
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-lg font-black text-slate-800">
                   {formatCurrency(baseHourlyCost)} / h
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              {/* 5. TOTAL CUSTO HORA + FATOR AVALIAÇÃO */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase leading-tight">
-                    TOTAL CUSTO HORA
-                    <br />+ FATOR AVALIAÇÃO ({evalPct}%)
-                  </label>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 text-slate-400 hover:text-primary"
-                    onClick={() => setIsEvalModalOpen(true)}
-                  >
-                    <Pencil className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">
+                      TOTAL CUSTO HORA + FATOR AVALIAÇÃO
+                    </label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Custo por hora acrescido da margem de fator de avaliação.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  {canEditMetrics && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 text-slate-400 hover:text-primary"
+                      onClick={() => setIsEvalModalOpen(true)}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">
+                  fator avaliação: {evalPct}%
+                </p>
                 <p className="text-lg font-black text-slate-800">
                   {formatCurrency(finalHourlyCost)} / h
                 </p>
               </div>
 
-              <div className="bg-white p-4 rounded-xl border border-primary/20 shadow-sm mt-4">
-                <p className="text-[10px] font-black text-primary mb-1 tracking-widest uppercase">
-                  CUSTO CLÍNICO POR MINUTO
-                </p>
-                <p className="text-3xl font-black text-primary tracking-tight">
+              {/* 6. CUSTO CLÍNICO POR MINUTO */}
+              <div className="bg-[#000080] p-4 rounded-xl shadow-sm mt-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="text-[10px] font-black text-[#FFD700] tracking-widest uppercase">
+                    CUSTO CLÍNICO POR MINUTO
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-[#FFD700] opacity-80 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Custo final por minuto de cadeira clínica ocupada.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-3xl font-black text-[#FFD700] tracking-tight">
                   {formatCurrency(costPerMinute)}
-                  <span className="text-sm font-bold text-muted-foreground ml-1 tracking-normal">
-                    / MIN
-                  </span>
+                  <span className="text-sm font-bold opacity-80 ml-1 tracking-normal">/ MIN</span>
                 </p>
               </div>
-            </div>
 
-            <Button onClick={handleSave} className="w-full h-12 text-sm font-bold shadow-md">
-              <Save className="h-4 w-4 mr-2" /> SALVAR CUSTOS FIXOS
-            </Button>
-          </CardContent>
-        </Card>
+              <Button onClick={handleSave} className="w-full h-12 text-sm font-bold shadow-md mt-4">
+                <Save className="h-4 w-4 mr-2" /> SALVAR CUSTOS FIXOS
+              </Button>
+            </CardContent>
+          </Card>
+        </TooltipProvider>
       </div>
 
       <ExpenseDetailsModal

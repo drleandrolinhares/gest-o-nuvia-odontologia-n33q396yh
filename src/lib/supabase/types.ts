@@ -117,6 +117,7 @@ export type Database = {
       app_settings: {
         Row: {
           created_at: string
+          evaluation_factor_percentage: number | null
           global_card_fee: number | null
           global_commission: number | null
           global_inadimplency: number | null
@@ -124,9 +125,11 @@ export type Database = {
           hourly_cost_fixed_items: Json | null
           hourly_cost_monthly_hours: number | null
           id: string
+          predicted_loss_percentage: number | null
         }
         Insert: {
           created_at?: string
+          evaluation_factor_percentage?: number | null
           global_card_fee?: number | null
           global_commission?: number | null
           global_inadimplency?: number | null
@@ -134,9 +137,11 @@ export type Database = {
           hourly_cost_fixed_items?: Json | null
           hourly_cost_monthly_hours?: number | null
           id?: string
+          predicted_loss_percentage?: number | null
         }
         Update: {
           created_at?: string
+          evaluation_factor_percentage?: number | null
           global_card_fee?: number | null
           global_commission?: number | null
           global_inadimplency?: number | null
@@ -144,6 +149,7 @@ export type Database = {
           hourly_cost_fixed_items?: Json | null
           hourly_cost_monthly_hours?: number | null
           id?: string
+          predicted_loss_percentage?: number | null
         }
         Relationships: []
       }
@@ -1203,6 +1209,8 @@ export const Constants = {
 //   hourly_cost_fixed_items: jsonb (nullable, default: '[]'::jsonb)
 //   hourly_cost_monthly_hours: numeric (nullable, default: 160)
 //   created_at: timestamp with time zone (not null, default: now())
+//   predicted_loss_percentage: numeric (nullable, default: 20)
+//   evaluation_factor_percentage: numeric (nullable, default: 15)
 // Table: audit_logs
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (nullable)
