@@ -218,13 +218,25 @@ export type PriceItem = {
   fixed_cost: number
 }
 
-export type Consultorio = {
-  id: string
-  name: string
+export type ConsultorioWeeklySchedule = {
+  id?: string
+  consultorio_id?: string
+  day_of_week: number
   morning_start: string | null
   morning_end: string | null
   afternoon_start: string | null
   afternoon_end: string | null
+  is_closed: boolean
+}
+
+export type Consultorio = {
+  id: string
+  name: string
+  morning_start?: string | null
+  morning_end?: string | null
+  afternoon_start?: string | null
+  afternoon_end?: string | null
+  schedules?: ConsultorioWeeklySchedule[]
 }
 
 export type RolePermission = {
@@ -656,7 +668,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .then((r) => setRoles(handleResponse(r))),
         supabase
           .from('clinica_consultorios' as any)
-          .select('*')
+          .select('*, schedules:consultorio_weekly_schedules(*)')
           .order('created_at', { ascending: true })
           .then((r) => {
             if (!r.error) setConsultorios(r.data || [])
@@ -1458,7 +1470,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
       if (e.pixNumber !== undefined) payload.pix_number = e.pixNumber || null
       if (e.pixType !== undefined) payload.pix_type = e.pixType || null
-      if (e.bankName !== undefined) payload.bank_name = e.bankName || null
+      if (e.bankName !== undefined) payload.bankName = e.bankName || null
 
       if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal
@@ -2111,26 +2123,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .in('id', toDelete)
         }
 
-        const toUpsert = items.map((i) => ({
-          ...(i.id.startsWith('new-') ? {} : { id: i.id }),
-          name: i.name || 'Novo Consultório',
-          morning_start: i.morning_start || null,
-          morning_end: i.morning_end || null,
-          afternoon_start: i.afternoon_start || null,
-          afternoon_end: i.afternoon_end || null,
-        }))
+        for (let i = 0; i < items.length; i++) {
+          const c = items[i]
+          let cid = c.id
+          if (cid.startsWith('new-')) {
+            const { data, error } = await supabase
+              .from('clinica_consultorios' as any)
+              .insert([{ name: c.name || 'Novo Consultório' }])
+              .select()
+              .single()
+            if (error) throw error
+            cid = data.id
+            items[i].id = cid
+          } else {
+            await supabase
+              .from('clinica_consultorios' as any)
+              .update({ name: c.name || 'Novo Consultório' })
+              .eq('id', cid)
+          }
 
-        if (toUpsert.length > 0) {
-          const { error } = await supabase
-            .from('clinica_consultorios' as any)
-            .upsert(toUpsert)
-            .select()
-          if (error) throw error
+          if (c.schedules && c.schedules.length > 0) {
+            const schedulesToUpsert = c.schedules.map((s) => ({
+              consultorio_id: cid,
+              day_of_week: s.day_of_week,
+              morning_start: s.morning_start || null,
+              morning_end: s.morning_end || null,
+              afternoon_start: s.afternoon_start || null,
+              afternoon_end: s.afternoon_end || null,
+              is_closed: s.is_closed,
+            }))
+            await supabase
+              .from('consultorio_weekly_schedules' as any)
+              .upsert(schedulesToUpsert, { onConflict: 'consultorio_id, day_of_week' })
+          }
         }
 
         const { data: finalData } = await supabase
           .from('clinica_consultorios' as any)
-          .select('*')
+          .select('*, schedules:consultorio_weekly_schedules(*)')
           .order('created_at', { ascending: true })
         if (finalData) setConsultorios(finalData)
 

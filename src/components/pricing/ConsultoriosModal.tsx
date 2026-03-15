@@ -9,40 +9,78 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Trash2, Clock } from 'lucide-react'
-import useAppStore, { Consultorio } from '@/stores/main'
+import useAppStore, { Consultorio, ConsultorioWeeklySchedule } from '@/stores/main'
+import { Switch } from '@/components/ui/switch'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@/components/ui/accordion'
+import { cn } from '@/lib/utils'
 
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
+const daysOfWeek = [
+  { id: 1, label: 'SEGUNDA-FEIRA' },
+  { id: 2, label: 'TERÇA-FEIRA' },
+  { id: 3, label: 'QUARTA-FEIRA' },
+  { id: 4, label: 'QUINTA-FEIRA' },
+  { id: 5, label: 'SEXTA-FEIRA' },
+  { id: 6, label: 'SÁBADO' },
+]
+
+const calcHours = (start?: string | null, end?: string | null) => {
+  if (!start || !end) return 0
+  const [h1, m1] = start.split(':').map(Number)
+  const [h2, m2] = end.split(':').map(Number)
+  if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return 0
+  const diff = h2 + m2 / 60 - (h1 + m1 / 60)
+  return diff > 0 ? diff : 0
+}
+
+const getDailyHours = (s: ConsultorioWeeklySchedule) => {
+  if (s.is_closed) return 0
+  return calcHours(s.morning_start, s.morning_end) + calcHours(s.afternoon_start, s.afternoon_end)
+}
+
+const getWeeklyHours = (schedules?: ConsultorioWeeklySchedule[]) => {
+  if (!schedules) return 0
+  return schedules.reduce((acc, s) => acc + getDailyHours(s), 0)
+}
+
+const createDefaultSchedules = (): ConsultorioWeeklySchedule[] => {
+  return daysOfWeek.map((d) => ({
+    day_of_week: d.id,
+    morning_start: '08:00',
+    morning_end: '12:00',
+    afternoon_start: '13:00',
+    afternoon_end: '18:00',
+    is_closed: false,
+  }))
+}
+
 export function ConsultoriosModal({ open, onOpenChange }: Props) {
   const { consultorios, syncConsultorios } = useAppStore()
   const [items, setItems] = useState<Consultorio[]>([])
-  const [workingDays, setWorkingDays] = useState(22)
 
   useEffect(() => {
     if (open) {
-      setItems(consultorios.map((c) => ({ ...c })))
+      setItems(
+        consultorios.map((c) => {
+          const defaultScheds = createDefaultSchedules()
+          const schedules = defaultScheds.map((ds) => {
+            const existing = c.schedules?.find((s) => s.day_of_week === ds.day_of_week)
+            return existing ? { ...existing } : ds
+          })
+          return { ...c, schedules }
+        }),
+      )
     }
   }, [open, consultorios])
-
-  const calcHours = (start?: string | null, end?: string | null) => {
-    if (!start || !end) return 0
-    const [h1, m1] = start.split(':').map(Number)
-    const [h2, m2] = end.split(':').map(Number)
-    if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return 0
-    const diff = h2 + m2 / 60 - (h1 + m1 / 60)
-    return diff > 0 ? diff : 0
-  }
 
   const addItem = () => {
     setItems([
@@ -50,10 +88,7 @@ export function ConsultoriosModal({ open, onOpenChange }: Props) {
       {
         id: `new-${crypto.randomUUID()}`,
         name: `Consultório ${items.length + 1}`,
-        morning_start: '08:00',
-        morning_end: '12:00',
-        afternoon_start: '13:00',
-        afternoon_end: '18:00',
+        schedules: createDefaultSchedules(),
       },
     ])
   }
@@ -62,19 +97,31 @@ export function ConsultoriosModal({ open, onOpenChange }: Props) {
     setItems(items.map((i) => (i.id === id ? { ...i, [field]: value } : i)))
   }
 
+  const updateSchedule = (
+    consultorioId: string,
+    dayId: number,
+    field: keyof ConsultorioWeeklySchedule,
+    value: any,
+  ) => {
+    setItems((prev) =>
+      prev.map((c) => {
+        if (c.id !== consultorioId) return c
+        return {
+          ...c,
+          schedules: c.schedules?.map((s) =>
+            s.day_of_week === dayId ? { ...s, [field]: value } : s,
+          ),
+        }
+      }),
+    )
+  }
+
   const removeItem = (id: string) => {
     setItems(items.filter((i) => i.id !== id))
   }
 
-  const totalDaily = items.reduce((acc, curr) => {
-    return (
-      acc +
-      calcHours(curr.morning_start, curr.morning_end) +
-      calcHours(curr.afternoon_start, curr.afternoon_end)
-    )
-  }, 0)
-
-  const totalMonthly = totalDaily * workingDays
+  const totalClinicWeekly = items.reduce((acc, c) => acc + getWeeklyHours(c.schedules), 0)
+  const totalMonthly = totalClinicWeekly * 4 // Exactly 4 weeks as per acceptance criteria
 
   const handleSave = async () => {
     await syncConsultorios(items, Math.round(totalMonthly))
@@ -90,115 +137,204 @@ export function ConsultoriosModal({ open, onOpenChange }: Props) {
               <Clock className="h-5 w-5 text-primary" /> HORAS TRABALHADAS (CONSULTÓRIOS)
             </DialogTitle>
             <DialogDescription className="uppercase font-semibold">
-              DEFINA OS TURNOS DE CADA CADEIRA/CONSULTÓRIO PARA CALCULAR O TOTAL DE HORAS CLÍNICAS
-              DA CLÍNICA.
+              DEFINA OS TURNOS DIÁRIOS DE CADA CONSULTÓRIO PARA CALCULAR O TOTAL DE HORAS CLÍNICAS
+              DA CLÍNICA (PROJEÇÃO DE 4 SEMANAS/MÊS).
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-slate-50">
-                  <TableRow>
-                    <TableHead className="font-bold text-slate-600 w-[200px]">
-                      CONSULTÓRIO
-                    </TableHead>
-                    <TableHead className="font-bold text-slate-600 text-center">
-                      MANHÃ (INÍCIO - FIM)
-                    </TableHead>
-                    <TableHead className="font-bold text-slate-600 text-center">
-                      TARDE (INÍCIO - FIM)
-                    </TableHead>
-                    <TableHead className="font-bold text-slate-600 text-center w-[100px]">
-                      HORAS/DIA
-                    </TableHead>
-                    <TableHead className="w-[60px] text-center">AÇÕES</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => {
-                    const dailyHours =
-                      calcHours(item.morning_start, item.morning_end) +
-                      calcHours(item.afternoon_start, item.afternoon_end)
-                    return (
-                      <TableRow key={item.id} className="hover:bg-slate-50/50">
-                        <TableCell className="p-3">
-                          <Input
-                            value={item.name}
-                            onChange={(e) => updateItem(item.id, 'name', e.target.value)}
-                            placeholder="Ex: Consultório 1"
-                            className="bg-white shadow-sm border-slate-200"
-                          />
-                        </TableCell>
-                        <TableCell className="p-3">
-                          <div className="flex items-center justify-center gap-2">
-                            <Input
-                              type="time"
-                              value={item.morning_start || ''}
-                              onChange={(e) => updateItem(item.id, 'morning_start', e.target.value)}
-                              className="w-24 text-center"
-                            />
-                            <span className="text-muted-foreground">-</span>
-                            <Input
-                              type="time"
-                              value={item.morning_end || ''}
-                              onChange={(e) => updateItem(item.id, 'morning_end', e.target.value)}
-                              className="w-24 text-center"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-3">
-                          <div className="flex items-center justify-center gap-2">
-                            <Input
-                              type="time"
-                              value={item.afternoon_start || ''}
-                              onChange={(e) =>
-                                updateItem(item.id, 'afternoon_start', e.target.value)
-                              }
-                              className="w-24 text-center"
-                            />
-                            <span className="text-muted-foreground">-</span>
-                            <Input
-                              type="time"
-                              value={item.afternoon_end || ''}
-                              onChange={(e) => updateItem(item.id, 'afternoon_end', e.target.value)}
-                              className="w-24 text-center"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-3 text-center font-bold text-slate-600">
-                          {dailyHours.toFixed(1)}h
-                        </TableCell>
-                        <TableCell className="p-3 text-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeItem(item.id)}
-                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 h-8 w-8"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  {items.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="text-center py-12 text-muted-foreground font-bold"
-                      >
-                        NENHUM CONSULTÓRIO CADASTRADO. CLIQUE ABAIXO PARA ADICIONAR.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-          <div className="mt-4">
+          <Accordion type="multiple" className="w-full">
+            {items.map((item) => {
+              const weeklyH = getWeeklyHours(item.schedules)
+              return (
+                <AccordionItem
+                  key={item.id}
+                  value={item.id}
+                  className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm px-4 mb-4 data-[state=open]:ring-2 data-[state=open]:ring-primary/20"
+                >
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <span className="font-bold text-slate-700 uppercase">{item.name}</span>
+                      <span className="text-[10px] md:text-sm font-black text-primary bg-primary/10 px-3 py-1 rounded-full whitespace-nowrap">
+                        {weeklyH.toFixed(1)}h / SEM
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2 pb-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4 mb-4">
+                        <Input
+                          value={item.name}
+                          onChange={(e) => updateItem(item.id, 'name', e.target.value)}
+                          placeholder="NOME DO CONSULTÓRIO"
+                          className="font-bold text-base"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeItem(item.id)}
+                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                      </div>
+
+                      <div className="hidden lg:grid grid-cols-[140px_1fr_80px] gap-4 px-3 mb-2">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase">
+                          DIA / STATUS
+                        </div>
+                        <div className="grid grid-cols-4 gap-2 text-[10px] font-bold text-muted-foreground text-center uppercase">
+                          <span>INÍCIO MANHÃ</span>
+                          <span>FIM MANHÃ</span>
+                          <span>INÍCIO TARDE</span>
+                          <span>FIM TARDE</span>
+                        </div>
+                        <div className="text-[10px] font-bold text-muted-foreground text-right uppercase pr-2">
+                          HORAS
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3">
+                        {item.schedules?.map((s) => {
+                          const dayLabel = daysOfWeek.find((d) => d.id === s.day_of_week)?.label
+                          const dailyH = getDailyHours(s)
+                          return (
+                            <div
+                              key={s.day_of_week}
+                              className={cn(
+                                'flex flex-col lg:flex-row gap-4 items-start lg:items-center p-3 rounded-lg border transition-colors',
+                                s.is_closed
+                                  ? 'bg-slate-50 border-slate-200'
+                                  : 'bg-white border-slate-200 shadow-sm hover:border-primary/30',
+                              )}
+                            >
+                              <div className="flex items-center justify-between w-full lg:w-[140px]">
+                                <span
+                                  className={cn(
+                                    'font-bold text-xs',
+                                    s.is_closed ? 'text-slate-400' : 'text-slate-700',
+                                  )}
+                                >
+                                  {dayLabel}
+                                </span>
+                                <div className="flex items-center gap-2 lg:hidden">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                    FECHADO
+                                  </span>
+                                  <Switch
+                                    checked={s.is_closed}
+                                    onCheckedChange={(v) =>
+                                      updateSchedule(item.id, s.day_of_week, 'is_closed', v)
+                                    }
+                                  />
+                                </div>
+                                <div className="hidden lg:block shrink-0">
+                                  <Switch
+                                    checked={s.is_closed}
+                                    onCheckedChange={(v) =>
+                                      updateSchedule(item.id, s.day_of_week, 'is_closed', v)
+                                    }
+                                    title="Marcar como fechado"
+                                  />
+                                </div>
+                              </div>
+
+                              {!s.is_closed ? (
+                                <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 w-full">
+                                  <div className="space-y-1 lg:space-y-0">
+                                    <span className="text-[10px] font-bold text-muted-foreground lg:hidden">
+                                      INÍCIO MANHÃ
+                                    </span>
+                                    <Input
+                                      type="time"
+                                      value={s.morning_start || ''}
+                                      onChange={(e) =>
+                                        updateSchedule(
+                                          item.id,
+                                          s.day_of_week,
+                                          'morning_start',
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="h-9 text-xs font-medium"
+                                    />
+                                  </div>
+                                  <div className="space-y-1 lg:space-y-0">
+                                    <span className="text-[10px] font-bold text-muted-foreground lg:hidden">
+                                      FIM MANHÃ
+                                    </span>
+                                    <Input
+                                      type="time"
+                                      value={s.morning_end || ''}
+                                      onChange={(e) =>
+                                        updateSchedule(
+                                          item.id,
+                                          s.day_of_week,
+                                          'morning_end',
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="h-9 text-xs font-medium"
+                                    />
+                                  </div>
+                                  <div className="space-y-1 lg:space-y-0">
+                                    <span className="text-[10px] font-bold text-muted-foreground lg:hidden">
+                                      INÍCIO TARDE
+                                    </span>
+                                    <Input
+                                      type="time"
+                                      value={s.afternoon_start || ''}
+                                      onChange={(e) =>
+                                        updateSchedule(
+                                          item.id,
+                                          s.day_of_week,
+                                          'afternoon_start',
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="h-9 text-xs font-medium"
+                                    />
+                                  </div>
+                                  <div className="space-y-1 lg:space-y-0">
+                                    <span className="text-[10px] font-bold text-muted-foreground lg:hidden">
+                                      FIM TARDE
+                                    </span>
+                                    <Input
+                                      type="time"
+                                      value={s.afternoon_end || ''}
+                                      onChange={(e) =>
+                                        updateSchedule(
+                                          item.id,
+                                          s.day_of_week,
+                                          'afternoon_end',
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="h-9 text-xs font-medium"
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex-1 text-sm font-bold text-slate-400 uppercase text-center lg:text-left py-2 tracking-widest bg-slate-100/50 rounded-md border border-slate-200 border-dashed lg:pl-4">
+                                  FECHADO (SEM EXPEDIENTE)
+                                </div>
+                              )}
+
+                              <div className="w-full lg:w-[80px] text-right font-black text-slate-600 text-lg lg:pr-2">
+                                {dailyH.toFixed(1)}h
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )
+            })}
+          </Accordion>
+          <div className="mt-2">
             <Button
               variant="outline"
               size="sm"
@@ -215,22 +351,19 @@ export function ConsultoriosModal({ open, onOpenChange }: Props) {
             <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
                 <p className="text-[10px] font-black tracking-widest text-muted-foreground uppercase">
-                  HORAS / DIA
+                  TOTAL SEMANAL DA CLÍNICA
                 </p>
-                <p className="text-lg font-black text-slate-800">{totalDaily.toFixed(1)}h</p>
+                <p className="text-lg font-black text-slate-800">{totalClinicWeekly.toFixed(1)}h</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground font-black">X</span>
                 <div className="flex flex-col">
                   <label className="text-[10px] font-black tracking-widest text-muted-foreground uppercase ml-1">
-                    DIAS ÚTEIS
+                    SEMANAS / MÊS
                   </label>
-                  <Input
-                    type="number"
-                    value={workingDays}
-                    onChange={(e) => setWorkingDays(Number(e.target.value) || 0)}
-                    className="w-20 font-black h-8"
-                  />
+                  <div className="w-24 font-black h-8 flex items-center justify-center bg-slate-100 text-slate-600 rounded-md border border-slate-200 text-sm">
+                    4
+                  </div>
                 </div>
               </div>
               <span className="text-muted-foreground font-black">=</span>
@@ -244,7 +377,7 @@ export function ConsultoriosModal({ open, onOpenChange }: Props) {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
               <Button
                 variant="outline"
                 className="w-full md:w-auto"

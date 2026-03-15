@@ -282,6 +282,36 @@ export type Database = {
         }
         Relationships: []
       }
+      clinica_consultorios: {
+        Row: {
+          afternoon_end: string | null
+          afternoon_start: string | null
+          created_at: string
+          id: string
+          morning_end: string | null
+          morning_start: string | null
+          name: string
+        }
+        Insert: {
+          afternoon_end?: string | null
+          afternoon_start?: string | null
+          created_at?: string
+          id?: string
+          morning_end?: string | null
+          morning_start?: string | null
+          name: string
+        }
+        Update: {
+          afternoon_end?: string | null
+          afternoon_start?: string | null
+          created_at?: string
+          id?: string
+          morning_end?: string | null
+          morning_start?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -1156,6 +1186,14 @@ export const Constants = {
 //   type: text (nullable)
 //   department: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: clinica_consultorios
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   morning_start: time without time zone (nullable)
+//   morning_end: time without time zone (nullable)
+//   afternoon_start: time without time zone (nullable)
+//   afternoon_end: time without time zone (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: documents
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1342,6 +1380,8 @@ export const Constants = {
 // Table: chat_rooms
 //   PRIMARY KEY chat_rooms_pkey: PRIMARY KEY (id)
 //   CHECK chat_rooms_type_check: CHECK ((type = ANY (ARRAY['individual'::text, 'group'::text])))
+// Table: clinica_consultorios
+//   PRIMARY KEY clinica_consultorios_pkey: PRIMARY KEY (id)
 // Table: documents
 //   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
 // Table: employee_documents
@@ -1429,6 +1469,10 @@ export const Constants = {
 //     WITH CHECK: ((auth.role() = 'authenticated'::text) AND ((type = 'individual'::text) OR ((type = 'group'::text) AND is_master_user(auth.uid()))))
 //   Policy "Users can view rooms they are in" (SELECT, PERMISSIVE) roles={public}
 //     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.id) AND (cp.user_id = auth.uid()))))
+// Table: clinica_consultorios
+//   Policy "Allow all authenticated users on clinica_consultorios" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: documents
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
