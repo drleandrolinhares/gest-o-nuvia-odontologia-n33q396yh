@@ -306,7 +306,9 @@ interface AppStore {
     schedule: Partial<WorkSchedule> & { employee_id: string; work_date: string },
   ) => Promise<void>
   updateAppSettings: (data: Partial<AppSettings>) => Promise<{ success: boolean; error?: any }>
-  addPriceItem: (p: Omit<PriceItem, 'id'>) => Promise<{ success: boolean; error?: any }>
+  addPriceItem: (
+    p: Omit<PriceItem, 'id'>,
+  ) => Promise<{ success: boolean; id?: string; error?: any }>
   updatePriceItem: (id: string, p: Partial<PriceItem>) => Promise<{ success: boolean; error?: any }>
   removePriceItem: (id: string) => Promise<{ success: boolean; error?: any }>
 }
@@ -1804,7 +1806,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (data) {
           setPriceList((prev) => [...prev, mPrice(data)])
           logAction(`ADICIONOU ITEM DE PRECIFICAÇÃO: ${p.work_type}`)
-          return { success: true }
+          return { success: true, id: data.id }
         }
         return { success: false }
       } catch (error: any) {
