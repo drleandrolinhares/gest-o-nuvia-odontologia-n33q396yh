@@ -218,6 +218,15 @@ export type PriceItem = {
   fixed_cost: number
 }
 
+export type Consultorio = {
+  id: string
+  name: string
+  morning_start: string | null
+  morning_end: string | null
+  afternoon_start: string | null
+  afternoon_end: string | null
+}
+
 export type RolePermission = {
   id?: string
   role: string
@@ -265,6 +274,7 @@ interface AppStore {
   priceList: PriceItem[]
   rolePermissions: RolePermission[]
   roles: SystemRole[]
+  consultorios: Consultorio[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -351,6 +361,10 @@ interface AppStore {
   addRole: (name: string) => Promise<{ success: boolean; error?: any }>
   updateRole: (id: string, name: string) => Promise<{ success: boolean; error?: any }>
   deleteRole: (id: string) => Promise<{ success: boolean; error?: any }>
+  syncConsultorios: (
+    items: Consultorio[],
+    newMonthlyHours: number,
+  ) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -568,12 +582,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [priceList, setPriceList] = useState<PriceItem[]>([])
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([])
   const [roles, setRoles] = useState<SystemRole[]>([])
+  const [consultorios, setConsultorios] = useState<Consultorio[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees, inventory, roles })
+  const storeRef = useRef({ user, employees, inventory, roles, consultorios })
   useEffect(() => {
-    storeRef.current = { user, employees, inventory, roles }
-  }, [user, employees, inventory, roles])
+    storeRef.current = { user, employees, inventory, roles, consultorios }
+  }, [user, employees, inventory, roles, consultorios])
 
   useEffect(() => {
     if (user) {
@@ -639,6 +654,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .select('*')
           .order('name', { ascending: true })
           .then((r) => setRoles(handleResponse(r))),
+        supabase
+          .from('clinica_consultorios' as any)
+          .select('*')
+          .order('created_at', { ascending: true })
+          .then((r) => {
+            if (!r.error) setConsultorios(r.data || [])
+          }),
         supabase
           .from('app_settings' as any)
           .select('*')
@@ -709,6 +731,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPriceList([])
       setRolePermissions([])
       setRoles([])
+      setConsultorios([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -2074,6 +2097,54 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const syncConsultorios = useCallback(
+    async (items: Consultorio[], newMonthlyHours: number) => {
+      try {
+        const currentIds = storeRef.current.consultorios.map((c) => c.id)
+        const newIds = items.filter((i) => !i.id.startsWith('new-')).map((i) => i.id)
+        const toDelete = currentIds.filter((id) => !newIds.includes(id))
+
+        if (toDelete.length > 0) {
+          await supabase
+            .from('clinica_consultorios' as any)
+            .delete()
+            .in('id', toDelete)
+        }
+
+        const toUpsert = items.map((i) => ({
+          ...(i.id.startsWith('new-') ? {} : { id: i.id }),
+          name: i.name || 'Novo Consultório',
+          morning_start: i.morning_start || null,
+          morning_end: i.morning_end || null,
+          afternoon_start: i.afternoon_start || null,
+          afternoon_end: i.afternoon_end || null,
+        }))
+
+        if (toUpsert.length > 0) {
+          const { error } = await supabase
+            .from('clinica_consultorios' as any)
+            .upsert(toUpsert)
+            .select()
+          if (error) throw error
+        }
+
+        const { data: finalData } = await supabase
+          .from('clinica_consultorios' as any)
+          .select('*')
+          .order('created_at', { ascending: true })
+        if (finalData) setConsultorios(finalData)
+
+        await updateAppSettings({ hourly_cost_monthly_hours: newMonthlyHours })
+        logAction('ATUALIZOU CONSULTÓRIOS E HORAS MENSAIS')
+        return { success: true }
+      } catch (error: any) {
+        console.warn('Erro ao sincronizar consultórios', error)
+        return { success: false, error }
+      }
+    },
+    [updateAppSettings, logAction],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -2105,6 +2176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       priceList,
       rolePermissions,
       roles,
+      consultorios,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2159,6 +2231,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addRole,
       updateRole,
       deleteRole,
+      syncConsultorios,
     }),
     [
       isAuthenticated,
@@ -2190,6 +2263,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       priceList,
       rolePermissions,
       roles,
+      consultorios,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2244,6 +2318,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addRole,
       updateRole,
       deleteRole,
+      syncConsultorios,
     ],
   )
 

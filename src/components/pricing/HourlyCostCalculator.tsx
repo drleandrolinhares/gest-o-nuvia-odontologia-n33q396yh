@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, Save, Calculator, DollarSign, List } from 'lucide-react'
+import { Plus, Trash2, Save, Calculator, DollarSign, List, Clock } from 'lucide-react'
 import useAppStore, { FixedExpense, FixedExpenseDetail } from '@/stores/main'
 import { formatCurrency, cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { ExpenseDetailsModal } from './ExpenseDetailsModal'
+import { ConsultoriosModal } from './ConsultoriosModal'
 import {
   Table,
   TableBody,
@@ -27,6 +28,7 @@ export function HourlyCostCalculator() {
   )
   const [fixedItems, setFixedItems] = useState<EditableFixedExpense[]>([])
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
+  const [isConsultoriosModalOpen, setIsConsultoriosModalOpen] = useState(false)
 
   useEffect(() => {
     if (appSettings) {
@@ -221,9 +223,19 @@ export function HourlyCostCalculator() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-muted-foreground">
-                HORAS TRABALHADAS (MÊS)
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-muted-foreground">
+                  HORAS TRABALHADAS (MÊS)
+                </label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-[10px] px-2 bg-primary/5 text-primary hover:bg-primary/10 border-primary/20 shadow-sm transition-colors"
+                  onClick={() => setIsConsultoriosModalOpen(true)}
+                >
+                  <Clock className="h-3 w-3 mr-1" /> DEFINIR HORAS
+                </Button>
+              </div>
               <Input
                 type="number"
                 value={monthlyHours}
@@ -272,6 +284,8 @@ export function HourlyCostCalculator() {
           }
         }}
       />
+
+      <ConsultoriosModal open={isConsultoriosModalOpen} onOpenChange={setIsConsultoriosModalOpen} />
     </div>
   )
 }
