@@ -32,6 +32,7 @@ import {
   ChevronsUpDown,
   Loader2,
   Gift,
+  CreditCard,
 } from 'lucide-react'
 import {
   Select,
@@ -73,6 +74,9 @@ const formSchema = z
     bonusType: z.string().optional(),
     bonusRules: z.string().optional(),
     bonusDueDate: z.string().optional(),
+    pixKey: z.string().optional(),
+    pixType: z.string().optional(),
+    bankName: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -149,6 +153,9 @@ export function EditEmployeeDialog({
       bonusType: '',
       bonusRules: '',
       bonusDueDate: '',
+      pixKey: '',
+      pixType: '',
+      bankName: '',
     },
   })
 
@@ -176,6 +183,9 @@ export function EditEmployeeDialog({
           bonusType: employee.bonusType || '',
           bonusRules: employee.bonusRules || '',
           bonusDueDate: employee.bonusDueDate || '',
+          pixKey: employee.pixKey || '',
+          pixType: employee.pixType || '',
+          bankName: employee.bankName || '',
         })
         setIsEditingData(startInEditMode)
         setActiveTab(defaultTab)
@@ -373,6 +383,76 @@ export function EditEmployeeDialog({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>TELEFONE *</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  disabled={!isEditingData}
+                                  className="bg-background"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div
+                      id="section-financeiro"
+                      className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm"
+                    >
+                      <SectionTitle title="DADOS FINANCEIROS (PIX)" icon={CreditCard} />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="bankName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>BANCO</FormLabel>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  disabled={!isEditingData}
+                                  className="bg-background"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="pixType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>TIPO DE PIX</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={!isEditingData}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-background">
+                                    <SelectValue placeholder="SELECIONE..." />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="CPF">CPF</SelectItem>
+                                  <SelectItem value="CEL">CELULAR</SelectItem>
+                                  <SelectItem value="EMAIL">E-MAIL</SelectItem>
+                                  <SelectItem value="CHAVE ALEATÓRIA">ALEATÓRIA</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="pixKey"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>CHAVE PIX</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}

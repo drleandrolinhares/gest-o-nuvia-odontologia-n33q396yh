@@ -41,6 +41,9 @@ export type Employee = {
   bonusType?: string
   bonusRules?: string
   bonusDueDate?: string
+  pixKey?: string
+  pixType?: string
+  bankName?: string
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
 export type OnboardingCandidate = {
@@ -388,6 +391,9 @@ const mEmp = (d: any): Employee => ({
   bonusType: d.bonus_type || '',
   bonusRules: d.bonus_rules || '',
   bonusDueDate: d.bonus_due_date || '',
+  pixKey: d.pix_key || '',
+  pixType: d.pix_type || '',
+  bankName: d.bank_name || '',
 })
 const mInv = (d: any): InventoryItem => ({
   id: d.id,
@@ -1214,6 +1220,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             bonus_type: e.bonusType || '',
             bonus_rules: e.bonusRules || '',
             bonus_due_date: e.bonusDueDate || null,
+            pix_key: e.pixKey || null,
+            pix_type: e.pixType || null,
+            bank_name: e.bankName || null,
             user_id: userId || null,
           },
         ])
@@ -1304,6 +1313,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.bonusType !== undefined) payload.bonus_type = e.bonusType
       if (e.bonusRules !== undefined) payload.bonus_rules = e.bonusRules
       if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
+      if (e.pixKey !== undefined) payload.pix_key = e.pixKey || null
+      if (e.pixType !== undefined) payload.pix_type = e.pixType || null
+      if (e.bankName !== undefined) payload.bank_name = e.bankName || null
 
       if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal

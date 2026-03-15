@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { EmployeeTable } from '@/components/EmployeeTable'
+import { FinancialTable } from '@/components/rh/FinancialTable'
 import { AddEmployeeDialog } from './AddEmployeeDialog'
 import useAppStore from '@/stores/main'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -24,6 +25,7 @@ export function TeamTab() {
 
     const matchCategory =
       categoryFilter === 'TIME TOTAL' ||
+      categoryFilter === 'DADOS FINANCEIROS' ||
       (categoryFilter === 'COLABORADOR' &&
         (!e.teamCategory ||
           e.teamCategory.length === 0 ||
@@ -66,15 +68,20 @@ export function TeamTab() {
       </div>
 
       <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="w-full">
-        <TabsList className="w-full md:w-auto grid grid-cols-2 md:inline-flex md:grid-cols-4 mb-4">
+        <TabsList className="w-full md:w-auto grid grid-cols-2 md:inline-flex md:grid-cols-5 mb-4">
           <TabsTrigger value="TIME TOTAL">TIME TOTAL</TabsTrigger>
           <TabsTrigger value="SÓCIO">SÓCIOS</TabsTrigger>
           <TabsTrigger value="DENTISTA">DENTISTAS</TabsTrigger>
           <TabsTrigger value="COLABORADOR">COLABORADORES</TabsTrigger>
+          <TabsTrigger value="DADOS FINANCEIROS">DADOS FINANCEIROS</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <EmployeeTable employees={filteredEmployees} />
+      {categoryFilter === 'DADOS FINANCEIROS' ? (
+        <FinancialTable employees={filteredEmployees} />
+      ) : (
+        <EmployeeTable employees={filteredEmployees} />
+      )}
     </div>
   )
 }
