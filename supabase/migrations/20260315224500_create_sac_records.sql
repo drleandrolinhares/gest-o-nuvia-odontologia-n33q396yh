@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS sac_records_status_idx ON public.sac_records(status);
 CREATE INDEX IF NOT EXISTS sac_records_received_at_idx ON public.sac_records(received_at);
 
 -- Seed data to prevent empty states
-DO $
+DO $$
 DECLARE
     v_emp_id UUID;
 BEGIN
@@ -33,5 +33,4 @@ BEGIN
         ('RECLAMAÇÃO', 'JOÃO SILVA', v_emp_id, v_emp_id, 'RECEBIDO', 'RECEPÇÃO', 'TEMPO DE ESPERA MUITO LONGO NA RECEPÇÃO DURANTE A TARDE.', NOW() + INTERVAL '24 hours'),
         ('SUGESTÃO', 'MARIA SOUZA', v_emp_id, v_emp_id, 'SENDO TRATADO', 'CLÍNICO', 'GOSTARIA DE OPÇÕES DE MÚSICA AMBIENTE DIFERENTES DURANTE O ATENDIMENTO CLÍNICO.', NOW() + INTERVAL '48 hours');
     END IF;
-END $;
-
+END $$;
