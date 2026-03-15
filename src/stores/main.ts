@@ -268,7 +268,7 @@ export type SacRecord = {
   patient_name: string
   receiving_employee_id?: string
   responsible_employee_id?: string
-  status: 'RECEBIDO' | 'SENDO TRATADO' | 'RESOLVIDO'
+  status: 'OPORTUNIDADE DE SOLUÇÃO' | 'RECEBIDO' | 'SENDO TRATADO' | 'RESOLVIDO'
   sector: string
   description: string
   solution_details?: string
@@ -2258,7 +2258,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               patient_name: r.patient_name,
               receiving_employee_id: r.receiving_employee_id || null,
               responsible_employee_id: r.responsible_employee_id || null,
-              status: r.status || 'RECEBIDO',
+              status: r.status || 'OPORTUNIDADE DE SOLUÇÃO',
               sector: r.sector,
               description: r.description,
               limit_at: limit_at,
@@ -2273,10 +2273,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           logAction(`REGISTROU OPORTUNIDADE (SAC): ${r.type} - ${r.patient_name}`)
 
           if (r.responsible_employee_id) {
+            const today = new Date()
+            const localDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`
+
             addAgendaItem({
-              title: `NOVO SAC: ${r.type} - ${r.patient_name}`,
-              date: limit_at.split('T')[0],
-              time: new Date(limit_at).toLocaleTimeString('pt-BR', {
+              title: `SAC: ${r.type} - ${r.patient_name}`,
+              date: localDate,
+              time: today.toLocaleTimeString('pt-BR', {
                 hour: '2-digit',
                 minute: '2-digit',
               }),
@@ -2284,6 +2287,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
               type: 'SAC',
               assignedTo: r.responsible_employee_id,
             })
+
+            const currentUser = storeRef.current.user
+            const respEmp = storeRef.current.employees.find(
+              (e) => e.id === r.responsible_employee_id,
+            )
+            if (currentUser && respEmp && respEmp.user_id && respEmp.user_id !== currentUser.id) {
+              const { data: roomId } = await supabase.rpc('get_or_create_individual_room', {
+                user1: currentUser.id,
+                user2: respEmp.user_id,
+              })
+              if (roomId) {
+                await supabase.from('chat_messages').insert({
+                  room_id: roomId,
+                  sender_id: currentUser.id,
+                  content: `ATENÇÃO: Nova OPORTUNIDADE DE SOLUÇÃO via SAC para você. (Paciente: ${r.patient_name})`,
+                })
+              }
+            }
           }
           return { success: true }
         }

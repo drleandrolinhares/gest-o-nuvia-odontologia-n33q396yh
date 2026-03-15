@@ -924,6 +924,69 @@ export type Database = {
         }
         Relationships: []
       }
+      sac_records: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          limit_at: string
+          patient_name: string
+          received_at: string
+          receiving_employee_id: string | null
+          responsible_employee_id: string | null
+          sector: string
+          solution_details: string | null
+          solved_at: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          limit_at: string
+          patient_name: string
+          received_at?: string
+          receiving_employee_id?: string | null
+          responsible_employee_id?: string | null
+          sector: string
+          solution_details?: string | null
+          solved_at?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          limit_at?: string
+          patient_name?: string
+          received_at?: string
+          receiving_employee_id?: string | null
+          responsible_employee_id?: string | null
+          sector?: string
+          solution_details?: string | null
+          solved_at?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'sac_records_receiving_employee_id_fkey'
+            columns: ['receiving_employee_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'sac_records_responsible_employee_id_fkey'
+            columns: ['responsible_employee_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       suppliers: {
         Row: {
           cnpj: string
@@ -1411,6 +1474,20 @@ export const Constants = {
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: sac_records
+//   id: uuid (not null, default: gen_random_uuid())
+//   type: text (not null)
+//   patient_name: text (not null)
+//   receiving_employee_id: uuid (nullable)
+//   responsible_employee_id: uuid (nullable)
+//   status: text (not null, default: 'RECEBIDO'::text)
+//   sector: text (not null)
+//   description: text (not null)
+//   solution_details: text (nullable)
+//   received_at: timestamp with time zone (not null, default: now())
+//   limit_at: timestamp with time zone (not null)
+//   solved_at: timestamp with time zone (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: suppliers
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1510,6 +1587,12 @@ export const Constants = {
 // Table: roles
 //   UNIQUE roles_name_key: UNIQUE (name)
 //   PRIMARY KEY roles_pkey: PRIMARY KEY (id)
+// Table: sac_records
+//   PRIMARY KEY sac_records_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY sac_records_receiving_employee_id_fkey: FOREIGN KEY (receiving_employee_id) REFERENCES employees(id) ON DELETE SET NULL
+//   FOREIGN KEY sac_records_responsible_employee_id_fkey: FOREIGN KEY (responsible_employee_id) REFERENCES employees(id) ON DELETE SET NULL
+//   CHECK sac_records_status_check: CHECK ((status = ANY (ARRAY['RECEBIDO'::text, 'SENDO TRATADO'::text, 'RESOLVIDO'::text])))
+//   CHECK sac_records_type_check: CHECK ((type = ANY (ARRAY['RECLAMAÇÃO'::text, 'SUGESTÃO'::text])))
 // Table: suppliers
 //   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
 // Table: work_schedules
@@ -1622,6 +1705,10 @@ export const Constants = {
 //     WITH CHECK: ((auth.role() = 'authenticated'::text) AND is_master_user(auth.uid()))
 //   Policy "Master users can update roles" (UPDATE, PERMISSIVE) roles={public}
 //     USING: ((auth.role() = 'authenticated'::text) AND is_master_user(auth.uid()))
+// Table: sac_records
+//   Policy "Allow all authenticated users on sac_records" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: suppliers
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1802,5 +1889,8 @@ export const Constants = {
 //   CREATE UNIQUE INDEX role_permissions_role_module_key ON public.role_permissions USING btree (role, module)
 // Table: roles
 //   CREATE UNIQUE INDEX roles_name_key ON public.roles USING btree (name)
+// Table: sac_records
+//   CREATE INDEX sac_records_received_at_idx ON public.sac_records USING btree (received_at)
+//   CREATE INDEX sac_records_status_idx ON public.sac_records USING btree (status)
 // Table: work_schedules
 //   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)

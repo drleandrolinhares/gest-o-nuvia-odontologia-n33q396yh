@@ -31,7 +31,9 @@ export function SacFormModal({ open, onOpenChange, item }: Props) {
   const [responsibleEmployee, setResponsibleEmployee] = useState('none')
   const [description, setDescription] = useState('')
 
-  const [status, setStatus] = useState<'RECEBIDO' | 'SENDO TRATADO' | 'RESOLVIDO'>('RECEBIDO')
+  const [status, setStatus] = useState<
+    'OPORTUNIDADE DE SOLUÇÃO' | 'RECEBIDO' | 'SENDO TRATADO' | 'RESOLVIDO'
+  >('OPORTUNIDADE DE SOLUÇÃO')
   const [solutionDetails, setSolutionDetails] = useState('')
 
   const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
@@ -54,7 +56,7 @@ export function SacFormModal({ open, onOpenChange, item }: Props) {
         setReceivingEmployee(currentUserId || 'none')
         setResponsibleEmployee('none')
         setDescription('')
-        setStatus('RECEBIDO')
+        setStatus('OPORTUNIDADE DE SOLUÇÃO')
         setSolutionDetails('')
       }
     }
@@ -201,7 +203,10 @@ export function SacFormModal({ open, onOpenChange, item }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="RECEBIDO" className="text-red-600 font-bold">
+                    <SelectItem value="OPORTUNIDADE DE SOLUÇÃO" className="text-red-700 font-bold">
+                      OPORTUNIDADE DE SOLUÇÃO
+                    </SelectItem>
+                    <SelectItem value="RECEBIDO" className="text-blue-600 font-bold">
                       RECEBIDO
                     </SelectItem>
                     <SelectItem value="SENDO TRATADO" className="text-amber-600 font-bold">

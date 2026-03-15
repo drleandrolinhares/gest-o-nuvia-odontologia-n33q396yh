@@ -28,19 +28,19 @@ export default function SAC() {
         </Button>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
+      <Tabs defaultValue="lista" className="w-full">
         <TabsList className="grid w-full grid-cols-2 max-w-md bg-slate-200">
-          <TabsTrigger
-            value="dashboard"
-            className="font-bold data-[state=active]:bg-[#0A192F] data-[state=active]:text-[#D4AF37]"
-          >
-            DASHBOARD MENSAL
-          </TabsTrigger>
           <TabsTrigger
             value="lista"
             className="font-bold data-[state=active]:bg-[#0A192F] data-[state=active]:text-[#D4AF37]"
           >
             LISTA DE REGISTROS
+          </TabsTrigger>
+          <TabsTrigger
+            value="dashboard"
+            className="font-bold data-[state=active]:bg-[#0A192F] data-[state=active]:text-[#D4AF37]"
+          >
+            DASHBOARD MENSAL
           </TabsTrigger>
         </TabsList>
 

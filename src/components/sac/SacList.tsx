@@ -19,15 +19,17 @@ import {
   CheckCircle,
   MessageSquareWarning,
   Lightbulb,
+  ArrowRight,
 } from 'lucide-react'
 import { SacFormModal } from './SacFormModal'
+import { cn } from '@/lib/utils'
 
 const SlaTimer = ({ limitAt, resolvedAt }: { limitAt: string; resolvedAt?: string }) => {
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
     if (resolvedAt) return
-    const interval = setInterval(() => setNow(new Date()), 60000)
+    const interval = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(interval)
   }, [resolvedAt])
 
@@ -46,13 +48,14 @@ const SlaTimer = ({ limitAt, resolvedAt }: { limitAt: string; resolvedAt?: strin
   const absMs = Math.abs(diffMs)
   const hours = Math.floor(absMs / (1000 * 60 * 60))
   const minutes = Math.floor((absMs % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((absMs % (1000 * 60)) / 1000)
 
-  const timeStr = `${hours}h ${minutes}m`
+  const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 
   if (isExpired) {
     return (
       <Badge variant="destructive" className="animate-pulse flex items-center gap-1 font-bold">
-        <AlertTriangle className="w-3 h-3" /> ATRASADO {timeStr}
+        <AlertTriangle className="w-3 h-3 shrink-0" /> ATRASADO {timeStr}
       </Badge>
     )
   }
@@ -60,7 +63,7 @@ const SlaTimer = ({ limitAt, resolvedAt }: { limitAt: string; resolvedAt?: strin
   if (hours < 2) {
     return (
       <Badge className="bg-orange-500 hover:bg-orange-600 flex items-center gap-1 font-bold">
-        <Clock className="w-3 h-3" /> VENCE EM {timeStr}
+        <Clock className="w-3 h-3 shrink-0" /> VENCE EM {timeStr}
       </Badge>
     )
   }
@@ -68,9 +71,9 @@ const SlaTimer = ({ limitAt, resolvedAt }: { limitAt: string; resolvedAt?: strin
   return (
     <Badge
       variant="secondary"
-      className="bg-slate-100 text-slate-700 flex items-center gap-1 font-bold"
+      className="bg-slate-100 text-slate-700 flex items-center gap-1 font-bold border-slate-200"
     >
-      <Clock className="w-3 h-3" /> {timeStr} RESTANTES
+      <Clock className="w-3 h-3 shrink-0" /> {timeStr}
     </Badge>
   )
 }
@@ -92,26 +95,32 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
   }
 
   const getEmpName = (id?: string) => {
-    return employees.find((e) => e.id === id)?.name || 'SISTEMA'
+    return employees.find((e) => e.id === id)?.name || 'N/A'
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'OPORTUNIDADE DE SOLUÇÃO':
+        return (
+          <Badge className="bg-red-600 hover:bg-red-700 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
+            OPORTUNIDADE
+          </Badge>
+        )
       case 'RECEBIDO':
         return (
-          <Badge className="bg-red-600 hover:bg-red-700 font-bold tracking-widest text-[10px]">
+          <Badge className="bg-blue-600 hover:bg-blue-700 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
             RECEBIDO
           </Badge>
         )
       case 'SENDO TRATADO':
         return (
-          <Badge className="bg-[#D4AF37] hover:bg-[#B3932D] text-[#0A192F] font-bold tracking-widest text-[10px]">
+          <Badge className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
             SENDO TRATADO
           </Badge>
         )
       case 'RESOLVIDO':
         return (
-          <Badge className="bg-emerald-600 hover:bg-emerald-700 font-bold tracking-widest text-[10px]">
+          <Badge className="bg-emerald-600 hover:bg-emerald-700 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
             RESOLVIDO
           </Badge>
         )
@@ -122,14 +131,14 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
 
   return (
     <>
-      <Card className="shadow-sm overflow-hidden">
-        <Table>
+      <Card className="shadow-sm overflow-x-auto">
+        <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow className="bg-[#0A192F] hover:bg-[#0A192F]">
               <TableHead className="font-bold text-[#D4AF37] uppercase">TIPO / PACIENTE</TableHead>
+              <TableHead className="font-bold text-[#D4AF37] uppercase">RECEPTOR / RESP.</TableHead>
               <TableHead className="font-bold text-[#D4AF37] uppercase">SETOR</TableHead>
-              <TableHead className="font-bold text-[#D4AF37] uppercase">RESPONSÁVEL</TableHead>
-              <TableHead className="font-bold text-[#D4AF37] uppercase">SLA LIMITE</TableHead>
+              <TableHead className="font-bold text-[#D4AF37] uppercase">DATAS / SLA</TableHead>
               <TableHead className="font-bold text-[#D4AF37] uppercase">STATUS</TableHead>
               <TableHead className="font-bold text-[#D4AF37] text-center uppercase">
                 AÇÕES
@@ -154,20 +163,50 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="font-bold text-sm text-slate-600 uppercase">
+                <TableCell>
+                  <div className="flex flex-col gap-1 text-[11px] font-bold text-slate-600">
+                    <span className="flex items-center gap-1">
+                      <span className="text-slate-400 w-12 shrink-0">REC:</span>
+                      <span
+                        className="uppercase truncate max-w-[120px]"
+                        title={getEmpName(item.receiving_employee_id)}
+                      >
+                        {getEmpName(item.receiving_employee_id)}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="text-slate-400 w-12 shrink-0">RESP:</span>
+                      <span
+                        className="uppercase text-indigo-700 truncate max-w-[120px]"
+                        title={getEmpName(item.responsible_employee_id)}
+                      >
+                        {getEmpName(item.responsible_employee_id)}
+                      </span>
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="font-bold text-xs text-slate-700 uppercase">
                   {item.sector}
                 </TableCell>
-                <TableCell className="text-xs font-bold text-slate-600 uppercase">
-                  {getEmpName(item.responsible_employee_id)}
-                </TableCell>
                 <TableCell>
-                  <SlaTimer limitAt={item.limit_at} resolvedAt={item.solved_at} />
-                  <div className="text-[10px] text-muted-foreground mt-1 font-bold uppercase">
-                    REG: {new Date(item.received_at).toLocaleDateString('pt-BR')}{' '}
-                    {new Date(item.received_at).toLocaleTimeString('pt-BR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                  <div className="flex flex-col gap-1.5">
+                    <SlaTimer limitAt={item.limit_at} resolvedAt={item.solved_at} />
+                    <div className="text-[10px] text-slate-500 font-bold uppercase flex flex-col">
+                      <span>
+                        REG: {new Date(item.received_at).toLocaleDateString('pt-BR')}{' '}
+                        {new Date(item.received_at).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                      <span className="text-slate-400">
+                        LIM: {new Date(item.limit_at).toLocaleDateString('pt-BR')}{' '}
+                        {new Date(item.limit_at).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>{getStatusBadge(item.status)}</TableCell>

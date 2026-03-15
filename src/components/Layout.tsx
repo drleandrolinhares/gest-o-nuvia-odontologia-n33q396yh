@@ -23,7 +23,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import { useChatStore } from '@/stores/chat'
@@ -88,7 +88,15 @@ export function Layout() {
   }
 
   const { unreadCounts } = useChatStore()
-  const { isDataLoading, fetchError, isAdmin } = useAppStore()
+  const { isDataLoading, fetchError, isAdmin, sacRecords, currentUserId } = useAppStore()
+
+  const pendingSacsCount = useMemo(() => {
+    return sacRecords.filter(
+      (r) =>
+        r.status === 'OPORTUNIDADE DE SOLUÇÃO' &&
+        (isAdmin || r.responsible_employee_id === currentUserId),
+    ).length
+  }, [sacRecords, isAdmin, currentUserId])
 
   if (isDataLoading) {
     return (
@@ -273,7 +281,10 @@ export function Layout() {
                   ? location.pathname === item.href || location.pathname === `${item.href}/`
                   : location.pathname.startsWith(item.href as string)
 
-                const hasUnread = item.name === 'MENSAGENS' && totalUnread > 0
+                let badgeCount = 0
+                if (item.name === 'MENSAGENS') badgeCount = totalUnread
+                if (item.name === 'AGENDA') badgeCount = pendingSacsCount
+                const hasBadge = badgeCount > 0
 
                 return (
                   <Link
@@ -287,7 +298,7 @@ export function Layout() {
                       isActive
                         ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
                         : 'text-slate-300 hover:bg-white/5 hover:text-white',
-                      hasUnread &&
+                      hasBadge &&
                         !isActive &&
                         'bg-red-500/10 shadow-[inset_4px_0_0_0_rgba(239,68,68,1)]',
                     )}
@@ -298,7 +309,7 @@ export function Layout() {
                           'flex-shrink-0 h-5 w-5 transition-colors',
                           isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
                           isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
-                          hasUnread && 'text-red-400 animate-pulse',
+                          hasBadge && 'text-red-400 animate-pulse',
                         )}
                         aria-hidden="true"
                       />
@@ -307,23 +318,23 @@ export function Layout() {
                       <span
                         className={cn(
                           'transition-colors whitespace-nowrap',
-                          hasUnread && 'text-red-400 font-bold',
-                          hasUnread && !isActive && 'animate-pulse',
+                          hasBadge && 'text-red-400 font-bold',
+                          hasBadge && !isActive && 'animate-pulse',
                         )}
                       >
                         {item.name}
                       </span>
                     )}
-                    {hasUnread && (
+                    {hasBadge && (
                       <span
                         className={cn(
-                          'bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]',
+                          'bg-red-600 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-red-700',
                           isCollapsed && !isMobile
                             ? 'absolute top-1 right-1 px-1.5 py-0 text-[8px]'
                             : 'ml-auto',
                         )}
                       >
-                        {totalUnread > 99 ? '99+' : totalUnread}
+                        {badgeCount > 99 ? '99+' : badgeCount}
                       </span>
                     )}
                   </Link>
@@ -386,8 +397,8 @@ export function Layout() {
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 relative">
               <Menu className="h-6 w-6" />
-              {totalUnread > 0 && (
-                <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#0A192F]"></span>
+              {(totalUnread > 0 || pendingSacsCount > 0) && (
+                <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#0A192F]"></span>
               )}
             </Button>
           </SheetTrigger>
