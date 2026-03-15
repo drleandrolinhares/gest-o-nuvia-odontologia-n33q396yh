@@ -15,6 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+type EditableFixedExpense = FixedExpense & { inputValue: string }
+
 export function HourlyCostCalculator() {
   const { appSettings, updateAppSettings } = useAppStore()
   const { toast } = useToast()
@@ -22,33 +24,51 @@ export function HourlyCostCalculator() {
   const [monthlyHours, setMonthlyHours] = useState(
     appSettings?.hourly_cost_monthly_hours?.toString() || '160',
   )
-  const [fixedItems, setFixedItems] = useState<FixedExpense[]>(
-    appSettings?.hourly_cost_fixed_items || [],
-  )
+  const [fixedItems, setFixedItems] = useState<EditableFixedExpense[]>([])
 
   useEffect(() => {
     if (appSettings) {
       setMonthlyHours(appSettings.hourly_cost_monthly_hours.toString())
-      setFixedItems(appSettings.hourly_cost_fixed_items || [])
+      setFixedItems(
+        (appSettings.hourly_cost_fixed_items || []).map((i) => ({
+          ...i,
+          inputValue: i.value.toString(),
+        })),
+      )
     }
   }, [appSettings])
 
   const addFixedItem = () => {
-    setFixedItems([...fixedItems, { id: crypto.randomUUID(), label: '', value: 0 }])
+    setFixedItems([...fixedItems, { id: crypto.randomUUID(), label: '', value: 0, inputValue: '' }])
   }
 
   const removeFixedItem = (id: string) => {
     setFixedItems(fixedItems.filter((i) => i.id !== id))
   }
 
-  const updateFixedItem = (id: string, field: 'label' | 'value', val: string | number) => {
-    setFixedItems(fixedItems.map((i) => (i.id === id ? { ...i, [field]: val } : i)))
+  const updateFixedItemLabel = (id: string, label: string) => {
+    setFixedItems(fixedItems.map((i) => (i.id === id ? { ...i, label } : i)))
+  }
+
+  const updateFixedItemValue = (id: string, inputValue: string) => {
+    setFixedItems(
+      fixedItems.map((i) =>
+        i.id === id ? { ...i, inputValue, value: Number(inputValue) || 0 } : i,
+      ),
+    )
   }
 
   const handleSave = async () => {
+    const itemsToSave = fixedItems.map(({ id, label, value }) => ({
+      id,
+      name: label,
+      label,
+      value,
+    }))
+
     const res = await updateAppSettings({
       hourly_cost_monthly_hours: Number(monthlyHours) || 160,
-      hourly_cost_fixed_items: fixedItems,
+      hourly_cost_fixed_items: itemsToSave,
     })
 
     if (res.success) {
@@ -62,7 +82,7 @@ export function HourlyCostCalculator() {
     }
   }
 
-  const totalFixedCosts = fixedItems.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0)
+  const totalFixedCosts = fixedItems.reduce((acc, curr) => acc + (Number(curr.inputValue) || 0), 0)
   const hours = Number(monthlyHours) || 160
   const costPerMinute = hours > 0 ? totalFixedCosts / (hours * 60) : 0
 
@@ -100,7 +120,7 @@ export function HourlyCostCalculator() {
                         <Input
                           placeholder="DESCRIÇÃO DA DESPESA (EX: ALUGUEL)"
                           value={item.label}
-                          onChange={(e) => updateFixedItem(item.id, 'label', e.target.value)}
+                          onChange={(e) => updateFixedItemLabel(item.id, e.target.value)}
                           className="bg-white border-slate-200 shadow-sm"
                         />
                       </TableCell>
@@ -109,11 +129,10 @@ export function HourlyCostCalculator() {
                           <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             type="number"
+                            step="0.01"
                             placeholder="0.00"
-                            value={item.value || ''}
-                            onChange={(e) =>
-                              updateFixedItem(item.id, 'value', Number(e.target.value))
-                            }
+                            value={item.inputValue}
+                            onChange={(e) => updateFixedItemValue(item.id, e.target.value)}
                             className="pl-9 bg-white border-slate-200 font-medium shadow-sm"
                           />
                         </div>
