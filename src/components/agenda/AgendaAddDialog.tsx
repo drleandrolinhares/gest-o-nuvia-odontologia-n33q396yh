@@ -9,10 +9,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, Check, ChevronsUpDown } from 'lucide-react'
 import { Employee } from '@/stores/main'
+import { cn } from '@/lib/utils'
 
 interface Props {
   open: boolean
@@ -36,7 +46,8 @@ export function AgendaAddDialog({
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [location, setLocation] = useState('')
-  const [assignedTo, setAssignedTo] = useState('')
+  const [assignedTo, setAssignedTo] = useState('none')
+  const [openAssignee, setOpenAssignee] = useState(false)
   const [involvesThirdParty, setInvolvesThirdParty] = useState(false)
   const [thirdPartyDetails, setThirdPartyDetails] = useState('')
 
@@ -49,7 +60,7 @@ export function AgendaAddDialog({
     setDate('')
     setTime('')
     setLocation('')
-    setAssignedTo('')
+    setAssignedTo('none')
     setInvolvesThirdParty(false)
     setThirdPartyDetails('')
   }
@@ -61,12 +72,12 @@ export function AgendaAddDialog({
         title: title.toUpperCase(),
         date,
         time,
-        location: location.toUpperCase(),
         type,
+        location: location.toUpperCase(),
         assignedTo: assignedTo === 'none' ? undefined : assignedTo,
         involvesThirdParty,
         thirdPartyDetails: involvesThirdParty ? thirdPartyDetails.toUpperCase() : '',
-        createdBy: currentUser?.name || 'ADMIN',
+        createdBy: currentUser?.name || 'SISTEMA',
         requester_id: currentUserId,
         is_completed: false,
       })
@@ -86,7 +97,7 @@ export function AgendaAddDialog({
       <DialogContent className="max-w-lg uppercase">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <CalendarDays className="h-5 w-5 text-primary" /> ADICIONAR NOVO COMPROMISSO
+            <CalendarDays className="h-5 w-5 text-primary" /> NOVO COMPROMISSO / PEDIDO
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-2">
@@ -120,19 +131,66 @@ export function AgendaAddDialog({
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">RESPONSÁVEL</label>
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger>
-                  <SelectValue placeholder="GERAL / CLÍNICA" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">GERAL / CLÍNICA</SelectItem>
-                  {activeEmployees.map((e) => (
-                    <SelectItem key={e.id} value={e.id}>
-                      {e.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openAssignee} onOpenChange={setOpenAssignee}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openAssignee}
+                    className="w-full justify-between uppercase"
+                  >
+                    {assignedTo === 'none'
+                      ? 'GERAL / CLÍNICA'
+                      : activeEmployees.find((e) => e.id === assignedTo)?.name}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="BUSCAR..." className="uppercase" />
+                    <CommandList>
+                      <CommandEmpty>NENHUM ENCONTRADO.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="GERAL CLINICA"
+                          onSelect={() => {
+                            setAssignedTo('none')
+                            setOpenAssignee(false)
+                          }}
+                          className="uppercase"
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              assignedTo === 'none' ? 'opacity-100' : 'opacity-0',
+                            )}
+                          />
+                          GERAL / CLÍNICA
+                        </CommandItem>
+                        {activeEmployees.map((e) => (
+                          <CommandItem
+                            key={e.id}
+                            value={e.name}
+                            onSelect={() => {
+                              setAssignedTo(e.id)
+                              setOpenAssignee(false)
+                            }}
+                            className="uppercase"
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                assignedTo === e.id ? 'opacity-100' : 'opacity-0',
+                              )}
+                            />
+                            {e.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -170,7 +228,6 @@ export function AgendaAddDialog({
                 <Textarea
                   value={thirdPartyDetails}
                   onChange={(e) => setThirdPartyDetails(e.target.value)}
-                  placeholder="INFORME OS DADOS..."
                   required={involvesThirdParty}
                   rows={2}
                 />

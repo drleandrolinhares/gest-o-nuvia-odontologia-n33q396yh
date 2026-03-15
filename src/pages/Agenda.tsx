@@ -37,7 +37,7 @@ export default function Agenda() {
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null)
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
-  const [taskView, setTaskView] = useState<'MEUS' | 'DELEGADOS' | 'TODOS'>('MEUS')
+  const [taskView, setTaskView] = useState<'PARA MIM' | 'DELEGADOS' | 'TUDO'>('PARA MIM')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
 
@@ -72,16 +72,9 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
-      if (taskView === 'TODOS') return true
-      if (taskView === 'DELEGADOS') {
-        return item.requester_id === currentUserId && item.assignedTo !== currentUserId
-      }
-      // 'MEUS'
-      return (
-        item.assignedTo === currentUserId ||
-        item.assignedTo === 'none' ||
-        (!item.assignedTo && item.requester_id === currentUserId)
-      )
+      if (taskView === 'TUDO') return true
+      if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
+      return item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
     })
     .sort(
       (a, b) =>
@@ -119,17 +112,16 @@ export default function Agenda() {
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6 items-start">
-        {/* Calendar Sidebar */}
         <Card className="lg:col-span-4 p-2 shadow-sm order-2 lg:order-1 flex flex-col gap-1">
           <div className="flex justify-between items-center px-4 pt-3 pb-2 border-b border-muted/60">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+            <span className="text-xs font-bold text-muted-foreground tracking-widest">
               NAVEGAÇÃO
             </span>
             <Button
               variant="outline"
               size="sm"
               onClick={goToToday}
-              className="h-7 px-3 text-[10px] font-bold tracking-widest text-primary border-primary/30 hover:bg-primary/10 hover:text-primary transition-colors uppercase"
+              className="h-7 px-3 text-[10px] font-bold tracking-widest text-primary border-primary/30 hover:bg-primary/10"
             >
               HOJE
             </Button>
@@ -150,9 +142,7 @@ export default function Agenda() {
           />
         </Card>
 
-        {/* List View */}
         <div className="lg:col-span-8 space-y-4 order-1 lg:order-2">
-          {/* Main Filters */}
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-muted/30 p-2 rounded-lg border">
             <Tabs
               value={filterView}
@@ -175,7 +165,7 @@ export default function Agenda() {
                 />
                 <label
                   htmlFor="show-completed"
-                  className="text-xs font-bold cursor-pointer uppercase whitespace-nowrap"
+                  className="text-xs font-bold cursor-pointer whitespace-nowrap"
                 >
                   CONCLUÍDOS
                 </label>
@@ -232,7 +222,6 @@ export default function Agenda() {
             </div>
           </div>
 
-          {/* Task Visibility View */}
           <div className="flex justify-start">
             <Tabs
               value={taskView}
@@ -241,20 +230,20 @@ export default function Agenda() {
             >
               <TabsList className="bg-transparent border-b rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
                 <TabsTrigger
-                  value="MEUS"
+                  value="PARA MIM"
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
-                  MEUS COMPROMISSOS
+                  PARA MIM
                 </TabsTrigger>
                 <TabsTrigger
                   value="DELEGADOS"
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
-                  PEDIDOS ENVIADOS
+                  DELEGADOS POR MIM
                 </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger
-                    value="TODOS"
+                    value="TUDO"
                     className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                   >
                     VISÃO GERAL (ADMIN)
@@ -266,7 +255,7 @@ export default function Agenda() {
 
           <div className="grid gap-3 pt-2">
             {filteredAgenda.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50 uppercase">
+              <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50">
                 NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.
               </div>
             ) : (
@@ -294,7 +283,6 @@ export default function Agenda() {
         agendaTypes={agendaTypes}
         currentUserId={currentUserId}
       />
-
       <AgendaDetailsDialog
         item={selectedItem}
         onClose={() => setSelectedItem(null)}

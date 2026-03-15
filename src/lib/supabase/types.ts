@@ -72,6 +72,7 @@ export type Database = {
       agenda: {
         Row: {
           assigned_to: string | null
+          completed_at: string | null
           created_at: string
           created_by: string | null
           date: string
@@ -79,6 +80,8 @@ export type Database = {
           involves_third_party: boolean | null
           is_completed: boolean | null
           location: string
+          received_at: string | null
+          requester_id: string | null
           third_party_details: string | null
           time: string
           title: string
@@ -86,6 +89,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
           date: string
@@ -93,6 +97,8 @@ export type Database = {
           involves_third_party?: boolean | null
           is_completed?: boolean | null
           location: string
+          received_at?: string | null
+          requester_id?: string | null
           third_party_details?: string | null
           time: string
           title: string
@@ -100,6 +106,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
           date?: string
@@ -107,12 +114,22 @@ export type Database = {
           involves_third_party?: boolean | null
           is_completed?: boolean | null
           location?: string
+          received_at?: string | null
+          requester_id?: string | null
           third_party_details?: string | null
           time?: string
           title?: string
           type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'agenda_requester_id_fkey'
+            columns: ['requester_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+        ]
       }
       app_settings: {
         Row: {
@@ -1200,6 +1217,9 @@ export const Constants = {
 //   created_by: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   is_completed: boolean (nullable, default: false)
+//   requester_id: uuid (nullable)
+//   received_at: timestamp with time zone (nullable)
+//   completed_at: timestamp with time zone (nullable)
 // Table: app_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   global_card_fee: numeric (nullable, default: 0)
@@ -1422,6 +1442,7 @@ export const Constants = {
 //   PRIMARY KEY acessos_pkey: PRIMARY KEY (id)
 // Table: agenda
 //   PRIMARY KEY agenda_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY agenda_requester_id_fkey: FOREIGN KEY (requester_id) REFERENCES employees(id) ON DELETE SET NULL
 // Table: app_settings
 //   PRIMARY KEY app_settings_pkey: PRIMARY KEY (id)
 // Table: audit_logs
