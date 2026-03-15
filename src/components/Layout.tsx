@@ -117,23 +117,48 @@ export function Layout() {
     )
   }
 
-  const baseNavigation = [
-    { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
-    { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
-    { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
-    { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
-    { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
-    { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
-    { name: 'ACESSOS', href: '/admin/acessos', icon: Shield },
-    { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
-    { name: 'CONFIGURAÇÕES', href: '/admin/configuracoes', icon: Settings },
+  const navigationSections = [
+    {
+      title: 'VISÃO DIÁRIA',
+      items: [
+        { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
+        { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
+        { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
+      ],
+    },
+    {
+      title: 'GESTÃO DE EQUIPE',
+      items: [
+        { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
+        { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
+      ],
+    },
+    {
+      title: 'OPERAÇÃO',
+      items: [
+        { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
+        { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
+      ],
+    },
+    {
+      title: 'ADMINISTRAÇÃO',
+      items: [
+        { name: 'CONFIGURAÇÕES', href: '/admin/configuracoes', icon: Settings },
+        { name: 'ACESSOS', href: '/admin/acessos', icon: Shield },
+        { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
+      ],
+    },
   ]
 
-  const filteredNavigation = baseNavigation.filter((item) => {
-    if (item.adminOnly && !isAdmin) return false
-    return true
-  })
+  const filteredSections = navigationSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (item.adminOnly && !isAdmin) return false
+        return true
+      }),
+    }))
+    .filter((section) => section.items.length > 0)
 
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
@@ -152,73 +177,78 @@ export function Layout() {
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar overflow-x-hidden">
-        <div className="space-y-1">
-          {(!isCollapsed || isMobile) && (
-            <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">
-              Gestão Integrada
-            </p>
-          )}
-          {filteredNavigation.map((item) => {
-            const isActive = item.exact
-              ? location.pathname === item.href || location.pathname === `${item.href}/`
-              : location.pathname.startsWith(item.href)
+      <div className="flex-1 overflow-y-auto py-4 px-4 custom-scrollbar overflow-x-hidden">
+        {filteredSections.map((section, idx) => (
+          <div key={section.title} className={cn('mb-6', isCollapsed && !isMobile && 'mb-4')}>
+            {(!isCollapsed || isMobile) && (
+              <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-3">
+                {section.title}
+              </p>
+            )}
+            {isCollapsed && !isMobile && idx > 0 && <div className="h-px bg-white/10 mx-2 mb-4" />}
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const isActive = item.exact
+                  ? location.pathname === item.href || location.pathname === `${item.href}/`
+                  : location.pathname.startsWith(item.href)
 
-            const hasUnread = item.name === 'MENSAGENS' && totalUnread > 0
+                const hasUnread = item.name === 'MENSAGENS' && totalUnread > 0
 
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                title={isCollapsed && !isMobile ? item.name : undefined}
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  'group flex items-center py-3 text-sm font-medium rounded-md transition-all duration-300 relative',
-                  isCollapsed && !isMobile ? 'justify-center px-2' : 'px-4',
-                  isActive
-                    ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
-                    : 'text-slate-300 hover:bg-white/5 hover:text-white',
-                  hasUnread &&
-                    !isActive &&
-                    'bg-red-500/10 shadow-[inset_4px_0_0_0_rgba(239,68,68,1)]',
-                )}
-              >
-                <item.icon
-                  className={cn(
-                    'flex-shrink-0 h-5 w-5 transition-colors',
-                    isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
-                    isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
-                    hasUnread && 'text-red-400 animate-pulse',
-                  )}
-                  aria-hidden="true"
-                />
-                {(!isCollapsed || isMobile) && (
-                  <span
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    title={isCollapsed && !isMobile ? item.name : undefined}
+                    onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'transition-colors whitespace-nowrap',
-                      hasUnread && 'text-red-400 font-bold',
-                      hasUnread && !isActive && 'animate-pulse',
+                      'group flex items-center py-3 text-sm font-medium rounded-md transition-all duration-300 relative',
+                      isCollapsed && !isMobile ? 'justify-center px-2' : 'px-4',
+                      isActive
+                        ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                        : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                      hasUnread &&
+                        !isActive &&
+                        'bg-red-500/10 shadow-[inset_4px_0_0_0_rgba(239,68,68,1)]',
                     )}
                   >
-                    {item.name}
-                  </span>
-                )}
-                {hasUnread && (
-                  <span
-                    className={cn(
-                      'bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]',
-                      isCollapsed && !isMobile
-                        ? 'absolute top-1 right-1 px-1.5 py-0 text-[8px]'
-                        : 'ml-auto',
+                    <item.icon
+                      className={cn(
+                        'flex-shrink-0 h-5 w-5 transition-colors',
+                        isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
+                        isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
+                        hasUnread && 'text-red-400 animate-pulse',
+                      )}
+                      aria-hidden="true"
+                    />
+                    {(!isCollapsed || isMobile) && (
+                      <span
+                        className={cn(
+                          'transition-colors whitespace-nowrap',
+                          hasUnread && 'text-red-400 font-bold',
+                          hasUnread && !isActive && 'animate-pulse',
+                        )}
+                      >
+                        {item.name}
+                      </span>
                     )}
-                  >
-                    {totalUnread > 99 ? '99+' : totalUnread}
-                  </span>
-                )}
-              </Link>
-            )
-          })}
-        </div>
+                    {hasUnread && (
+                      <span
+                        className={cn(
+                          'bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]',
+                          isCollapsed && !isMobile
+                            ? 'absolute top-1 right-1 px-1.5 py-0 text-[8px]'
+                            : 'ml-auto',
+                        )}
+                      >
+                        {totalUnread > 99 ? '99+' : totalUnread}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       <div
