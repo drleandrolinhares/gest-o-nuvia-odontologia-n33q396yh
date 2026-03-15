@@ -113,7 +113,7 @@ export function Layout() {
   ]
 
   if (isAdmin) {
-    baseNavigation.push({ name: 'FINANCEIRO', href: '/admin/financeiro', icon: DollarSign })
+    baseNavigation.push({ name: 'PRECIFICAÇÃO', href: '/admin/financeiro', icon: DollarSign })
   }
 
   baseNavigation.push(
@@ -134,7 +134,7 @@ export function Layout() {
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-6 px-4">
+      <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
         <div className="space-y-1">
           <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">
             Gestão Integrada
@@ -249,7 +249,9 @@ export function Layout() {
                 ? 'AGENDA'
                 : location.pathname === '/admin/dashboard'
                   ? 'DASHBOARD'
-                  : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
+                  : location.pathname === '/admin/financeiro'
+                    ? 'PRECIFICAÇÃO'
+                    : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
             </span>
           </div>
           <div className="flex items-center gap-4"></div>

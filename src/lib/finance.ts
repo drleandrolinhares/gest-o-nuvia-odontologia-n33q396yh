@@ -9,7 +9,7 @@ export function calculateProfitability(item: Partial<PriceList>, appSettings: Ap
   let costPerMin = 0
   if (appSettings && appSettings.hourly_cost_monthly_hours > 0) {
     const totalFixed = appSettings.hourly_cost_fixed_items.reduce(
-      (acc, f) => acc + Number(f.value),
+      (acc, f) => acc + Number(f.calculated_monthly_cost ?? f.value ?? 0),
       0,
     )
     costPerMin = totalFixed / (appSettings.hourly_cost_monthly_hours * 60)

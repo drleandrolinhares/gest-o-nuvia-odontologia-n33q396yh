@@ -181,7 +181,16 @@ export type InventoryOption = {
   value: string
 }
 
-export type FixedItem = { id: string; name: string; value: number }
+export type FixedItem = {
+  id: string
+  description: string
+  gross_base_value: number
+  periodicity_type: 'Mensal' | 'Anual'
+  calculated_monthly_cost: number
+  name?: string
+  value?: number
+}
+
 export type AppSettings = {
   id: string
   global_card_fee: number
@@ -586,7 +595,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 global_commission: Number(r.data.global_commission),
                 global_inadimplency: Number(r.data.global_inadimplency),
                 global_taxes: Number(r.data.global_taxes),
-                hourly_cost_fixed_items: r.data.hourly_cost_fixed_items || [],
+                hourly_cost_fixed_items: (r.data.hourly_cost_fixed_items || []).map(
+                  (item: any) => ({
+                    id: item.id || crypto.randomUUID(),
+                    description: item.description || item.name || '',
+                    gross_base_value: Number(item.gross_base_value ?? item.value ?? 0),
+                    periodicity_type: item.periodicity_type || 'Mensal',
+                    calculated_monthly_cost: Number(
+                      item.calculated_monthly_cost ?? item.value ?? 0,
+                    ),
+                    name: item.name,
+                    value: item.value,
+                  }),
+                ),
                 hourly_cost_monthly_hours: Number(r.data.hourly_cost_monthly_hours),
               })
             }
@@ -1800,7 +1821,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .eq('id', current.id)
         if (error) throw error
         setAppSettings((p) => (p ? { ...p, ...data } : p))
-        logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DE FINANCEIRO')
+        logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DE PRECIFICAÇÃO')
         return { success: true }
       } catch (err) {
         console.error('Error updating app settings:', err)

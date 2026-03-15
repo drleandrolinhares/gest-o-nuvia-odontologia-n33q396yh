@@ -97,7 +97,7 @@ export default function Index() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">DASHBOARD NUVIA</h1>
         <p className="text-muted-foreground mt-1">
-          VISÃO GERAL DA GESTÃO DE RH, ESTOQUE E FINANCEIRO.
+          VISÃO GERAL DA GESTÃO DE RH, ESTOQUE E PRECIFICAÇÃO.
         </p>
       </div>
 
@@ -285,8 +285,8 @@ export default function Index() {
                   <Calculator className="h-4 w-4" />
                   <AlertTitle>REVISÃO DE PRECIFICAÇÃO VENCIDA</AlertTitle>
                   <AlertDescription>
-                    A REVISÃO DA TABELA DE PREÇOS ESTÁ ATRASADA. ACESSE O MÓDULO FINANCEIRO PARA
-                    ATUALIZAR.
+                    A REVISÃO DA TABELA DE PREÇOS ESTÁ ATRASADA. ACESSE O MÓDULO DE PRECIFICAÇÃO
+                    PARA ATUALIZAR.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -391,7 +391,7 @@ export default function Index() {
             </Link>
             <Link to="/admin/financeiro" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
-                <Calculator className="mr-2 h-4 w-4" /> GESTÃO FINANCEIRA
+                <Calculator className="mr-2 h-4 w-4" /> PRECIFICAÇÃO
               </Button>
             </Link>
           </CardContent>

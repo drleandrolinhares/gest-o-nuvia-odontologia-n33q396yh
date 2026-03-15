@@ -724,6 +724,41 @@ export type Database = {
           },
         ]
       }
+      pricing_history: {
+        Row: {
+          created_at: string
+          execution_date: string
+          id: string
+          next_revision_date: string
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          created_at?: string
+          execution_date: string
+          id?: string
+          next_revision_date: string
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          created_at?: string
+          execution_date?: string
+          id?: string
+          next_revision_date?: string
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'pricing_history_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1186,6 +1221,13 @@ export const Constants = {
 //   name: text (not null)
 //   percentage: numeric (nullable, default: 0)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: pricing_history
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   user_name: text (not null)
+//   execution_date: date (not null)
+//   next_revision_date: date (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: profiles
 //   id: uuid (not null)
 //   email: text (not null, default: ''::text)
@@ -1271,6 +1313,9 @@ export const Constants = {
 // Table: price_stages
 //   PRIMARY KEY price_stages_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY price_stages_price_list_id_fkey: FOREIGN KEY (price_list_id) REFERENCES price_list(id) ON DELETE CASCADE
+// Table: pricing_history
+//   PRIMARY KEY pricing_history_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY pricing_history_user_id_fkey: FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE SET NULL
 // Table: profiles
 //   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
@@ -1358,6 +1403,10 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: price_stages
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: pricing_history
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
@@ -1461,6 +1510,28 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION handle_pricing_history_insert()
+//   CREATE OR REPLACE FUNCTION public.handle_pricing_history_insert()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//       INSERT INTO public.agenda (title, date, time, location, type, is_completed, involves_third_party, created_by)
+//       VALUES (
+//           'REVISÃO DE PRECIFICAÇÃO - ' || NEW.user_name,
+//           NEW.next_revision_date,
+//           '08:00',
+//           'SISTEMA',
+//           'REVISÃO',
+//           false,
+//           false,
+//           'SISTEMA'
+//       );
+//       RETURN NEW;
+//   END;
+//   $function$
+//
 // FUNCTION is_master_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_master_user(user_uuid uuid)
 //    RETURNS boolean
@@ -1535,6 +1606,8 @@ export const Constants = {
 // --- TRIGGERS ---
 // Table: employees
 //   trg_sync_employee_dates_to_agenda: CREATE TRIGGER trg_sync_employee_dates_to_agenda AFTER INSERT OR DELETE OR UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION sync_employee_dates_to_agenda()
+// Table: pricing_history
+//   on_pricing_history_created: CREATE TRIGGER on_pricing_history_created AFTER INSERT ON public.pricing_history FOR EACH ROW EXECUTE FUNCTION handle_pricing_history_insert()
 
 // --- INDEXES ---
 // Table: chat_participants

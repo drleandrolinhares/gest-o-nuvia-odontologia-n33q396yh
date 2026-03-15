@@ -15,7 +15,7 @@ export default function Financeiro() {
         <ShieldAlert className="h-16 w-16 text-red-500 mb-4" />
         <h2 className="text-2xl font-black text-nuvia-navy">ACESSO NEGADO</h2>
         <p className="text-muted-foreground mt-2 max-w-md">
-          VOCÊ NÃO TEM PERMISSÃO PARA ACESSAR O MÓDULO FINANCEIRO. CONTATE A DIRETORIA.
+          VOCÊ NÃO TEM PERMISSÃO PARA ACESSAR O MÓDULO DE PRECIFICAÇÃO. CONTATE A DIRETORIA.
         </p>
       </div>
     )
@@ -25,7 +25,7 @@ export default function Financeiro() {
     <div className="space-y-6 animate-fade-in-up uppercase pb-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy flex items-center gap-3">
-          <DollarSign className="h-8 w-8 text-emerald-600" /> GESTÃO FINANCEIRA
+          <DollarSign className="h-8 w-8 text-emerald-600" /> PRECIFICAÇÃO
         </h1>
         <p className="text-muted-foreground mt-1">
           TABELA DE PREÇOS, MARGEM DE LUCRO, CUSTO HORA E PARAMETRIZAÇÕES GLOBAIS.
@@ -33,7 +33,7 @@ export default function Financeiro() {
       </div>
 
       <Tabs defaultValue="tabela" className="w-full">
-        <TabsList className="mb-6 flex flex-wrap w-full max-w-4xl h-auto">
+        <TabsList className="mb-6 flex flex-wrap w-full max-w-5xl h-auto">
           <TabsTrigger value="tabela" className="py-2 px-4 flex-1 font-bold tracking-widest">
             TABELA DE PREÇOS
           </TabsTrigger>
@@ -44,7 +44,7 @@ export default function Financeiro() {
             CONFIG. GLOBAIS
           </TabsTrigger>
           <TabsTrigger value="historico" className="py-2 px-4 flex-1 font-bold tracking-widest">
-            HISTÓRICO
+            HISTÓRICO DE PRECIFICAÇÃO
           </TabsTrigger>
         </TabsList>
 
