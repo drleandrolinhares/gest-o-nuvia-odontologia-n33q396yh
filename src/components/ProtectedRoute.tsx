@@ -2,12 +2,45 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase/client'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, authError } = useAuth()
   const location = useLocation()
+  const [mustChange, setMustChange] = useState<boolean | null>(null)
+  const [checkingProfile, setCheckingProfile] = useState(true)
 
-  if (loading) {
+  useEffect(() => {
+    let isMounted = true
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('must_change_password')
+        .eq('id', user.id)
+        .single()
+        .then(({ data, error }) => {
+          if (isMounted) {
+            if (!error && data) {
+              setMustChange(!!data.must_change_password)
+            } else {
+              setMustChange(false)
+            }
+            setCheckingProfile(false)
+          }
+        })
+    } else {
+      if (isMounted) {
+        setMustChange(null)
+        setCheckingProfile(false)
+      }
+    }
+    return () => {
+      isMounted = false
+    }
+  }, [user])
+
+  if (loading || (user && checkingProfile)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
         <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
@@ -37,8 +70,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!user) {
-    // Save the current location they were trying to go to so we can return them after login
     return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  }
+
+  if (mustChange) {
+    return <Navigate to="/force-change-password" replace />
   }
 
   return <>{children}</>

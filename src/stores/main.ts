@@ -309,6 +309,7 @@ interface AppStore {
     userId: string,
     newPass: string,
   ) => Promise<{ success: boolean; error?: any }>
+  forceResetPassword: (userId: string) => Promise<{ success: boolean; error?: any }>
   deleteEmployee: (id: string) => void
   updateEmployeeStatus: (id: string, s: Employee['status']) => void
   generateEmployeeAccess: (
@@ -1458,13 +1459,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateEmployeePassword = useCallback(
     async (userId: string, newPass: string) => {
       try {
-        const { data, error } = await supabase.functions.invoke('update-user-password', {
+        const { error } = await supabase.functions.invoke('update-user-password', {
           body: { userId, password: newPass },
         })
         if (error) throw error
         logAction(`ALTEROU SENHA DE ACESSO DO USUÁRIO ID: ${userId}`)
         return { success: true }
       } catch (error: any) {
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
+  const forceResetPassword = useCallback(
+    async (userId: string) => {
+      try {
+        const { error: fnError } = await supabase.functions.invoke('update-user-password', {
+          body: { userId, password: '123456' },
+        })
+        if (fnError) throw fnError
+
+        const { error: dbError } = await supabase
+          .from('profiles')
+          .update({ must_change_password: true })
+          .eq('id', userId)
+
+        if (dbError) throw dbError
+
+        logAction(`FORÇOU RESET DE SENHA PARA O USUÁRIO ID: ${userId}`)
+        return { success: true }
+      } catch (error: any) {
+        console.warn('Erro no reset forçado de senha', error)
         return { success: false, error }
       }
     },
@@ -2102,6 +2128,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addEmployee,
       updateEmployee,
       updateEmployeePassword,
+      forceResetPassword,
       deleteEmployee,
       updateEmployeeStatus,
       generateEmployeeAccess,
@@ -2186,6 +2213,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addEmployee,
       updateEmployee,
       updateEmployeePassword,
+      forceResetPassword,
       deleteEmployee,
       updateEmployeeStatus,
       generateEmployeeAccess,

@@ -27,10 +27,22 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { EditEmployeeDialog } from '@/components/rh/EditEmployeeDialog'
 import { getVacationStatus } from '@/lib/vacation'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const {
     employees,
     deleteEmployee,
@@ -39,6 +51,8 @@ export default function EmployeeProfile() {
     addEmployeeDocument,
     removeEmployeeDocument,
     isAdmin,
+    isMaster,
+    forceResetPassword,
   } = useAppStore()
   const employee = employees.find((e) => e.id === id)
 
@@ -46,6 +60,7 @@ export default function EmployeeProfile() {
   const [editTab, setEditTab] = useState('dados')
   const [startEditMode, setStartEditMode] = useState(false)
   const [focusSection, setFocusSection] = useState<string | null>(null)
+  const [isForceResetOpen, setIsForceResetOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   if (!employee) {
@@ -107,6 +122,24 @@ export default function EmployeeProfile() {
     link.click()
   }
 
+  const handleForceReset = async () => {
+    if (!employee.user_id) return
+    const res = await forceResetPassword(employee.user_id)
+    if (res.success) {
+      toast({
+        title: 'Sucesso',
+        description: 'Senha resetada para 123456 com sucesso.',
+      })
+    } else {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível forçar o reset da senha.',
+        variant: 'destructive',
+      })
+    }
+    setIsForceResetOpen(false)
+  }
+
   const docs = employeeDocuments.filter((d) => d.employee_id === employee.id)
   const vStatus = getVacationStatus(employee.vacationDueDate)
 
@@ -146,7 +179,16 @@ export default function EmployeeProfile() {
             </p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+          {isMaster && employee.user_id && (
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700 text-white border-none font-bold shadow-md"
+              onClick={() => setIsForceResetOpen(true)}
+            >
+              <AlertTriangle className="h-4 w-4 mr-2" /> RESET FORÇADO
+            </Button>
+          )}
           {employee.user_id ? (
             <Button
               variant="outline"
@@ -456,6 +498,32 @@ export default function EmployeeProfile() {
         startInEditMode={startEditMode}
         focusSection={focusSection}
       />
+
+      <AlertDialog open={isForceResetOpen} onOpenChange={setIsForceResetOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="uppercase text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" /> Reset Forçado de Senha
+            </AlertDialogTitle>
+            <AlertDialogDescription className="uppercase font-semibold mt-2">
+              Tem certeza que deseja forçar o reset de senha para o colaborador{' '}
+              <span className="text-foreground">{employee.name}</span>?
+              <br />
+              <br />A senha será redefinida para <strong>123456</strong> e o colaborador será{' '}
+              <strong>obrigado</strong> a alterá-la no próximo login.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="uppercase font-bold">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleForceReset}
+              className="bg-red-600 hover:bg-red-700 text-white uppercase font-bold"
+            >
+              Confirmar Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

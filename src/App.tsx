@@ -16,6 +16,7 @@ import Login from '@/pages/Login'
 import Chat from '@/pages/Chat'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
+import ForceChangePassword from '@/pages/ForceChangePassword'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
@@ -31,6 +32,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/admin/agenda" replace />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/force-change-password" element={<ForceChangePassword />} />
               <Route
                 path="/admin"
                 element={
