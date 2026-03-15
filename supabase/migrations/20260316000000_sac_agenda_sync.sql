@@ -7,7 +7,7 @@ ALTER TABLE public.sac_records ADD CONSTRAINT sac_records_status_check CHECK (st
 
 -- Trigger function: Update agenda when SAC is marked as RESOLVIDO
 CREATE OR REPLACE FUNCTION public.sync_sac_to_agenda()
-RETURNS trigger AS $
+RETURNS trigger AS $$
 BEGIN
     IF NEW.status = 'RESOLVIDO' AND OLD.status != 'RESOLVIDO' THEN
         UPDATE public.agenda 
@@ -16,7 +16,7 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS trg_sync_sac_to_agenda ON public.sac_records;
 CREATE TRIGGER trg_sync_sac_to_agenda
@@ -25,7 +25,7 @@ FOR EACH ROW EXECUTE FUNCTION sync_sac_to_agenda();
 
 -- Trigger function: Update SAC when related Agenda item is marked as complete
 CREATE OR REPLACE FUNCTION public.sync_agenda_to_sac()
-RETURNS trigger AS $
+RETURNS trigger AS $$
 BEGIN
     IF NEW.is_completed = true AND OLD.is_completed = false AND NEW.type = 'SAC' AND NEW.sac_record_id IS NOT NULL THEN
         UPDATE public.sac_records 
@@ -34,10 +34,9 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS trg_sync_agenda_to_sac ON public.agenda;
 CREATE TRIGGER trg_sync_agenda_to_sac
 AFTER UPDATE ON public.agenda
 FOR EACH ROW EXECUTE FUNCTION sync_agenda_to_sac();
-
