@@ -181,52 +181,6 @@ export type InventoryOption = {
   value: string
 }
 
-export type FixedItem = {
-  id: string
-  name: string
-  value: number
-  description?: string
-  gross_base_value?: number
-  periodicity_type?: 'Mensal' | 'Anual'
-  calculated_monthly_cost?: number
-}
-
-export type AppSettings = {
-  id: string
-  global_card_fee: number
-  global_commission: number
-  global_inadimplency: number
-  global_taxes: number
-  hourly_cost_fixed_items: FixedItem[]
-  hourly_cost_monthly_hours: number
-}
-export type PriceList = {
-  id: string
-  work_type: string
-  category: string
-  material: string
-  price: number
-  sector: string
-  execution_time: number
-  cadista_cost: number
-  material_cost: number
-  fixed_cost: number
-}
-export type PriceStage = {
-  id: string
-  price_list_id: string
-  name: string
-  percentage: number
-}
-export type PricingHistory = {
-  id: string
-  user_id: string | null
-  user_name: string
-  execution_date: string
-  next_revision_date: string
-  created_at: string
-}
-
 interface AppStore {
   isAuthenticated: boolean
   isDataLoading: boolean
@@ -253,10 +207,6 @@ interface AppStore {
   bonusTypes: BonusSetting[]
   employeeDocuments: EmployeeDocument[]
   workSchedules: WorkSchedule[]
-  appSettings: AppSettings | null
-  priceList: PriceList[]
-  priceStages: PriceStage[]
-  pricingHistory: PricingHistory[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -330,15 +280,6 @@ interface AppStore {
   upsertWorkSchedule: (
     schedule: Partial<WorkSchedule> & { employee_id: string; work_date: string },
   ) => Promise<void>
-  updateAppSettings: (data: Partial<AppSettings>) => Promise<{ success: boolean; error?: any }>
-  savePriceList: (
-    priceData: Omit<PriceList, 'id' | 'fixed_cost'> & { fixed_cost?: number },
-    stages: Omit<PriceStage, 'id' | 'price_list_id'>[],
-    id?: string,
-  ) => Promise<{ success: boolean; error?: any }>
-  deletePriceList: (id: string) => Promise<{ success: boolean; error?: any }>
-  addPricingHistory: (execution_date: string) => Promise<{ success: boolean; error?: any }>
-  deletePricingHistory: (id: string) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -369,7 +310,6 @@ const mockAgendaTypes = [
   'COMISSÃO',
   'BÔNUS',
   'FÉRIAS',
-  'REVISÃO',
 ]
 
 const mEmp = (d: any): Employee => ({
@@ -513,16 +453,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [bonusTypes, setBonusTypes] = useState<BonusSetting[]>([])
   const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocument[]>([])
   const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([])
-  const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
-  const [priceList, setPriceList] = useState<PriceList[]>([])
-  const [priceStages, setPriceStages] = useState<PriceStage[]>([])
-  const [pricingHistory, setPricingHistory] = useState<PricingHistory[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees, inventory, appSettings, pricingHistory })
+  const storeRef = useRef({ user, employees, inventory })
   useEffect(() => {
-    storeRef.current = { user, employees, inventory, appSettings, pricingHistory }
-  }, [user, employees, inventory, appSettings, pricingHistory])
+    storeRef.current = { user, employees, inventory }
+  }, [user, employees, inventory])
 
   useEffect(() => {
     if (user) {
@@ -584,87 +520,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .select('*')
           .then((r) => setEmployeeDocuments(handleResponse(r))),
         supabase
-          .from('app_settings' as any)
-          .select('*')
-          .single()
-          .then((r) => {
-            if (r.data) {
-              setAppSettings({
-                id: r.data.id,
-                global_card_fee: Number(r.data.global_card_fee),
-                global_commission: Number(r.data.global_commission),
-                global_inadimplency: Number(r.data.global_inadimplency),
-                global_taxes: Number(r.data.global_taxes),
-                hourly_cost_fixed_items: (r.data.hourly_cost_fixed_items || []).map(
-                  (item: any) => ({
-                    id: item.id || crypto.randomUUID(),
-                    name: item.name || item.description || '',
-                    value: Number(
-                      item.value ?? item.calculated_monthly_cost ?? item.gross_base_value ?? 0,
-                    ),
-                    gross_base_value:
-                      item.gross_base_value !== undefined
-                        ? Number(item.gross_base_value)
-                        : undefined,
-                    periodicity_type: item.periodicity_type || undefined,
-                    calculated_monthly_cost:
-                      item.calculated_monthly_cost !== undefined
-                        ? Number(item.calculated_monthly_cost)
-                        : undefined,
-                  }),
-                ),
-                hourly_cost_monthly_hours: Number(r.data.hourly_cost_monthly_hours),
-              })
-            }
-          })
-          .catch((err) => console.warn('Falha ao carregar app_settings', err)),
-        supabase
-          .from('price_list' as any)
-          .select('*')
-          .then((r) => {
-            if (r.data) {
-              setPriceList(
-                r.data.map((d: any) => ({
-                  id: d.id,
-                  work_type: d.work_type,
-                  category: d.category,
-                  material: d.material,
-                  price: Number(d.price),
-                  sector: d.sector,
-                  execution_time: Number(d.execution_time),
-                  cadista_cost: Number(d.cadista_cost),
-                  material_cost: Number(d.material_cost),
-                  fixed_cost: Number(d.fixed_cost),
-                })),
-              )
-            }
-          })
-          .catch((err) => console.warn('Falha ao carregar price_list', err)),
-        supabase
-          .from('price_stages' as any)
-          .select('*')
-          .then((r) => {
-            if (r.data) {
-              setPriceStages(
-                r.data.map((d: any) => ({
-                  id: d.id,
-                  price_list_id: d.price_list_id,
-                  name: d.name,
-                  percentage: Number(d.percentage),
-                })),
-              )
-            }
-          })
-          .catch((err) => console.warn('Falha ao carregar price_stages', err)),
-        supabase
-          .from('pricing_history' as any)
-          .select('*')
-          .order('execution_date', { ascending: false })
-          .then((r) => {
-            if (r.data) setPricingHistory(r.data)
-          })
-          .catch((err) => console.warn('Falha ao carregar pricing_history', err)),
-        supabase
           .from('audit_logs')
           .select('*, profiles(name)')
           .order('created_at', { ascending: false })
@@ -701,10 +556,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setBonusTypes([])
       setEmployeeDocuments([])
       setWorkSchedules([])
-      setAppSettings(null)
-      setPriceList([])
-      setPriceStages([])
-      setPricingHistory([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -1808,227 +1659,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  const updateAppSettings = useCallback(
-    async (data: Partial<AppSettings>) => {
-      const current = storeRef.current.appSettings
-      if (!current?.id) return { success: false }
-      try {
-        const { error } = await supabase
-          .from('app_settings' as any)
-          .update({
-            global_card_fee: data.global_card_fee,
-            global_commission: data.global_commission,
-            global_inadimplency: data.global_inadimplency,
-            global_taxes: data.global_taxes,
-            hourly_cost_fixed_items: data.hourly_cost_fixed_items,
-            hourly_cost_monthly_hours: data.hourly_cost_monthly_hours,
-          })
-          .eq('id', current.id)
-        if (error) throw error
-        setAppSettings((p) => (p ? { ...p, ...data } : p))
-        logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DE PRECIFICAÇÃO')
-        return { success: true }
-      } catch (err) {
-        console.error('Error updating app settings:', err)
-        return { success: false, error: err }
-      }
-    },
-    [logAction],
-  )
-
-  const savePriceList = useCallback(
-    async (
-      priceData: Omit<PriceList, 'id' | 'fixed_cost'> & { fixed_cost?: number },
-      stages: Omit<PriceStage, 'id' | 'price_list_id'>[],
-      id?: string,
-    ) => {
-      try {
-        let priceListId = id
-        const payload = {
-          work_type: priceData.work_type,
-          category: priceData.category,
-          material: priceData.material,
-          price: priceData.price,
-          sector: priceData.sector,
-          execution_time: priceData.execution_time,
-          cadista_cost: priceData.cadista_cost,
-          material_cost: priceData.material_cost,
-          fixed_cost: priceData.fixed_cost || 0,
-        }
-
-        if (priceListId) {
-          const { error } = await supabase
-            .from('price_list' as any)
-            .update(payload)
-            .eq('id', priceListId)
-          if (error) throw error
-          setPriceList((p) =>
-            p.map((x) => (x.id === priceListId ? { ...x, ...payload, id: priceListId! } : x)),
-          )
-        } else {
-          const { data, error } = await supabase
-            .from('price_list' as any)
-            .insert([payload])
-            .select()
-            .single()
-          if (error) throw error
-          priceListId = data.id
-          setPriceList((p) => [...p, { id: priceListId!, ...payload }])
-        }
-
-        if (priceListId) {
-          await supabase
-            .from('price_stages' as any)
-            .delete()
-            .eq('price_list_id', priceListId)
-          if (stages.length > 0) {
-            const stagesPayload = stages.map((s) => ({
-              price_list_id: priceListId,
-              name: s.name,
-              percentage: s.percentage,
-            }))
-            const { data: insertedStages, error: stagesError } = await supabase
-              .from('price_stages' as any)
-              .insert(stagesPayload)
-              .select()
-            if (stagesError) throw stagesError
-            setPriceStages((p) => [
-              ...p.filter((x) => x.price_list_id !== priceListId),
-              ...insertedStages.map((s: any) => ({
-                id: s.id,
-                price_list_id: s.price_list_id,
-                name: s.name,
-                percentage: Number(s.percentage),
-              })),
-            ])
-          } else {
-            setPriceStages((p) => p.filter((x) => x.price_list_id !== priceListId))
-          }
-        }
-        logAction(
-          id
-            ? `ATUALIZOU TABELA DE PREÇOS: ${priceData.work_type}`
-            : `CRIOU TABELA DE PREÇOS: ${priceData.work_type}`,
-        )
-
-        const todayStr = new Date().toISOString().split('T')[0]
-        const hasToday = storeRef.current.pricingHistory.some(
-          (h) => h.execution_date === todayStr && h.user_id === storeRef.current.user?.id,
-        )
-        if (!hasToday) {
-          addPricingHistory(todayStr).catch((err) =>
-            console.warn('Erro ao auto-registrar histórico de precificação', err),
-          )
-        }
-
-        return { success: true }
-      } catch (error) {
-        console.error('Error saving price list:', error)
-        return { success: false, error }
-      }
-    },
-    [logAction],
-  )
-
-  const deletePriceList = useCallback(
-    async (id: string) => {
-      try {
-        const { error } = await supabase
-          .from('price_list' as any)
-          .delete()
-          .eq('id', id)
-        if (error) throw error
-        setPriceList((p) => p.filter((x) => x.id !== id))
-        setPriceStages((p) => p.filter((x) => x.price_list_id !== id))
-        logAction(`REMOVEU TABELA DE PREÇOS ID: ${id}`)
-        return { success: true }
-      } catch (error) {
-        console.error('Error deleting price list:', error)
-        return { success: false, error }
-      }
-    },
-    [logAction],
-  )
-
-  const addPricingHistory = useCallback(
-    async (execution_date: string) => {
-      try {
-        const u = storeRef.current.user
-        if (!u) throw new Error('Not authenticated')
-        const me = storeRef.current.employees.find((e) => e.user_id === u.id)
-        const userName = me?.name || 'ADMIN'
-
-        const execDate = new Date(execution_date + 'T00:00:00')
-        const nextRev = new Date(execDate)
-        nextRev.setDate(nextRev.getDate() + 90)
-
-        const next_revision_date = nextRev.toISOString().split('T')[0]
-
-        const { data, error } = await supabase
-          .from('pricing_history' as any)
-          .insert([
-            {
-              user_id: u.id,
-              user_name: userName,
-              execution_date,
-              next_revision_date,
-            },
-          ])
-          .select()
-          .single()
-
-        if (error) throw error
-
-        if (data) {
-          setPricingHistory((p) =>
-            [data, ...p].sort(
-              (a, b) => new Date(b.execution_date).getTime() - new Date(a.execution_date).getTime(),
-            ),
-          )
-        }
-
-        setAgenda((p) => [
-          ...p,
-          {
-            id: crypto.randomUUID(),
-            title: `REVISÃO DE PRECIFICAÇÃO - ${userName}`,
-            date: next_revision_date,
-            time: '08:00',
-            location: 'SISTEMA',
-            type: 'REVISÃO',
-            is_completed: false,
-          },
-        ])
-
-        logAction(`REGISTROU REVISÃO DE PRECIFICAÇÃO: ${execution_date}`)
-        return { success: true }
-      } catch (err: any) {
-        console.error('Error adding pricing history', err)
-        return { success: false, error: err }
-      }
-    },
-    [logAction],
-  )
-
-  const deletePricingHistory = useCallback(
-    async (id: string) => {
-      try {
-        const { error } = await supabase
-          .from('pricing_history' as any)
-          .delete()
-          .eq('id', id)
-        if (error) throw error
-        setPricingHistory((p) => p.filter((x) => x.id !== id))
-        logAction(`REMOVEU HISTÓRICO DE PRECIFICAÇÃO ID: ${id}`)
-        return { success: true }
-      } catch (err: any) {
-        console.error('Error deleting pricing history', err)
-        return { success: false, error: err }
-      }
-    },
-    [logAction],
-  )
-
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -2056,10 +1686,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       bonusTypes,
       employeeDocuments,
       workSchedules,
-      appSettings,
-      priceList,
-      priceStages,
-      pricingHistory,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2105,11 +1731,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeEmployeeDocument,
       fetchWorkSchedules,
       upsertWorkSchedule,
-      updateAppSettings,
-      savePriceList,
-      deletePriceList,
-      addPricingHistory,
-      deletePricingHistory,
     }),
     [
       isAuthenticated,
@@ -2137,10 +1758,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       bonusTypes,
       employeeDocuments,
       workSchedules,
-      appSettings,
-      priceList,
-      priceStages,
-      pricingHistory,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2186,11 +1803,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeEmployeeDocument,
       fetchWorkSchedules,
       upsertWorkSchedule,
-      updateAppSettings,
-      savePriceList,
-      deletePriceList,
-      addPricingHistory,
-      deletePricingHistory,
     ],
   )
 

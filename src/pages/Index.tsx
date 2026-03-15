@@ -5,13 +5,11 @@ import {
   ListTodo,
   TrendingDown,
   AlertCircle,
-  FileText,
   DollarSign,
   Boxes,
   UserCheck,
   Stethoscope,
   Briefcase,
-  Calculator,
   CalendarDays,
 } from 'lucide-react'
 import useAppStore from '@/stores/main'
@@ -19,10 +17,9 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn, formatCurrency } from '@/lib/utils'
 import { Link, useNavigate } from 'react-router-dom'
-import { differenceInDays, parseISO, isBefore, startOfDay } from 'date-fns'
 
 export default function Index() {
-  const { employees, alerts, onboarding, inventory, pricingHistory } = useAppStore()
+  const { employees, alerts, onboarding, inventory } = useAppStore()
   const navigate = useNavigate()
 
   const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
@@ -54,54 +51,14 @@ export default function Index() {
     return exp < now
   })
 
-  let pricingStatus = {
-    color: 'bg-muted',
-    text: 'text-muted-foreground',
-    label: 'SEM REGISTRO',
-    days: 0,
-  }
-  let latestPricing = null
-
-  if (pricingHistory.length > 0) {
-    latestPricing = pricingHistory[0]
-    const today = startOfDay(new Date())
-    const nextRevision = startOfDay(parseISO(latestPricing.next_revision_date))
-    const daysLeft = differenceInDays(nextRevision, today)
-
-    if (daysLeft < 0) {
-      pricingStatus = {
-        color: 'bg-red-50 border-red-200',
-        text: 'text-red-700',
-        label: 'VENCIDA',
-        days: Math.abs(daysLeft),
-      }
-    } else if (daysLeft <= 15) {
-      pricingStatus = {
-        color: 'bg-amber-50 border-amber-200',
-        text: 'text-amber-700',
-        label: 'ATENÇÃO',
-        days: daysLeft,
-      }
-    } else {
-      pricingStatus = {
-        color: 'bg-emerald-50 border-emerald-200',
-        text: 'text-emerald-700',
-        label: 'OK',
-        days: daysLeft,
-      }
-    }
-  }
-
   return (
     <div className="space-y-8 animate-fade-in uppercase">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">DASHBOARD NUVIA</h1>
-        <p className="text-muted-foreground mt-1">
-          VISÃO GERAL DA GESTÃO DE RH, ESTOQUE E PRECIFICAÇÃO.
-        </p>
+        <p className="text-muted-foreground mt-1">VISÃO GERAL DA GESTÃO DE RH E ESTOQUE.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
           onClick={() => navigate('/admin/rh')}
@@ -155,33 +112,6 @@ export default function Index() {
           <CardContent>
             <div className="text-3xl font-bold text-primary">{totalTeam}</div>
             <p className="text-xs text-muted-foreground mt-1">PESSOAS ATIVAS</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className={cn(
-            'cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md border',
-            pricingStatus.color,
-          )}
-          onClick={() => navigate('/admin/financeiro')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">REVISÃO PREÇOS</CardTitle>
-            <Calculator className={cn('h-4 w-4', pricingStatus.text)} />
-          </CardHeader>
-          <CardContent>
-            <div className={cn('text-2xl font-bold', pricingStatus.text)}>
-              {pricingStatus.label}
-            </div>
-            {latestPricing ? (
-              <p className={cn('text-xs font-semibold mt-1', pricingStatus.text)}>
-                {pricingStatus.label === 'VENCIDA'
-                  ? `VENCIDO HÁ ${pricingStatus.days} DIAS`
-                  : `EM ${pricingStatus.days} DIAS`}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-1">NECESSÁRIO CONFIGURAR</p>
-            )}
           </CardContent>
         </Card>
       </div>
@@ -276,37 +206,6 @@ export default function Index() {
               </div>
             ))}
 
-            {latestPricing && pricingStatus.label === 'VENCIDA' && (
-              <div
-                onClick={() => navigate('/admin/financeiro')}
-                className="cursor-pointer transition-transform hover:scale-[1.01]"
-              >
-                <Alert variant="destructive">
-                  <Calculator className="h-4 w-4" />
-                  <AlertTitle>REVISÃO DE PRECIFICAÇÃO VENCIDA</AlertTitle>
-                  <AlertDescription>
-                    A REVISÃO DA TABELA DE PREÇOS ESTÁ ATRASADA. ACESSE O MÓDULO DE PRECIFICAÇÃO
-                    PARA ATUALIZAR.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-
-            {latestPricing && pricingStatus.label === 'ATENÇÃO' && (
-              <div
-                onClick={() => navigate('/admin/financeiro')}
-                className="cursor-pointer transition-transform hover:scale-[1.01]"
-              >
-                <Alert className="border-amber-500 text-amber-700 bg-amber-50">
-                  <Calculator className="h-4 w-4" />
-                  <AlertTitle>REVISÃO DE PRECIFICAÇÃO PRÓXIMA</AlertTitle>
-                  <AlertDescription>
-                    FALTAM {pricingStatus.days} DIAS PARA A PRÓXIMA REVISÃO DA TABELA DE PREÇOS.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-
             {expiredItems.length > 0 && (
               <div
                 onClick={() => navigate('/admin/estoque')}
@@ -360,8 +259,7 @@ export default function Index() {
             {alerts.length === 0 &&
               expiredItems.length === 0 &&
               expiringItems.length === 0 &&
-              lowStockItems === 0 &&
-              (!latestPricing || pricingStatus.label === 'OK') && (
+              lowStockItems === 0 && (
                 <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg bg-card/50">
                   NENHUM ALERTA NO MOMENTO. TUDO EM ORDEM.
                 </div>
@@ -387,11 +285,6 @@ export default function Index() {
             <Link to="/admin/estoque" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <Package className="mr-2 h-4 w-4" /> ATUALIZAR ESTOQUE
-              </Button>
-            </Link>
-            <Link to="/admin/financeiro" className="w-full block">
-              <Button className="w-full justify-start" variant="outline">
-                <Calculator className="mr-2 h-4 w-4" /> PRECIFICAÇÃO
               </Button>
             </Link>
           </CardContent>

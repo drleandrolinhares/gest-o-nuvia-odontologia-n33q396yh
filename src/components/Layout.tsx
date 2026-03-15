@@ -14,7 +14,6 @@ import {
   Clock,
   AlertTriangle,
   RefreshCw,
-  DollarSign,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -110,16 +109,9 @@ export function Layout() {
     { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
     { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
     { name: 'ACESSOS', href: '/admin/acessos', icon: Shield },
-  ]
-
-  if (isAdmin) {
-    baseNavigation.push({ name: 'PRECIFICAÇÃO', href: '/admin/financeiro', icon: DollarSign })
-  }
-
-  baseNavigation.push(
     { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
     { name: 'CONFIGURAÇÕES', href: '/admin/configuracoes', icon: Settings },
-  )
+  ]
 
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
@@ -249,9 +241,7 @@ export function Layout() {
                 ? 'AGENDA'
                 : location.pathname === '/admin/dashboard'
                   ? 'DASHBOARD'
-                  : location.pathname === '/admin/financeiro'
-                    ? 'PRECIFICAÇÃO'
-                    : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
+                  : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
             </span>
           </div>
           <div className="flex items-center gap-4"></div>

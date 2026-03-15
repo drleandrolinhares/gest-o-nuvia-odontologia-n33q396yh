@@ -12,7 +12,6 @@ import Acessos from '@/pages/Acessos'
 import AcessoManual from '@/pages/AcessoManual'
 import Login from '@/pages/Login'
 import Chat from '@/pages/Chat'
-import Financeiro from '@/pages/Financeiro'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import { AppProvider } from '@/stores/main'
@@ -50,7 +49,6 @@ export default function App() {
                 <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
                 <Route path="rh/escala" element={<WorkSchedule />} />
                 <Route path="estoque" element={<Inventory />} />
-                <Route path="financeiro" element={<Financeiro />} />
                 <Route path="configuracoes" element={<Settings />} />
                 <Route path="auditoria" element={<AuditLog />} />
                 <Route path="*" element={<NotFound />} />
