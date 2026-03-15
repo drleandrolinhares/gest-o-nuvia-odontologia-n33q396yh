@@ -15,6 +15,8 @@ import {
   AlertTriangle,
   RefreshCw,
   DollarSign,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -69,6 +71,19 @@ export function Layout() {
   const { signOut, user } = useAuth()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true'
+  })
+
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => {
+      const newState = !prev
+      localStorage.setItem('sidebar_collapsed', String(newState))
+      return newState
+    })
+  }
+
   const { unreadCounts } = useChatStore()
   const { isDataLoading, fetchError, isAdmin } = useAppStore()
 
@@ -122,22 +137,28 @@ export function Layout() {
 
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
-  const SidebarContent = () => (
+  const SidebarContent = ({ isMobile = false }) => (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
       <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F]">
         <Link
           to="/admin/agenda"
           className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
         >
-          <NuviaLogo className="h-20 w-auto mx-auto" />
+          {isCollapsed && !isMobile ? (
+            <span className="text-3xl font-light tracking-widest text-[#D4AF37]">N</span>
+          ) : (
+            <NuviaLogo className="h-20 w-auto mx-auto" />
+          )}
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar overflow-x-hidden">
         <div className="space-y-1">
-          <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">
-            Gestão Integrada
-          </p>
+          {(!isCollapsed || isMobile) && (
+            <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">
+              Gestão Integrada
+            </p>
+          )}
           {filteredNavigation.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.href || location.pathname === `${item.href}/`
@@ -149,9 +170,11 @@ export function Layout() {
               <Link
                 key={item.name}
                 to={item.href}
+                title={isCollapsed && !isMobile ? item.name : undefined}
                 onClick={() => setMobileMenuOpen(false)}
                 className={cn(
-                  'group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-all duration-300',
+                  'group flex items-center py-3 text-sm font-medium rounded-md transition-all duration-300 relative',
+                  isCollapsed && !isMobile ? 'justify-center px-2' : 'px-4',
                   isActive
                     ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
                     : 'text-slate-300 hover:bg-white/5 hover:text-white',
@@ -162,23 +185,33 @@ export function Layout() {
               >
                 <item.icon
                   className={cn(
-                    'mr-3 flex-shrink-0 h-5 w-5 transition-colors',
+                    'flex-shrink-0 h-5 w-5 transition-colors',
+                    isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
                     isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
                     hasUnread && 'text-red-400 animate-pulse',
                   )}
                   aria-hidden="true"
                 />
-                <span
-                  className={cn(
-                    'transition-colors',
-                    hasUnread && 'text-red-400 font-bold',
-                    hasUnread && !isActive && 'animate-pulse',
-                  )}
-                >
-                  {item.name}
-                </span>
+                {(!isCollapsed || isMobile) && (
+                  <span
+                    className={cn(
+                      'transition-colors whitespace-nowrap',
+                      hasUnread && 'text-red-400 font-bold',
+                      hasUnread && !isActive && 'animate-pulse',
+                    )}
+                  >
+                    {item.name}
+                  </span>
+                )}
                 {hasUnread && (
-                  <span className="ml-auto bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+                  <span
+                    className={cn(
+                      'bg-red-500 animate-pulse text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]',
+                      isCollapsed && !isMobile
+                        ? 'absolute top-1 right-1 px-1.5 py-0 text-[8px]'
+                        : 'ml-auto',
+                    )}
+                  >
                     {totalUnread > 99 ? '99+' : totalUnread}
                   </span>
                 )}
@@ -188,25 +221,43 @@ export function Layout() {
         </div>
       </div>
 
-      <div className="p-4 border-t border-white/5 bg-[#0A192F]">
-        <div className="flex items-center mb-4 px-2">
-          <div className="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#0A192F] font-bold text-sm">
+      <div
+        className={cn(
+          'p-4 border-t border-white/5 bg-[#0A192F]',
+          isCollapsed && !isMobile && 'flex flex-col items-center',
+        )}
+      >
+        <div
+          className={cn(
+            'flex items-center mb-4',
+            isCollapsed && !isMobile ? 'justify-center px-0' : 'px-2',
+          )}
+        >
+          <div className="w-8 h-8 rounded-full bg-[#D4AF37] flex items-center justify-center text-[#0A192F] font-bold text-sm shrink-0">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
-          <div className="ml-3 overflow-hidden">
-            <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-            <p className="text-xs text-slate-400 truncate uppercase">
-              {isAdmin ? 'Administrador' : 'Colaborador'}
-            </p>
-          </div>
+          {(!isCollapsed || isMobile) && (
+            <div className="ml-3 overflow-hidden">
+              <p className="text-sm font-medium text-white truncate">{user?.email}</p>
+              <p className="text-xs text-slate-400 truncate uppercase">
+                {isAdmin ? 'Administrador' : 'Colaborador'}
+              </p>
+            </div>
+          )}
         </div>
         <Button
           variant="ghost"
-          className="w-full justify-start text-slate-300 hover:text-white hover:bg-white/5 uppercase"
+          title={isCollapsed && !isMobile ? 'Sair do sistema' : undefined}
+          className={cn(
+            'justify-start text-slate-300 hover:text-white hover:bg-white/5 uppercase',
+            isCollapsed && !isMobile ? 'w-auto px-2 justify-center' : 'w-full',
+          )}
           onClick={() => signOut()}
         >
-          <LogOut className="mr-3 h-5 w-5 text-slate-400" />
-          Sair do sistema
+          <LogOut
+            className={cn('h-5 w-5 text-slate-400', isCollapsed && !isMobile ? 'mr-0' : 'mr-3')}
+          />
+          {(!isCollapsed || isMobile) && 'Sair do sistema'}
         </Button>
       </div>
     </div>
@@ -229,27 +280,51 @@ export function Layout() {
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-72 bg-[#0A192F] border-r-slate-800">
             <SheetTitle className="sr-only">Menu Principal</SheetTitle>
-            <SidebarContent />
+            <SidebarContent isMobile={true} />
           </SheetContent>
         </Sheet>
       </div>
 
-      <div className="hidden md:flex w-72 flex-col fixed inset-y-0 z-10">
+      <div
+        className={cn(
+          'hidden md:flex flex-col fixed inset-y-0 z-20 transition-all duration-300 ease-in-out bg-[#0A192F]',
+          isCollapsed ? 'w-20' : 'w-72',
+        )}
+      >
         <SidebarContent />
       </div>
 
-      <main className="flex-1 md:pl-72 flex flex-col min-h-screen overflow-hidden">
-        <header className="hidden md:flex h-16 bg-white border-b border-slate-200 items-center px-8 justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
-            <Home className="w-4 h-4" />
-            <span>/</span>
-            <span className="text-slate-900">
-              {location.pathname === '/admin/agenda' || location.pathname === '/admin'
-                ? 'AGENDA'
-                : location.pathname === '/admin/dashboard'
-                  ? 'DASHBOARD'
-                  : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
-            </span>
+      <main
+        className={cn(
+          'flex-1 flex flex-col min-h-screen overflow-hidden transition-all duration-300 ease-in-out',
+          isCollapsed ? 'md:pl-20' : 'md:pl-72',
+        )}
+      >
+        <header className="hidden md:flex h-16 bg-white border-b border-slate-200 items-center px-4 justify-between sticky top-0 z-10 transition-all duration-300">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 h-9 w-9 ml-2"
+            >
+              {isCollapsed ? (
+                <PanelLeftOpen className="h-5 w-5" />
+              ) : (
+                <PanelLeftClose className="h-5 w-5" />
+              )}
+            </Button>
+            <div className="flex items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold ml-2">
+              <Home className="w-4 h-4" />
+              <span>/</span>
+              <span className="text-slate-900">
+                {location.pathname === '/admin/agenda' || location.pathname === '/admin'
+                  ? 'AGENDA'
+                  : location.pathname === '/admin/dashboard'
+                    ? 'DASHBOARD'
+                    : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-4"></div>
         </header>

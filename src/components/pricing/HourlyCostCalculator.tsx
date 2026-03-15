@@ -11,12 +11,6 @@ export function HourlyCostCalculator() {
   const { appSettings, updateAppSettings } = useAppStore()
   const { toast } = useToast()
 
-  const [cardFee, setCardFee] = useState(appSettings?.global_card_fee?.toString() || '0')
-  const [commission, setCommission] = useState(appSettings?.global_commission?.toString() || '0')
-  const [inadimplency, setInadimplency] = useState(
-    appSettings?.global_inadimplency?.toString() || '0',
-  )
-  const [taxes, setTaxes] = useState(appSettings?.global_taxes?.toString() || '0')
   const [monthlyHours, setMonthlyHours] = useState(
     appSettings?.hourly_cost_monthly_hours?.toString() || '160',
   )
@@ -26,10 +20,6 @@ export function HourlyCostCalculator() {
 
   useEffect(() => {
     if (appSettings) {
-      setCardFee(appSettings.global_card_fee.toString())
-      setCommission(appSettings.global_commission.toString())
-      setInadimplency(appSettings.global_inadimplency.toString())
-      setTaxes(appSettings.global_taxes.toString())
       setMonthlyHours(appSettings.hourly_cost_monthly_hours.toString())
       setFixedItems(appSettings.hourly_cost_fixed_items || [])
     }
@@ -49,21 +39,17 @@ export function HourlyCostCalculator() {
 
   const handleSave = async () => {
     const res = await updateAppSettings({
-      global_card_fee: Number(cardFee) || 0,
-      global_commission: Number(commission) || 0,
-      global_inadimplency: Number(inadimplency) || 0,
-      global_taxes: Number(taxes) || 0,
       hourly_cost_monthly_hours: Number(monthlyHours) || 160,
       hourly_cost_fixed_items: fixedItems,
     })
 
     if (res.success) {
-      toast({ title: 'SUCESSO', description: 'CONFIGURAÇÕES DE CUSTO ATUALIZADAS.' })
+      toast({ title: 'SUCESSO', description: 'CUSTOS FIXOS ATUALIZADOS.' })
     } else {
       toast({
         variant: 'destructive',
         title: 'ERRO',
-        description: 'FALHA AO SALVAR CONFIGURAÇÕES.',
+        description: 'FALHA AO SALVAR CUSTOS FIXOS.',
       })
     }
   }
@@ -85,45 +71,6 @@ export function HourlyCostCalculator() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground">TAXA CARTÃO (%)</label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={cardFee}
-                  onChange={(e) => setCardFee(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground">COMISSÃO MÁQ (%)</label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={commission}
-                  onChange={(e) => setCommission(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground">INADIMPLÊNCIA (%)</label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={inadimplency}
-                  onChange={(e) => setInadimplency(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground">IMPOSTOS (%)</label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  value={taxes}
-                  onChange={(e) => setTaxes(e.target.value)}
-                />
-              </div>
-            </div>
-
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm">LISTA DE DESPESAS FIXAS (MENSAL)</h3>
@@ -131,7 +78,7 @@ export function HourlyCostCalculator() {
                   <Plus className="h-3.5 w-3.5 mr-1" /> ADICIONAR
                 </Button>
               </div>
-              <div className="space-y-3 bg-muted/20 p-4 rounded-xl border">
+              <div className="space-y-3 bg-muted/20 p-4 rounded-xl border max-h-[500px] overflow-y-auto custom-scrollbar">
                 {fixedItems.map((item) => (
                   <div key={item.id} className="flex items-center gap-3">
                     <Input
@@ -210,7 +157,7 @@ export function HourlyCostCalculator() {
             </div>
 
             <Button onClick={handleSave} className="w-full h-12 text-sm font-bold shadow-md">
-              <Save className="h-4 w-4 mr-2" /> SALVAR CONFIGURAÇÕES
+              <Save className="h-4 w-4 mr-2" /> SALVAR CUSTOS FIXOS
             </Button>
           </CardContent>
         </Card>
