@@ -181,7 +181,7 @@ export type InventoryOption = {
   value: string
 }
 
-export type FixedExpense = { id: string; name: string; value: number }
+export type FixedExpense = { id: string; label: string; value: number }
 export type AppSettings = {
   id: string
   global_card_fee: number
@@ -465,7 +465,13 @@ const mAppSet = (d: any): AppSettings => ({
   global_commission: Number(d.global_commission) || 0,
   global_inadimplency: Number(d.global_inadimplency) || 0,
   global_taxes: Number(d.global_taxes) || 0,
-  hourly_cost_fixed_items: d.hourly_cost_fixed_items || [],
+  hourly_cost_fixed_items: Array.isArray(d.hourly_cost_fixed_items)
+    ? d.hourly_cost_fixed_items.map((i: any) => ({
+        id: i.id || crypto.randomUUID(),
+        label: i.label || i.name || '',
+        value: Number(i.value) || 0,
+      }))
+    : [],
   hourly_cost_monthly_hours: Number(d.hourly_cost_monthly_hours) || 160,
 })
 

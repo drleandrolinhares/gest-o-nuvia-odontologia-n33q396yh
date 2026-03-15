@@ -6,6 +6,14 @@ import { Plus, Trash2, Save, Calculator, DollarSign } from 'lucide-react'
 import useAppStore, { FixedExpense } from '@/stores/main'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 export function HourlyCostCalculator() {
   const { appSettings, updateAppSettings } = useAppStore()
@@ -26,14 +34,14 @@ export function HourlyCostCalculator() {
   }, [appSettings])
 
   const addFixedItem = () => {
-    setFixedItems([...fixedItems, { id: crypto.randomUUID(), name: '', value: 0 }])
+    setFixedItems([...fixedItems, { id: crypto.randomUUID(), label: '', value: 0 }])
   }
 
   const removeFixedItem = (id: string) => {
     setFixedItems(fixedItems.filter((i) => i.id !== id))
   }
 
-  const updateFixedItem = (id: string, field: 'name' | 'value', val: string | number) => {
+  const updateFixedItem = (id: string, field: 'label' | 'value', val: string | number) => {
     setFixedItems(fixedItems.map((i) => (i.id === id ? { ...i, [field]: val } : i)))
   }
 
@@ -62,74 +70,85 @@ export function HourlyCostCalculator() {
     <div className="grid gap-6 md:grid-cols-12 uppercase animate-fade-in">
       <div className="md:col-span-8 space-y-6">
         <Card>
-          <CardHeader className="pb-4 border-b">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Calculator className="h-5 w-5 text-primary" /> CUSTOS FIXOS E OPERACIONAIS
-            </CardTitle>
-            <CardDescription className="uppercase font-semibold">
-              PREENCHA AS DESPESAS FIXAS PARA CALCULAR O CUSTO POR MINUTO CLÍNICO.
-            </CardDescription>
+          <CardHeader className="pb-4 border-b flex flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calculator className="h-5 w-5 text-primary" /> CUSTOS FIXOS E OPERACIONAIS
+              </CardTitle>
+              <CardDescription className="uppercase font-semibold mt-1">
+                PREENCHA AS DESPESAS FIXAS PARA CALCULAR O CUSTO POR MINUTO CLÍNICO.
+              </CardDescription>
+            </div>
+            <Button size="sm" onClick={addFixedItem} className="shrink-0">
+              <Plus className="h-4 w-4 mr-2" /> ADICIONAR DESPESA
+            </Button>
           </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-sm">LISTA DE DESPESAS FIXAS (MENSAL)</h3>
-                <Button variant="outline" size="sm" onClick={addFixedItem}>
-                  <Plus className="h-3.5 w-3.5 mr-1" /> ADICIONAR DESPESA
-                </Button>
-              </div>
-
-              <div className="space-y-3 bg-muted/20 p-4 rounded-xl border max-h-[500px] overflow-y-auto custom-scrollbar">
-                {fixedItems.length > 0 && (
-                  <div className="flex items-center gap-3 px-1 mb-2">
-                    <div className="flex-1 text-xs font-bold text-muted-foreground">DESCRIÇÃO</div>
-                    <div className="w-[180px] text-xs font-bold text-muted-foreground">
-                      VALOR (R$)
-                    </div>
-                    <div className="w-10"></div>
-                  </div>
-                )}
-                {fixedItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3">
-                    <Input
-                      placeholder="DESCRIÇÃO DA DESPESA (EX: ALUGUEL)"
-                      value={item.name}
-                      onChange={(e) => updateFixedItem(item.id, 'name', e.target.value)}
-                      className="flex-1 bg-white"
-                    />
-                    <div className="relative w-[180px]">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={item.value || ''}
-                        onChange={(e) => updateFixedItem(item.id, 'value', Number(e.target.value))}
-                        className="pl-9 bg-white"
-                      />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeFixedItem(item.id)}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                {fixedItems.length === 0 && (
-                  <p className="text-center py-4 text-xs font-bold text-muted-foreground">
-                    NENHUMA DESPESA FIXA CADASTRADA. CLIQUE EM "ADICIONAR DESPESA".
-                  </p>
-                )}
-              </div>
+          <CardContent className="p-0">
+            <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+              <Table>
+                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                  <TableRow className="hover:bg-slate-50">
+                    <TableHead className="font-bold text-slate-600">DESCRIÇÃO DA DESPESA</TableHead>
+                    <TableHead className="font-bold text-slate-600 w-[200px]">VALOR (R$)</TableHead>
+                    <TableHead className="w-[80px] text-center">AÇÕES</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fixedItems.map((item) => (
+                    <TableRow key={item.id} className="hover:bg-slate-50/50">
+                      <TableCell className="p-3 align-top">
+                        <Input
+                          placeholder="DESCRIÇÃO DA DESPESA (EX: ALUGUEL)"
+                          value={item.label}
+                          onChange={(e) => updateFixedItem(item.id, 'label', e.target.value)}
+                          className="bg-white border-slate-200 shadow-sm"
+                        />
+                      </TableCell>
+                      <TableCell className="p-3 align-top">
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            value={item.value || ''}
+                            onChange={(e) =>
+                              updateFixedItem(item.id, 'value', Number(e.target.value))
+                            }
+                            className="pl-9 bg-white border-slate-200 font-medium shadow-sm"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="p-3 text-center align-top">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeFixedItem(item.id)}
+                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 h-10 w-10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {fixedItems.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={3}
+                        className="text-center py-12 text-muted-foreground font-bold"
+                      >
+                        NENHUMA DESPESA FIXA CADASTRADA. CLIQUE EM "ADICIONAR DESPESA".
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="md:col-span-4 space-y-6">
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20 sticky top-6">
           <CardHeader>
             <CardTitle className="text-primary text-lg">RESUMO DO CUSTO</CardTitle>
           </CardHeader>
@@ -142,7 +161,7 @@ export function HourlyCostCalculator() {
                 type="number"
                 value={monthlyHours}
                 onChange={(e) => setMonthlyHours(e.target.value)}
-                className="font-black text-lg bg-white"
+                className="font-black text-lg bg-white border-primary/20 shadow-sm"
               />
             </div>
 
@@ -151,17 +170,19 @@ export function HourlyCostCalculator() {
                 <p className="text-xs font-bold text-muted-foreground mb-1">
                   TOTAL DE CUSTOS FIXOS DO MÊS
                 </p>
-                <p className="text-2xl font-black text-slate-800">
+                <p className="text-2xl font-black text-slate-800 tracking-tight">
                   {formatCurrency(totalFixedCosts)}
                 </p>
               </div>
-              <div className="bg-white p-4 rounded-lg border border-primary/20 shadow-sm">
-                <p className="text-xs font-black text-primary mb-1 tracking-widest uppercase">
+              <div className="bg-white p-5 rounded-xl border border-primary/20 shadow-sm">
+                <p className="text-[10px] font-black text-primary mb-1 tracking-widest uppercase">
                   CUSTO CLÍNICO POR MINUTO
                 </p>
-                <p className="text-3xl font-black text-primary">
+                <p className="text-3xl font-black text-primary tracking-tight">
                   {formatCurrency(costPerMinute)}
-                  <span className="text-sm font-bold text-muted-foreground ml-1">/ MIN</span>
+                  <span className="text-sm font-bold text-muted-foreground ml-1 tracking-normal">
+                    / MIN
+                  </span>
                 </p>
               </div>
             </div>
