@@ -209,6 +209,14 @@ export type PriceStage = {
   name: string
   percentage: number
 }
+export type PricingHistory = {
+  id: string
+  user_id: string | null
+  user_name: string
+  execution_date: string
+  next_revision_date: string
+  created_at: string
+}
 
 interface AppStore {
   isAuthenticated: boolean
@@ -239,6 +247,7 @@ interface AppStore {
   appSettings: AppSettings | null
   priceList: PriceList[]
   priceStages: PriceStage[]
+  pricingHistory: PricingHistory[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -319,6 +328,8 @@ interface AppStore {
     id?: string,
   ) => Promise<{ success: boolean; error?: any }>
   deletePriceList: (id: string) => Promise<{ success: boolean; error?: any }>
+  addPricingHistory: (execution_date: string) => Promise<{ success: boolean; error?: any }>
+  deletePricingHistory: (id: string) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -349,6 +360,7 @@ const mockAgendaTypes = [
   'COMISSÃO',
   'BÔNUS',
   'FÉRIAS',
+  'REVISÃO',
 ]
 
 const mEmp = (d: any): Employee => ({
@@ -495,6 +507,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
   const [priceList, setPriceList] = useState<PriceList[]>([])
   const [priceStages, setPriceStages] = useState<PriceStage[]>([])
+  const [pricingHistory, setPricingHistory] = useState<PricingHistory[]>([])
   const [alerts] = useState<string[]>([])
 
   const storeRef = useRef({ user, employees, inventory, appSettings })
@@ -618,6 +631,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           })
           .catch((err) => console.warn('Falha ao carregar price_stages', err)),
         supabase
+          .from('pricing_history' as any)
+          .select('*')
+          .order('execution_date', { ascending: false })
+          .then((r) => {
+            if (r.data) setPricingHistory(r.data)
+          })
+          .catch((err) => console.warn('Falha ao carregar pricing_history', err)),
+        supabase
           .from('audit_logs')
           .select('*, profiles(name)')
           .order('created_at', { ascending: false })
@@ -657,6 +678,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAppSettings(null)
       setPriceList([])
       setPriceStages([])
+      setPricingHistory([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -899,7 +921,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.storageRoom !== undefined) payload.storage_room = data.storageRoom || null
       if (data.cabinetNumber !== undefined) payload.cabinet_number = data.cabinetNumber || null
       if (data.nfeNumber !== undefined) payload.nfe_number = data.nfeNumber || null
-      if (data.minStock !== undefined) payload.min_stock = data.minStock
+      if (data.minStock !== undefined) payload.minStock = data.minStock
       if (data.entryDate !== undefined) payload.entry_date = data.entryDate
       if (data.expirationDate !== undefined) payload.expiration_date = data.expirationDate
       if (data.lastBrand !== undefined) payload.last_brand = data.lastBrand
@@ -1891,6 +1913,85 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const addPricingHistory = useCallback(
+    async (execution_date: string) => {
+      try {
+        const u = storeRef.current.user
+        if (!u) throw new Error('Not authenticated')
+        const me = storeRef.current.employees.find((e) => e.user_id === u.id)
+        const userName = me?.name || 'ADMIN'
+
+        const execDate = new Date(execution_date + 'T00:00:00')
+        const nextRev = new Date(execDate)
+        nextRev.setDate(nextRev.getDate() + 90)
+
+        const next_revision_date = nextRev.toISOString().split('T')[0]
+
+        const { data, error } = await supabase
+          .from('pricing_history' as any)
+          .insert([
+            {
+              user_id: u.id,
+              user_name: userName,
+              execution_date,
+              next_revision_date,
+            },
+          ])
+          .select()
+          .single()
+
+        if (error) throw error
+
+        if (data) {
+          setPricingHistory((p) =>
+            [data, ...p].sort(
+              (a, b) => new Date(b.execution_date).getTime() - new Date(a.execution_date).getTime(),
+            ),
+          )
+        }
+
+        setAgenda((p) => [
+          ...p,
+          {
+            id: crypto.randomUUID(),
+            title: `REVISÃO DE PRECIFICAÇÃO - ${userName}`,
+            date: next_revision_date,
+            time: '08:00',
+            location: 'SISTEMA',
+            type: 'REVISÃO',
+            is_completed: false,
+          },
+        ])
+
+        logAction(`REGISTROU REVISÃO DE PRECIFICAÇÃO: ${execution_date}`)
+        return { success: true }
+      } catch (err: any) {
+        console.error('Error adding pricing history', err)
+        return { success: false, error: err }
+      }
+    },
+    [logAction],
+  )
+
+  const deletePricingHistory = useCallback(
+    async (id: string) => {
+      try {
+        const { error } = await supabase
+          .from('pricing_history' as any)
+          .delete()
+          .eq('id', id)
+        if (error) throw error
+        setPricingHistory((p) => p.filter((x) => x.id !== id))
+        logAction(`REMOVEU HISTÓRICO DE PRECIFICAÇÃO ID: ${id}`)
+        return { success: true }
+      } catch (err: any) {
+        console.error('Error deleting pricing history', err)
+        return { success: false, error: err }
+      }
+    },
+    [logAction],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -1921,6 +2022,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appSettings,
       priceList,
       priceStages,
+      pricingHistory,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1969,6 +2071,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateAppSettings,
       savePriceList,
       deletePriceList,
+      addPricingHistory,
+      deletePricingHistory,
     }),
     [
       isAuthenticated,
@@ -1999,6 +2103,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appSettings,
       priceList,
       priceStages,
+      pricingHistory,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2047,6 +2152,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateAppSettings,
       savePriceList,
       deletePriceList,
+      addPricingHistory,
+      deletePricingHistory,
     ],
   )
 

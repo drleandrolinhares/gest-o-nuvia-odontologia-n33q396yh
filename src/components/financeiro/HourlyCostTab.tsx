@@ -90,22 +90,40 @@ export function HourlyCostTab() {
             </Button>
           </form>
 
-          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between p-3 border rounded-lg bg-card hover:border-primary/30 transition-colors"
+                className="flex items-center justify-between p-2 border rounded-lg bg-card hover:border-primary/30 transition-colors gap-3"
               >
-                <span className="font-bold text-sm text-slate-700 uppercase">{item.name}</span>
-                <div className="flex items-center gap-4">
-                  <span className="font-extrabold text-muted-foreground">
-                    {formatCurrency(item.value)}
-                  </span>
+                <Input
+                  value={item.name}
+                  onChange={(e) => {
+                    const newItems = items.map((i) =>
+                      i.id === item.id ? { ...i, name: e.target.value.toUpperCase() } : i,
+                    )
+                    setItems(newItems)
+                  }}
+                  className="h-8 text-sm font-bold bg-transparent border-transparent hover:border-input focus:border-input px-2 uppercase"
+                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.value}
+                    onChange={(e) => {
+                      const newItems = items.map((i) =>
+                        i.id === item.id ? { ...i, value: Number(e.target.value) } : i,
+                      )
+                      setItems(newItems)
+                    }}
+                    className="h-8 w-28 text-right font-extrabold bg-transparent border-transparent hover:border-input focus:border-input px-2"
+                  />
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => removeItem(item.id)}
-                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50"
+                    className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 shrink-0"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

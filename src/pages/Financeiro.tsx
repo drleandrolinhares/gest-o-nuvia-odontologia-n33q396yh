@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PriceListTab } from '@/components/financeiro/PriceListTab'
 import { HourlyCostTab } from '@/components/financeiro/HourlyCostTab'
 import { GlobalSettingsTab } from '@/components/financeiro/GlobalSettingsTab'
+import { PricingHistoryTab } from '@/components/financeiro/PricingHistoryTab'
 import useAppStore from '@/stores/main'
 import { ShieldAlert, DollarSign } from 'lucide-react'
 
@@ -42,6 +43,9 @@ export default function Financeiro() {
           <TabsTrigger value="configuracoes" className="py-2 px-4 flex-1 font-bold tracking-widest">
             CONFIG. GLOBAIS
           </TabsTrigger>
+          <TabsTrigger value="historico" className="py-2 px-4 flex-1 font-bold tracking-widest">
+            HISTÓRICO
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tabela">
@@ -54,6 +58,10 @@ export default function Financeiro() {
 
         <TabsContent value="configuracoes">
           <GlobalSettingsTab />
+        </TabsContent>
+
+        <TabsContent value="historico">
+          <PricingHistoryTab />
         </TabsContent>
       </Tabs>
     </div>
