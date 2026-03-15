@@ -1435,7 +1435,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
       if (e.pixNumber !== undefined) payload.pix_number = e.pixNumber || null
       if (e.pixType !== undefined) payload.pix_type = e.pixType || null
-      if (e.bankName !== undefined) payload.bankName = e.bankName || null
+      if (e.bankName !== undefined) payload.bank_name = e.bankName || null
 
       if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal
