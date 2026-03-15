@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, Clock, Trash2, CalendarIcon, User, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import useAppStore from '@/stores/main'
+import { SacStatusSelect } from '@/components/sac/SacStatusSelect'
 
 interface Props {
   item: AgendaItem
@@ -22,15 +24,23 @@ export function AgendaCard({
   onUpdate,
   onRemove,
 }: Props) {
+  const { sacRecords, updateSacRecord, isAdmin } = useAppStore()
+
   const isAssignee =
     item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
   const isRequester = item.requester_id === currentUserId
+
+  const isSac = item.type === 'SAC'
+  const sacRecord =
+    isSac && item.sac_record_id ? sacRecords.find((s) => s.id === item.sac_record_id) : null
+
   const needsFollowUp =
     isRequester &&
     item.assignedTo &&
     item.assignedTo !== currentUserId &&
     !item.received_at &&
-    !item.is_completed
+    !item.is_completed &&
+    !isSac
 
   const getEmpName = (id?: string) => {
     if (!id || id === 'none') return 'GERAL'
@@ -105,7 +115,29 @@ export function AgendaCard({
             className="flex flex-col items-end gap-2 shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
-            {isAssignee && !item.is_completed ? (
+            {isSac && sacRecord ? (
+              <SacStatusSelect
+                value={sacRecord.status}
+                onChange={async (v) => {
+                  if (v === 'RESOLVIDO' && !sacRecord.solution_details) {
+                    const details = window.prompt(
+                      'É obrigatório preencher os detalhes da solução para finalizar. Digite abaixo:',
+                    )
+                    if (!details || !details.trim()) {
+                      alert('Detalhes da solução são obrigatórios.')
+                      return
+                    }
+                    await updateSacRecord(sacRecord.id, {
+                      status: v as any,
+                      solution_details: details.toUpperCase(),
+                    })
+                  } else {
+                    await updateSacRecord(sacRecord.id, { status: v as any })
+                  }
+                }}
+                disabled={!isAssignee && !isAdmin}
+              />
+            ) : isAssignee && !item.is_completed ? (
               !item.received_at ? (
                 <Button
                   size="sm"
@@ -146,6 +178,7 @@ export function AgendaCard({
                 </Badge>
               ))
             )}
+
             <Button
               variant="ghost"
               size="icon"

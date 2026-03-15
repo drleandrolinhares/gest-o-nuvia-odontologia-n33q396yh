@@ -1480,7 +1480,7 @@ export const Constants = {
 //   patient_name: text (not null)
 //   receiving_employee_id: uuid (nullable)
 //   responsible_employee_id: uuid (nullable)
-//   status: text (not null, default: 'RECEBIDO'::text)
+//   status: text (not null, default: 'OPORTUNIDADE DE SOLUÇÃO'::text)
 //   sector: text (not null)
 //   description: text (not null)
 //   solution_details: text (nullable)
@@ -1591,7 +1591,7 @@ export const Constants = {
 //   PRIMARY KEY sac_records_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY sac_records_receiving_employee_id_fkey: FOREIGN KEY (receiving_employee_id) REFERENCES employees(id) ON DELETE SET NULL
 //   FOREIGN KEY sac_records_responsible_employee_id_fkey: FOREIGN KEY (responsible_employee_id) REFERENCES employees(id) ON DELETE SET NULL
-//   CHECK sac_records_status_check: CHECK ((status = ANY (ARRAY['RECEBIDO'::text, 'SENDO TRATADO'::text, 'RESOLVIDO'::text])))
+//   CHECK sac_records_status_check: CHECK ((status = ANY (ARRAY['OPORTUNIDADE DE SOLUÇÃO'::text, 'RECEBIDO'::text, 'SENDO TRATADO'::text, 'RESOLVIDO'::text])))
 //   CHECK sac_records_type_check: CHECK ((type = ANY (ARRAY['RECLAMAÇÃO'::text, 'SUGESTÃO'::text])))
 // Table: suppliers
 //   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)

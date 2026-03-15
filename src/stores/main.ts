@@ -123,6 +123,7 @@ export type AgendaItem = {
   received_at?: string
   completed_at?: string
   created_at?: string
+  sac_record_id?: string
 }
 
 export type ManualStep = { id: string; text: string; completed?: boolean }
@@ -517,6 +518,7 @@ const mAg = (d: any): AgendaItem => ({
   received_at: d.received_at,
   completed_at: d.completed_at,
   created_at: d.created_at,
+  sac_record_id: d.sac_record_id,
 })
 const mAcc = (d: any): AccessItem => ({
   id: d.id,
@@ -650,10 +652,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sacRecords, setSacRecords] = useState<SacRecord[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees, inventory, roles, consultorios })
+  const storeRef = useRef({ user, employees, inventory, roles, consultorios, agenda })
   useEffect(() => {
-    storeRef.current = { user, employees, inventory, roles, consultorios }
-  }, [user, employees, inventory, roles, consultorios])
+    storeRef.current = { user, employees, inventory, roles, consultorios, agenda }
+  }, [user, employees, inventory, roles, consultorios, agenda])
 
   useEffect(() => {
     if (user) {
@@ -1671,7 +1673,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             requester_id: i.requester_id || null,
             received_at: i.received_at || null,
             completed_at: i.completed_at || null,
-          },
+            sac_record_id: i.sac_record_id || null,
+          } as any,
         ])
         .select()
         .single()
@@ -1702,6 +1705,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (i.requester_id !== undefined) payload.requester_id = i.requester_id
       if (i.received_at !== undefined) payload.received_at = i.received_at
       if (i.completed_at !== undefined) payload.completed_at = i.completed_at
+      if (i.sac_record_id !== undefined) payload.sac_record_id = i.sac_record_id
 
       supabase
         .from('agenda')
@@ -1711,6 +1715,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (!error) {
             setAgenda((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
             logAction(`ATUALIZOU AGENDA ID: ${id}`)
+
+            if (payload.is_completed) {
+              const aItem = storeRef.current.agenda.find((x) => x.id === id)
+              const targetId = aItem?.sac_record_id
+              if (targetId) {
+                setSacRecords((prev) =>
+                  prev.map((s) =>
+                    s.id === targetId
+                      ? { ...s, status: 'RESOLVIDO', solved_at: new Date().toISOString() }
+                      : s,
+                  ),
+                )
+              }
+            }
           }
         })
         .catch((err) => console.warn('Erro ao atualizar item na agenda', err))
@@ -2286,13 +2304,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
               location: r.sector || 'SISTEMA',
               type: 'SAC',
               assignedTo: r.responsible_employee_id,
+              requester_id: r.receiving_employee_id || currentUserId || undefined,
+              sac_record_id: data.id,
             })
 
             const currentUser = storeRef.current.user
             const respEmp = storeRef.current.employees.find(
               (e) => e.id === r.responsible_employee_id,
             )
-            if (currentUser && respEmp && respEmp.user_id && respEmp.user_id !== currentUser.id) {
+            if (currentUser && respEmp && respEmp.user_id) {
               const { data: roomId } = await supabase.rpc('get_or_create_individual_room', {
                 user1: currentUser.id,
                 user2: respEmp.user_id,
@@ -2301,7 +2321,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 await supabase.from('chat_messages').insert({
                   room_id: roomId,
                   sender_id: currentUser.id,
-                  content: `ATENÇÃO: Nova OPORTUNIDADE DE SOLUÇÃO via SAC para você. (Paciente: ${r.patient_name})`,
+                  content: `ATENÇÃO: OPORTUNIDADE DE SOLUCAO VIA SAC para você.`,
                 })
               }
             }
@@ -2314,7 +2334,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { success: false, error: err }
       }
     },
-    [logAction, addAgendaItem],
+    [logAction, addAgendaItem, currentUserId],
   )
 
   const updateSacRecord = useCallback(
@@ -2336,6 +2356,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         setSacRecords((prev) => prev.map((s) => (s.id === id ? { ...s, ...payload } : s)))
         logAction(`ATUALIZOU OPORTUNIDADE (SAC) ID: ${id}`)
+
+        if (payload.status === 'RESOLVIDO') {
+          setAgenda((prev) =>
+            prev.map((a) =>
+              a.sac_record_id === id
+                ? { ...a, is_completed: true, completed_at: new Date().toISOString() }
+                : a,
+            ),
+          )
+        }
+
         return { success: true }
       } catch (err) {
         console.warn('Erro ao atualizar SAC:', err)

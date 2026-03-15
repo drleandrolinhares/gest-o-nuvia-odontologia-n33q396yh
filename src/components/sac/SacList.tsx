@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Pencil,
   Trash2,
@@ -19,10 +20,9 @@ import {
   CheckCircle,
   MessageSquareWarning,
   Lightbulb,
-  ArrowRight,
 } from 'lucide-react'
 import { SacFormModal } from './SacFormModal'
-import { cn } from '@/lib/utils'
+import { SacStatusSelect } from './SacStatusSelect'
 
 const SlaTimer = ({ limitAt, resolvedAt }: { limitAt: string; resolvedAt?: string }) => {
   const [now, setNow] = useState(new Date())
@@ -79,9 +79,11 @@ const SlaTimer = ({ limitAt, resolvedAt }: { limitAt: string; resolvedAt?: strin
 }
 
 export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
-  const { sacRecords, deleteSacRecord, employees, isAdmin } = useAppStore()
+  const { sacRecords, deleteSacRecord, updateSacRecord, employees, isAdmin, currentUserId } =
+    useAppStore()
   const [selectedItem, setSelectedItem] = useState<SacRecord | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [view, setView] = useState<'TUDO' | 'PARA MIM' | 'DELEGADOS'>('TUDO')
 
   const handleEdit = (item: SacRecord) => {
     setSelectedItem(item)
@@ -98,39 +100,40 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
     return employees.find((e) => e.id === id)?.name || 'N/A'
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'OPORTUNIDADE DE SOLUÇÃO':
-        return (
-          <Badge className="bg-red-600 hover:bg-red-700 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
-            OPORTUNIDADE
-          </Badge>
-        )
-      case 'RECEBIDO':
-        return (
-          <Badge className="bg-blue-600 hover:bg-blue-700 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
-            RECEBIDO
-          </Badge>
-        )
-      case 'SENDO TRATADO':
-        return (
-          <Badge className="bg-amber-500 hover:bg-amber-600 text-amber-950 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
-            SENDO TRATADO
-          </Badge>
-        )
-      case 'RESOLVIDO':
-        return (
-          <Badge className="bg-emerald-600 hover:bg-emerald-700 font-bold tracking-widest text-[10px] whitespace-nowrap shadow-sm">
-            RESOLVIDO
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
+  const filteredRecords = sacRecords.filter((r) => {
+    if (view === 'TUDO') return true
+    if (view === 'PARA MIM') return r.responsible_employee_id === currentUserId
+    if (view === 'DELEGADOS') return r.receiving_employee_id === currentUserId
+    return true
+  })
 
   return (
     <>
+      <div className="flex justify-start mb-4">
+        <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full sm:w-auto">
+          <TabsList className="bg-transparent border-b rounded-none w-full sm:w-auto justify-start h-10 p-0 gap-6">
+            <TabsTrigger
+              value="TUDO"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-none rounded-none px-0 py-2 data-[state=active]:bg-transparent"
+            >
+              TUDO
+            </TabsTrigger>
+            <TabsTrigger
+              value="PARA MIM"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-none rounded-none px-0 py-2 data-[state=active]:bg-transparent"
+            >
+              PARA MIM
+            </TabsTrigger>
+            <TabsTrigger
+              value="DELEGADOS"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:shadow-none rounded-none px-0 py-2 data-[state=active]:bg-transparent"
+            >
+              DELEGADOS POR MIM
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       <Card className="shadow-sm overflow-x-auto">
         <Table className="min-w-[800px]">
           <TableHeader>
@@ -146,95 +149,111 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sacRecords.map((item) => (
-              <TableRow key={item.id} className="hover:bg-slate-50 transition-colors">
-                <TableCell>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                      {item.type === 'RECLAMAÇÃO' ? (
-                        <MessageSquareWarning className="h-3.5 w-3.5 text-red-500" />
-                      ) : (
-                        <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
-                      )}
-                      {item.type}
-                    </div>
-                    <span className="font-extrabold text-[#0A192F] uppercase">
-                      {item.patient_name}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col gap-1 text-[11px] font-bold text-slate-600">
-                    <span className="flex items-center gap-1">
-                      <span className="text-slate-400 w-12 shrink-0">REC:</span>
-                      <span
-                        className="uppercase truncate max-w-[120px]"
-                        title={getEmpName(item.receiving_employee_id)}
-                      >
-                        {getEmpName(item.receiving_employee_id)}
-                      </span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="text-slate-400 w-12 shrink-0">RESP:</span>
-                      <span
-                        className="uppercase text-indigo-700 truncate max-w-[120px]"
-                        title={getEmpName(item.responsible_employee_id)}
-                      >
-                        {getEmpName(item.responsible_employee_id)}
-                      </span>
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="font-bold text-xs text-slate-700 uppercase">
-                  {item.sector}
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col gap-1.5">
-                    <SlaTimer limitAt={item.limit_at} resolvedAt={item.solved_at} />
-                    <div className="text-[10px] text-slate-500 font-bold uppercase flex flex-col">
-                      <span>
-                        REG: {new Date(item.received_at).toLocaleDateString('pt-BR')}{' '}
-                        {new Date(item.received_at).toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                      <span className="text-slate-400">
-                        LIM: {new Date(item.limit_at).toLocaleDateString('pt-BR')}{' '}
-                        {new Date(item.limit_at).toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+            {filteredRecords.map((item) => {
+              const isAssignee = item.responsible_employee_id === currentUserId
+              const canEditStatus = isAssignee || isAdmin
+              return (
+                <TableRow key={item.id} className="hover:bg-slate-50 transition-colors">
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                        {item.type === 'RECLAMAÇÃO' ? (
+                          <MessageSquareWarning className="h-3.5 w-3.5 text-red-500" />
+                        ) : (
+                          <Lightbulb className="h-3.5 w-3.5 text-blue-500" />
+                        )}
+                        {item.type}
+                      </div>
+                      <span className="font-extrabold text-[#0A192F] uppercase">
+                        {item.patient_name}
                       </span>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{getStatusBadge(item.status)}</TableCell>
-                <TableCell className="text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-[#0A192F] hover:text-[#D4AF37] hover:bg-[#0A192F]/5"
-                      onClick={() => handleEdit(item)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    {isAdmin && (
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1 text-[11px] font-bold text-slate-600">
+                      <span className="flex items-center gap-1">
+                        <span className="text-slate-400 w-12 shrink-0">REC:</span>
+                        <span
+                          className="uppercase truncate max-w-[120px]"
+                          title={getEmpName(item.receiving_employee_id)}
+                        >
+                          {getEmpName(item.receiving_employee_id)}
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="text-slate-400 w-12 shrink-0">RESP:</span>
+                        <span
+                          className="uppercase text-indigo-700 truncate max-w-[120px]"
+                          title={getEmpName(item.responsible_employee_id)}
+                        >
+                          {getEmpName(item.responsible_employee_id)}
+                        </span>
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-bold text-xs text-slate-700 uppercase">
+                    {item.sector}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1.5">
+                      <SlaTimer limitAt={item.limit_at} resolvedAt={item.solved_at} />
+                      <div className="text-[10px] text-slate-500 font-bold uppercase flex flex-col">
+                        <span>
+                          REG: {new Date(item.received_at).toLocaleDateString('pt-BR')}{' '}
+                          {new Date(item.received_at).toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        <span className="text-slate-400">
+                          LIM: {new Date(item.limit_at).toLocaleDateString('pt-BR')}{' '}
+                          {new Date(item.limit_at).toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <SacStatusSelect
+                      value={item.status}
+                      onChange={(v) => {
+                        if (v === 'RESOLVIDO' && !item.solution_details) {
+                          handleEdit(item)
+                          return
+                        }
+                        updateSacRecord(item.id, { status: v as any })
+                      }}
+                      disabled={!canEditStatus}
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => handleDelete(item.id)}
+                        className="h-8 w-8 text-[#0A192F] hover:text-[#D4AF37] hover:bg-[#0A192F]/5"
+                        onClick={() => handleEdit(item)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {sacRecords.length === 0 && (
+                      {isAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+            {filteredRecords.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={6}
