@@ -312,6 +312,50 @@ export type Database = {
         }
         Relationships: []
       }
+      consultorio_weekly_schedules: {
+        Row: {
+          afternoon_end: string | null
+          afternoon_start: string | null
+          consultorio_id: string
+          created_at: string
+          day_of_week: number
+          id: string
+          is_closed: boolean
+          morning_end: string | null
+          morning_start: string | null
+        }
+        Insert: {
+          afternoon_end?: string | null
+          afternoon_start?: string | null
+          consultorio_id: string
+          created_at?: string
+          day_of_week: number
+          id?: string
+          is_closed?: boolean
+          morning_end?: string | null
+          morning_start?: string | null
+        }
+        Update: {
+          afternoon_end?: string | null
+          afternoon_start?: string | null
+          consultorio_id?: string
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          is_closed?: boolean
+          morning_end?: string | null
+          morning_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'consultorio_weekly_schedules_consultorio_id_fkey'
+            columns: ['consultorio_id']
+            isOneToOne: false
+            referencedRelation: 'clinica_consultorios'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
@@ -1194,6 +1238,16 @@ export const Constants = {
 //   afternoon_start: time without time zone (nullable)
 //   afternoon_end: time without time zone (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: consultorio_weekly_schedules
+//   id: uuid (not null, default: gen_random_uuid())
+//   consultorio_id: uuid (not null)
+//   day_of_week: integer (not null)
+//   morning_start: time without time zone (nullable)
+//   morning_end: time without time zone (nullable)
+//   afternoon_start: time without time zone (nullable)
+//   afternoon_end: time without time zone (nullable)
+//   is_closed: boolean (not null, default: false)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: documents
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1382,6 +1436,11 @@ export const Constants = {
 //   CHECK chat_rooms_type_check: CHECK ((type = ANY (ARRAY['individual'::text, 'group'::text])))
 // Table: clinica_consultorios
 //   PRIMARY KEY clinica_consultorios_pkey: PRIMARY KEY (id)
+// Table: consultorio_weekly_schedules
+//   UNIQUE consultorio_weekly_schedules_consultorio_id_day_of_week_key: UNIQUE (consultorio_id, day_of_week)
+//   FOREIGN KEY consultorio_weekly_schedules_consultorio_id_fkey: FOREIGN KEY (consultorio_id) REFERENCES clinica_consultorios(id) ON DELETE CASCADE
+//   CHECK consultorio_weekly_schedules_day_of_week_check: CHECK (((day_of_week >= 1) AND (day_of_week <= 6)))
+//   PRIMARY KEY consultorio_weekly_schedules_pkey: PRIMARY KEY (id)
 // Table: documents
 //   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
 // Table: employee_documents
@@ -1471,6 +1530,10 @@ export const Constants = {
 //     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.id) AND (cp.user_id = auth.uid()))))
 // Table: clinica_consultorios
 //   Policy "Allow all authenticated users on clinica_consultorios" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: consultorio_weekly_schedules
+//   Policy "Allow all authenticated users on consultorio_weekly_schedules" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: documents
@@ -1704,6 +1767,8 @@ export const Constants = {
 // --- INDEXES ---
 // Table: chat_participants
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
+// Table: consultorio_weekly_schedules
+//   CREATE UNIQUE INDEX consultorio_weekly_schedules_consultorio_id_day_of_week_key ON public.consultorio_weekly_schedules USING btree (consultorio_id, day_of_week)
 // Table: role_permissions
 //   CREATE UNIQUE INDEX role_permissions_role_module_key ON public.role_permissions USING btree (role, module)
 // Table: roles

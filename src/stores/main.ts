@@ -204,6 +204,8 @@ export type AppSettings = {
   global_taxes: number
   hourly_cost_fixed_items: FixedExpense[]
   hourly_cost_monthly_hours: number
+  predicted_loss_percentage: number
+  evaluation_factor_percentage: number
 }
 export type PriceItem = {
   id: string
@@ -534,6 +536,8 @@ const mAppSet = (d: any): AppSettings => ({
   global_commission: Number(d.global_commission) || 0,
   global_inadimplency: Number(d.global_inadimplency) || 0,
   global_taxes: Number(d.global_taxes) || 0,
+  predicted_loss_percentage: Number(d.predicted_loss_percentage ?? 20),
+  evaluation_factor_percentage: Number(d.evaluation_factor_percentage ?? 15),
   hourly_cost_fixed_items: Array.isArray(d.hourly_cost_fixed_items)
     ? d.hourly_cost_fixed_items.map((i: any) => ({
         id: i.id || crypto.randomUUID(),
@@ -1970,6 +1974,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         payload.hourly_cost_fixed_items = data.hourly_cost_fixed_items
       if (data.hourly_cost_monthly_hours !== undefined)
         payload.hourly_cost_monthly_hours = data.hourly_cost_monthly_hours
+      if (data.predicted_loss_percentage !== undefined)
+        payload.predicted_loss_percentage = data.predicted_loss_percentage
+      if (data.evaluation_factor_percentage !== undefined)
+        payload.evaluation_factor_percentage = data.evaluation_factor_percentage
 
       try {
         const currentId = appSettings?.id

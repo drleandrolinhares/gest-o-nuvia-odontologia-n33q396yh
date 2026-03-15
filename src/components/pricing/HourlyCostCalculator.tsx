@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, Save, Calculator, DollarSign, List, Clock } from 'lucide-react'
+import { Plus, Trash2, Save, Calculator, DollarSign, List, Clock, Pencil } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import useAppStore, { FixedExpense, FixedExpenseDetail } from '@/stores/main'
 import { formatCurrency, cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -26,9 +33,17 @@ export function HourlyCostCalculator() {
   const [monthlyHours, setMonthlyHours] = useState(
     appSettings?.hourly_cost_monthly_hours?.toString() || '160',
   )
+  const [predictedLossPct, setPredictedLossPct] = useState(
+    appSettings?.predicted_loss_percentage?.toString() ?? '20',
+  )
+  const [evalFactorPct, setEvalFactorPct] = useState(
+    appSettings?.evaluation_factor_percentage?.toString() ?? '15',
+  )
   const [fixedItems, setFixedItems] = useState<EditableFixedExpense[]>([])
   const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
   const [isConsultoriosModalOpen, setIsConsultoriosModalOpen] = useState(false)
+  const [isLossModalOpen, setIsLossModalOpen] = useState(false)
+  const [isEvalModalOpen, setIsEvalModalOpen] = useState(false)
 
   useEffect(() => {
     if (appSettings) {
@@ -39,6 +54,8 @@ export function HourlyCostCalculator() {
           inputValue: i.value.toString(),
         })),
       )
+      setPredictedLossPct(appSettings.predicted_loss_percentage?.toString() ?? '20')
+      setEvalFactorPct(appSettings.evaluation_factor_percentage?.toString() ?? '15')
     }
   }, [appSettings])
 
@@ -80,6 +97,26 @@ export function HourlyCostCalculator() {
     )
   }
 
+  const handleSaveLossPct = async () => {
+    setIsLossModalOpen(false)
+    const res = await updateAppSettings({
+      predicted_loss_percentage: Number(predictedLossPct) || 0,
+    })
+    if (res.success) {
+      toast({ title: 'SUCESSO', description: 'PERCENTUAL ATUALIZADO.' })
+    }
+  }
+
+  const handleSaveEvalPct = async () => {
+    setIsEvalModalOpen(false)
+    const res = await updateAppSettings({
+      evaluation_factor_percentage: Number(evalFactorPct) || 0,
+    })
+    if (res.success) {
+      toast({ title: 'SUCESSO', description: 'PERCENTUAL ATUALIZADO.' })
+    }
+  }
+
   const handleSave = async () => {
     const itemsToSave = fixedItems.map(({ id, label, value, details }) => ({
       id,
@@ -92,6 +129,8 @@ export function HourlyCostCalculator() {
     const res = await updateAppSettings({
       hourly_cost_monthly_hours: Number(monthlyHours) || 160,
       hourly_cost_fixed_items: itemsToSave,
+      predicted_loss_percentage: Number(predictedLossPct) || 0,
+      evaluation_factor_percentage: Number(evalFactorPct) || 0,
     })
 
     if (res.success) {
@@ -107,7 +146,14 @@ export function HourlyCostCalculator() {
 
   const totalFixedCosts = fixedItems.reduce((acc, curr) => acc + (Number(curr.inputValue) || 0), 0)
   const hours = Number(monthlyHours) || 160
-  const costPerMinute = hours > 0 ? totalFixedCosts / (hours * 60) : 0
+  const lossPct = Number(predictedLossPct) || 0
+  const evalPct = Number(evalFactorPct) || 0
+
+  const predictedLossesHours = hours * (lossPct / 100)
+  const effectiveHours = Math.max(0.1, hours - predictedLossesHours)
+  const baseHourlyCost = totalFixedCosts / effectiveHours
+  const finalHourlyCost = baseHourlyCost * (1 + evalPct / 100)
+  const costPerMinute = finalHourlyCost / 60
 
   const activeExpense = fixedItems.find((i) => i.id === selectedExpenseId)
 
@@ -224,7 +270,7 @@ export function HourlyCostCalculator() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-muted-foreground">
+                <label className="text-[10px] font-black text-muted-foreground tracking-widest">
                   HORAS TRABALHADAS (MÊS)
                 </label>
                 <Button
@@ -244,16 +290,65 @@ export function HourlyCostCalculator() {
               />
             </div>
 
-            <div className="pt-4 border-t border-primary/10 space-y-4">
+            <div className="pt-3 border-t border-primary/10 space-y-3">
               <div>
-                <p className="text-xs font-bold text-muted-foreground mb-1">
-                  TOTAL DE CUSTOS FIXOS DO MÊS
+                <p className="text-[10px] font-black tracking-widest text-muted-foreground uppercase mb-1">
+                  TOTAL DE CUSTOS FIXOS (MÊS)
                 </p>
-                <p className="text-2xl font-black text-slate-800 tracking-tight">
+                <p className="text-xl font-black text-slate-800 tracking-tight">
                   {formatCurrency(totalFixedCosts)}
                 </p>
               </div>
-              <div className="bg-white p-5 rounded-xl border border-primary/20 shadow-sm">
+
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">
+                    PERDAS PREVISTAS ({lossPct}%)
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 text-slate-400 hover:text-primary"
+                    onClick={() => setIsLossModalOpen(true)}
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                </div>
+                <p className="text-sm font-bold text-slate-600">
+                  {predictedLossesHours.toFixed(1)} HORAS
+                </p>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
+                  TOTAL CUSTO HORA (BASE)
+                </label>
+                <p className="text-sm font-bold text-slate-600">
+                  {formatCurrency(baseHourlyCost)} / h
+                </p>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase leading-tight">
+                    TOTAL CUSTO HORA
+                    <br />+ FATOR AVALIAÇÃO ({evalPct}%)
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 text-slate-400 hover:text-primary"
+                    onClick={() => setIsEvalModalOpen(true)}
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                </div>
+                <p className="text-lg font-black text-slate-800">
+                  {formatCurrency(finalHourlyCost)} / h
+                </p>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-primary/20 shadow-sm mt-4">
                 <p className="text-[10px] font-black text-primary mb-1 tracking-widest uppercase">
                   CUSTO CLÍNICO POR MINUTO
                 </p>
@@ -286,6 +381,77 @@ export function HourlyCostCalculator() {
       />
 
       <ConsultoriosModal open={isConsultoriosModalOpen} onOpenChange={setIsConsultoriosModalOpen} />
+
+      <PercentageEditModal
+        open={isLossModalOpen}
+        onOpenChange={setIsLossModalOpen}
+        title="PERDAS PREVISTAS (%)"
+        description="Defina a porcentagem de horas perdidas devido a cancelamentos, faltas e ociosidade."
+        value={predictedLossPct}
+        setValue={setPredictedLossPct}
+        onSave={handleSaveLossPct}
+      />
+
+      <PercentageEditModal
+        open={isEvalModalOpen}
+        onOpenChange={setIsEvalModalOpen}
+        title="FATOR AVALIAÇÃO (%)"
+        description="Defina a margem adicional sobre o custo hora calculada."
+        value={evalFactorPct}
+        setValue={setEvalFactorPct}
+        onSave={handleSaveEvalPct}
+      />
     </div>
+  )
+}
+
+function PercentageEditModal({
+  open,
+  onOpenChange,
+  title,
+  description,
+  value,
+  setValue,
+  onSave,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description: string
+  value: string
+  setValue: (val: string) => void
+  onSave: () => void
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="uppercase text-primary">{title}</DialogTitle>
+          <DialogDescription className="uppercase font-semibold">{description}</DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <div className="relative">
+            <Input
+              type="number"
+              step="0.1"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="pl-4 pr-8 font-black text-lg bg-slate-50"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">
+              %
+            </span>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            CANCELAR
+          </Button>
+          <Button onClick={onSave} className="font-bold shadow-md">
+            SALVAR PERCENTUAL
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

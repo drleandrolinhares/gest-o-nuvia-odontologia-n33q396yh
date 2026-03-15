@@ -8,7 +8,17 @@ export function getCostPerMinute(settings: AppSettings | null): number {
   )
   const hours = Number(settings.hourly_cost_monthly_hours) || 160
   if (hours === 0) return 0
-  return totalFixed / (hours * 60)
+
+  const lossPct = Number(settings.predicted_loss_percentage ?? 20)
+  const evalPct = Number(settings.evaluation_factor_percentage ?? 15)
+
+  const lossHours = hours * (lossPct / 100)
+  const effectiveHours = Math.max(0.1, hours - lossHours)
+
+  const baseHourlyCost = totalFixed / effectiveHours
+  const finalHourlyCost = baseHourlyCost * (1 + evalPct / 100)
+
+  return finalHourlyCost / 60
 }
 
 export function calculateProfitability(item: Partial<PriceItem>, settings: AppSettings | null) {
