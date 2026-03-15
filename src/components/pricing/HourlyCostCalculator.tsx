@@ -56,7 +56,7 @@ export function HourlyCostCalculator() {
 
   const totalFixedCosts = fixedItems.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0)
   const hours = Number(monthlyHours) || 160
-  const costPerMinute = totalFixedCosts / (hours * 60)
+  const costPerMinute = hours > 0 ? totalFixedCosts / (hours * 60) : 0
 
   return (
     <div className="grid gap-6 md:grid-cols-12 uppercase animate-fade-in">
@@ -75,17 +75,27 @@ export function HourlyCostCalculator() {
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm">LISTA DE DESPESAS FIXAS (MENSAL)</h3>
                 <Button variant="outline" size="sm" onClick={addFixedItem}>
-                  <Plus className="h-3.5 w-3.5 mr-1" /> ADICIONAR
+                  <Plus className="h-3.5 w-3.5 mr-1" /> ADICIONAR DESPESA
                 </Button>
               </div>
+
               <div className="space-y-3 bg-muted/20 p-4 rounded-xl border max-h-[500px] overflow-y-auto custom-scrollbar">
+                {fixedItems.length > 0 && (
+                  <div className="flex items-center gap-3 px-1 mb-2">
+                    <div className="flex-1 text-xs font-bold text-muted-foreground">DESCRIÇÃO</div>
+                    <div className="w-[180px] text-xs font-bold text-muted-foreground">
+                      VALOR (R$)
+                    </div>
+                    <div className="w-10"></div>
+                  </div>
+                )}
                 {fixedItems.map((item) => (
                   <div key={item.id} className="flex items-center gap-3">
                     <Input
                       placeholder="DESCRIÇÃO DA DESPESA (EX: ALUGUEL)"
                       value={item.name}
                       onChange={(e) => updateFixedItem(item.id, 'name', e.target.value)}
-                      className="flex-1"
+                      className="flex-1 bg-white"
                     />
                     <div className="relative w-[180px]">
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -94,14 +104,14 @@ export function HourlyCostCalculator() {
                         placeholder="0.00"
                         value={item.value || ''}
                         onChange={(e) => updateFixedItem(item.id, 'value', Number(e.target.value))}
-                        className="pl-9"
+                        className="pl-9 bg-white"
                       />
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => removeFixedItem(item.id)}
-                      className="text-muted-foreground hover:text-destructive shrink-0"
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -109,7 +119,7 @@ export function HourlyCostCalculator() {
                 ))}
                 {fixedItems.length === 0 && (
                   <p className="text-center py-4 text-xs font-bold text-muted-foreground">
-                    NENHUMA DESPESA FIXA CADASTRADA.
+                    NENHUMA DESPESA FIXA CADASTRADA. CLIQUE EM "ADICIONAR DESPESA".
                   </p>
                 )}
               </div>
@@ -139,7 +149,7 @@ export function HourlyCostCalculator() {
             <div className="pt-4 border-t border-primary/10 space-y-4">
               <div>
                 <p className="text-xs font-bold text-muted-foreground mb-1">
-                  TOTAL DE DESPESAS FIXAS
+                  TOTAL DE CUSTOS FIXOS DO MÊS
                 </p>
                 <p className="text-2xl font-black text-slate-800">
                   {formatCurrency(totalFixedCosts)}
