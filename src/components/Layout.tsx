@@ -17,6 +17,7 @@ import {
   DollarSign,
   PanelLeftClose,
   PanelLeftOpen,
+  Key,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -144,6 +145,7 @@ export function Layout() {
       title: 'ADMINISTRAÇÃO',
       items: [
         { name: 'CONFIGURAÇÕES', href: '/admin/configuracoes', icon: Settings },
+        { name: 'PERMISSÕES', href: '/admin/permissoes', icon: Key, adminOnly: true },
         { name: 'ACESSOS', href: '/admin/acessos', icon: Shield },
         { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
       ],

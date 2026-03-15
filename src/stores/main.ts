@@ -218,6 +218,17 @@ export type PriceItem = {
   fixed_cost: number
 }
 
+export type RolePermission = {
+  id?: string
+  role: string
+  module: string
+  can_view: boolean
+  can_create: boolean
+  can_edit: boolean
+  can_delete: boolean
+  updated_at?: string
+}
+
 interface AppStore {
   isAuthenticated: boolean
   isDataLoading: boolean
@@ -246,6 +257,7 @@ interface AppStore {
   workSchedules: WorkSchedule[]
   appSettings: AppSettings | null
   priceList: PriceItem[]
+  rolePermissions: RolePermission[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -325,6 +337,9 @@ interface AppStore {
   ) => Promise<{ success: boolean; id?: string; error?: any }>
   updatePriceItem: (id: string, p: Partial<PriceItem>) => Promise<{ success: boolean; error?: any }>
   removePriceItem: (id: string) => Promise<{ success: boolean; error?: any }>
+  updateRolePermissions: (
+    permissions: RolePermission[],
+  ) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -540,6 +555,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([])
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
   const [priceList, setPriceList] = useState<PriceItem[]>([])
+  const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([])
   const [alerts] = useState<string[]>([])
 
   const storeRef = useRef({ user, employees, inventory })
@@ -630,6 +646,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (r.data) setPriceList(r.data.map(mPrice))
           }),
         supabase
+          .from('role_permissions' as any)
+          .select('*')
+          .then((r) => {
+            if (!r.error) setRolePermissions(r.data || [])
+          }),
+        supabase
           .from('audit_logs')
           .select('*, profiles(name)')
           .order('created_at', { ascending: false })
@@ -668,6 +690,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setWorkSchedules([])
       setAppSettings(null)
       setPriceList([])
+      setRolePermissions([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -1315,7 +1338,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
       if (e.pixNumber !== undefined) payload.pix_number = e.pixNumber || null
       if (e.pixType !== undefined) payload.pix_type = e.pixType || null
-      if (e.bankName !== undefined) payload.bank_name = e.bankName || null
+      if (e.bankName !== undefined) payload.bankName = e.bankName || null
 
       if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal
@@ -1903,6 +1926,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const updateRolePermissions = useCallback(
+    async (permissions: RolePermission[]) => {
+      try {
+        const { error } = await supabase
+          .from('role_permissions' as any)
+          .upsert(permissions, { onConflict: 'role, module' })
+        if (error) throw error
+        setRolePermissions((prev) => {
+          const newState = [...prev]
+          permissions.forEach((p) => {
+            const idx = newState.findIndex((x) => x.role === p.role && x.module === p.module)
+            if (idx >= 0) newState[idx] = { ...newState[idx], ...p }
+            else newState.push(p)
+          })
+          return newState
+        })
+        logAction(`ATUALIZOU PERMISSÕES DO CARGO: ${permissions[0]?.role || ''}`)
+        return { success: true }
+      } catch (error: any) {
+        console.warn('Erro ao atualizar permissões', error)
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -1932,6 +1981,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       workSchedules,
       appSettings,
       priceList,
+      rolePermissions,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1981,6 +2031,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPriceItem,
       updatePriceItem,
       removePriceItem,
+      updateRolePermissions,
     }),
     [
       isAuthenticated,
@@ -2010,6 +2061,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       workSchedules,
       appSettings,
       priceList,
+      rolePermissions,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2059,6 +2111,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addPriceItem,
       updatePriceItem,
       removePriceItem,
+      updateRolePermissions,
     ],
   )
 

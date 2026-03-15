@@ -358,6 +358,7 @@ export type Database = {
           name: string
           phone: string | null
           pix_key: string | null
+          pix_number: string | null
           pix_type: string | null
           rg: string | null
           role: string
@@ -393,6 +394,7 @@ export type Database = {
           name: string
           phone?: string | null
           pix_key?: string | null
+          pix_number?: string | null
           pix_type?: string | null
           rg?: string | null
           role: string
@@ -428,6 +430,7 @@ export type Database = {
           name?: string
           phone?: string | null
           pix_key?: string | null
+          pix_number?: string | null
           pix_type?: string | null
           rg?: string | null
           role?: string
@@ -1128,6 +1131,7 @@ export const Constants = {
 //   pix_key: text (nullable)
 //   pix_type: text (nullable)
 //   bank_name: text (nullable)
+//   pix_number: text (nullable)
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)

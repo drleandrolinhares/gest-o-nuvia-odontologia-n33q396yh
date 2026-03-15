@@ -7,6 +7,7 @@ import WorkSchedule from '@/pages/WorkSchedule'
 import Inventory from '@/pages/Inventory'
 import Pricing from '@/pages/Pricing'
 import Settings from '@/pages/Settings'
+import Permissions from '@/pages/Permissions'
 import NotFound from '@/pages/NotFound'
 import Agenda from '@/pages/Agenda'
 import Acessos from '@/pages/Acessos'
@@ -52,6 +53,7 @@ export default function App() {
                 <Route path="estoque" element={<Inventory />} />
                 <Route path="precificacao" element={<Pricing />} />
                 <Route path="configuracoes" element={<Settings />} />
+                <Route path="permissoes" element={<Permissions />} />
                 <Route path="auditoria" element={<AuditLog />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
