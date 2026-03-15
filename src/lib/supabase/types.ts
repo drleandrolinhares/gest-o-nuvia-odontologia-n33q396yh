@@ -749,18 +749,21 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          must_change_password: boolean | null
           name: string
         }
         Insert: {
           created_at?: string
           email?: string
           id: string
+          must_change_password?: boolean | null
           name?: string
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          must_change_password?: boolean | null
           name?: string
         }
         Relationships: []
@@ -1274,6 +1277,7 @@ export const Constants = {
 //   email: text (not null, default: ''::text)
 //   name: text (not null, default: ''::text)
 //   created_at: timestamp with time zone (not null, default: now())
+//   must_change_password: boolean (nullable, default: false)
 // Table: role_permissions
 //   id: uuid (not null, default: gen_random_uuid())
 //   role: text (not null)

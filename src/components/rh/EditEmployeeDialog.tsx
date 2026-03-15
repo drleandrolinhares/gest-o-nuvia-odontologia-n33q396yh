@@ -56,6 +56,8 @@ const formSchema = z
   .object({
     name: z.string().min(1, 'Obrigatório'),
     username: z.string().optional(),
+    role: z.string().min(1, 'Obrigatório'),
+    department: z.string().min(1, 'Obrigatório'),
     email: z.string().email('Inválido').or(z.literal('')),
     phone: z.string().optional(),
     birthDate: z.string().optional(),
@@ -115,8 +117,15 @@ export function EditEmployeeDialog({
   startInEditMode?: boolean
   focusSection?: string | null
 }) {
-  const { updateEmployee, updateEmployeePassword, generateEmployeeAccess, bonusTypes } =
-    useAppStore()
+  const {
+    updateEmployee,
+    updateEmployeePassword,
+    generateEmployeeAccess,
+    bonusTypes,
+    roles,
+    departments,
+    isAdmin,
+  } = useAppStore()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditingData, setIsEditingData] = useState(false)
@@ -135,6 +144,8 @@ export function EditEmployeeDialog({
     defaultValues: {
       name: '',
       username: '',
+      role: '',
+      department: '',
       email: '',
       phone: '',
       birthDate: '',
@@ -165,6 +176,8 @@ export function EditEmployeeDialog({
         form.reset({
           name: employee.name || '',
           username: employee.username || '',
+          role: employee.role || '',
+          department: employee.department || '',
           email: employee.email || '',
           phone: employee.phone || '',
           birthDate: employee.birthDate || '',
@@ -472,6 +485,66 @@ export function EditEmployeeDialog({
                       className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm"
                     >
                       <SectionTitle title="RELAÇÕES E ACORDOS COM A EMPRESA" icon={Briefcase} />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <FormField
+                          control={form.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>CARGO *</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={!isEditingData || !isAdmin}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-background">
+                                    <SelectValue placeholder="SELECIONE O CARGO" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {roles.map((r) => (
+                                    <SelectItem key={r.id} value={r.name} className="uppercase">
+                                      {r.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="department"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>DEPARTAMENTO *</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={!isEditingData || !isAdmin}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-background">
+                                    <SelectValue placeholder="SELECIONE O DEPARTAMENTO" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {[...departments].sort().map((d) => (
+                                    <SelectItem key={d} value={d} className="uppercase">
+                                      {d.toUpperCase()}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormField
                           control={form.control}
