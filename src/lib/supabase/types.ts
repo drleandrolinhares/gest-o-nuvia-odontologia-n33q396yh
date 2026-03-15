@@ -444,7 +444,15 @@ export type Database = {
           vacation_days_total?: number | null
           vacation_due_date?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'fk_employees_role'
+            columns: ['role']
+            isOneToOne: false
+            referencedRelation: 'roles'
+            referencedColumns: ['name']
+          },
+        ]
       }
       inventory: {
         Row: {
@@ -787,6 +795,32 @@ export type Database = {
           module?: string
           role?: string
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk_role_permissions_role'
+            columns: ['role']
+            isOneToOne: false
+            referencedRelation: 'roles'
+            referencedColumns: ['name']
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -1249,6 +1283,10 @@ export const Constants = {
 //   can_edit: boolean (not null, default: false)
 //   can_delete: boolean (not null, default: false)
 //   updated_at: timestamp with time zone (not null, default: now())
+// Table: roles
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: suppliers
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1308,6 +1346,7 @@ export const Constants = {
 // Table: employees
 //   PRIMARY KEY employees_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
+//   FOREIGN KEY fk_employees_role: FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE RESTRICT
 // Table: inventory
 //   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
 // Table: inventory_movements
@@ -1333,8 +1372,12 @@ export const Constants = {
 //   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
 // Table: role_permissions
+//   FOREIGN KEY fk_role_permissions_role: FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE CASCADE
 //   PRIMARY KEY role_permissions_pkey: PRIMARY KEY (id)
 //   UNIQUE role_permissions_role_module_key: UNIQUE (role, module)
+// Table: roles
+//   UNIQUE roles_name_key: UNIQUE (name)
+//   PRIMARY KEY roles_pkey: PRIMARY KEY (id)
 // Table: suppliers
 //   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
 // Table: work_schedules
@@ -1430,6 +1473,15 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={public}
 //     USING: (auth.role() = 'authenticated'::text)
 //     WITH CHECK: (auth.role() = 'authenticated'::text)
+// Table: roles
+//   Policy "Allow all authenticated users to read roles" (SELECT, PERMISSIVE) roles={public}
+//     USING: (auth.role() = 'authenticated'::text)
+//   Policy "Master users can delete roles" (DELETE, PERMISSIVE) roles={public}
+//     USING: ((auth.role() = 'authenticated'::text) AND is_master_user(auth.uid()))
+//   Policy "Master users can insert roles" (INSERT, PERMISSIVE) roles={public}
+//     WITH CHECK: ((auth.role() = 'authenticated'::text) AND is_master_user(auth.uid()))
+//   Policy "Master users can update roles" (UPDATE, PERMISSIVE) roles={public}
+//     USING: ((auth.role() = 'authenticated'::text) AND is_master_user(auth.uid()))
 // Table: suppliers
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1606,5 +1658,7 @@ export const Constants = {
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
 // Table: role_permissions
 //   CREATE UNIQUE INDEX role_permissions_role_module_key ON public.role_permissions USING btree (role, module)
+// Table: roles
+//   CREATE UNIQUE INDEX roles_name_key ON public.roles USING btree (name)
 // Table: work_schedules
 //   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)

@@ -17,21 +17,38 @@ import {
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { ShieldCheck, CheckSquare, Save, Plus, Pencil, Trash2 } from 'lucide-react'
+import {
+  ShieldCheck,
+  CheckSquare,
+  Save,
+  Plus,
+  Pencil,
+  Trash2,
+  LayoutDashboard,
+  Calendar,
+  MessageSquare,
+  Users,
+  CalendarClock,
+  Package,
+  DollarSign,
+  Key,
+  ScrollText,
+  Settings,
+} from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Navigate } from 'react-router-dom'
 
 const MODULES = [
-  'DASHBOARD',
-  'AGENDA',
-  'MENSAGENS',
-  'RH',
-  'ESCALA DE TRABALHO',
-  'ESTOQUE',
-  'PRECIFICAÇÃO',
-  'CONFIGURAÇÕES',
-  'ACESSOS',
-  'LOGS',
+  { id: 'DASHBOARD', name: 'Dashboard', icon: LayoutDashboard },
+  { id: 'AGENDA', name: 'Agenda', icon: Calendar },
+  { id: 'MENSAGENS', name: 'Mensagens', icon: MessageSquare },
+  { id: 'RH', name: 'RH', icon: Users },
+  { id: 'ESCALA DE TRABALHO', name: 'Escala', icon: CalendarClock },
+  { id: 'ESTOQUE', name: 'Estoque', icon: Package },
+  { id: 'PRECIFICAÇÃO', name: 'Precificação', icon: DollarSign },
+  { id: 'ACESSOS', name: 'Acessos', icon: Key },
+  { id: 'LOGS', name: 'Logs', icon: ScrollText },
+  { id: 'CONFIGURAÇÕES', name: 'Configurações', icon: Settings },
 ]
 
 export default function Permissions() {
@@ -61,12 +78,14 @@ export default function Permissions() {
     if (selectedRole) {
       const newState: Record<string, RolePermission> = {}
       MODULES.forEach((mod) => {
-        const existing = rolePermissions.find((rp) => rp.role === selectedRole && rp.module === mod)
-        newState[mod] = existing
+        const existing = rolePermissions.find(
+          (rp) => rp.role === selectedRole && rp.module === mod.id,
+        )
+        newState[mod.id] = existing
           ? { ...existing }
           : {
               role: selectedRole,
-              module: mod,
+              module: mod.id,
               can_view: false,
               can_create: false,
               can_edit: false,
@@ -253,7 +272,7 @@ export default function Permissions() {
                           value={newRoleName}
                           onChange={(e) => setNewRoleName(e.target.value)}
                           placeholder="NOME DO NOVO CARGO"
-                          className="uppercase bg-[#112240] border-white/10 text-white placeholder:text-slate-500 h-10"
+                          className="uppercase bg-[#112240] border-white/10 text-white placeholder:text-slate-500 h-10 focus-visible:ring-[#D4AF37]"
                         />
                         <Button
                           onClick={handleAddRole}
@@ -280,7 +299,7 @@ export default function Permissions() {
                                   <Input
                                     value={editRoleName}
                                     onChange={(e) => setEditRoleName(e.target.value)}
-                                    className="uppercase h-8 bg-[#0A192F] border-white/10"
+                                    className="uppercase h-8 bg-[#0A192F] border-white/10 focus-visible:ring-[#D4AF37]"
                                     autoFocus
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') handleSaveRoleEdit(r.id)
@@ -345,96 +364,108 @@ export default function Permissions() {
 
         {/* Matrix */}
         {!selectedRole ? (
-          <div className="flex flex-col items-center justify-center py-20 opacity-50">
+          <div className="flex flex-col items-center justify-center py-32 opacity-50">
             <ShieldCheck className="h-20 w-20 text-[#D4AF37] mb-4" />
             <p className="text-lg font-bold tracking-widest uppercase text-[#D4AF37] text-center">
-              SELECIONE UM CARGO PARA CONFIGURAR
+              Selecione um cargo para configurar
             </p>
           </div>
         ) : (
-          <div className="space-y-4 mb-24">
-            {MODULES.map((mod) => {
-              const state = formState[mod]
-              if (!state) return null
+          <div className="w-full">
+            <div className="hidden xl:grid grid-cols-12 gap-4 pb-4 border-b border-[#D4AF37]/30 mb-4 px-4">
+              <div className="col-span-3 text-[#D4AF37] font-bold tracking-widest uppercase text-xs">
+                Módulo do Sistema
+              </div>
+              <div className="col-span-9 text-[#D4AF37] font-bold tracking-widest uppercase text-xs pl-2">
+                Níveis de Permissão
+              </div>
+            </div>
 
-              return (
-                <div
-                  key={mod}
-                  className="flex flex-col xl:flex-row items-start xl:items-center justify-between p-4 bg-[#112240] rounded-xl border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-colors group gap-4"
-                >
-                  <div className="font-black text-[#D4AF37] tracking-widest w-full xl:w-64 uppercase text-sm">
-                    {mod}
-                  </div>
+            <div className="space-y-3">
+              {MODULES.map((mod) => {
+                const state = formState[mod.id]
+                if (!state) return null
 
-                  <div className="flex flex-wrap items-center gap-6 flex-1 bg-[#0A192F]/50 px-6 py-3 rounded-lg border border-white/5 w-full">
-                    <label className="flex items-center gap-2 cursor-pointer group/label">
-                      <Checkbox
-                        checked={state.can_view}
-                        onCheckedChange={(c) => handleCheck(mod, 'can_view', !!c)}
-                        className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:text-[#0A192F] w-5 h-5"
-                      />
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-white transition-colors">
-                        Visualizar
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group/label">
-                      <Checkbox
-                        checked={state.can_create}
-                        onCheckedChange={(c) => handleCheck(mod, 'can_create', !!c)}
-                        className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:text-[#0A192F] w-5 h-5"
-                      />
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-white transition-colors">
-                        Criar Novo
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group/label">
-                      <Checkbox
-                        checked={state.can_edit}
-                        onCheckedChange={(c) => handleCheck(mod, 'can_edit', !!c)}
-                        className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:text-[#0A192F] w-5 h-5"
-                      />
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-white transition-colors">
-                        Editar
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group/label">
-                      <Checkbox
-                        checked={state.can_delete}
-                        onCheckedChange={(c) => handleCheck(mod, 'can_delete', !!c)}
-                        className="border-red-400 data-[state=checked]:bg-red-500 data-[state=checked]:text-white data-[state=checked]:border-red-500 w-5 h-5"
-                      />
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-red-400 transition-colors">
-                        Excluir
-                      </span>
-                    </label>
-                  </div>
-
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleSelectAll(mod)}
-                    className="text-[#D4AF37]/70 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 uppercase text-[10px] font-black tracking-widest shrink-0 w-full xl:w-auto h-12 xl:h-10 border border-transparent hover:border-[#D4AF37]/30"
+                return (
+                  <div
+                    key={mod.id}
+                    className="flex flex-col xl:grid xl:grid-cols-12 gap-4 items-start xl:items-center p-4 bg-[#112240] rounded-xl border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-colors group"
                   >
-                    <CheckSquare className="w-4 h-4 mr-2" /> Marcar Tudo
-                  </Button>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                    <div className="xl:col-span-3 flex items-center gap-3 w-full">
+                      <mod.icon className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors shrink-0" />
+                      <span className="font-black text-[#D4AF37] tracking-widest uppercase text-sm truncate">
+                        {mod.name}
+                      </span>
+                    </div>
 
-        {/* Footer fixed button */}
-        {selectedRole && (
-          <div className="fixed bottom-6 right-6 md:bottom-12 md:right-12 z-50 animate-fade-in-up">
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="bg-[#D4AF37] hover:bg-[#B3932D] text-[#0A192F] font-black uppercase tracking-widest px-6 md:px-8 py-6 rounded-full shadow-[0_10px_30px_rgba(212,175,55,0.3)] transition-transform hover:scale-105 border-2 border-[#D4AF37]"
-            >
-              <Save className="w-5 h-5 md:mr-3 mr-0" />
-              <span className="hidden md:inline">
-                {isSaving ? 'Salvando...' : 'Salvar Permissões do Cargo'}
-              </span>
-            </Button>
+                    <div className="xl:col-span-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+                      <div className="flex flex-wrap items-center gap-6 bg-[#0A192F]/50 px-6 py-3 rounded-lg border border-white/5 flex-1 w-full sm:w-auto">
+                        <label className="flex items-center gap-2 cursor-pointer group/label">
+                          <Checkbox
+                            checked={state.can_view}
+                            onCheckedChange={(c) => handleCheck(mod.id, 'can_view', !!c)}
+                            className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:text-[#0A192F] w-5 h-5 focus-visible:ring-[#D4AF37]"
+                          />
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-white transition-colors">
+                            Visualizar
+                          </span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group/label">
+                          <Checkbox
+                            checked={state.can_create}
+                            onCheckedChange={(c) => handleCheck(mod.id, 'can_create', !!c)}
+                            className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:text-[#0A192F] w-5 h-5 focus-visible:ring-[#D4AF37]"
+                          />
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-white transition-colors">
+                            Criar
+                          </span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group/label">
+                          <Checkbox
+                            checked={state.can_edit}
+                            onCheckedChange={(c) => handleCheck(mod.id, 'can_edit', !!c)}
+                            className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:text-[#0A192F] w-5 h-5 focus-visible:ring-[#D4AF37]"
+                          />
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-white transition-colors">
+                            Editar
+                          </span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer group/label">
+                          <Checkbox
+                            checked={state.can_delete}
+                            onCheckedChange={(c) => handleCheck(mod.id, 'can_delete', !!c)}
+                            className="border-red-400 data-[state=checked]:bg-red-500 data-[state=checked]:text-white data-[state=checked]:border-red-500 w-5 h-5 focus-visible:ring-red-400"
+                          />
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-300 group-hover/label:text-red-400 transition-colors">
+                            Excluir
+                          </span>
+                        </label>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSelectAll(mod.id)}
+                        className="text-[#D4AF37] hover:text-[#D4AF37] hover:bg-[#D4AF37]/10 uppercase text-[10px] font-black tracking-widest shrink-0 w-full sm:w-auto h-10 border border-transparent hover:border-[#D4AF37]/30"
+                      >
+                        <CheckSquare className="w-4 h-4 mr-2" /> Marcar Tudo
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Footer with Save Action */}
+            <div className="mt-8 border-t border-[#D4AF37]/20 pt-8 flex justify-end">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black uppercase tracking-widest px-8 py-6 rounded-md shadow-lg transition-all hover:scale-[1.02] border border-[#D4AF37]"
+              >
+                <Save className="w-5 h-5 mr-3" />
+                <span>{isSaving ? 'Salvando...' : 'Salvar Permissões do Cargo'}</span>
+              </Button>
+            </div>
           </div>
         )}
       </div>
