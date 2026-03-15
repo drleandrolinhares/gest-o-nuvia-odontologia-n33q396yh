@@ -18,12 +18,14 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Key,
+  ChevronDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
 
@@ -144,9 +146,15 @@ export function Layout() {
     {
       title: 'ADMINISTRAÇÃO',
       items: [
-        { name: 'CONFIGURAÇÕES', href: '/admin/configuracoes', icon: Settings },
-        { name: 'PERMISSÕES', href: '/admin/permissoes', icon: Key, adminOnly: true },
-        { name: 'ACESSOS', href: '/admin/acessos', icon: Shield },
+        {
+          name: 'CONFIGURAÇÕES',
+          icon: Settings,
+          subItems: [
+            { name: 'SISTEMA', href: '/admin/configuracoes' },
+            { name: 'PERMISSÕES', href: '/admin/permissoes', adminOnly: true },
+          ],
+        },
+        { name: 'CENTRAL DE ACESSOS', href: '/admin/acessos', icon: Shield },
         { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
       ],
     },
@@ -190,16 +198,86 @@ export function Layout() {
             {isCollapsed && !isMobile && idx > 0 && <div className="h-px bg-white/10 mx-2 mb-4" />}
             <div className="space-y-1">
               {section.items.map((item) => {
+                if (item.subItems) {
+                  const filteredSubItems = item.subItems.filter((s) => !s.adminOnly || isAdmin)
+                  if (filteredSubItems.length === 0) return null
+
+                  const isAnySubActive = filteredSubItems.some((s) =>
+                    location.pathname.startsWith(s.href),
+                  )
+
+                  return (
+                    <Collapsible key={item.name} defaultOpen={isAnySubActive}>
+                      <CollapsibleTrigger asChild>
+                        <button
+                          onClick={() => {
+                            if (isCollapsed && !isMobile) toggleSidebar()
+                          }}
+                          className={cn(
+                            'w-full group flex items-center py-3 text-sm font-medium rounded-md transition-all duration-300 relative outline-none',
+                            isCollapsed && !isMobile ? 'justify-center px-2' : 'px-4',
+                            isAnySubActive
+                              ? 'bg-[#D4AF37]/10 text-[#D4AF37]'
+                              : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                          )}
+                          title={isCollapsed && !isMobile ? item.name : undefined}
+                        >
+                          <item.icon
+                            className={cn(
+                              'flex-shrink-0 h-5 w-5 transition-colors',
+                              isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
+                              isAnySubActive
+                                ? 'text-[#D4AF37]'
+                                : 'text-slate-400 group-hover:text-white',
+                            )}
+                            aria-hidden="true"
+                          />
+                          {(!isCollapsed || isMobile) && (
+                            <span className="flex-1 text-left whitespace-nowrap transition-colors">
+                              {item.name}
+                            </span>
+                          )}
+                          {(!isCollapsed || isMobile) && (
+                            <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                          )}
+                        </button>
+                      </CollapsibleTrigger>
+                      {(!isCollapsed || isMobile) && (
+                        <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-4">
+                          {filteredSubItems.map((sub) => {
+                            const isSubActive = location.pathname.startsWith(sub.href)
+                            return (
+                              <Link
+                                key={sub.name}
+                                to={sub.href}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className={cn(
+                                  'block py-2 px-3 text-xs font-bold tracking-wider rounded-md transition-colors whitespace-nowrap',
+                                  isSubActive
+                                    ? 'text-[#D4AF37] bg-[#D4AF37]/10'
+                                    : 'text-slate-400 hover:text-white hover:bg-white/5',
+                                )}
+                              >
+                                {sub.name}
+                              </Link>
+                            )
+                          })}
+                        </CollapsibleContent>
+                      )}
+                    </Collapsible>
+                  )
+                }
+
                 const isActive = item.exact
                   ? location.pathname === item.href || location.pathname === `${item.href}/`
-                  : location.pathname.startsWith(item.href)
+                  : location.pathname.startsWith(item.href as string)
 
                 const hasUnread = item.name === 'MENSAGENS' && totalUnread > 0
 
                 return (
                   <Link
                     key={item.name}
-                    to={item.href}
+                    to={item.href as string}
                     title={isCollapsed && !isMobile ? item.name : undefined}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
@@ -213,15 +291,17 @@ export function Layout() {
                         'bg-red-500/10 shadow-[inset_4px_0_0_0_rgba(239,68,68,1)]',
                     )}
                   >
-                    <item.icon
-                      className={cn(
-                        'flex-shrink-0 h-5 w-5 transition-colors',
-                        isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
-                        isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
-                        hasUnread && 'text-red-400 animate-pulse',
-                      )}
-                      aria-hidden="true"
-                    />
+                    {item.icon && (
+                      <item.icon
+                        className={cn(
+                          'flex-shrink-0 h-5 w-5 transition-colors',
+                          isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
+                          isActive ? 'text-[#D4AF37]' : 'text-slate-400 group-hover:text-white',
+                          hasUnread && 'text-red-400 animate-pulse',
+                        )}
+                        aria-hidden="true"
+                      />
+                    )}
                     {(!isCollapsed || isMobile) && (
                       <span
                         className={cn(

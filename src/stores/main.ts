@@ -229,6 +229,12 @@ export type RolePermission = {
   updated_at?: string
 }
 
+export type SystemRole = {
+  id: string
+  name: string
+  created_at?: string
+}
+
 interface AppStore {
   isAuthenticated: boolean
   isDataLoading: boolean
@@ -258,6 +264,7 @@ interface AppStore {
   appSettings: AppSettings | null
   priceList: PriceItem[]
   rolePermissions: RolePermission[]
+  roles: SystemRole[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -340,6 +347,9 @@ interface AppStore {
   updateRolePermissions: (
     permissions: RolePermission[],
   ) => Promise<{ success: boolean; error?: any }>
+  addRole: (name: string) => Promise<{ success: boolean; error?: any }>
+  updateRole: (id: string, name: string) => Promise<{ success: boolean; error?: any }>
+  deleteRole: (id: string) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -556,12 +566,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
   const [priceList, setPriceList] = useState<PriceItem[]>([])
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([])
+  const [roles, setRoles] = useState<SystemRole[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees, inventory })
+  const storeRef = useRef({ user, employees, inventory, roles })
   useEffect(() => {
-    storeRef.current = { user, employees, inventory }
-  }, [user, employees, inventory])
+    storeRef.current = { user, employees, inventory, roles }
+  }, [user, employees, inventory, roles])
 
   useEffect(() => {
     if (user) {
@@ -622,6 +633,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .from('employee_documents')
           .select('*')
           .then((r) => setEmployeeDocuments(handleResponse(r))),
+        supabase
+          .from('roles' as any)
+          .select('*')
+          .order('name', { ascending: true })
+          .then((r) => setRoles(handleResponse(r))),
         supabase
           .from('app_settings' as any)
           .select('*')
@@ -691,6 +707,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setAppSettings(null)
       setPriceList([])
       setRolePermissions([])
+      setRoles([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -750,6 +767,85 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
       .catch((err) => console.warn('Falha ao registrar log de auditoria', err))
   }, [])
+
+  const addRole = useCallback(
+    async (name: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('roles' as any)
+          .insert([{ name }])
+          .select()
+          .single()
+        if (error) throw error
+        if (data) {
+          setRoles((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
+          logAction(`CRIOU CARGO: ${name}`)
+          return { success: true }
+        }
+        return { success: false }
+      } catch (error) {
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
+  const updateRole = useCallback(
+    async (id: string, name: string) => {
+      const oldRole = storeRef.current.roles.find((r) => r.id === id)?.name
+      try {
+        const { error } = await supabase
+          .from('roles' as any)
+          .update({ name })
+          .eq('id', id)
+        if (error) throw error
+
+        setRoles((p) =>
+          p
+            .map((r) => (r.id === id ? { ...r, name } : r))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        )
+        logAction(`ATUALIZOU CARGO: ${oldRole} PARA ${name}`)
+
+        if (oldRole) {
+          setRolePermissions((p) =>
+            p.map((rp) => (rp.role === oldRole ? { ...rp, role: name } : rp)),
+          )
+          setEmployees((p) => p.map((emp) => (emp.role === oldRole ? { ...emp, role: name } : emp)))
+        }
+
+        return { success: true }
+      } catch (error: any) {
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
+  const deleteRole = useCallback(
+    async (id: string) => {
+      const roleName = storeRef.current.roles.find((r) => r.id === id)?.name
+      try {
+        const { error } = await supabase
+          .from('roles' as any)
+          .delete()
+          .eq('id', id)
+        if (error) throw error
+
+        setRoles((p) => p.filter((r) => r.id !== id))
+        logAction(`REMOVEU CARGO: ${roleName}`)
+
+        if (roleName) {
+          setRolePermissions((p) => p.filter((rp) => rp.role !== roleName))
+        }
+
+        return { success: true }
+      } catch (error: any) {
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
 
   const addDepartment = useCallback(
     (n: string) => {
@@ -1982,6 +2078,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appSettings,
       priceList,
       rolePermissions,
+      roles,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2032,6 +2129,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updatePriceItem,
       removePriceItem,
       updateRolePermissions,
+      addRole,
+      updateRole,
+      deleteRole,
     }),
     [
       isAuthenticated,
@@ -2062,6 +2162,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appSettings,
       priceList,
       rolePermissions,
+      roles,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2112,6 +2213,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updatePriceItem,
       removePriceItem,
       updateRolePermissions,
+      addRole,
+      updateRole,
+      deleteRole,
     ],
   )
 

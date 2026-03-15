@@ -757,6 +757,39 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          can_create: boolean
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          id: string
+          module: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          id?: string
+          module: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          can_create?: boolean
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          id?: string
+          module?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           cnpj: string
@@ -1207,6 +1240,15 @@ export const Constants = {
 //   email: text (not null, default: ''::text)
 //   name: text (not null, default: ''::text)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: role_permissions
+//   id: uuid (not null, default: gen_random_uuid())
+//   role: text (not null)
+//   module: text (not null)
+//   can_view: boolean (not null, default: false)
+//   can_create: boolean (not null, default: false)
+//   can_edit: boolean (not null, default: false)
+//   can_delete: boolean (not null, default: false)
+//   updated_at: timestamp with time zone (not null, default: now())
 // Table: suppliers
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1290,6 +1332,9 @@ export const Constants = {
 // Table: profiles
 //   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
+// Table: role_permissions
+//   PRIMARY KEY role_permissions_pkey: PRIMARY KEY (id)
+//   UNIQUE role_permissions_role_module_key: UNIQUE (role, module)
 // Table: suppliers
 //   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
 // Table: work_schedules
@@ -1381,6 +1426,10 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+// Table: role_permissions
+//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={public}
+//     USING: (auth.role() = 'authenticated'::text)
+//     WITH CHECK: (auth.role() = 'authenticated'::text)
 // Table: suppliers
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1555,5 +1604,7 @@ export const Constants = {
 // --- INDEXES ---
 // Table: chat_participants
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
+// Table: role_permissions
+//   CREATE UNIQUE INDEX role_permissions_role_module_key ON public.role_permissions USING btree (role, module)
 // Table: work_schedules
 //   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)
