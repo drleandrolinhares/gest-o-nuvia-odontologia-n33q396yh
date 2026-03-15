@@ -114,39 +114,6 @@ export type Database = {
         }
         Relationships: []
       }
-      app_settings: {
-        Row: {
-          created_at: string
-          global_card_fee: number | null
-          global_commission: number | null
-          global_inadimplency: number | null
-          global_taxes: number | null
-          hourly_cost_fixed_items: Json | null
-          hourly_cost_monthly_hours: number | null
-          id: string
-        }
-        Insert: {
-          created_at?: string
-          global_card_fee?: number | null
-          global_commission?: number | null
-          global_inadimplency?: number | null
-          global_taxes?: number | null
-          hourly_cost_fixed_items?: Json | null
-          hourly_cost_monthly_hours?: number | null
-          id?: string
-        }
-        Update: {
-          created_at?: string
-          global_card_fee?: number | null
-          global_commission?: number | null
-          global_inadimplency?: number | null
-          global_taxes?: number | null
-          hourly_cost_fixed_items?: Json | null
-          hourly_cost_monthly_hours?: number | null
-          id?: string
-        }
-        Relationships: []
-      }
       audit_logs: {
         Row: {
           action: string
@@ -650,115 +617,6 @@ export type Database = {
         }
         Relationships: []
       }
-      price_list: {
-        Row: {
-          cadista_cost: number | null
-          category: string
-          created_at: string
-          execution_time: number | null
-          fixed_cost: number | null
-          id: string
-          material: string | null
-          material_cost: number | null
-          price: number | null
-          sector: string | null
-          work_type: string
-        }
-        Insert: {
-          cadista_cost?: number | null
-          category: string
-          created_at?: string
-          execution_time?: number | null
-          fixed_cost?: number | null
-          id?: string
-          material?: string | null
-          material_cost?: number | null
-          price?: number | null
-          sector?: string | null
-          work_type: string
-        }
-        Update: {
-          cadista_cost?: number | null
-          category?: string
-          created_at?: string
-          execution_time?: number | null
-          fixed_cost?: number | null
-          id?: string
-          material?: string | null
-          material_cost?: number | null
-          price?: number | null
-          sector?: string | null
-          work_type?: string
-        }
-        Relationships: []
-      }
-      price_stages: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          percentage: number | null
-          price_list_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          percentage?: number | null
-          price_list_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          percentage?: number | null
-          price_list_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'price_stages_price_list_id_fkey'
-            columns: ['price_list_id']
-            isOneToOne: false
-            referencedRelation: 'price_list'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      pricing_history: {
-        Row: {
-          created_at: string
-          execution_date: string
-          id: string
-          next_revision_date: string
-          user_id: string | null
-          user_name: string
-        }
-        Insert: {
-          created_at?: string
-          execution_date: string
-          id?: string
-          next_revision_date: string
-          user_id?: string | null
-          user_name: string
-        }
-        Update: {
-          created_at?: string
-          execution_date?: string
-          id?: string
-          next_revision_date?: string
-          user_id?: string | null
-          user_name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'pricing_history_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       profiles: {
         Row: {
           created_at: string
@@ -1073,15 +931,6 @@ export const Constants = {
 //   created_by: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   is_completed: boolean (nullable, default: false)
-// Table: app_settings
-//   id: uuid (not null, default: gen_random_uuid())
-//   global_card_fee: numeric (nullable, default: 0)
-//   global_commission: numeric (nullable, default: 0)
-//   global_inadimplency: numeric (nullable, default: 0)
-//   global_taxes: numeric (nullable, default: 0)
-//   hourly_cost_fixed_items: jsonb (nullable, default: '[]'::jsonb)
-//   hourly_cost_monthly_hours: numeric (nullable, default: 160)
-//   created_at: timestamp with time zone (not null, default: now())
 // Table: audit_logs
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (nullable)
@@ -1203,31 +1052,6 @@ export const Constants = {
 //   department: text (not null)
 //   tasks: jsonb (nullable, default: '[]'::jsonb)
 //   created_at: timestamp with time zone (not null, default: now())
-// Table: price_list
-//   id: uuid (not null, default: gen_random_uuid())
-//   work_type: text (not null)
-//   category: text (not null)
-//   material: text (nullable)
-//   price: numeric (nullable, default: 0)
-//   sector: text (nullable)
-//   execution_time: integer (nullable, default: 0)
-//   cadista_cost: numeric (nullable, default: 0)
-//   material_cost: numeric (nullable, default: 0)
-//   fixed_cost: numeric (nullable, default: 0)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: price_stages
-//   id: uuid (not null, default: gen_random_uuid())
-//   price_list_id: uuid (nullable)
-//   name: text (not null)
-//   percentage: numeric (nullable, default: 0)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: pricing_history
-//   id: uuid (not null, default: gen_random_uuid())
-//   user_id: uuid (nullable)
-//   user_name: text (not null)
-//   execution_date: date (not null)
-//   next_revision_date: date (not null)
-//   created_at: timestamp with time zone (not null, default: now())
 // Table: profiles
 //   id: uuid (not null)
 //   email: text (not null, default: ''::text)
@@ -1264,8 +1088,6 @@ export const Constants = {
 //   PRIMARY KEY acessos_pkey: PRIMARY KEY (id)
 // Table: agenda
 //   PRIMARY KEY agenda_pkey: PRIMARY KEY (id)
-// Table: app_settings
-//   PRIMARY KEY app_settings_pkey: PRIMARY KEY (id)
 // Table: audit_logs
 //   PRIMARY KEY audit_logs_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
@@ -1308,14 +1130,6 @@ export const Constants = {
 //   CHECK inventory_temporary_outflows_status_check: CHECK ((status = ANY (ARRAY['PENDING'::text, 'FINALIZED'::text, 'RETURNED'::text])))
 // Table: onboarding
 //   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
-// Table: price_list
-//   PRIMARY KEY price_list_pkey: PRIMARY KEY (id)
-// Table: price_stages
-//   PRIMARY KEY price_stages_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY price_stages_price_list_id_fkey: FOREIGN KEY (price_list_id) REFERENCES price_list(id) ON DELETE CASCADE
-// Table: pricing_history
-//   PRIMARY KEY pricing_history_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY pricing_history_user_id_fkey: FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE SET NULL
 // Table: profiles
 //   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
@@ -1332,10 +1146,6 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: agenda
-//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: app_settings
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
@@ -1395,18 +1205,6 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: onboarding
-//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: price_list
-//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: price_stages
-//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: pricing_history
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
@@ -1510,28 +1308,6 @@ export const Constants = {
 //   END;
 //   $function$
 //
-// FUNCTION handle_pricing_history_insert()
-//   CREATE OR REPLACE FUNCTION public.handle_pricing_history_insert()
-//    RETURNS trigger
-//    LANGUAGE plpgsql
-//    SECURITY DEFINER
-//   AS $function$
-//   BEGIN
-//       INSERT INTO public.agenda (title, date, time, location, type, is_completed, involves_third_party, created_by)
-//       VALUES (
-//           'REVISÃO DE PRECIFICAÇÃO - ' || NEW.user_name,
-//           NEW.next_revision_date,
-//           '08:00',
-//           'SISTEMA',
-//           'REVISÃO',
-//           false,
-//           false,
-//           'SISTEMA'
-//       );
-//       RETURN NEW;
-//   END;
-//   $function$
-//
 // FUNCTION is_master_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_master_user(user_uuid uuid)
 //    RETURNS boolean
@@ -1606,8 +1382,6 @@ export const Constants = {
 // --- TRIGGERS ---
 // Table: employees
 //   trg_sync_employee_dates_to_agenda: CREATE TRIGGER trg_sync_employee_dates_to_agenda AFTER INSERT OR DELETE OR UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION sync_employee_dates_to_agenda()
-// Table: pricing_history
-//   on_pricing_history_created: CREATE TRIGGER on_pricing_history_created AFTER INSERT ON public.pricing_history FOR EACH ROW EXECUTE FUNCTION handle_pricing_history_insert()
 
 // --- INDEXES ---
 // Table: chat_participants

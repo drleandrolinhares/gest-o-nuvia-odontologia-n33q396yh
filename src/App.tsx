@@ -5,6 +5,7 @@ import RH from '@/pages/RH'
 import EmployeeProfile from '@/pages/EmployeeProfile'
 import WorkSchedule from '@/pages/WorkSchedule'
 import Inventory from '@/pages/Inventory'
+import Pricing from '@/pages/Pricing'
 import Settings from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
 import Agenda from '@/pages/Agenda'
@@ -49,6 +50,7 @@ export default function App() {
                 <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
                 <Route path="rh/escala" element={<WorkSchedule />} />
                 <Route path="estoque" element={<Inventory />} />
+                <Route path="precificacao" element={<Pricing />} />
                 <Route path="configuracoes" element={<Settings />} />
                 <Route path="auditoria" element={<AuditLog />} />
                 <Route path="*" element={<NotFound />} />

@@ -14,6 +14,7 @@ import {
   Clock,
   AlertTriangle,
   RefreshCw,
+  DollarSign,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -108,10 +109,16 @@ export function Layout() {
     { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
     { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
     { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
+    { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
     { name: 'ACESSOS', href: '/admin/acessos', icon: Shield },
     { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
     { name: 'CONFIGURAÇÕES', href: '/admin/configuracoes', icon: Settings },
   ]
+
+  const filteredNavigation = baseNavigation.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false
+    return true
+  })
 
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
@@ -131,7 +138,7 @@ export function Layout() {
           <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-4">
             Gestão Integrada
           </p>
-          {baseNavigation.map((item) => {
+          {filteredNavigation.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.href || location.pathname === `${item.href}/`
               : location.pathname.startsWith(item.href)

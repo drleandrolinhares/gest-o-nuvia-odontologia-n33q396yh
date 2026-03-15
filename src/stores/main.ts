@@ -181,6 +181,29 @@ export type InventoryOption = {
   value: string
 }
 
+export type FixedExpense = { id: string; name: string; value: number }
+export type AppSettings = {
+  id: string
+  global_card_fee: number
+  global_commission: number
+  global_inadimplency: number
+  global_taxes: number
+  hourly_cost_fixed_items: FixedExpense[]
+  hourly_cost_monthly_hours: number
+}
+export type PriceItem = {
+  id: string
+  work_type: string
+  category: string
+  material: string | null
+  price: number
+  sector: string | null
+  execution_time: number
+  cadista_cost: number
+  material_cost: number
+  fixed_cost: number
+}
+
 interface AppStore {
   isAuthenticated: boolean
   isDataLoading: boolean
@@ -207,6 +230,8 @@ interface AppStore {
   bonusTypes: BonusSetting[]
   employeeDocuments: EmployeeDocument[]
   workSchedules: WorkSchedule[]
+  appSettings: AppSettings | null
+  priceList: PriceItem[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -280,6 +305,10 @@ interface AppStore {
   upsertWorkSchedule: (
     schedule: Partial<WorkSchedule> & { employee_id: string; work_date: string },
   ) => Promise<void>
+  updateAppSettings: (data: Partial<AppSettings>) => Promise<{ success: boolean; error?: any }>
+  addPriceItem: (p: Omit<PriceItem, 'id'>) => Promise<{ success: boolean; error?: any }>
+  updatePriceItem: (id: string, p: Partial<PriceItem>) => Promise<{ success: boolean; error?: any }>
+  removePriceItem: (id: string) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -428,6 +457,29 @@ const mOpt = (d: any): InventoryOption => ({
   value: d.value,
 })
 
+const mAppSet = (d: any): AppSettings => ({
+  id: d.id,
+  global_card_fee: Number(d.global_card_fee) || 0,
+  global_commission: Number(d.global_commission) || 0,
+  global_inadimplency: Number(d.global_inadimplency) || 0,
+  global_taxes: Number(d.global_taxes) || 0,
+  hourly_cost_fixed_items: d.hourly_cost_fixed_items || [],
+  hourly_cost_monthly_hours: Number(d.hourly_cost_monthly_hours) || 160,
+})
+
+const mPrice = (d: any): PriceItem => ({
+  id: d.id,
+  work_type: d.work_type,
+  category: d.category,
+  material: d.material,
+  price: Number(d.price) || 0,
+  sector: d.sector,
+  execution_time: Number(d.execution_time) || 0,
+  cadista_cost: Number(d.cadista_cost) || 0,
+  material_cost: Number(d.material_cost) || 0,
+  fixed_cost: Number(d.fixed_cost) || 0,
+})
+
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -453,6 +505,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [bonusTypes, setBonusTypes] = useState<BonusSetting[]>([])
   const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocument[]>([])
   const [workSchedules, setWorkSchedules] = useState<WorkSchedule[]>([])
+  const [appSettings, setAppSettings] = useState<AppSettings | null>(null)
+  const [priceList, setPriceList] = useState<PriceItem[]>([])
   const [alerts] = useState<string[]>([])
 
   const storeRef = useRef({ user, employees, inventory })
@@ -520,6 +574,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .select('*')
           .then((r) => setEmployeeDocuments(handleResponse(r))),
         supabase
+          .from('app_settings' as any)
+          .select('*')
+          .limit(1)
+          .maybeSingle()
+          .then(async (r) => {
+            if (r.data) {
+              setAppSettings(mAppSet(r.data))
+            } else if (!r.error) {
+              const { data: newData } = await supabase
+                .from('app_settings' as any)
+                .insert([{}])
+                .select()
+                .single()
+              if (newData) setAppSettings(mAppSet(newData))
+            }
+          }),
+        supabase
+          .from('price_list' as any)
+          .select('*')
+          .then((r) => {
+            if (r.data) setPriceList(r.data.map(mPrice))
+          }),
+        supabase
           .from('audit_logs')
           .select('*, profiles(name)')
           .order('created_at', { ascending: false })
@@ -556,6 +633,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setBonusTypes([])
       setEmployeeDocuments([])
       setWorkSchedules([])
+      setAppSettings(null)
+      setPriceList([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -1659,6 +1738,132 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  const updateAppSettings = useCallback(
+    async (data: Partial<AppSettings>) => {
+      if (!storeRef.current.user) return { success: false }
+      const payload: any = {}
+      if (data.global_card_fee !== undefined) payload.global_card_fee = data.global_card_fee
+      if (data.global_commission !== undefined) payload.global_commission = data.global_commission
+      if (data.global_inadimplency !== undefined)
+        payload.global_inadimplency = data.global_inadimplency
+      if (data.global_taxes !== undefined) payload.global_taxes = data.global_taxes
+      if (data.hourly_cost_fixed_items !== undefined)
+        payload.hourly_cost_fixed_items = data.hourly_cost_fixed_items
+      if (data.hourly_cost_monthly_hours !== undefined)
+        payload.hourly_cost_monthly_hours = data.hourly_cost_monthly_hours
+
+      try {
+        const currentId = appSettings?.id
+        if (!currentId) {
+          const { data: newData, error: insertErr } = await supabase
+            .from('app_settings' as any)
+            .insert([payload])
+            .select()
+            .single()
+          if (insertErr) throw insertErr
+          if (newData) setAppSettings(mAppSet(newData))
+        } else {
+          const { error } = await supabase
+            .from('app_settings' as any)
+            .update(payload)
+            .eq('id', currentId)
+          if (error) throw error
+          setAppSettings((p) => (p ? { ...p, ...data } : null))
+        }
+        logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DE PRECIFICAÇÃO')
+        return { success: true }
+      } catch (error: any) {
+        console.warn('Erro ao atualizar app_settings', error)
+        return { success: false, error }
+      }
+    },
+    [appSettings, logAction],
+  )
+
+  const addPriceItem = useCallback(
+    async (p: Omit<PriceItem, 'id'>) => {
+      try {
+        const { data, error } = await supabase
+          .from('price_list' as any)
+          .insert([
+            {
+              work_type: p.work_type,
+              category: p.category,
+              material: p.material,
+              price: p.price,
+              sector: p.sector,
+              execution_time: p.execution_time,
+              cadista_cost: p.cadista_cost,
+              material_cost: p.material_cost,
+              fixed_cost: p.fixed_cost,
+            },
+          ])
+          .select()
+          .single()
+        if (error) throw error
+        if (data) {
+          setPriceList((prev) => [...prev, mPrice(data)])
+          logAction(`ADICIONOU ITEM DE PRECIFICAÇÃO: ${p.work_type}`)
+          return { success: true }
+        }
+        return { success: false }
+      } catch (error: any) {
+        console.warn('Erro ao adicionar price_list', error)
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
+  const updatePriceItem = useCallback(
+    async (id: string, p: Partial<PriceItem>) => {
+      const payload: any = {}
+      if (p.work_type !== undefined) payload.work_type = p.work_type
+      if (p.category !== undefined) payload.category = p.category
+      if (p.material !== undefined) payload.material = p.material
+      if (p.price !== undefined) payload.price = p.price
+      if (p.sector !== undefined) payload.sector = p.sector
+      if (p.execution_time !== undefined) payload.execution_time = p.execution_time
+      if (p.cadista_cost !== undefined) payload.cadista_cost = p.cadista_cost
+      if (p.material_cost !== undefined) payload.material_cost = p.material_cost
+      if (p.fixed_cost !== undefined) payload.fixed_cost = p.fixed_cost
+
+      try {
+        const { error } = await supabase
+          .from('price_list' as any)
+          .update(payload)
+          .eq('id', id)
+        if (error) throw error
+        setPriceList((prev) => prev.map((item) => (item.id === id ? { ...item, ...p } : item)))
+        logAction(`ATUALIZOU ITEM DE PRECIFICAÇÃO ID: ${id}`)
+        return { success: true }
+      } catch (error: any) {
+        console.warn('Erro ao atualizar price_list', error)
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
+  const removePriceItem = useCallback(
+    async (id: string) => {
+      try {
+        const { error } = await supabase
+          .from('price_list' as any)
+          .delete()
+          .eq('id', id)
+        if (error) throw error
+        setPriceList((prev) => prev.filter((item) => item.id !== id))
+        logAction(`REMOVEU ITEM DE PRECIFICAÇÃO ID: ${id}`)
+        return { success: true }
+      } catch (error: any) {
+        console.warn('Erro ao remover price_list', error)
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -1686,6 +1891,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       bonusTypes,
       employeeDocuments,
       workSchedules,
+      appSettings,
+      priceList,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1731,6 +1938,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeEmployeeDocument,
       fetchWorkSchedules,
       upsertWorkSchedule,
+      updateAppSettings,
+      addPriceItem,
+      updatePriceItem,
+      removePriceItem,
     }),
     [
       isAuthenticated,
@@ -1758,6 +1969,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       bonusTypes,
       employeeDocuments,
       workSchedules,
+      appSettings,
+      priceList,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -1803,6 +2016,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeEmployeeDocument,
       fetchWorkSchedules,
       upsertWorkSchedule,
+      updateAppSettings,
+      addPriceItem,
+      updatePriceItem,
+      removePriceItem,
     ],
   )
 
