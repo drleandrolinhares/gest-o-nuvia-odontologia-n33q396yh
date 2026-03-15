@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2, Save, Calculator, DollarSign } from 'lucide-react'
-import useAppStore, { FixedExpense } from '@/stores/main'
-import { formatCurrency } from '@/lib/utils'
+import { Plus, Trash2, Save, Calculator, DollarSign, List } from 'lucide-react'
+import useAppStore, { FixedExpense, FixedExpenseDetail } from '@/stores/main'
+import { formatCurrency, cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
+import { ExpenseDetailsModal } from './ExpenseDetailsModal'
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ export function HourlyCostCalculator() {
     appSettings?.hourly_cost_monthly_hours?.toString() || '160',
   )
   const [fixedItems, setFixedItems] = useState<EditableFixedExpense[]>([])
+  const [selectedExpenseId, setSelectedExpenseId] = useState<string | null>(null)
 
   useEffect(() => {
     if (appSettings) {
@@ -39,7 +41,10 @@ export function HourlyCostCalculator() {
   }, [appSettings])
 
   const addFixedItem = () => {
-    setFixedItems([...fixedItems, { id: crypto.randomUUID(), label: '', value: 0, inputValue: '' }])
+    setFixedItems([
+      ...fixedItems,
+      { id: crypto.randomUUID(), label: '', value: 0, inputValue: '', details: [] },
+    ])
   }
 
   const removeFixedItem = (id: string) => {
@@ -58,12 +63,28 @@ export function HourlyCostCalculator() {
     )
   }
 
+  const handleSaveDetails = (id: string, details: FixedExpenseDetail[], total: number) => {
+    setFixedItems((items) =>
+      items.map((i) =>
+        i.id === id
+          ? {
+              ...i,
+              details,
+              inputValue: total.toString(),
+              value: total,
+            }
+          : i,
+      ),
+    )
+  }
+
   const handleSave = async () => {
-    const itemsToSave = fixedItems.map(({ id, label, value }) => ({
+    const itemsToSave = fixedItems.map(({ id, label, value, details }) => ({
       id,
       name: label,
       label,
       value,
+      details: details || [],
     }))
 
     const res = await updateAppSettings({
@@ -86,6 +107,8 @@ export function HourlyCostCalculator() {
   const hours = Number(monthlyHours) || 160
   const costPerMinute = hours > 0 ? totalFixedCosts / (hours * 60) : 0
 
+  const activeExpense = fixedItems.find((i) => i.id === selectedExpenseId)
+
   return (
     <div className="grid gap-6 md:grid-cols-12 uppercase animate-fade-in">
       <div className="md:col-span-8 space-y-6">
@@ -99,7 +122,7 @@ export function HourlyCostCalculator() {
                 PREENCHA AS DESPESAS FIXAS PARA CALCULAR O CUSTO POR MINUTO CLÍNICO.
               </CardDescription>
             </div>
-            <Button size="sm" onClick={addFixedItem} className="shrink-0">
+            <Button size="sm" onClick={addFixedItem} className="shrink-0 shadow-md">
               <Plus className="h-4 w-4 mr-2" /> ADICIONAR DESPESA
             </Button>
           </CardHeader>
@@ -109,46 +132,71 @@ export function HourlyCostCalculator() {
                 <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                   <TableRow className="hover:bg-slate-50">
                     <TableHead className="font-bold text-slate-600">DESCRIÇÃO DA DESPESA</TableHead>
-                    <TableHead className="font-bold text-slate-600 w-[200px]">VALOR (R$)</TableHead>
+                    <TableHead className="font-bold text-slate-600 w-[240px]">VALOR (R$)</TableHead>
                     <TableHead className="w-[80px] text-center">AÇÕES</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {fixedItems.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-slate-50/50">
-                      <TableCell className="p-3 align-top">
-                        <Input
-                          placeholder="DESCRIÇÃO DA DESPESA (EX: ALUGUEL)"
-                          value={item.label}
-                          onChange={(e) => updateFixedItemLabel(item.id, e.target.value)}
-                          className="bg-white border-slate-200 shadow-sm"
-                        />
-                      </TableCell>
-                      <TableCell className="p-3 align-top">
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  {fixedItems.map((item) => {
+                    const hasDetails = item.details && item.details.length > 0
+                    return (
+                      <TableRow key={item.id} className="hover:bg-slate-50/50">
+                        <TableCell className="p-3 align-top">
                           <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={item.inputValue}
-                            onChange={(e) => updateFixedItemValue(item.id, e.target.value)}
-                            className="pl-9 bg-white border-slate-200 font-medium shadow-sm"
+                            placeholder="DESCRIÇÃO DA DESPESA (EX: ALUGUEL)"
+                            value={item.label}
+                            onChange={(e) => updateFixedItemLabel(item.id, e.target.value)}
+                            className="bg-white border-slate-200 shadow-sm"
                           />
-                        </div>
-                      </TableCell>
-                      <TableCell className="p-3 text-center align-top">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeFixedItem(item.id)}
-                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 h-10 w-10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell className="p-3 align-top">
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={item.inputValue}
+                                onChange={(e) => updateFixedItemValue(item.id, e.target.value)}
+                                className={cn(
+                                  'pl-9 bg-white border-slate-200 font-medium shadow-sm transition-colors',
+                                  hasDetails &&
+                                    'bg-slate-50 text-slate-500 cursor-not-allowed border-dashed',
+                                )}
+                                readOnly={!!hasDetails}
+                                title={hasDetails ? 'Valor calculado via detalhamento' : ''}
+                              />
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => setSelectedExpenseId(item.id)}
+                              className={cn(
+                                'shrink-0 shadow-sm transition-all',
+                                hasDetails
+                                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-primary'
+                                  : 'text-slate-500 border-slate-200 hover:text-primary hover:border-primary/30 hover:bg-primary/5',
+                              )}
+                              title="Detalhar despesa"
+                            >
+                              <List className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-3 text-center align-top">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFixedItem(item.id)}
+                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 h-10 w-10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                   {fixedItems.length === 0 && (
                     <TableRow>
                       <TableCell
@@ -212,6 +260,18 @@ export function HourlyCostCalculator() {
           </CardContent>
         </Card>
       </div>
+
+      <ExpenseDetailsModal
+        open={!!selectedExpenseId}
+        onOpenChange={(open) => !open && setSelectedExpenseId(null)}
+        expenseLabel={activeExpense?.label || ''}
+        details={activeExpense?.details || []}
+        onSave={(details, total) => {
+          if (selectedExpenseId) {
+            handleSaveDetails(selectedExpenseId, details, total)
+          }
+        }}
+      />
     </div>
   )
 }
