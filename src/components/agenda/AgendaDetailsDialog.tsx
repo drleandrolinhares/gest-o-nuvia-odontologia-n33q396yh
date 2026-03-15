@@ -1,8 +1,18 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CalendarIcon, Clock, MapPin, User, ArrowRight, Activity, Users } from 'lucide-react'
+import {
+  CalendarIcon,
+  Clock,
+  MapPin,
+  User,
+  ArrowRight,
+  Activity,
+  Users,
+  History,
+} from 'lucide-react'
 import { AgendaItem, Employee } from '@/stores/main'
+import useAppStore from '@/stores/main'
 
 interface Props {
   item: AgendaItem | null
@@ -13,10 +23,16 @@ interface Props {
 }
 
 export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, currentUserId }: Props) {
+  const { sacRecords } = useAppStore()
+
   if (!item) return null
 
   const isAssignee =
     item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
+
+  const isSac = item.type === 'SAC'
+  const sacRecord =
+    isSac && item.sac_record_id ? sacRecords.find((s) => s.id === item.sac_record_id) : null
 
   const getEmpName = (id?: string) => {
     if (!id || id === 'none') return 'GERAL'
@@ -36,7 +52,7 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
 
   return (
     <Dialog open={!!item} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md uppercase">
+      <DialogContent className="max-w-md uppercase max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl text-primary border-b pb-4">
             DETALHES DO REGISTRO
@@ -91,7 +107,7 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
 
           <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm space-y-4">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2">
-              <Activity className="h-4 w-4" /> HISTÓRICO DE AÇÕES
+              <Activity className="h-4 w-4" /> HISTÓRICO GERAL
             </h4>
             <div className="space-y-3 text-xs font-medium">
               <div className="flex items-start gap-3 text-slate-600">
@@ -132,6 +148,39 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
             </div>
           </div>
 
+          {isSac && sacRecord && (
+            <div className="bg-[#0A192F]/5 p-4 rounded-lg border border-[#0A192F]/10 shadow-sm space-y-4">
+              <h4 className="text-sm font-bold text-[#0A192F] flex items-center gap-2 border-b border-[#0A192F]/10 pb-2">
+                <History className="h-4 w-4 text-[#D4AF37]" /> HISTÓRICO DE AÇÕES (SAC)
+              </h4>
+              <div className="space-y-3">
+                {!sacRecord.action_history || sacRecord.action_history.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Nenhuma ação registrada</p>
+                ) : (
+                  sacRecord.action_history.map((h, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#D4AF37] mt-1.5 shrink-0" />
+                      <div className="flex flex-col w-full">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-xs font-bold text-[#0A192F]">{h.action}</span>
+                          <span className="text-[10px] font-medium text-slate-500 shrink-0">
+                            {new Date(h.timestamp).toLocaleString('pt-BR', {
+                              dateStyle: 'short',
+                              timeStyle: 'short',
+                            })}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-semibold text-slate-600 flex items-center gap-1 mt-0.5">
+                          <User className="h-3 w-3" /> {h.employeeName}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
           {item.involvesThirdParty && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <h4 className="text-sm font-bold text-amber-900 mb-2 flex items-center gap-2">
@@ -144,7 +193,7 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
           )}
 
           <div className="flex justify-end pt-4 border-t gap-3 items-center w-full">
-            {isAssignee && !item.is_completed && (
+            {isAssignee && !item.is_completed && !isSac && (
               <div className="mr-auto flex gap-2">
                 {!item.received_at ? (
                   <Button

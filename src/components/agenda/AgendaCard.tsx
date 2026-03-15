@@ -2,7 +2,7 @@ import { AgendaItem, Employee } from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { AlertTriangle, Clock, Trash2, CalendarIcon, User, ArrowRight } from 'lucide-react'
+import { AlertTriangle, Clock, Trash2, CalendarIcon, User, ArrowRight, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import useAppStore from '@/stores/main'
 import { SacStatusSelect } from '@/components/sac/SacStatusSelect'
@@ -208,6 +208,39 @@ export function AgendaCard({
             </div>
           )}
         </div>
+
+        {isSac && sacRecord && (
+          <div className="mt-1 pt-2 border-t border-muted/50">
+            <h4 className="text-[10px] font-bold text-[#0A192F] mb-1.5 flex items-center gap-1.5">
+              <History className="h-3 w-3 text-[#D4AF37]" /> HISTÓRICO DE AÇÕES (SAC)
+            </h4>
+            {!sacRecord.action_history || sacRecord.action_history.length === 0 ? (
+              <p className="text-[9px] text-muted-foreground italic">Nenhuma ação registrada</p>
+            ) : (
+              <div className="space-y-1.5 max-h-[90px] overflow-y-auto pr-1">
+                {sacRecord.action_history.map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-start gap-2 bg-[#0A192F]/5 p-1.5 rounded border border-[#0A192F]/10"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold text-[#0A192F]">{h.action}</span>
+                      <span className="text-[8px] font-semibold text-slate-500 flex items-center gap-1">
+                        <User className="h-2 w-2" /> {h.employeeName}
+                      </span>
+                    </div>
+                    <span className="text-[8px] font-medium text-slate-400 whitespace-nowrap shrink-0 mt-0.5">
+                      {new Date(h.timestamp).toLocaleString('pt-BR', {
+                        dateStyle: 'short',
+                        timeStyle: 'short',
+                      })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
 import {
   Pencil,
   Trash2,
@@ -84,6 +85,7 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
   const [selectedItem, setSelectedItem] = useState<SacRecord | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [view, setView] = useState<'TUDO' | 'PARA MIM' | 'DELEGADOS'>('TUDO')
+  const [hideResolved, setHideResolved] = useState(false)
 
   const handleEdit = (item: SacRecord) => {
     setSelectedItem(item)
@@ -100,16 +102,21 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
     return employees.find((e) => e.id === id)?.name || 'N/A'
   }
 
-  const filteredRecords = sacRecords.filter((r) => {
-    if (view === 'TUDO') return true
-    if (view === 'PARA MIM') return r.responsible_employee_id === currentUserId
-    if (view === 'DELEGADOS') return r.receiving_employee_id === currentUserId
-    return true
-  })
+  const filteredRecords = sacRecords
+    .filter((r) => {
+      if (view === 'TUDO') return true
+      if (view === 'PARA MIM') return r.responsible_employee_id === currentUserId
+      if (view === 'DELEGADOS') return r.receiving_employee_id === currentUserId
+      return true
+    })
+    .filter((r) => {
+      if (hideResolved && r.status === 'RESOLVIDO') return false
+      return true
+    })
 
   return (
     <>
-      <div className="flex justify-start mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 w-full">
         <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full sm:w-auto">
           <TabsList className="bg-transparent border-b rounded-none w-full sm:w-auto justify-start h-10 p-0 gap-6">
             <TabsTrigger
@@ -132,6 +139,21 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <div className="flex items-center space-x-3 bg-white border border-slate-200 px-4 py-2 rounded-md shadow-sm h-10 w-full sm:w-auto justify-between sm:justify-start shrink-0">
+          <label
+            htmlFor="hide-resolved"
+            className="text-[11px] font-extrabold tracking-wide text-[#0A192F] cursor-pointer whitespace-nowrap uppercase"
+          >
+            MOSTRAR APENAS NÃO RESOLVIDOS
+          </label>
+          <Switch
+            checked={hideResolved}
+            onCheckedChange={setHideResolved}
+            id="hide-resolved"
+            className="data-[state=checked]:bg-[#0A192F]"
+          />
+        </div>
       </div>
 
       <Card className="shadow-sm overflow-x-auto">

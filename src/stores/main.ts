@@ -263,6 +263,12 @@ export type SystemRole = {
   created_at?: string
 }
 
+export type SacActionHistory = {
+  action: string
+  employeeName: string
+  timestamp: string
+}
+
 export type SacRecord = {
   id: string
   type: 'RECLAMAÇÃO' | 'SUGESTÃO'
@@ -277,6 +283,7 @@ export type SacRecord = {
   limit_at: string
   solved_at?: string
   created_at: string
+  action_history?: SacActionHistory[]
 }
 
 interface AppStore {
@@ -617,6 +624,7 @@ const mSac = (d: any): SacRecord => ({
   limit_at: d.limit_at,
   solved_at: d.solved_at || undefined,
   created_at: d.created_at,
+  action_history: Array.isArray(d.action_history) ? d.action_history : [],
 })
 
 const StoreContext = createContext<AppStore | undefined>(undefined)
@@ -652,10 +660,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sacRecords, setSacRecords] = useState<SacRecord[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees, inventory, roles, consultorios, agenda })
+  const storeRef = useRef({ user, employees, inventory, roles, consultorios, agenda, sacRecords })
   useEffect(() => {
-    storeRef.current = { user, employees, inventory, roles, consultorios, agenda }
-  }, [user, employees, inventory, roles, consultorios, agenda])
+    storeRef.current = { user, employees, inventory, roles, consultorios, agenda, sacRecords }
+  }, [user, employees, inventory, roles, consultorios, agenda, sacRecords])
 
   useEffect(() => {
     if (user) {
@@ -2267,6 +2275,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const limitHours = r.type === 'RECLAMAÇÃO' ? 24 : 48
       const limit_at = new Date(Date.now() + limitHours * 60 * 60 * 1000).toISOString()
 
+      const currentUser = storeRef.current.user
+      const currentEmp = storeRef.current.employees.find((e) => e.user_id === currentUser?.id)
+      const empName = currentEmp?.name || 'SISTEMA'
+
+      const action_history = [
+        {
+          action: 'REGISTRO CRIADO',
+          employeeName: empName,
+          timestamp: new Date().toISOString(),
+        },
+      ]
+
       try {
         const { data, error } = await supabase
           .from('sac_records' as any)
@@ -2280,6 +2300,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               sector: r.sector,
               description: r.description,
               limit_at: limit_at,
+              action_history: action_history,
             },
           ])
           .select()
@@ -2308,7 +2329,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
               sac_record_id: data.id,
             })
 
-            const currentUser = storeRef.current.user
             const respEmp = storeRef.current.employees.find(
               (e) => e.id === r.responsible_employee_id,
             )
@@ -2343,6 +2363,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (r.status === 'RESOLVIDO' && !r.solved_at) {
         payload.solved_at = new Date().toISOString()
       }
+
+      const oldRecord = storeRef.current.sacRecords.find((s) => s.id === id)
+      const currentUser = storeRef.current.user
+      const currentEmp = storeRef.current.employees.find((e) => e.user_id === currentUser?.id)
+      const empName = currentEmp?.name || 'SISTEMA'
+
+      let actionStr = 'DADOS ATUALIZADOS'
+      if (r.status && oldRecord && r.status !== oldRecord.status) {
+        actionStr = `STATUS ALTERADO PARA: ${r.status}`
+      } else if (
+        r.solution_details &&
+        oldRecord &&
+        r.solution_details !== oldRecord.solution_details
+      ) {
+        actionStr = 'DETALHES DA SOLUÇÃO ATUALIZADOS'
+      }
+
+      const newHistoryItem = {
+        action: actionStr,
+        employeeName: empName,
+        timestamp: new Date().toISOString(),
+      }
+
+      const existingHistory = oldRecord?.action_history || []
+      payload.action_history = [newHistoryItem, ...existingHistory]
 
       // Prevent overriding with undefined on update
       Object.keys(payload).forEach((key) => (payload[key] === undefined ? delete payload[key] : {}))

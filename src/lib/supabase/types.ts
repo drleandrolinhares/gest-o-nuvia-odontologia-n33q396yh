@@ -82,6 +82,7 @@ export type Database = {
           location: string
           received_at: string | null
           requester_id: string | null
+          sac_record_id: string | null
           third_party_details: string | null
           time: string
           title: string
@@ -99,6 +100,7 @@ export type Database = {
           location: string
           received_at?: string | null
           requester_id?: string | null
+          sac_record_id?: string | null
           third_party_details?: string | null
           time: string
           title: string
@@ -116,6 +118,7 @@ export type Database = {
           location?: string
           received_at?: string | null
           requester_id?: string | null
+          sac_record_id?: string | null
           third_party_details?: string | null
           time?: string
           title?: string
@@ -127,6 +130,13 @@ export type Database = {
             columns: ['requester_id']
             isOneToOne: false
             referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'agenda_sac_record_id_fkey'
+            columns: ['sac_record_id']
+            isOneToOne: false
+            referencedRelation: 'sac_records'
             referencedColumns: ['id']
           },
         ]
@@ -1283,6 +1293,7 @@ export const Constants = {
 //   requester_id: uuid (nullable)
 //   received_at: timestamp with time zone (nullable)
 //   completed_at: timestamp with time zone (nullable)
+//   sac_record_id: uuid (nullable)
 // Table: app_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   global_card_fee: numeric (nullable, default: 0)
@@ -1520,6 +1531,7 @@ export const Constants = {
 // Table: agenda
 //   PRIMARY KEY agenda_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY agenda_requester_id_fkey: FOREIGN KEY (requester_id) REFERENCES employees(id) ON DELETE SET NULL
+//   FOREIGN KEY agenda_sac_record_id_fkey: FOREIGN KEY (sac_record_id) REFERENCES sac_records(id) ON DELETE CASCADE
 // Table: app_settings
 //   PRIMARY KEY app_settings_pkey: PRIMARY KEY (id)
 // Table: audit_logs
@@ -1828,6 +1840,22 @@ export const Constants = {
 //     WHERE room_id = p_room_id AND user_id = p_user_id;
 //   $function$
 //
+// FUNCTION sync_agenda_to_sac()
+//   CREATE OR REPLACE FUNCTION public.sync_agenda_to_sac()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//       IF NEW.is_completed = true AND OLD.is_completed = false AND NEW.type = 'SAC' AND NEW.sac_record_id IS NOT NULL THEN
+//           UPDATE public.sac_records
+//           SET status = 'RESOLVIDO', solved_at = NOW()
+//           WHERE id = NEW.sac_record_id AND status != 'RESOLVIDO';
+//       END IF;
+//       RETURN NEW;
+//   END;
+//   $function$
+//
 // FUNCTION sync_employee_dates_to_agenda()
 //   CREATE OR REPLACE FUNCTION public.sync_employee_dates_to_agenda()
 //    RETURNS trigger
@@ -1875,10 +1903,30 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION sync_sac_to_agenda()
+//   CREATE OR REPLACE FUNCTION public.sync_sac_to_agenda()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//       IF NEW.status = 'RESOLVIDO' AND OLD.status != 'RESOLVIDO' THEN
+//           UPDATE public.agenda
+//           SET is_completed = true, completed_at = NOW()
+//           WHERE sac_record_id = NEW.id AND is_completed = false;
+//       END IF;
+//       RETURN NEW;
+//   END;
+//   $function$
+//
 
 // --- TRIGGERS ---
+// Table: agenda
+//   trg_sync_agenda_to_sac: CREATE TRIGGER trg_sync_agenda_to_sac AFTER UPDATE ON public.agenda FOR EACH ROW EXECUTE FUNCTION sync_agenda_to_sac()
 // Table: employees
 //   trg_sync_employee_dates_to_agenda: CREATE TRIGGER trg_sync_employee_dates_to_agenda AFTER INSERT OR DELETE OR UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION sync_employee_dates_to_agenda()
+// Table: sac_records
+//   trg_sync_sac_to_agenda: CREATE TRIGGER trg_sync_sac_to_agenda AFTER UPDATE ON public.sac_records FOR EACH ROW EXECUTE FUNCTION sync_sac_to_agenda()
 
 // --- INDEXES ---
 // Table: chat_participants
