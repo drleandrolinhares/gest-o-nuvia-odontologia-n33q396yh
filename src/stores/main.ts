@@ -1635,7 +1635,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
               const ctx = await res.error.context.json()
               if (ctx.error) errMsg = ctx.error
             }
-          } catch (err) {}
+          } catch (err) {
+            console.warn('JSON parsing error:', err)
+          }
           return { success: false, error: new Error(errMsg) }
         }
         if (res.data?.error) {
@@ -1723,7 +1725,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const ctx = await res.error.context.json()
             if (ctx.error) errMsg = ctx.error
           }
-        } catch (err) {}
+        } catch (err) {
+          console.warn('JSON parsing error:', err)
+        }
         return { success: false, error: new Error(errMsg) }
       }
       if (res.data?.error) {
