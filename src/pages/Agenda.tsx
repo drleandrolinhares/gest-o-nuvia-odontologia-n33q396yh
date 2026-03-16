@@ -13,16 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, UserMinus } from 'lucide-react'
-import {
-  isSameDay,
-  isSameWeek,
-  isSameMonth,
-  parseISO,
-  format,
-  startOfDay,
-  endOfDay,
-  eachDayOfInterval,
-} from 'date-fns'
+import { isSameWeek, isSameMonth, startOfDay, endOfDay, eachDayOfInterval, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { AgendaCard } from '@/components/agenda/AgendaCard'
@@ -30,6 +21,11 @@ import { AgendaAddDialog } from '@/components/agenda/AgendaAddDialog'
 import { AgendaDetailsDialog } from '@/components/agenda/AgendaDetailsDialog'
 import { DentistAbsenceDialog } from '@/components/agenda/DentistAbsenceDialog'
 import { ABSENCE_TYPES } from '@/lib/constants'
+
+const getLocalDate = (dStr: string) => {
+  if (!dStr) return new Date()
+  return new Date(`${dStr}T00:00:00`)
+}
 
 export default function Agenda() {
   const {
@@ -72,8 +68,7 @@ export default function Agenda() {
     .filter((item) => {
       if (showOpenOnly) {
         if (item.is_completed) return false
-        if (!isAdmin && item.assignedTo !== currentUserId && item.requester_id !== currentUserId)
-          return false
+        if (!isAdmin && item.assignedTo !== currentUserId) return false
         return true
       }
 
@@ -82,8 +77,8 @@ export default function Agenda() {
         return true
 
       if (!selectedDate) return true
-      const startD = parseISO(item.date)
-      const endD = parseISO(item.end_date || item.date)
+      const startD = getLocalDate(item.date)
+      const endD = getLocalDate(item.end_date || item.date)
 
       if (filterView === 'DIA') {
         return selectedDate >= startOfDay(startD) && selectedDate <= endOfDay(endD)
@@ -163,7 +158,7 @@ export default function Agenda() {
   const datesWithPendingEvents = useMemo(() => {
     return agenda
       .filter((a) => !a.is_completed && a.date === (a.end_date || a.date))
-      .map((item) => parseISO(item.date))
+      .map((item) => getLocalDate(item.date))
   }, [agenda])
 
   const multiDayDates = useMemo(() => {
@@ -171,8 +166,8 @@ export default function Agenda() {
     agenda
       .filter((a) => !a.is_completed)
       .forEach((item) => {
-        const start = parseISO(item.date)
-        const end = parseISO(item.end_date || item.date)
+        const start = getLocalDate(item.date)
+        const end = getLocalDate(item.end_date || item.date)
         if (start < end) {
           try {
             const interval = eachDayOfInterval({ start, end })
@@ -202,7 +197,7 @@ export default function Agenda() {
     <div className="space-y-6 animate-fade-in-up uppercase pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">AGENDA E PEDIDOS</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-[#0A192F]">AGENDA E PEDIDOS</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             GERENCIE COMPROMISSOS E ACOMPANHE PEDIDOS DELEGADOS.
           </p>
@@ -215,7 +210,10 @@ export default function Agenda() {
           >
             <UserMinus className="h-4 w-4 mr-2" /> NOVA AUSÊNCIA
           </Button>
-          <Button onClick={() => setOpenAdd(true)} className="bg-primary text-primary-foreground">
+          <Button
+            onClick={() => setOpenAdd(true)}
+            className="bg-[#0A192F] text-[#D4AF37] hover:bg-[#112240] font-bold shadow-md"
+          >
             <Plus className="h-4 w-4 mr-2" /> NOVO REGISTRO
           </Button>
         </div>
@@ -231,7 +229,7 @@ export default function Agenda() {
               variant="outline"
               size="sm"
               onClick={goToToday}
-              className="h-7 px-3 text-[10px] font-bold tracking-widest text-primary border-primary/30 hover:bg-primary/10"
+              className="h-7 px-3 text-[10px] font-bold tracking-widest text-[#0A192F] border-[#0A192F]/30 hover:bg-[#0A192F]/10"
             >
               HOJE
             </Button>
@@ -251,9 +249,9 @@ export default function Agenda() {
             modifiers={{ booked: datesWithPendingEvents, multiDay: multiDayDates }}
             modifiersClassNames={{
               booked:
-                'relative font-bold text-primary after:content-[""] after:absolute after:bottom-1.5 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:bg-primary after:rounded-full',
+                'relative font-bold text-[#0A192F] after:content-[""] after:absolute after:bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:w-[60%] after:h-[3px] after:bg-[#0A192F] after:rounded-full',
               multiDay:
-                'relative font-bold before:content-[""] before:absolute before:bottom-0 before:left-0 before:right-0 before:h-1 before:bg-[#D4AF37] before:rounded-b-sm',
+                'relative font-bold text-[#D4AF37] after:content-[""] after:absolute after:bottom-0.5 after:left-0 after:right-0 after:h-[3px] after:bg-[#D4AF37]',
             }}
             className="w-full mx-auto pb-4"
           />
@@ -286,9 +284,9 @@ export default function Agenda() {
                 />
                 <label
                   htmlFor="show-open"
-                  className="text-xs font-bold cursor-pointer whitespace-nowrap"
+                  className="text-xs font-bold cursor-pointer whitespace-nowrap uppercase"
                 >
-                  EM ABERTO (TUDO)
+                  EM ABERTO
                 </label>
               </div>
 
@@ -369,19 +367,19 @@ export default function Agenda() {
               <TabsList className="bg-transparent rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
                 <TabsTrigger
                   value="PARA MIM"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
                   PARA MIM
                 </TabsTrigger>
                 <TabsTrigger
                   value="DELEGADOS"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
                   DELEGADOS POR MIM
                 </TabsTrigger>
                 <TabsTrigger
                   value="COMPROMISSOS"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
                   COMPROMISSOS
                 </TabsTrigger>
@@ -400,7 +398,7 @@ export default function Agenda() {
                 {isAdmin && (
                   <TabsTrigger
                     value="TUDO"
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                   >
                     VISÃO GERAL (ADMIN)
                   </TabsTrigger>

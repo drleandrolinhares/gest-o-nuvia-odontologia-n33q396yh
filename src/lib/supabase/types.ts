@@ -76,6 +76,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           date: string
+          end_date: string | null
           id: string
           involves_third_party: boolean | null
           is_completed: boolean | null
@@ -95,6 +96,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date: string
+          end_date?: string | null
           id?: string
           involves_third_party?: boolean | null
           is_completed?: boolean | null
@@ -114,6 +116,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date?: string
+          end_date?: string | null
           id?: string
           involves_third_party?: boolean | null
           is_completed?: boolean | null
@@ -1305,6 +1308,7 @@ export const Constants = {
 //   completed_at: timestamp with time zone (nullable)
 //   sac_record_id: uuid (nullable)
 //   periodicity: text (nullable)
+//   end_date: date (nullable)
 // Table: app_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   global_card_fee: numeric (nullable, default: 0)
@@ -1631,9 +1635,14 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: agenda
-//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Agenda delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
+//   Policy "Agenda insert" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
+//   Policy "Agenda update" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "Agenda visibility" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: ((assigned_to = ( SELECT (employees.id)::text AS id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (assigned_to = 'none'::text) OR (assigned_to IS NULL) OR (requester_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR is_master_user(auth.uid()) OR (EXISTS ( SELECT 1    FROM employees e   WHERE ((e.user_id = auth.uid()) AND (('ADMIN'::text = ANY (e.team_category)) OR ('DIRETORIA'::text = ANY (e.team_category)))))))
 // Table: app_settings
 //   Policy "Allow all authenticated users on app_settings" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1731,9 +1740,14 @@ export const Constants = {
 //   Policy "Master users can update roles" (UPDATE, PERMISSIVE) roles={public}
 //     USING: ((auth.role() = 'authenticated'::text) AND is_master_user(auth.uid()))
 // Table: sac_records
-//   Policy "Allow all authenticated users on sac_records" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Sac delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
+//   Policy "Sac insert" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
+//   Policy "Sac update" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "Sac visibility" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: ((responsible_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (receiving_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR is_master_user(auth.uid()) OR (EXISTS ( SELECT 1    FROM employees e   WHERE ((e.user_id = auth.uid()) AND (('ADMIN'::text = ANY (e.team_category)) OR ('DIRETORIA'::text = ANY (e.team_category)))))))
 // Table: suppliers
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true

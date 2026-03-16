@@ -43,6 +43,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     }
   }, [user?.id, loading])
 
+  // Prevent routing redirects if we're just checking
   if (loading || checkingProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
@@ -76,7 +77,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return <Navigate to="/login" state={{ from: location.pathname }} replace />
   }
 
-  if (mustChange) {
+  if (mustChange && location.pathname !== '/force-change-password') {
     return <Navigate to="/force-change-password" replace />
   }
 

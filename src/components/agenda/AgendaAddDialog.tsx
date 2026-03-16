@@ -24,7 +24,6 @@ import { CalendarDays, Check, ChevronsUpDown } from 'lucide-react'
 import { Employee } from '@/stores/main'
 import { cn } from '@/lib/utils'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
-import { isBefore } from 'date-fns'
 
 interface Props {
   open: boolean
@@ -72,10 +71,7 @@ export function AgendaAddDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (title && date && time && location && type) {
-      const start = new Date(`${date}T00:00:00`)
-      const end = endDate ? new Date(`${endDate}T00:00:00`) : start
-
-      if (endDate && isBefore(end, start)) {
+      if (endDate && endDate < date) {
         alert('A data final não pode ser anterior à data de início.')
         return
       }
@@ -109,8 +105,8 @@ export function AgendaAddDialog({
     >
       <DialogContent className="max-w-lg uppercase">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <CalendarDays className="h-5 w-5 text-primary" /> NOVO COMPROMISSO / PEDIDO
+          <DialogTitle className="flex items-center gap-2 text-xl text-[#0A192F]">
+            <CalendarDays className="h-5 w-5 text-[#D4AF37]" /> NOVO COMPROMISSO / PEDIDO
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4 max-h-[70vh] overflow-y-auto pr-2">
@@ -269,7 +265,9 @@ export function AgendaAddDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               CANCELAR
             </Button>
-            <Button type="submit">SALVAR COMPROMISSO</Button>
+            <Button type="submit" className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37]">
+              SALVAR COMPROMISSO
+            </Button>
           </div>
         </form>
       </DialogContent>

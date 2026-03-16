@@ -195,7 +195,7 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1.5 text-[#D4AF37] bg-[#0A192F] px-2 py-1 rounded-md border border-[#D4AF37]/30 font-bold uppercase tracking-widest text-[9px] w-fit shadow-sm max-w-[200px] overflow-hidden">
+                    <div className="flex items-center gap-1.5 text-[#D4AF37] bg-[#0A192F] px-2 py-1 rounded border border-[#D4AF37]/30 font-bold uppercase tracking-widest text-[9px] w-fit shadow-sm max-w-[200px] overflow-hidden">
                       <User className="h-3 w-3 shrink-0" />
                       <span className="truncate" title={getEmpName(item.receiving_employee_id)}>
                         {getEmpName(item.receiving_employee_id).split(' ')[0]}

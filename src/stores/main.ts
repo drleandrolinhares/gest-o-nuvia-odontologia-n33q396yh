@@ -688,12 +688,7 @@ const checkAuthError = (err: any) => {
     err?.message?.includes('Unauthorized')
 
   if (isAuthError) {
-    supabase.auth.signOut()
-    toast({
-      title: 'Sessão Expirada',
-      description: 'Sua sessão expirou por segurança. Faça login novamente.',
-      variant: 'destructive',
-    })
+    console.warn('Auth token may be expired or refreshing. Deferring to Supabase auth client.')
     return true
   }
   return false

@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select'
 import { UserMinus } from 'lucide-react'
 import { Employee } from '@/stores/main'
-import { format, isBefore } from 'date-fns'
+import { format } from 'date-fns'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
 
 interface Props {
@@ -72,10 +72,7 @@ export function DentistAbsenceDialog({
     if (assignedTo && startDate && location && period) {
       const finalEndDate = endDate || startDate
 
-      const start = new Date(`${startDate}T00:00:00`)
-      const end = new Date(`${finalEndDate}T00:00:00`)
-
-      if (isBefore(end, start)) {
+      if (finalEndDate < startDate) {
         alert('A data final não pode ser anterior à data de início.')
         return
       }
@@ -217,9 +214,7 @@ export function DentistAbsenceDialog({
                 onChange={(val) => {
                   const v = (val as string) || ''
                   setStartDate(v)
-                  const newStart = v ? new Date(`${v}T00:00:00`) : null
-                  const currentEnd = endDate ? new Date(`${endDate}T00:00:00`) : null
-                  if (newStart && (!endDate || (currentEnd && isBefore(currentEnd, newStart)))) {
+                  if (v && (!endDate || endDate < v)) {
                     setEndDate(v)
                   }
                 }}

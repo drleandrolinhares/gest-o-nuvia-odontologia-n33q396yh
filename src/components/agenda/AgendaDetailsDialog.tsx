@@ -47,9 +47,14 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
     return item.createdBy || 'SISTEMA'
   }
 
-  const formatDt = (iso?: string, justDate = false) => {
-    if (!iso) return ''
-    const d = new Date(iso)
+  // Timezone safe formatter
+  const formatDt = (dateStr?: string, justDate = false) => {
+    if (!dateStr) return ''
+    if (dateStr.length === 10) {
+      const [y, m, d] = dateStr.split('-')
+      return `${d}/${m}/${y}`
+    }
+    const d = new Date(dateStr)
     if (justDate) return d.toLocaleDateString('pt-BR')
     return `${d.toLocaleDateString('pt-BR')} ÀS ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
   }
@@ -58,7 +63,7 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
     <Dialog open={!!item} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md uppercase max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl text-primary border-b pb-4">
+          <DialogTitle className="flex items-center gap-2 text-2xl text-[#0A192F] border-b pb-4">
             DETALHES DO REGISTRO
           </DialogTitle>
         </DialogHeader>
@@ -77,25 +82,25 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
 
           <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg border shadow-sm">
             <div className="flex items-start gap-3 col-span-2 sm:col-span-1">
-              <CalendarIcon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <CalendarIcon className="h-5 w-5 text-[#D4AF37] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-muted-foreground">DATA(S)</p>
                 <p className="text-sm font-medium">
-                  {item.date !== item.end_date
+                  {item.date !== item.end_date && item.end_date
                     ? `${formatDt(item.date, true)} A ${formatDt(item.end_date, true)}`
                     : formatDt(item.date, true)}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3 col-span-2 sm:col-span-1">
-              <Clock className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <Clock className="h-5 w-5 text-[#D4AF37] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-muted-foreground">HORÁRIO</p>
                 <p className="text-sm font-medium text-primary">{item.time}</p>
               </div>
             </div>
             <div className="flex items-start gap-3 col-span-2">
-              <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <MapPin className="h-5 w-5 text-[#D4AF37] shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-muted-foreground">LOCAL</p>
                 <p className="text-sm font-medium">{item.location}</p>

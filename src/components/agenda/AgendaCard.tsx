@@ -67,14 +67,20 @@ export function AgendaCard({
     return item.createdBy || 'SISTEMA'
   }
 
-  const formatDt = (iso?: string, justDate = false) => {
-    if (!iso) return ''
-    const d = new Date(iso)
+  // Timezone safe formatter
+  const formatDt = (dateStr?: string, justDate = false) => {
+    if (!dateStr) return ''
+    if (dateStr.length === 10) {
+      // YYYY-MM-DD
+      const [y, m, d] = dateStr.split('-')
+      return `${d}/${m}/${y}`
+    }
+    const d = new Date(dateStr)
     if (justDate) return d.toLocaleDateString('pt-BR')
     return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
   }
 
-  const isMultiDay = item.date !== item.end_date
+  const isMultiDay = item.date !== item.end_date && item.end_date
 
   return (
     <Card
@@ -146,10 +152,10 @@ export function AgendaCard({
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" /> {item.location}
               </span>
-              <span className="flex items-center gap-1 text-[#D4AF37] bg-[#0A192F] px-2 py-1 rounded border border-[#D4AF37]/30 font-bold uppercase tracking-widest text-[10px] shadow-sm">
-                <User className="h-3 w-3" />
+              <span className="flex items-center gap-1 text-[#D4AF37] bg-[#0A192F] px-2 py-1 rounded border border-[#0A192F]/30 font-bold uppercase tracking-widest text-[10px] shadow-sm">
+                <User className="h-3 w-3 shrink-0" />
                 {getRequesterName()}{' '}
-                <ArrowRight className="h-3 w-3 mx-0.5 opacity-60 text-[#D4AF37]" />{' '}
+                <ArrowRight className="h-3 w-3 mx-0.5 opacity-60 text-[#D4AF37] shrink-0" />{' '}
                 {getEmpName(item.assignedTo)}
               </span>
             </div>
