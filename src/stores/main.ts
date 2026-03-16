@@ -265,7 +265,9 @@ export type SystemRole = {
 
 export type SacActionHistory = {
   action: string
-  employeeName: string
+  user_name?: string
+  user_id?: string
+  employeeName?: string // backward compatibility
   timestamp: string
 }
 
@@ -2277,12 +2279,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const currentUser = storeRef.current.user
       const currentEmp = storeRef.current.employees.find((e) => e.user_id === currentUser?.id)
-      const empName = currentEmp?.name || 'SISTEMA'
+      const empName = currentEmp?.name || currentUser?.user_metadata?.name || 'SISTEMA'
 
       const action_history = [
         {
           action: 'REGISTRO CRIADO',
-          employeeName: empName,
+          user_name: empName,
+          user_id: currentUser?.id || 'sistema',
           timestamp: new Date().toISOString(),
         },
       ]
@@ -2367,27 +2370,53 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const oldRecord = storeRef.current.sacRecords.find((s) => s.id === id)
       const currentUser = storeRef.current.user
       const currentEmp = storeRef.current.employees.find((e) => e.user_id === currentUser?.id)
-      const empName = currentEmp?.name || 'SISTEMA'
+      const empName = currentEmp?.name || currentUser?.user_metadata?.name || 'SISTEMA'
+      const userId = currentUser?.id || 'sistema'
 
-      let actionStr = 'DADOS ATUALIZADOS'
+      let actionStrs: string[] = []
       if (r.status && oldRecord && r.status !== oldRecord.status) {
-        actionStr = `STATUS ALTERADO PARA: ${r.status}`
-      } else if (
-        r.solution_details &&
+        actionStrs.push(`STATUS ALTERADO PARA: ${r.status}`)
+      }
+      if (r.solution_details && oldRecord && r.solution_details !== oldRecord.solution_details) {
+        actionStrs.push('DETALHES DA SOLUÇÃO ATUALIZADOS')
+      }
+      if (
+        r.responsible_employee_id &&
         oldRecord &&
-        r.solution_details !== oldRecord.solution_details
+        r.responsible_employee_id !== oldRecord.responsible_employee_id
       ) {
-        actionStr = 'DETALHES DA SOLUÇÃO ATUALIZADOS'
+        actionStrs.push('RESPONSÁVEL ALTERADO')
+      }
+      if (r.description && oldRecord && r.description !== oldRecord.description) {
+        actionStrs.push('DESCRIÇÃO ATUALIZADA')
+      }
+      if (
+        r.receiving_employee_id &&
+        oldRecord &&
+        r.receiving_employee_id !== oldRecord.receiving_employee_id
+      ) {
+        actionStrs.push('RECEPTOR ALTERADO')
+      }
+      if (r.sector && oldRecord && r.sector !== oldRecord.sector) {
+        actionStrs.push('SETOR ALTERADO')
+      }
+      if (r.patient_name && oldRecord && r.patient_name !== oldRecord.patient_name) {
+        actionStrs.push('NOME DO PACIENTE ALTERADO')
       }
 
-      const newHistoryItem = {
-        action: actionStr,
-        employeeName: empName,
-        timestamp: new Date().toISOString(),
+      if (actionStrs.length === 0) {
+        actionStrs.push('DADOS ATUALIZADOS')
       }
+
+      const newHistoryItems = actionStrs.map((actionStr) => ({
+        action: actionStr,
+        user_name: empName,
+        user_id: userId,
+        timestamp: new Date().toISOString(),
+      }))
 
       const existingHistory = oldRecord?.action_history || []
-      payload.action_history = [newHistoryItem, ...existingHistory]
+      payload.action_history = [...newHistoryItems, ...existingHistory]
 
       // Prevent overriding with undefined on update
       Object.keys(payload).forEach((key) => (payload[key] === undefined ? delete payload[key] : {}))

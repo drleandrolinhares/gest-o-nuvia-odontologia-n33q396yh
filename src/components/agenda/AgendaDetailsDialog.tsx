@@ -149,30 +149,35 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
           </div>
 
           {isSac && sacRecord && (
-            <div className="bg-[#0A192F]/5 p-4 rounded-lg border border-[#0A192F]/10 shadow-sm space-y-4">
-              <h4 className="text-sm font-bold text-[#0A192F] flex items-center gap-2 border-b border-[#0A192F]/10 pb-2">
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm space-y-4 mt-2">
+              <h4 className="text-sm font-bold text-[#0A192F] flex items-center gap-2 border-b border-slate-200 pb-2">
                 <History className="h-4 w-4 text-[#D4AF37]" /> HISTÓRICO DE AÇÕES (SAC)
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {!sacRecord.action_history || sacRecord.action_history.length === 0 ? (
                   <p className="text-xs text-muted-foreground italic">Nenhuma ação registrada</p>
                 ) : (
                   sacRecord.action_history.map((h, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#D4AF37] mt-1.5 shrink-0" />
-                      <div className="flex flex-col w-full">
-                        <div className="flex justify-between items-start gap-2">
-                          <span className="text-xs font-bold text-[#0A192F]">{h.action}</span>
-                          <span className="text-[10px] font-medium text-slate-500 shrink-0">
+                    <div key={i} className="flex gap-3 relative">
+                      {i < sacRecord.action_history!.length - 1 && (
+                        <div className="absolute left-[5px] top-5 bottom-[-16px] w-[2px] bg-slate-200" />
+                      )}
+                      <div className="h-3 w-3 rounded-full bg-[#D4AF37] shrink-0 mt-1 relative z-10 ring-4 ring-slate-50" />
+                      <div className="flex flex-col pb-1">
+                        <span className="text-xs font-bold text-[#0A192F]">{h.action}</span>
+                        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500 font-medium">
+                          <span className="flex items-center gap-1 text-indigo-600">
+                            <User className="h-3 w-3" />{' '}
+                            {h.user_name || h.employeeName || 'SISTEMA'}
+                          </span>
+                          <span>•</span>
+                          <span>
                             {new Date(h.timestamp).toLocaleString('pt-BR', {
                               dateStyle: 'short',
                               timeStyle: 'short',
                             })}
                           </span>
                         </div>
-                        <span className="text-[10px] font-semibold text-slate-600 flex items-center gap-1 mt-0.5">
-                          <User className="h-3 w-3" /> {h.employeeName}
-                        </span>
                       </div>
                     </div>
                   ))

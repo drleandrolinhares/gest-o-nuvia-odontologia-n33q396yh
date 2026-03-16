@@ -936,6 +936,7 @@ export type Database = {
       }
       sac_records: {
         Row: {
+          action_history: Json | null
           created_at: string
           description: string
           id: string
@@ -951,6 +952,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          action_history?: Json | null
           created_at?: string
           description: string
           id?: string
@@ -966,6 +968,7 @@ export type Database = {
           type: string
         }
         Update: {
+          action_history?: Json | null
           created_at?: string
           description?: string
           id?: string
@@ -1499,6 +1502,7 @@ export const Constants = {
 //   limit_at: timestamp with time zone (not null)
 //   solved_at: timestamp with time zone (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   action_history: jsonb (nullable, default: '[]'::jsonb)
 // Table: suppliers
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
