@@ -177,7 +177,9 @@ export default function Agenda() {
           try {
             const interval = eachDayOfInterval({ start, end })
             dates.push(...interval)
-          } catch (e) {}
+          } catch (e) {
+            // Ignore invalid intervals
+          }
         }
       })
     return dates
