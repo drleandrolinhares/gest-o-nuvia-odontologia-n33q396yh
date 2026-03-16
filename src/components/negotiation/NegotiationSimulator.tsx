@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -34,21 +34,38 @@ export function NegotiationSimulator() {
 
   const maxInstallments = activeRange?.maxInstallments || 0
 
-  const getDiscountPercentage = useCallback(
-    (installment: number) => {
-      if (installment === 0) return discounts.level1
-      if (installment <= 3) return discounts.level2
-      if (installment === 4) return discounts.level3
-      return discounts.level4
-    },
-    [discounts],
-  )
+  const getDiscountLevel = useCallback((val: number, inst: number) => {
+    if (inst === 0) return 1
+    if (val >= 1000 && val <= 2999.99) {
+      if (inst === 2) return 1
+      if (inst === 3) return 2
+      if (inst === 4) return 3
+    } else if (val >= 3000 && val <= 4999.99) {
+      if (inst >= 2 && inst <= 3) return 1
+      if (inst === 4) return 2
+      if (inst >= 5 && inst <= 8) return 3
+    } else if (val >= 5000 && val <= 7999.99) {
+      if (inst >= 2 && inst <= 3) return 1
+      if (inst === 4) return 2
+      if (inst >= 5 && inst <= 12) return 3
+    } else if (val >= 8000 && val <= 11999.99) {
+      if (inst >= 2 && inst <= 3) return 1
+      if (inst === 4) return 2
+      if (inst >= 5 && inst <= 20) return 3
+    } else if (val >= 12000) {
+      if (inst >= 2 && inst <= 3) return 1
+      if (inst === 4) return 2
+      if (inst >= 5 && inst <= 24) return 3
+    }
+    return 4
+  }, [])
 
   const results = useMemo(() => {
     if (totalValue < 1000) return { options: [], entryVal: 0 }
 
     const options = []
-    const aVistaDiscountPct = getDiscountPercentage(0)
+    const aVistaLevel = 1
+    const aVistaDiscountPct = discounts.level1
     const aVistaDiscountVal = totalValue * (aVistaDiscountPct / 100)
     const aVistaFinalVal = totalValue - aVistaDiscountVal
 
@@ -59,22 +76,24 @@ export function NegotiationSimulator() {
       discountVal: aVistaDiscountVal,
       finalVal: aVistaFinalVal,
       installmentVal: aVistaFinalVal,
-      level: 1,
+      level: aVistaLevel,
     })
 
     const actualEntryPct = Math.min(100, Math.max(0, entryPercentage))
     const entryVal = totalValue * (actualEntryPct / 100)
 
     for (let i = 2; i <= maxInstallments; i++) {
-      const discountPct = getDiscountPercentage(i)
+      const level = getDiscountLevel(totalValue, i)
+      let discountPct = 0
+      if (level === 1) discountPct = discounts.level1
+      else if (level === 2) discountPct = discounts.level2
+      else if (level === 3) discountPct = discounts.level3
+      else if (level === 4) discountPct = discounts.level4
+
       const discountVal = totalValue * (discountPct / 100)
       const finalVal = totalValue - discountVal
       const remaining = finalVal - entryVal
       const installmentVal = remaining / i
-
-      let level = 4
-      if (i <= 3) level = 2
-      else if (i === 4) level = 3
 
       options.push({
         installments: i,
@@ -88,7 +107,7 @@ export function NegotiationSimulator() {
     }
 
     return { options, entryVal }
-  }, [totalValue, entryPercentage, maxInstallments, getDiscountPercentage])
+  }, [totalValue, entryPercentage, maxInstallments, discounts, getDiscountLevel])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '')
@@ -99,6 +118,13 @@ export function NegotiationSimulator() {
       })
     }
     setTotalValueText(value)
+  }
+
+  const levelColors = {
+    1: 'bg-[#3A5693] text-white',
+    2: 'bg-[#4B4B4B] text-white',
+    3: 'bg-[#767676] text-white',
+    4: 'bg-[#B0B0B0] text-black',
   }
 
   return (
@@ -162,15 +188,40 @@ export function NegotiationSimulator() {
           )}
 
           {totalValue >= 1000 && activeRange && (
-            <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-start gap-3">
-              <ListOrdered className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-black text-primary mb-1">REGRA APLICADA</p>
-                <p className="text-sm font-bold text-slate-700">
-                  MÁXIMO DE {activeRange.maxInstallments} PARCELAS
-                </p>
+            <>
+              <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-start gap-3">
+                <ListOrdered className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-black text-primary mb-1">REGRA APLICADA</p>
+                  <p className="text-sm font-bold text-slate-700">
+                    MÁXIMO DE {activeRange.maxInstallments} PARCELAS
+                  </p>
+                </div>
               </div>
-            </div>
+
+              {/* Discount Summary Mini-Dash */}
+              <div className="flex rounded-lg overflow-hidden border border-slate-200 shadow-sm h-[120px] animate-fade-in-up">
+                <div className="w-[35%] bg-black flex items-center justify-center p-3">
+                  <span className="text-white font-black text-sm uppercase tracking-widest">
+                    Descontos
+                  </span>
+                </div>
+                <div className="w-[65%] flex flex-col">
+                  <div className="flex-1 bg-[#3A5693] text-white flex items-center justify-center font-black text-sm tracking-widest">
+                    {discounts.level1}%
+                  </div>
+                  <div className="flex-1 bg-[#4B4B4B] text-white flex items-center justify-center font-black text-sm tracking-widest">
+                    {discounts.level2}%
+                  </div>
+                  <div className="flex-1 bg-[#767676] text-white flex items-center justify-center font-black text-sm tracking-widest">
+                    {discounts.level3}%
+                  </div>
+                  <div className="flex-1 bg-[#B0B0B0] text-black flex items-center justify-center font-black text-sm tracking-widest">
+                    {discounts.level4}%
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -210,11 +261,14 @@ export function NegotiationSimulator() {
             </div>
 
             {results.options
-              .filter((r) => r.level === 1)
+              .filter((r) => r.level === 1 && r.installments === 0)
               .map((r) => (
                 <div
                   key="avista"
-                  className="grid grid-cols-[1fr_1.3fr_1fr] bg-[#274078] text-white font-bold text-center py-3 text-base border-b border-white/20"
+                  className={cn(
+                    'grid grid-cols-[1fr_1.3fr_1fr] font-bold text-center py-3 text-base border-b border-white/20',
+                    levelColors[1],
+                  )}
                 >
                   <div className="font-black">A Vista</div>
                   <div>{formatCurrency(r.finalVal)}</div>
@@ -229,19 +283,15 @@ export function NegotiationSimulator() {
             </div>
 
             {results.options
-              .filter((r) => r.level > 1)
-              .map((r, i, arr) => {
-                let bgClass = 'bg-[#4B4B4B]'
-                if (r.level === 3) bgClass = 'bg-[#767676]'
-                if (r.level === 4) bgClass = 'bg-[#A6A6A6]'
-
+              .filter((r) => r.installments > 0)
+              .map((r) => {
+                const colors = levelColors[r.level as keyof typeof levelColors] || levelColors[4]
                 return (
                   <div
                     key={r.installments}
                     className={cn(
-                      'grid grid-cols-[1fr_1.3fr_1fr] text-white font-bold text-center py-2 text-base transition-colors',
-                      bgClass,
-                      i !== arr.length - 1 && 'border-b border-white/10',
+                      'grid grid-cols-[1fr_1.3fr_1fr] font-bold text-center py-2 text-base transition-colors border-b border-white/10',
+                      colors,
                     )}
                   >
                     <div className="font-black">{r.installments}</div>
