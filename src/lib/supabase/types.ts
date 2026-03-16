@@ -1106,6 +1106,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      fix_auth_user_tokens: { Args: { user_id: string }; Returns: undefined }
       get_auth_user_rooms: { Args: never; Returns: string[] }
       get_or_create_group_room: {
         Args: { creator_id: string; dept_name: string }
@@ -1743,6 +1744,26 @@ export const Constants = {
 //     WITH CHECK: true
 
 // --- DATABASE FUNCTIONS ---
+// FUNCTION fix_auth_user_tokens(uuid)
+//   CREATE OR REPLACE FUNCTION public.fix_auth_user_tokens(user_id uuid)
+//    RETURNS void
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     UPDATE auth.users
+//     SET
+//       confirmation_token = COALESCE(confirmation_token, ''),
+//       recovery_token = COALESCE(recovery_token, ''),
+//       email_change_token_new = COALESCE(email_change_token_new, ''),
+//       email_change = COALESCE(email_change, ''),
+//       email_change_token_current = COALESCE(email_change_token_current, ''),
+//       phone_change = COALESCE(phone_change, ''),
+//       phone_change_token = COALESCE(phone_change_token, ''),
+//       reauthentication_token = COALESCE(reauthentication_token, ''),
+//       phone = NULLIF(phone, '')
+//     WHERE id = user_id;
+//   $function$
+//
 // FUNCTION get_auth_user_rooms()
 //   CREATE OR REPLACE FUNCTION public.get_auth_user_rooms()
 //    RETURNS SETOF uuid
@@ -1824,7 +1845,10 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //     INSERT INTO public.profiles (id, email, name)
-//     VALUES (NEW.id, COALESCE(NEW.email, ''), COALESCE(NEW.raw_user_meta_data->>'name', 'Colaborador'));
+//     VALUES (NEW.id, COALESCE(NEW.email, ''), COALESCE(NEW.raw_user_meta_data->>'name', 'Colaborador'))
+//     ON CONFLICT (id) DO UPDATE SET
+//       email = EXCLUDED.email,
+//       name = EXCLUDED.name;
 //     RETURN NEW;
 //   END;
 //   $function$

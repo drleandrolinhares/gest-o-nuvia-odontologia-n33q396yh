@@ -20,24 +20,10 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import ForceChangePassword from '@/pages/ForceChangePassword'
 import { AppProvider } from '@/stores/main'
-import { AuthProvider, useAuth } from '@/hooks/use-auth'
+import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-
-function RootRedirect() {
-  const { user, loading } = useAuth()
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0A192F]">
-        <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
-  }
-
-  return <Navigate to={user ? '/admin/dashboard' : '/login'} replace />
-}
 
 export default function App() {
   return (
@@ -46,7 +32,7 @@ export default function App() {
         <AppProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<RootRedirect />} />
+              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/force-change-password" element={<ForceChangePassword />} />
               <Route

@@ -30,10 +30,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (isMounted) {
-        setSession(session)
-        setUser(session?.user ?? null)
+        setSession(newSession)
+
+        // Prevent setting a new user object reference if it's the exact same user ID.
+        // This avoids full app re-renders/blips on TOKEN_REFRESH events.
+        setUser((prevUser) => {
+          if (prevUser?.id === newSession?.user?.id) {
+            return prevUser
+          }
+          return newSession?.user ?? null
+        })
         setLoading(false)
       }
     })

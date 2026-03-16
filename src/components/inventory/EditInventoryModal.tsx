@@ -51,6 +51,7 @@ import {
 import { format } from 'date-fns'
 import { useToast } from '@/hooks/use-toast'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
+import { supabase } from '@/lib/supabase/client'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
@@ -116,7 +117,6 @@ export function EditInventoryModal({
   const {
     updateInventoryItemDetails,
     packageTypes,
-    specialties,
     inventoryOptions,
     getInventoryMovements,
     suppliers,
@@ -131,6 +131,8 @@ export function EditInventoryModal({
   const [loadingMovements, setLoadingMovements] = useState(false)
 
   const [editingPurchase, setEditingPurchase] = useState<PurchaseRecord | null>(null)
+  const [localSpecialties, setLocalSpecialties] = useState<string[]>([])
+  const [isLoadingSpecialties, setIsLoadingSpecialties] = useState(false)
 
   const storageRooms = inventoryOptions.filter(
     (o) =>
@@ -182,6 +184,29 @@ export function EditInventoryModal({
       nfeNumber: '',
     },
   })
+
+  useEffect(() => {
+    if (open) {
+      let isMounted = true
+      setIsLoadingSpecialties(true)
+      supabase
+        .from('inventory_settings')
+        .select('*')
+        .in('category', ['specialty', 'especialidade', 'SPECIALTY', 'ESPECIALIDADE'])
+        .then(({ data, error }) => {
+          if (isMounted) {
+            setIsLoadingSpecialties(false)
+            if (!error && data) {
+              const specs = data.map((o) => o.label || o.value).sort()
+              setLocalSpecialties(specs)
+            }
+          }
+        })
+      return () => {
+        isMounted = false
+      }
+    }
+  }, [open])
 
   useEffect(() => {
     if (item && open) {
@@ -462,15 +487,40 @@ export function EditInventoryModal({
                           >
                             <FormControl>
                               <SelectTrigger className="uppercase">
-                                <SelectValue placeholder="SELECIONE" />
+                                <SelectValue
+                                  placeholder={isLoadingSpecialties ? 'CARREGANDO...' : 'SELECIONE'}
+                                />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {specialties.map((spec) => (
-                                <SelectItem key={spec} value={spec} className="uppercase">
-                                  {spec}
+                              {isLoadingSpecialties ? (
+                                <SelectItem
+                                  value={field.value || 'loading'}
+                                  disabled
+                                  className="uppercase"
+                                >
+                                  CARREGANDO...
                                 </SelectItem>
-                              ))}
+                              ) : localSpecialties.length === 0 ? (
+                                <SelectItem
+                                  value={field.value || 'empty'}
+                                  disabled
+                                  className="uppercase"
+                                >
+                                  NENHUMA ESPECIALIDADE ENCONTRADA
+                                </SelectItem>
+                              ) : (
+                                [
+                                  ...new Set([
+                                    ...localSpecialties,
+                                    ...(field.value ? [field.value] : []),
+                                  ]),
+                                ].map((spec) => (
+                                  <SelectItem key={spec} value={spec} className="uppercase">
+                                    {spec}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -848,7 +898,7 @@ export function EditInventoryModal({
                                 type="text"
                                 className="bg-white"
                                 placeholder="R$ 0,00"
-                                value={formatCurrencyInput(field.value)}
+                                value={formatCurrencyInput(field.value || 0)}
                                 onChange={(e) => field.onChange(e.target.value)}
                                 disabled={!isMaster}
                               />
@@ -1096,7 +1146,7 @@ export function EditInventoryModal({
                           </FormLabel>
                           <FormControl>
                             <Textarea
-                              className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-500 bg-amber-50/30"
+                              className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-50 bg-amber-50/30"
                               placeholder="NOTAS CRÍTICAS QUE GERAM ALERTA (EX: PRODUTO FRÁGIL, VERIFICAR LOTE)..."
                               {...field}
                               disabled={!isMaster}
@@ -1271,8 +1321,6 @@ export function EditInventoryModal({
                                     ? 'bg-emerald-100 text-emerald-700'
                                     : 'bg-amber-100 text-amber-700',
                               )}
-                            >
-                              {mov.type}
                             </span>
                           </TableCell>
                           <TableCell className="text-center font-black text-sm">

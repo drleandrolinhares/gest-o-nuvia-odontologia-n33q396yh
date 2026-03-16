@@ -16,7 +16,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
     if (loading) return
 
-    if (user) {
+    if (user?.id) {
       supabase
         .from('profiles')
         .select('must_change_password')
@@ -41,7 +41,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return () => {
       isMounted = false
     }
-  }, [user, loading])
+  }, [user?.id, loading])
 
   if (loading || checkingProfile) {
     return (

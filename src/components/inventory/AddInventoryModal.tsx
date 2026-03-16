@@ -23,11 +23,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { formatCurrency, cn } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import { Calculator, PackageSearch, Barcode as BarcodeIcon, Tag, Zap } from 'lucide-react'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 import { useToast } from '@/hooks/use-toast'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
+import { supabase } from '@/lib/supabase/client'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
@@ -92,12 +93,15 @@ export function AddInventoryModal({
   onOpenChange: (val: boolean) => void
   baseItemName?: string
 }) {
-  const { addInventoryItem, packageTypes, specialties, inventoryOptions } = useAppStore()
+  const { addInventoryItem, packageTypes, inventoryOptions } = useAppStore()
   const { toast } = useToast()
 
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
   const [keepFields, setKeepFields] = useState(false)
   const barcodeInputRef = useRef<HTMLInputElement>(null)
+
+  const [localSpecialties, setLocalSpecialties] = useState<string[]>([])
+  const [isLoadingSpecialties, setIsLoadingSpecialties] = useState(false)
 
   const storageRooms = inventoryOptions.filter(
     (o) =>
@@ -146,6 +150,26 @@ export function AddInventoryModal({
         form.setValue('name', baseItemName)
       } else if (!keepFields) {
         form.reset()
+      }
+
+      let isMounted = true
+      setIsLoadingSpecialties(true)
+      supabase
+        .from('inventory_settings')
+        .select('*')
+        .in('category', ['specialty', 'especialidade', 'SPECIALTY', 'ESPECIALIDADE'])
+        .then(({ data, error }) => {
+          if (isMounted) {
+            setIsLoadingSpecialties(false)
+            if (!error && data) {
+              const specs = data.map((o) => o.label || o.value).sort()
+              setLocalSpecialties(specs)
+            }
+          }
+        })
+
+      return () => {
+        isMounted = false
       }
     }
   }, [open, baseItemName, form, keepFields])
@@ -347,15 +371,40 @@ export function AddInventoryModal({
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="uppercase">
-                            <SelectValue placeholder="SELECIONE" />
+                            <SelectValue
+                              placeholder={isLoadingSpecialties ? 'CARREGANDO...' : 'SELECIONE'}
+                            />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {specialties.map((spec) => (
-                            <SelectItem key={spec} value={spec} className="uppercase">
-                              {spec}
+                          {isLoadingSpecialties ? (
+                            <SelectItem
+                              value={field.value || 'loading'}
+                              disabled
+                              className="uppercase"
+                            >
+                              CARREGANDO...
                             </SelectItem>
-                          ))}
+                          ) : localSpecialties.length === 0 ? (
+                            <SelectItem
+                              value={field.value || 'empty'}
+                              disabled
+                              className="uppercase"
+                            >
+                              NENHUMA ESPECIALIDADE ENCONTRADA
+                            </SelectItem>
+                          ) : (
+                            [
+                              ...new Set([
+                                ...localSpecialties,
+                                ...(field.value ? [field.value] : []),
+                              ]),
+                            ].map((spec) => (
+                              <SelectItem key={spec} value={spec} className="uppercase">
+                                {spec}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -909,7 +958,7 @@ export function AddInventoryModal({
                       </FormLabel>
                       <FormControl>
                         <Textarea
-                          className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-500 bg-amber-50/30"
+                          className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-50 bg-amber-50/30"
                           placeholder="NOTAS CRÍTICAS QUE GERAM ALERTA (EX: PRODUTO FRÁGIL, VERIFICAR LOTE)..."
                           {...field}
                         />
