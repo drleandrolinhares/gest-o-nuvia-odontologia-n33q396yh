@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select'
 import { UserMinus } from 'lucide-react'
 import { Employee } from '@/stores/main'
-import { addWeeks, addMonths, addYears, format, parseISO } from 'date-fns'
+import { format, isBefore, eachDayOfInterval } from 'date-fns'
 
 interface Props {
   open: boolean
@@ -21,7 +21,12 @@ interface Props {
   currentUserId: string | null
 }
 
-const PERIODICITY_OPTIONS = ['ÚNICO', 'SEMANAL', 'MENSAL', 'ANUAL', 'PROGRAMADA']
+const PERIOD_OPTIONS = [
+  { value: 'DIA INTEIRO', label: 'DIA INTEIRO' },
+  { value: 'MANHÃ', label: 'MANHÃ (08:00 - 12:00)' },
+  { value: 'TARDE', label: 'TARDE (13:00 - 18:00)' },
+  { value: 'ESPECÍFICO', label: 'HORÁRIO ESPECÍFICO' },
+]
 
 export function DentistAbsenceDialog({
   open,
@@ -32,60 +37,76 @@ export function DentistAbsenceDialog({
 }: Props) {
   const [title, setTitle] = useState('')
   const [assignedTo, setAssignedTo] = useState('')
-  const [date, setDate] = useState('')
-  const [time, setTime] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [period, setPeriod] = useState('DIA INTEIRO')
+  const [startTime, setStartTime] = useState('08:00')
+  const [endTime, setEndTime] = useState('18:00')
   const [location, setLocation] = useState('')
-  const [periodicity, setPeriodicity] = useState('ÚNICO')
 
   const currentUser = employees.find((e) => e.id === currentUserId)
   // Only dentists (filtering by role/category if needed, but for now we list active)
   const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
 
+  useEffect(() => {
+    if (open) {
+      const today = format(new Date(), 'yyyy-MM-dd')
+      if (!startDate) setStartDate(today)
+      if (!endDate) setEndDate(today)
+    }
+  }, [open, startDate, endDate])
+
   const resetForm = () => {
     setTitle('')
     setAssignedTo('')
-    setDate('')
-    setTime('')
+    setStartDate('')
+    setEndDate('')
+    setPeriod('DIA INTEIRO')
+    setStartTime('08:00')
+    setEndTime('18:00')
     setLocation('')
-    setPeriodicity('ÚNICO')
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (title && date && time && location && assignedTo && periodicity) {
-      const basePayload = {
-        title: title.toUpperCase(),
-        time,
-        type: 'COMPROMISSO DENTISTA',
-        location: location.toUpperCase(),
-        assignedTo: assignedTo,
-        involvesThirdParty: false,
-        thirdPartyDetails: '',
-        createdBy: currentUser?.name || 'SISTEMA',
-        requester_id: currentUserId,
-        is_completed: false,
-        periodicity: periodicity,
+    if (assignedTo && startDate && location && period) {
+      const finalEndDate = endDate || startDate
+
+      const start = new Date(`${startDate}T00:00:00`)
+      const end = new Date(`${finalEndDate}T00:00:00`)
+
+      if (isBefore(end, start)) {
+        alert('A data final não pode ser anterior à data de início.')
+        return
       }
 
-      const baseDate = parseISO(date)
+      let timeString = ''
+      if (period === 'DIA INTEIRO') timeString = '08:00 - 18:00'
+      else if (period === 'MANHÃ') timeString = '08:00 - 12:00'
+      else if (period === 'TARDE') timeString = '13:00 - 18:00'
+      else timeString = `${startTime} - ${endTime}`
 
-      if (periodicity === 'PROGRAMADA' || periodicity === 'ÚNICO') {
-        // For programmed, we could potentially accept multiple dates, but keeping it to single base for simplicity
-        // in this interface, unless specifically requesting a multiple date picker.
-        onAdd({ ...basePayload, date })
-      } else if (periodicity === 'SEMANAL') {
-        for (let i = 0; i < 12; i++) {
-          onAdd({ ...basePayload, date: format(addWeeks(baseDate, i), 'yyyy-MM-dd') })
-        }
-      } else if (periodicity === 'MENSAL') {
-        for (let i = 0; i < 12; i++) {
-          onAdd({ ...basePayload, date: format(addMonths(baseDate, i), 'yyyy-MM-dd') })
-        }
-      } else if (periodicity === 'ANUAL') {
-        for (let i = 0; i < 5; i++) {
-          onAdd({ ...basePayload, date: format(addYears(baseDate, i), 'yyyy-MM-dd') })
-        }
-      }
+      const baseTitle = title.trim() ? title.toUpperCase() : 'AUSÊNCIA'
+      const finalTitle = `${baseTitle} - ${period}`
+
+      const days = eachDayOfInterval({ start, end })
+
+      days.forEach((day) => {
+        onAdd({
+          title: finalTitle,
+          time: timeString,
+          type: 'COMPROMISSO DENTISTA',
+          location: location.toUpperCase(),
+          assignedTo: assignedTo,
+          involvesThirdParty: false,
+          thirdPartyDetails: '',
+          createdBy: currentUser?.name || 'SISTEMA',
+          requester_id: currentUserId,
+          is_completed: false,
+          periodicity: 'ÚNICO',
+          date: format(day, 'yyyy-MM-dd'),
+        })
+      })
 
       onOpenChange(false)
       resetForm()
@@ -103,7 +124,7 @@ export function DentistAbsenceDialog({
       <DialogContent className="max-w-lg uppercase">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl text-rose-700">
-            <UserMinus className="h-5 w-5" /> REGISTRAR AUSÊNCIA / COMPROMISSO (DENTISTA)
+            <UserMinus className="h-5 w-5" /> REGISTRAR AUSÊNCIA / COMPROMISSO
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -137,34 +158,19 @@ export function DentistAbsenceDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">PERIODICIDADE *</label>
-              <Select value={periodicity} onValueChange={setPeriodicity} required>
+              <label className="text-xs font-semibold text-muted-foreground">PERÍODO *</label>
+              <Select value={period} onValueChange={setPeriod} required>
                 <SelectTrigger>
                   <SelectValue placeholder="SELECIONE..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {PERIODICITY_OPTIONS.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
+                  {PERIOD_OPTIONS.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>
+                      {p.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">
-                {periodicity !== 'ÚNICO' && periodicity !== 'PROGRAMADA'
-                  ? 'DATA INICIAL *'
-                  : 'DATA *'}
-              </label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">HORÁRIO *</label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">LOCAL *</label>
@@ -177,10 +183,67 @@ export function DentistAbsenceDialog({
             </div>
           </div>
 
-          {periodicity !== 'ÚNICO' && periodicity !== 'PROGRAMADA' && (
+          {period === 'ESPECÍFICO' && (
+            <div className="grid grid-cols-2 gap-4 animate-fade-in-down">
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  HORÁRIO INICIAL *
+                </label>
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground">
+                  HORÁRIO FINAL *
+                </label>
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">
+                DATA DE INÍCIO *
+              </label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value)
+                  const newStart = new Date(`${e.target.value}T00:00:00`)
+                  const currentEnd = endDate ? new Date(`${endDate}T00:00:00`) : null
+                  if (!endDate || (currentEnd && isBefore(currentEnd, newStart))) {
+                    setEndDate(e.target.value)
+                  }
+                }}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">DATA FINAL *</label>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                required
+                min={startDate}
+              />
+            </div>
+          </div>
+
+          {startDate && endDate && startDate !== endDate && (
             <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-              NOTA: O SISTEMA IRÁ GERAR AUTOMATICAMENTE AS OCORRÊNCIAS FUTURAS BASEADAS NA DATA
-              INICIAL.
+              NOTA: O SISTEMA IRÁ GERAR UM REGISTRO PARA CADA DIA NO INTERVALO SELECIONADO.
             </p>
           )}
 
