@@ -19,6 +19,7 @@ import {
   PanelLeftOpen,
   ChevronDown,
   HeadphonesIcon,
+  Handshake,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -148,6 +149,7 @@ export function Layout() {
       items: [
         { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
         { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
+        { name: 'NEGOCIAÇÃO', href: '/admin/operacao/negociacao', icon: Handshake },
       ],
     },
     {

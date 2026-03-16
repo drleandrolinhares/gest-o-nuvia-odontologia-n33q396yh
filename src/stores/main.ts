@@ -201,6 +201,10 @@ export type FixedExpense = {
   value: number
   details?: FixedExpenseDetail[]
 }
+export type NegotiationSettings = {
+  ranges: { min: number; max: number; maxInstallments: number }[]
+  defaultEntryPercentage: number
+}
 export type AppSettings = {
   id: string
   global_card_fee: number
@@ -211,6 +215,7 @@ export type AppSettings = {
   hourly_cost_monthly_hours: number
   predicted_loss_percentage: number
   evaluation_factor_percentage: number
+  negotiation_settings?: NegotiationSettings
 }
 export type PriceItem = {
   id: string
@@ -573,6 +578,17 @@ const mOpt = (d: any): InventoryOption => ({
   value: d.value,
 })
 
+const defaultNegotiationSettings: NegotiationSettings = {
+  ranges: [
+    { min: 1000, max: 2999.99, maxInstallments: 4 },
+    { min: 3000, max: 4999.99, maxInstallments: 8 },
+    { min: 5000, max: 7999.99, maxInstallments: 12 },
+    { min: 8000, max: 11999.99, maxInstallments: 18 },
+    { min: 12000, max: 9999999, maxInstallments: 24 },
+  ],
+  defaultEntryPercentage: 30,
+}
+
 const mAppSet = (d: any): AppSettings => ({
   id: d.id,
   global_card_fee: Number(d.global_card_fee) || 0,
@@ -597,6 +613,7 @@ const mAppSet = (d: any): AppSettings => ({
       }))
     : [],
   hourly_cost_monthly_hours: Number(d.hourly_cost_monthly_hours) || 160,
+  negotiation_settings: d.negotiation_settings || defaultNegotiationSettings,
 })
 
 const mPrice = (d: any): PriceItem => ({
@@ -2067,6 +2084,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         payload.predicted_loss_percentage = data.predicted_loss_percentage
       if (data.evaluation_factor_percentage !== undefined)
         payload.evaluation_factor_percentage = data.evaluation_factor_percentage
+      if (data.negotiation_settings !== undefined)
+        payload.negotiation_settings = data.negotiation_settings
 
       try {
         const currentId = appSettings?.id
@@ -2086,7 +2105,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (error) throw error
           setAppSettings((p) => (p ? { ...p, ...data } : null))
         }
-        logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DE PRECIFICAÇÃO')
+        logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DO SISTEMA')
         return { success: true }
       } catch (error: any) {
         console.warn('Erro ao atualizar app_settings', error)
