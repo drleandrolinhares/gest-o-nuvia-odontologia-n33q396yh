@@ -1321,6 +1321,8 @@ export function EditInventoryModal({
                                     ? 'bg-emerald-100 text-emerald-700'
                                     : 'bg-amber-100 text-amber-700',
                               )}
+                            >
+                              {mov.type}
                             </span>
                           </TableCell>
                           <TableCell className="text-center font-black text-sm">
