@@ -80,6 +80,7 @@ export type Database = {
           involves_third_party: boolean | null
           is_completed: boolean | null
           location: string
+          periodicity: string | null
           received_at: string | null
           requester_id: string | null
           sac_record_id: string | null
@@ -98,6 +99,7 @@ export type Database = {
           involves_third_party?: boolean | null
           is_completed?: boolean | null
           location: string
+          periodicity?: string | null
           received_at?: string | null
           requester_id?: string | null
           sac_record_id?: string | null
@@ -116,6 +118,7 @@ export type Database = {
           involves_third_party?: boolean | null
           is_completed?: boolean | null
           location?: string
+          periodicity?: string | null
           received_at?: string | null
           requester_id?: string | null
           sac_record_id?: string | null
@@ -1300,6 +1303,7 @@ export const Constants = {
 //   received_at: timestamp with time zone (nullable)
 //   completed_at: timestamp with time zone (nullable)
 //   sac_record_id: uuid (nullable)
+//   periodicity: text (nullable)
 // Table: app_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   global_card_fee: numeric (nullable, default: 0)

@@ -10,6 +10,7 @@ import React, {
 } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
+import { toast } from '@/components/ui/use-toast'
 
 export type Employee = {
   id: string
@@ -669,6 +670,26 @@ const mSac = (d: any): SacRecord => ({
 
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
+const checkAuthError = (err: any) => {
+  const isAuthError =
+    err?.code === 'PGRST303' ||
+    err?.message?.includes('JWT expired') ||
+    err?.status === 401 ||
+    err?.message?.includes('Sessão expirada') ||
+    err?.message?.includes('Unauthorized')
+
+  if (isAuthError) {
+    supabase.auth.signOut()
+    toast({
+      title: 'Sessão Expirada',
+      description: 'Sua sessão expirou por segurança. Faça login novamente.',
+      variant: 'destructive',
+    })
+    return true
+  }
+  return false
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -828,10 +849,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }),
       ])
         .catch((err) => {
-          console.error('Initial data fetch error:', err)
-          setFetchError(
-            'Falha ao sincronizar dados do sistema. Verifique sua conexão e tente novamente.',
-          )
+          if (!checkAuthError(err)) {
+            console.error('Initial data fetch error:', err)
+            setFetchError(
+              'Falha ao sincronizar dados do sistema. Verifique sua conexão e tente novamente.',
+            )
+          }
         })
         .finally(() => {
           setIsDataLoading(false)
@@ -903,7 +926,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .insert([{ user_id: u.id, action: action.toUpperCase() }])
       .select()
       .single()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) checkAuthError(error)
         if (data)
           setAuditLogs((p) => [
             { id: data.id, userName: n, action: data.action, timestamp: data.created_at },
@@ -929,6 +953,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         return { success: false }
       } catch (error) {
+        checkAuthError(error)
         return { success: false, error }
       }
     },
@@ -961,6 +986,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         return { success: false, error }
       }
     },
@@ -986,6 +1012,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         return { success: false, error }
       }
     },
@@ -1134,7 +1161,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ])
         .select()
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) checkAuthError(error)
           if (data) {
             setInventory((p) => [...p, mInv(data)])
             logAction(`CRIOU PRODUTO: ${i.name}`)
@@ -1152,6 +1180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .update({ quantity: q })
         .eq('id', id)
         .then(({ error }) => {
+          if (error) checkAuthError(error)
           if (!error) {
             setInventory((p) => p.map((i) => (i.id === id ? { ...i, quantity: q } : i)))
             logAction(`ATUALIZOU ESTOQUE ID: ${id} PARA ${q}`)
@@ -1195,6 +1224,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`ATUALIZOU DADOS DO PRODUTO ID: ${id}`)
         return { success: true }
       } catch (err: any) {
+        checkAuthError(err)
         console.warn('Erro ao atualizar dados do produto no inventário', err)
         return { success: false, error: err }
       }
@@ -1211,6 +1241,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`REMOVEU PRODUTO ID: ${id}`)
         return { success: true }
       } catch (err: any) {
+        checkAuthError(err)
         console.warn('Erro ao deletar produto no inventário', err)
         return { success: false, error: err }
       }
@@ -1235,7 +1266,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...(r.nfeNumber ? { nfe_number: r.nfeNumber } : {}),
           })
           .eq('id', itemId)
-          .then(() => logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`))
+          .then(({ error }) => {
+            if (error) checkAuthError(error)
+            else logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`)
+          })
           .catch((err) => console.warn('Erro ao adicionar histórico de compra', err))
         return prev.map((i) =>
           i.id === itemId
@@ -1261,7 +1295,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .insert([{ category, value, label }])
         .select()
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) checkAuthError(error)
           if (data) {
             setInventoryOptions((p) => [...p, mOpt(data)])
             logAction(`CRIOU OPÇÃO DE ESTOQUE: ${category} - ${value}`)
@@ -1278,9 +1313,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('inventory_settings' as any)
         .delete()
         .eq('id', id)
-        .then(() => {
-          setInventoryOptions((p) => p.filter((o) => o.id !== id))
-          logAction(`REMOVEU OPÇÃO DE ESTOQUE ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setInventoryOptions((p) => p.filter((o) => o.id !== id))
+            logAction(`REMOVEU OPÇÃO DE ESTOQUE ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao remover opção', err))
     },
@@ -1298,7 +1336,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .update({ quantity: newQty })
         .eq('id', inventory_id)
 
-      if (invErr) return { success: false, error: invErr }
+      if (invErr) {
+        checkAuthError(invErr)
+        return { success: false, error: invErr }
+      }
 
       setInventory((p) => p.map((i) => (i.id === inventory_id ? { ...i, quantity: newQty } : i)))
 
@@ -1329,7 +1370,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .select('*, employees(name)')
         .single()
 
-      if (error) return { success: false, error }
+      if (error) {
+        checkAuthError(error)
+        return { success: false, error }
+      }
       if (data) {
         setTemporaryOutflows((p) => [data, ...p])
 
@@ -1366,7 +1410,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .select()
         .single()
 
-      if (error) return { success: false, error }
+      if (error) {
+        checkAuthError(error)
+        return { success: false, error }
+      }
 
       if (data) {
         setTemporaryOutflows((p) => p.filter((t) => t.id !== id))
@@ -1423,6 +1470,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (error) throw error
       return data || []
     } catch (err) {
+      checkAuthError(err)
       console.error('Error fetching inventory movements:', err)
       return []
     }
@@ -1439,6 +1487,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         })
 
         if (res.error) {
+          checkAuthError(res.error)
           return { success: false, error: res.error }
         }
         if (res.data?.error) {
@@ -1496,6 +1545,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .single()
 
       if (empError) {
+        checkAuthError(empError)
         return { success: false, error: empError }
       }
 
@@ -1518,6 +1568,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
 
       if (res.error) {
+        checkAuthError(res.error)
         return { success: false, error: res.error }
       }
       if (res.data?.error) {
@@ -1540,6 +1591,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .eq('id', id)
 
       if (updateError) {
+        checkAuthError(updateError)
         return { success: false, error: updateError }
       }
 
@@ -1594,8 +1646,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           logAction(`ATUALIZOU DADOS DO COLABORADOR ID: ${id}`)
           return { success: true }
         }
+        checkAuthError(error)
         return { success: false, error }
       } catch (err) {
+        checkAuthError(err)
         return { success: false, error: err }
       }
     },
@@ -1612,6 +1666,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`ALTEROU SENHA DE ACESSO DO USUÁRIO ID: ${userId}`)
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         return { success: false, error }
       }
     },
@@ -1636,6 +1691,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`FORÇOU RESET DE SENHA PARA O USUÁRIO ID: ${userId}`)
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         console.warn('Erro no reset forçado de senha', error)
         return { success: false, error }
       }
@@ -1649,9 +1705,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('employees')
         .delete()
         .eq('id', id)
-        .then(() => {
-          setEmployees((p) => p.filter((e) => e.id !== id))
-          logAction(`REMOVEU COLABORADOR: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setEmployees((p) => p.filter((e) => e.id !== id))
+            logAction(`REMOVEU COLABORADOR: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao remover colaborador', err))
     },
@@ -1663,9 +1722,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('employees')
         .update({ status: s })
         .eq('id', id)
-        .then(() => {
-          setEmployees((p) => p.map((e) => (e.id === id ? { ...e, status: s as any } : e)))
-          logAction(`ALTEROU STATUS COLAB ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setEmployees((p) => p.map((e) => (e.id === id ? { ...e, status: s as any } : e)))
+            logAction(`ALTEROU STATUS COLAB ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao atualizar status do colaborador', err))
     },
@@ -1679,7 +1741,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .insert([{ name: n, date: new Date().toLocaleDateString('pt-BR') }])
         .select()
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) checkAuthError(error)
           if (data) {
             setDocuments((p) => [...p, mDoc(data)])
             logAction(`ADICIONOU DOC: ${n}`)
@@ -1695,9 +1758,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('documents')
         .delete()
         .eq('id', id)
-        .then(() => {
-          setDocuments((p) => p.filter((d) => d.id !== id))
-          logAction(`REMOVEU DOC ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setDocuments((p) => p.filter((d) => d.id !== id))
+            logAction(`REMOVEU DOC ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao remover documento', err))
     },
@@ -1729,7 +1795,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ])
         .select()
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) checkAuthError(error)
           if (data) {
             setAgenda((p) => [...p, mAg(data)])
             logAction(`CRIOU AGENDA: ${i.title}`)
@@ -1764,6 +1831,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .update(payload)
         .eq('id', id)
         .then(({ error }) => {
+          if (error) checkAuthError(error)
           if (!error) {
             setAgenda((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
             logAction(`ATUALIZOU AGENDA ID: ${id}`)
@@ -1794,9 +1862,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('agenda')
         .delete()
         .eq('id', id)
-        .then(() => {
-          setAgenda((p) => p.filter((i) => i.id !== id))
-          logAction(`REMOVEU AGENDA ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setAgenda((p) => p.filter((i) => i.id !== id))
+            logAction(`REMOVEU AGENDA ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao remover item na agenda', err))
     },
@@ -1828,7 +1899,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ])
         .select()
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) checkAuthError(error)
           if (data) {
             setAcessos((p) => [...p, mAcc(data)])
             logAction(`CRIOU ACESSO: ${i.platform}`)
@@ -1860,9 +1932,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           security_note: i.security_note,
         })
         .eq('id', id)
-        .then(() => {
-          setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
-          logAction(`ATUALIZOU ACESSO ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
+            logAction(`ATUALIZOU ACESSO ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao atualizar acesso', err))
     },
@@ -1874,9 +1949,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('acessos')
         .delete()
         .eq('id', id)
-        .then(() => {
-          setAcessos((p) => p.filter((i) => i.id !== id))
-          logAction(`REMOVEU ACESSO ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setAcessos((p) => p.filter((i) => i.id !== id))
+            logAction(`REMOVEU ACESSO ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao remover acesso', err))
     },
@@ -1901,7 +1979,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ])
         .select()
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) checkAuthError(error)
           if (data) {
             setSuppliers((p) => [...p, mSup(data)])
             logAction(`CRIOU FORNECEDOR: ${i.name}`)
@@ -1926,9 +2005,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
           negotiation_notes: i.negotiationNotes,
         })
         .eq('id', id)
-        .then(() => {
-          setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
-          logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
+            logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao atualizar fornecedor', err))
     },
@@ -1940,9 +2022,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('suppliers')
         .delete()
         .eq('id', id)
-        .then(() => {
-          setSuppliers((p) => p.filter((i) => i.id !== id))
-          logAction(`REMOVEU FORNECEDOR ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setSuppliers((p) => p.filter((i) => i.id !== id))
+            logAction(`REMOVEU FORNECEDOR ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao remover fornecedor', err))
     },
@@ -1956,7 +2041,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .insert([{ name }])
         .select()
         .single()
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) checkAuthError(error)
           if (data) setBonusTypes((p) => [...p, data])
           logAction(`ADICIONOU TIPO DE BONIFICAÇÃO: ${name}`)
         })
@@ -1971,9 +2057,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .from('bonus_settings')
         .delete()
         .eq('id', id)
-        .then(() => {
-          setBonusTypes((p) => p.filter((b) => b.id !== id))
-          logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
+        .then(({ error }) => {
+          if (error) checkAuthError(error)
+          else {
+            setBonusTypes((p) => p.filter((b) => b.id !== id))
+            logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
+          }
         })
         .catch((err) => console.warn('Erro ao remover tipo de bonificação', err))
     },
@@ -2004,6 +2093,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             logAction(`ANEXOU DOCUMENTO: ${fileName}`)
             resolve()
           } catch (err) {
+            checkAuthError(err)
             console.error('Erro ao salvar documento:', err)
             reject(err)
           }
@@ -2023,6 +2113,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setEmployeeDocuments((p) => p.filter((d) => d.id !== id))
         logAction(`REMOVEU DOCUMENTO ID: ${id}`)
       } catch (err) {
+        checkAuthError(err)
         console.warn('Erro ao remover documento', err)
       }
     },
@@ -2045,6 +2136,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         })
       }
     } catch (err) {
+      checkAuthError(err)
       console.error('Error fetching work schedules:', err)
     }
   }, [])
@@ -2086,6 +2178,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           })
         }
       } catch (err) {
+        checkAuthError(err)
         console.error('Error upserting work schedule:', err)
       }
     },
@@ -2133,6 +2226,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DO SISTEMA')
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         console.warn('Erro ao atualizar app_settings', error)
         return { success: false, error }
       }
@@ -2168,6 +2262,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         return { success: false }
       } catch (error: any) {
+        checkAuthError(error)
         console.warn('Erro ao adicionar price_list', error)
         return { success: false, error }
       }
@@ -2198,6 +2293,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`ATUALIZOU ITEM DE PRECIFICAÇÃO ID: ${id}`)
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         console.warn('Erro ao atualizar price_list', error)
         return { success: false, error }
       }
@@ -2217,6 +2313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`REMOVEU ITEM DE PRECIFICAÇÃO ID: ${id}`)
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         console.warn('Erro ao remover price_list', error)
         return { success: false, error }
       }
@@ -2243,6 +2340,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`ATUALIZOU PERMISSÕES DO CARGO: ${permissions[0]?.role || ''}`)
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         console.warn('Erro ao atualizar permissões', error)
         return { success: false, error }
       }
@@ -2299,16 +2397,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        const { data: finalData } = await supabase
+        const { data: finalData, error } = await supabase
           .from('clinica_consultorios' as any)
           .select('*, schedules:consultorio_weekly_schedules(*)')
           .order('created_at', { ascending: true })
+        if (error) throw error
         if (finalData) setConsultorios(finalData)
 
         await updateAppSettings({ hourly_cost_monthly_hours: newMonthlyHours })
         logAction('ATUALIZOU CONSULTÓRIOS E HORAS MENSAIS')
         return { success: true }
       } catch (error: any) {
+        checkAuthError(error)
         console.warn('Erro ao sincronizar consultórios', error)
         return { success: false, error }
       }
@@ -2397,6 +2497,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         return { success: false }
       } catch (err) {
+        checkAuthError(err)
         console.warn('Erro ao criar SAC:', err)
         return { success: false, error: err }
       }
@@ -2487,6 +2588,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         return { success: true }
       } catch (err) {
+        checkAuthError(err)
         console.warn('Erro ao atualizar SAC:', err)
         return { success: false, error: err }
       }
@@ -2507,6 +2609,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logAction(`REMOVEU OPORTUNIDADE (SAC) ID: ${id}`)
         return { success: true }
       } catch (err) {
+        checkAuthError(err)
         console.warn('Erro ao deletar SAC:', err)
         return { success: false, error: err }
       }

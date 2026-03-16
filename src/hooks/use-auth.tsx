@@ -41,11 +41,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(data.session?.user ?? null)
           setLoading(false)
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching session:', err)
         if (isMounted) {
-          setAuthError('Não foi possível verificar a sessão. Verifique sua conexão de rede.')
-          setLoading(false)
+          const isAuthError =
+            err?.status === 401 ||
+            err?.message?.includes('refresh_token_not_found') ||
+            err?.message?.includes('Invalid Refresh Token') ||
+            err?.code === 'PGRST303' ||
+            err?.message?.includes('JWT expired')
+
+          if (isAuthError) {
+            supabase.auth.signOut()
+            setSession(null)
+            setUser(null)
+            setLoading(false)
+          } else {
+            setAuthError('Não foi possível verificar a sessão. Verifique sua conexão de rede.')
+            setLoading(false)
+          }
         }
       }
     }

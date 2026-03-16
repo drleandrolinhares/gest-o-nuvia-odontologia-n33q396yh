@@ -50,6 +50,26 @@ interface ChatStore {
 
 const ChatContext = createContext<ChatStore | undefined>(undefined)
 
+const handleAuthError = (err: any) => {
+  const isAuthError =
+    err?.code === 'PGRST303' ||
+    err?.message?.includes('JWT expired') ||
+    err?.status === 401 ||
+    err?.message?.includes('Sessão expirada') ||
+    err?.message?.includes('Unauthorized')
+
+  if (isAuthError) {
+    supabase.auth.signOut()
+    toast({
+      title: 'Sessão Expirada',
+      description: 'Sua sessão de acesso expirou. Faça login novamente.',
+      variant: 'destructive',
+    })
+    return true
+  }
+  return false
+}
+
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [rooms, setRooms] = useState<ChatRoom[]>([])
@@ -128,8 +148,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           other_user_id: r.type === 'individual' ? otherUsers[r.id] : undefined,
         })) || [],
       )
-    } catch (err) {
-      console.warn('Error in fetchMyRooms:', err)
+    } catch (err: any) {
+      if (!handleAuthError(err)) {
+        console.warn('Error in fetchMyRooms:', err)
+      }
     }
   }, [user])
 
@@ -143,8 +165,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         data.forEach((r: any) => (counts[r.room_id] = Number(r.unread_count)))
         setUnreadCounts(counts)
       }
-    } catch (err) {
-      console.warn('Error in fetchUnread:', err)
+    } catch (err: any) {
+      if (!handleAuthError(err)) {
+        console.warn('Error in fetchUnread:', err)
+      }
     }
   }, [user])
 
@@ -162,8 +186,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           p_user_id: user.id,
         })
         if (error) throw error
-      } catch (err) {
-        console.warn('Error in markRoomAsRead:', err)
+      } catch (err: any) {
+        if (!handleAuthError(err)) {
+          console.warn('Error in markRoomAsRead:', err)
+        }
       }
     },
     [user],
@@ -192,24 +218,30 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const loadMessages = useCallback(async (roomId: string) => {
     if (!roomId) return
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
 
-    if (sessionError || !session) {
-      throw new Error('Sessão expirada. Verifique seu login.')
+      if (sessionError || !session) {
+        throw new Error('Sessão expirada. Verifique seu login.')
+      }
+
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('room_id', roomId)
+        .order('created_at', { ascending: true })
+        .limit(300)
+
+      if (error) throw error
+      if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
+    } catch (err: any) {
+      if (!handleAuthError(err)) {
+        console.warn('Error in loadMessages:', err)
+      }
     }
-
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('room_id', roomId)
-      .order('created_at', { ascending: true })
-      .limit(300)
-
-    if (error) throw error
-    if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
   }, [])
 
   useEffect(() => {
@@ -333,7 +365,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       markRoomAsRead(roomId)
       await loadMessages(roomId)
     } catch (err: any) {
-      setRoomError(err.message || 'Não foi possível carregar a conversa.')
+      if (!handleAuthError(err)) {
+        setRoomError(err.message || 'Não foi possível carregar a conversa.')
+      }
     } finally {
       setIsLoadingRoom(false)
     }
@@ -372,7 +406,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         logAudit(`CRIOU GRUPO DE CHAT: ${name}`)
       }
     } catch (err: any) {
-      setRoomError(err.message || 'Não foi possível criar o grupo.')
+      if (!handleAuthError(err)) {
+        setRoomError(err.message || 'Não foi possível criar o grupo.')
+      }
     } finally {
       setIsLoadingRoom(false)
     }
@@ -385,8 +421,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .insert({ room_id: roomId, user_id: userId })
       if (error) throw error
       logAudit(`ADICIONOU USUÁRIO AO GRUPO ID: ${roomId}`)
-    } catch (err) {
-      console.warn('Error in addGroupParticipant:', err)
+    } catch (err: any) {
+      if (!handleAuthError(err)) {
+        console.warn('Error in addGroupParticipant:', err)
+      }
     }
   }
 
@@ -406,8 +444,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           setRoomError(null)
         }
       }
-    } catch (err) {
-      console.warn('Error in removeGroupParticipant:', err)
+    } catch (err: any) {
+      if (!handleAuthError(err)) {
+        console.warn('Error in removeGroupParticipant:', err)
+      }
     }
   }
 
@@ -419,8 +459,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .eq('room_id', roomId)
       if (error) throw error
       return (data?.map((d) => d.user_id).filter(Boolean) as string[]) || []
-    } catch (err) {
-      console.warn('Error in getGroupParticipants:', err)
+    } catch (err: any) {
+      if (!handleAuthError(err)) {
+        console.warn('Error in getGroupParticipants:', err)
+      }
       return []
     }
   }
@@ -485,9 +527,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       await loadMessages(roomId)
       logAudit(`INICIOU CONVERSA COM COLABORADOR ID: ${userId}`)
     } catch (error: any) {
-      console.error('Error in openIndividualRoom:', error)
-      setRoomError(error.message || 'Não foi possível carregar a conversa com o colaborador.')
-      setActiveRoomId(null)
+      if (!handleAuthError(error)) {
+        console.error('Error in openIndividualRoom:', error)
+        setRoomError(error.message || 'Não foi possível carregar a conversa com o colaborador.')
+        setActiveRoomId(null)
+      }
     } finally {
       setIsLoadingRoom(false)
     }
@@ -524,12 +568,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         })
       }
     } catch (err: any) {
-      console.error('Error in sendMessage:', err)
-      toast({
-        title: 'Falha no envio',
-        description: err.message || 'Não foi possível enviar a mensagem. Verifique a conexão.',
-        variant: 'destructive',
-      })
+      if (!handleAuthError(err)) {
+        console.error('Error in sendMessage:', err)
+        toast({
+          title: 'Falha no envio',
+          description: err.message || 'Não foi possível enviar a mensagem. Verifique a conexão.',
+          variant: 'destructive',
+        })
+      }
     }
   }
 
