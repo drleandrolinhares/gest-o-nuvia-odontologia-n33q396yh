@@ -672,6 +672,11 @@ const mSac = (d: any): SacRecord => ({
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 const checkAuthError = (err: any) => {
+  // Prevent any accidental global redirects on 400/PGRST204 (Bad Request / Column Not Found)
+  if (err?.status === 400 || err?.code === 'PGRST204') {
+    return false
+  }
+
   const isAuthError =
     err?.code === 'PGRST303' ||
     err?.message?.includes('JWT expired') ||
@@ -1792,7 +1797,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
       if (e.pixNumber !== undefined) payload.pix_number = e.pixNumber || null
       if (e.pixType !== undefined) payload.pix_type = e.pixType || null
-      if (e.bankName !== undefined) payload.bankName = e.bankName || null
+      if (e.bankName !== undefined) payload.bank_name = e.bankName || null
 
       if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal
@@ -1807,7 +1812,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         checkAuthError(error)
         return { success: false, error }
-      } catch (err) {
+      } catch (err: any) {
         checkAuthError(err)
         return { success: false, error: err }
       }

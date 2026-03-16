@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import useAppStore, { Employee } from '@/stores/main'
 import { useState, useEffect } from 'react'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 
@@ -67,6 +67,7 @@ function FinancialRow({ employee }: { employee: Employee }) {
   const [pixType, setPixType] = useState(employee.pixType || '')
   const [pixNumber, setPixNumber] = useState(employee.pixNumber || '')
   const [copied, setCopied] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     setBank(employee.bankName || '')
@@ -74,9 +75,29 @@ function FinancialRow({ employee }: { employee: Employee }) {
     setPixNumber(employee.pixNumber || '')
   }, [employee])
 
-  const handleBlur = (field: string, value: string) => {
+  const handleBlur = async (field: string, value: string) => {
     if (employee[field as keyof Employee] !== value) {
-      updateEmployee(employee.id, { [field]: value })
+      setIsUpdating(true)
+      const res = await updateEmployee(employee.id, { [field]: value })
+      setIsUpdating(false)
+
+      if (!res.success) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro de Atualização',
+          description:
+            res.error?.message || 'Falha ao atualizar dados financeiros. Verifique os campos.',
+        })
+
+        if (field === 'bankName') setBank(employee.bankName || '')
+        if (field === 'pixType') setPixType(employee.pixType || '')
+        if (field === 'pixNumber') setPixNumber(employee.pixNumber || '')
+      } else {
+        toast({
+          title: 'Sucesso',
+          description: 'Dados financeiros atualizados com sucesso.',
+        })
+      }
     }
   }
 
@@ -90,14 +111,20 @@ function FinancialRow({ employee }: { employee: Employee }) {
 
   return (
     <TableRow className="hover:bg-muted/10 transition-colors">
-      <TableCell className="font-semibold text-sm uppercase">{employee.name}</TableCell>
+      <TableCell className="font-semibold text-sm uppercase">
+        <div className="flex items-center gap-2">
+          {employee.name}
+          {isUpdating && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+        </div>
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
           <Input
             value={pixNumber}
             onChange={(e) => setPixNumber(e.target.value)}
             onBlur={() => handleBlur('pixNumber', pixNumber)}
-            className="h-8 text-xs bg-transparent border-transparent hover:border-input focus:bg-background transition-all font-mono placeholder:text-muted-foreground/50 flex-1"
+            disabled={isUpdating}
+            className="h-8 text-xs bg-transparent border-transparent hover:border-input focus:bg-background transition-all font-mono placeholder:text-muted-foreground/50 flex-1 disabled:opacity-50"
             placeholder="NÚMERO DO PIX"
           />
           <Button
@@ -105,7 +132,7 @@ function FinancialRow({ employee }: { employee: Employee }) {
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-nuvia-gold hover:bg-nuvia-gold/10 shrink-0"
             onClick={handleCopy}
-            disabled={!pixNumber}
+            disabled={!pixNumber || isUpdating}
           >
             {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
           </Button>
@@ -118,8 +145,9 @@ function FinancialRow({ employee }: { employee: Employee }) {
             setPixType(val)
             handleBlur('pixType', val)
           }}
+          disabled={isUpdating}
         >
-          <SelectTrigger className="h-8 text-xs bg-transparent border-transparent hover:border-input focus:bg-background transition-all uppercase w-full">
+          <SelectTrigger className="h-8 text-xs bg-transparent border-transparent hover:border-input focus:bg-background transition-all uppercase w-full disabled:opacity-50">
             <SelectValue placeholder="TIPO PIX" />
           </SelectTrigger>
           <SelectContent>
@@ -135,7 +163,8 @@ function FinancialRow({ employee }: { employee: Employee }) {
           value={bank}
           onChange={(e) => setBank(e.target.value)}
           onBlur={() => handleBlur('bankName', bank)}
-          className="h-8 text-xs bg-transparent border-transparent hover:border-input focus:bg-background transition-all placeholder:text-muted-foreground/50"
+          disabled={isUpdating}
+          className="h-8 text-xs bg-transparent border-transparent hover:border-input focus:bg-background transition-all placeholder:text-muted-foreground/50 disabled:opacity-50"
           placeholder="NOME DO BANCO"
         />
       </TableCell>
