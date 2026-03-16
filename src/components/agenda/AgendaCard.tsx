@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils'
 import useAppStore from '@/stores/main'
 import { SacStatusSelect } from '@/components/sac/SacStatusSelect'
+import { ABSENCE_TYPES } from '@/lib/constants'
 
 interface Props {
   item: AgendaItem
@@ -42,7 +43,7 @@ export function AgendaCard({
   const isRequester = item.requester_id === currentUserId
 
   const isSac = item.type === 'SAC'
-  const isDentistAbsence = item.type === 'COMPROMISSO DENTISTA'
+  const isAbsence = ABSENCE_TYPES.includes(item.type.toUpperCase())
   const sacRecord =
     isSac && item.sac_record_id ? sacRecords.find((s) => s.id === item.sac_record_id) : null
 
@@ -53,7 +54,7 @@ export function AgendaCard({
     !item.received_at &&
     !item.is_completed &&
     !isSac &&
-    !isDentistAbsence
+    !isAbsence
 
   const getEmpName = (id?: string) => {
     if (!id || id === 'none') return 'GERAL'
@@ -79,9 +80,7 @@ export function AgendaCard({
           ? 'opacity-60 bg-muted/40 border-muted'
           : 'hover:border-primary/40 cursor-pointer',
         needsFollowUp && 'border-amber-300 bg-amber-50/40',
-        isDentistAbsence &&
-          !item.is_completed &&
-          'border-rose-200 bg-rose-50/40 hover:border-rose-400',
+        isAbsence && !item.is_completed && 'border-rose-200 bg-rose-50/40 hover:border-rose-400',
       )}
       onClick={() => !item.is_completed && onSelect(item)}
     >
@@ -94,13 +93,13 @@ export function AgendaCard({
         <div className="flex justify-between items-start gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              {!isDentistAbsence ? (
+              {!isAbsence ? (
                 <Badge variant="outline" className="text-[10px] uppercase font-bold bg-background">
                   {item.type}
                 </Badge>
               ) : (
                 <Badge className="bg-rose-100 text-rose-800 border-rose-200 text-[10px] uppercase font-bold hover:bg-rose-200">
-                  <UserMinus className="h-3 w-3 mr-1" /> AUSÊNCIA / COMPROMISSO
+                  <UserMinus className="h-3 w-3 mr-1" /> {item.type}
                 </Badge>
               )}
 
@@ -120,7 +119,7 @@ export function AgendaCard({
               className={cn(
                 'font-bold text-base uppercase leading-tight mt-1',
                 item.is_completed && 'line-through text-muted-foreground',
-                isDentistAbsence && !item.is_completed && 'text-rose-950',
+                isAbsence && !item.is_completed && 'text-rose-950',
               )}
             >
               {item.title}
@@ -138,7 +137,7 @@ export function AgendaCard({
               </span>
               <span className="flex items-center gap-1 text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
                 <User className="h-3 w-3" />
-                {!isDentistAbsence ? (
+                {!isAbsence ? (
                   <>
                     {getRequesterName()} <ArrowRight className="h-3 w-3 mx-0.5 opacity-50" />{' '}
                     {getEmpName(item.assignedTo)}
@@ -177,7 +176,7 @@ export function AgendaCard({
                 disabled={!isAssignee && !isAdmin}
               />
             ) : isAssignee && !item.is_completed ? (
-              !isDentistAbsence ? (
+              !isAbsence ? (
                 !item.received_at ? (
                   <Button
                     size="sm"

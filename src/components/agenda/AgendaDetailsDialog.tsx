@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { AgendaItem, Employee } from '@/stores/main'
 import useAppStore from '@/stores/main'
+import { ABSENCE_TYPES } from '@/lib/constants'
 
 interface Props {
   item: AgendaItem | null
@@ -31,6 +32,7 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
     item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
 
   const isSac = item.type === 'SAC'
+  const isAbsence = ABSENCE_TYPES.includes(item.type.toUpperCase())
   const sacRecord =
     isSac && item.sac_record_id ? sacRecords.find((s) => s.id === item.sac_record_id) : null
 
@@ -200,13 +202,27 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
           <div className="flex justify-end pt-4 border-t gap-3 items-center w-full">
             {isAssignee && !item.is_completed && !isSac && (
               <div className="mr-auto flex gap-2">
-                {!item.received_at ? (
-                  <Button
-                    onClick={() => onUpdate(item.id, { received_at: new Date().toISOString() })}
-                    className="bg-blue-600 hover:bg-blue-700 h-9"
-                  >
-                    RECEBI E VOU RESOLVER
-                  </Button>
+                {!isAbsence ? (
+                  !item.received_at ? (
+                    <Button
+                      onClick={() => onUpdate(item.id, { received_at: new Date().toISOString() })}
+                      className="bg-blue-600 hover:bg-blue-700 h-9"
+                    >
+                      RECEBI E VOU RESOLVER
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() =>
+                        onUpdate(item.id, {
+                          is_completed: true,
+                          completed_at: new Date().toISOString(),
+                        })
+                      }
+                      className="bg-emerald-600 hover:bg-emerald-700 h-9"
+                    >
+                      MARCAR RESOLVIDO
+                    </Button>
+                  )
                 ) : (
                   <Button
                     onClick={() =>
@@ -215,9 +231,9 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
                         completed_at: new Date().toISOString(),
                       })
                     }
-                    className="bg-emerald-600 hover:bg-emerald-700 h-9"
+                    className="bg-rose-600 hover:bg-rose-700 h-9"
                   >
-                    MARCAR RESOLVIDO
+                    MARCAR PASSADO
                   </Button>
                 )}
               </div>

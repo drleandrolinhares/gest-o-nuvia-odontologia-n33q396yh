@@ -1,0 +1,8 @@
+export const ABSENCE_TYPES = [
+  'FÉRIAS',
+  'VIAGEM',
+  'CURSO',
+  'AUSÊNCIA',
+  'COMPROMISSO DENTISTA',
+  'BLOQUEIO',
+]

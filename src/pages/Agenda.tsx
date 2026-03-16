@@ -20,6 +20,7 @@ import { AgendaCard } from '@/components/agenda/AgendaCard'
 import { AgendaAddDialog } from '@/components/agenda/AgendaAddDialog'
 import { AgendaDetailsDialog } from '@/components/agenda/AgendaDetailsDialog'
 import { DentistAbsenceDialog } from '@/components/agenda/DentistAbsenceDialog'
+import { ABSENCE_TYPES } from '@/lib/constants'
 
 export default function Agenda() {
   const {
@@ -39,9 +40,9 @@ export default function Agenda() {
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null)
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
-  const [taskView, setTaskView] = useState<'PARA MIM' | 'DELEGADOS' | 'COMPROMISSOS' | 'TUDO'>(
-    'PARA MIM',
-  )
+  const [taskView, setTaskView] = useState<
+    'PARA MIM' | 'DELEGADOS' | 'COMPROMISSOS' | 'AUSÊNCIAS' | 'TUDO'
+  >('PARA MIM')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
 
@@ -59,8 +60,8 @@ export default function Agenda() {
 
   const filteredAgenda = allAgendaItems
     .filter((item) => {
-      // If COMPROMISSOS, we ignore calendar selection entirely for indefinite future display
-      if (taskView === 'COMPROMISSOS') return true
+      // If COMPROMISSOS or AUSÊNCIAS, we ignore calendar selection entirely for indefinite future display
+      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS') return true
 
       if (!selectedDate) return true
       const itemDate = parseISO(item.date)
@@ -70,8 +71,8 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
-      // Enforce date >= today for the COMPROMISSOS tab view
-      if (taskView === 'COMPROMISSOS') {
+      // Enforce date >= today for the COMPROMISSOS and AUSÊNCIAS tab view
+      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS') {
         const todayStr = format(new Date(), 'yyyy-MM-dd')
         return item.date >= todayStr
       }
@@ -88,12 +89,20 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
-      if (taskView === 'COMPROMISSOS') return true
       if (taskView === 'TUDO') return true
       if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
 
+      if (taskView === 'COMPROMISSOS') {
+        return !ABSENCE_TYPES.includes(item.type.toUpperCase())
+      }
+
+      if (taskView === 'AUSÊNCIAS') {
+        return ABSENCE_TYPES.includes(item.type.toUpperCase())
+      }
+
       // PARA MIM
-      if (item.type === 'COMPROMISSO DENTISTA' && item.assignedTo !== currentUserId) return false
+      if (ABSENCE_TYPES.includes(item.type.toUpperCase()) && item.assignedTo !== currentUserId)
+        return false
       return item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
     })
     .sort(
@@ -272,9 +281,15 @@ export default function Agenda() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="COMPROMISSOS"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-rose-600 data-[state=active]:text-rose-700 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
                   COMPROMISSOS
+                </TabsTrigger>
+                <TabsTrigger
+                  value="AUSÊNCIAS"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-rose-600 data-[state=active]:text-rose-700 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                >
+                  AUSÊNCIAS
                 </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger
@@ -291,7 +306,11 @@ export default function Agenda() {
           <div className="grid gap-3 pt-2">
             {filteredAgenda.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50">
-                NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.
+                {taskView === 'COMPROMISSOS'
+                  ? 'NENHUM COMPROMISSO FUTURO ENCONTRADO PARA OS FILTROS SELECIONADOS.'
+                  : taskView === 'AUSÊNCIAS'
+                    ? 'NENHUMA AUSÊNCIA AGENDADA PARA OS FILTROS SELECIONADOS.'
+                    : 'NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.'}
               </div>
             ) : (
               filteredAgenda.map((item) => (
