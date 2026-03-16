@@ -152,6 +152,7 @@ export type Database = {
           hourly_cost_fixed_items: Json | null
           hourly_cost_monthly_hours: number | null
           id: string
+          negotiation_settings: Json | null
           predicted_loss_percentage: number | null
         }
         Insert: {
@@ -164,6 +165,7 @@ export type Database = {
           hourly_cost_fixed_items?: Json | null
           hourly_cost_monthly_hours?: number | null
           id?: string
+          negotiation_settings?: Json | null
           predicted_loss_percentage?: number | null
         }
         Update: {
@@ -176,6 +178,7 @@ export type Database = {
           hourly_cost_fixed_items?: Json | null
           hourly_cost_monthly_hours?: number | null
           id?: string
+          negotiation_settings?: Json | null
           predicted_loss_percentage?: number | null
         }
         Relationships: []
@@ -1308,6 +1311,7 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: now())
 //   predicted_loss_percentage: numeric (nullable, default: 20)
 //   evaluation_factor_percentage: numeric (nullable, default: 15)
+//   negotiation_settings: jsonb (nullable, default: '{"ranges": [{"max": 2999.99, "min": 1000, "maxInstallments": 4}, {"max": 4999.99, "min": 3000, "maxInstallments": 8}, {"max": 7999.99, "min": 5000, "maxInstallments": 12}, {"max": 11999.99, "min": 8000, "maxInstallments": 18}, {"max": 9999999, "min": 12000, "maxInstallments": 24}], "defaultEntryPercentage": 30}'::jsonb)
 // Table: audit_logs
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (nullable)

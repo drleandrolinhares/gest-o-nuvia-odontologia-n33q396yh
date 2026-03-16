@@ -204,6 +204,12 @@ export type FixedExpense = {
 export type NegotiationSettings = {
   ranges: { min: number; max: number; maxInstallments: number }[]
   defaultEntryPercentage: number
+  discounts?: {
+    level1: number
+    level2: number
+    level3: number
+    level4: number
+  }
 }
 export type AppSettings = {
   id: string
@@ -587,6 +593,12 @@ const defaultNegotiationSettings: NegotiationSettings = {
     { min: 12000, max: 9999999, maxInstallments: 24 },
   ],
   defaultEntryPercentage: 30,
+  discounts: {
+    level1: 15,
+    level2: 5,
+    level3: 3,
+    level4: 0,
+  },
 }
 
 const mAppSet = (d: any): AppSettings => ({
@@ -613,7 +625,13 @@ const mAppSet = (d: any): AppSettings => ({
       }))
     : [],
   hourly_cost_monthly_hours: Number(d.hourly_cost_monthly_hours) || 160,
-  negotiation_settings: d.negotiation_settings || defaultNegotiationSettings,
+  negotiation_settings: d.negotiation_settings
+    ? {
+        ...defaultNegotiationSettings,
+        ...d.negotiation_settings,
+        discounts: d.negotiation_settings.discounts || defaultNegotiationSettings.discounts,
+      }
+    : defaultNegotiationSettings,
 })
 
 const mPrice = (d: any): PriceItem => ({

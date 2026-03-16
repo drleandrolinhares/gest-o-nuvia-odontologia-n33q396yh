@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,12 +12,14 @@ import {
 } from '@/components/ui/table'
 import useAppStore from '@/stores/main'
 import { formatCurrency, cn } from '@/lib/utils'
-import { Calculator, Percent, DollarSign, ListOrdered } from 'lucide-react'
+import { Calculator, Percent, DollarSign, ListOrdered, AlertCircle } from 'lucide-react'
 
 export function NegotiationSimulator() {
   const { appSettings } = useAppStore()
 
-  const defaultPercentage = appSettings?.negotiation_settings?.defaultEntryPercentage || 30
+  const settings = appSettings?.negotiation_settings
+  const defaultPercentage = settings?.defaultEntryPercentage ?? 30
+  const discounts = settings?.discounts || { level1: 15, level2: 5, level3: 3, level4: 0 }
 
   const [totalValueText, setTotalValueText] = useState<string>('')
   const [entryPercentageText, setEntryPercentageText] = useState<string>(
@@ -29,24 +31,27 @@ export function NegotiationSimulator() {
     parseFloat(entryPercentageText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0
 
   const activeRange = useMemo(() => {
-    const ranges = appSettings?.negotiation_settings?.ranges || []
+    const ranges = settings?.ranges || []
     return (
       ranges.find((r) => totalValue >= r.min && totalValue <= r.max) ||
-      (totalValue > (ranges[ranges.length - 1]?.max || 0) ? ranges[ranges.length - 1] : ranges[0])
+      (totalValue > (ranges[ranges.length - 1]?.max || 0) ? ranges[ranges.length - 1] : null)
     )
-  }, [totalValue, appSettings])
+  }, [totalValue, settings])
 
-  const maxInstallments = activeRange?.maxInstallments || 4
+  const maxInstallments = activeRange?.maxInstallments || 0
 
-  const getDiscountPercentage = (installment: number) => {
-    if (installment === 0) return 15
-    if (installment <= 2) return 5
-    if (installment <= 4) return 3
-    return 0
-  }
+  const getDiscountPercentage = useCallback(
+    (installment: number) => {
+      if (installment === 0) return discounts.level1
+      if (installment <= 2) return discounts.level2
+      if (installment <= 4) return discounts.level3
+      return discounts.level4
+    },
+    [discounts],
+  )
 
   const results = useMemo(() => {
-    if (totalValue <= 0) return []
+    if (totalValue < 1000) return []
 
     const options = []
 
@@ -63,6 +68,7 @@ export function NegotiationSimulator() {
       finalVal: aVistaFinalVal,
       entryVal: aVistaFinalVal,
       installmentVal: 0,
+      level: 1,
     })
 
     // Installment options
@@ -76,6 +82,10 @@ export function NegotiationSimulator() {
       const remaining = finalVal - entryVal
       const installmentVal = remaining / i
 
+      let level = 4
+      if (i <= 2) level = 2
+      else if (i <= 4) level = 3
+
       options.push({
         installments: i,
         label: `ENTRADA + ${i}X`,
@@ -84,11 +94,12 @@ export function NegotiationSimulator() {
         finalVal,
         entryVal,
         installmentVal,
+        level,
       })
     }
 
     return options
-  }, [totalValue, entryPercentage, maxInstallments])
+  }, [totalValue, entryPercentage, maxInstallments, getDiscountPercentage])
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '')
@@ -99,6 +110,33 @@ export function NegotiationSimulator() {
       })
     }
     setTotalValueText(value)
+  }
+
+  const getRowStyle = (level: number) => {
+    switch (level) {
+      case 1:
+        return 'bg-blue-100 hover:bg-blue-100/80 font-bold border-b-blue-200'
+      case 2:
+        return 'bg-slate-700 hover:bg-slate-800 text-white border-b-slate-600'
+      case 3:
+        return 'bg-amber-100 hover:bg-amber-200/80 font-semibold border-b-amber-200 text-amber-950'
+      default:
+        return 'bg-white hover:bg-slate-50'
+    }
+  }
+
+  const getBadgeStyle = (level: number, pct: number) => {
+    if (pct === 0) return 'bg-slate-100 text-slate-500'
+    switch (level) {
+      case 1:
+        return 'bg-blue-200 text-blue-900'
+      case 2:
+        return 'bg-slate-600 text-white'
+      case 3:
+        return 'bg-amber-200 text-amber-900'
+      default:
+        return 'bg-emerald-100 text-emerald-800'
+    }
   }
 
   return (
@@ -149,7 +187,20 @@ export function NegotiationSimulator() {
             </div>
           </div>
 
-          {totalValue > 0 && activeRange && (
+          {totalValue > 0 && totalValue < 1000 && (
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold text-red-700 mb-1">VALOR MÍNIMO</p>
+                <p className="text-xs font-medium text-red-600">
+                  O SIMULADOR REQUER UM VALOR DE TRATAMENTO IGUAL OU SUPERIOR A R$ 1.000,00 PARA
+                  EXIBIR AS OPÇÕES.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {totalValue >= 1000 && activeRange && (
             <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 flex items-start gap-3">
               <ListOrdered className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div>
@@ -182,19 +233,21 @@ export function NegotiationSimulator() {
           {results.length === 0 ? (
             <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-3">
               <Calculator className="h-10 w-10 text-slate-300" />
-              <p className="font-bold text-sm">INFORME O VALOR DO TRATAMENTO PARA SIMULAR</p>
+              <p className="font-bold text-sm">
+                {totalValue > 0
+                  ? 'INFORME UM VALOR ACIMA DE R$ 1.000,00'
+                  : 'INFORME O VALOR DO TRATAMENTO PARA SIMULAR'}
+              </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
-                  <TableHead className="font-black text-slate-700 w-[160px]">OPÇÃO</TableHead>
+                  <TableHead className="font-black text-slate-700 w-[160px]">FORMA</TableHead>
                   <TableHead className="font-black text-slate-700 text-center w-[100px]">
-                    DESCONTO
+                    DESC. %
                   </TableHead>
-                  <TableHead className="font-black text-slate-700 text-right">
-                    VALOR DESC.
-                  </TableHead>
+                  <TableHead className="font-black text-slate-700 text-right">DESCONTO</TableHead>
                   <TableHead className="font-black text-slate-700 text-right">
                     VALOR FINAL
                   </TableHead>
@@ -205,32 +258,18 @@ export function NegotiationSimulator() {
               <TableBody>
                 {results.map((res) => {
                   const isAVista = res.installments === 0
-                  const isShortTerm = res.installments === 1 || res.installments === 2
 
                   return (
                     <TableRow
                       key={res.installments}
-                      className={cn(
-                        'transition-colors',
-                        isAVista
-                          ? 'bg-blue-100 hover:bg-blue-100/80 font-bold border-b-blue-200'
-                          : isShortTerm
-                            ? 'bg-slate-700 hover:bg-slate-800 text-white border-b-slate-600'
-                            : 'bg-white hover:bg-slate-50',
-                      )}
+                      className={cn('transition-colors', getRowStyle(res.level))}
                     >
                       <TableCell className="font-black whitespace-nowrap">{res.label}</TableCell>
                       <TableCell className="text-center">
                         <span
                           className={cn(
                             'inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black',
-                            isAVista
-                              ? 'bg-blue-200 text-blue-900'
-                              : isShortTerm
-                                ? 'bg-slate-600 text-white'
-                                : res.discountPct > 0
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-slate-100 text-slate-500',
+                            getBadgeStyle(res.level, res.discountPct),
                           )}
                         >
                           {res.discountPct}%
@@ -240,10 +279,7 @@ export function NegotiationSimulator() {
                         {formatCurrency(res.discountVal)}
                       </TableCell>
                       <TableCell
-                        className={cn(
-                          'text-right font-black',
-                          !isAVista && !isShortTerm && 'text-primary',
-                        )}
+                        className={cn('text-right font-black', res.level === 4 && 'text-primary')}
                       >
                         {formatCurrency(res.finalVal)}
                       </TableCell>

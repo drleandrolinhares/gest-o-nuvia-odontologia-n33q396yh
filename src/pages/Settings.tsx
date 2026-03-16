@@ -4,10 +4,11 @@ import { SuppliersManagement } from '@/components/settings/SuppliersManagement'
 import { UsersList } from '@/components/settings/UsersList'
 import { BonusSettings } from '@/components/settings/BonusSettings'
 import { InventorySettings } from '@/components/settings/InventorySettings'
+import { NegotiationSettingsPanel } from '@/components/settings/NegotiationSettingsPanel'
 import useAppStore from '@/stores/main'
 
 export default function Settings() {
-  const { isMaster } = useAppStore()
+  const { isMaster, isAdmin } = useAppStore()
 
   return (
     <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
@@ -19,7 +20,7 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="geral" className="w-full">
-        <TabsList className="mb-6 flex flex-wrap w-full max-w-4xl h-auto">
+        <TabsList className="mb-6 flex flex-wrap w-full max-w-5xl h-auto">
           <TabsTrigger value="geral" className="py-2 px-4 flex-1 font-bold tracking-widest">
             GERAL
           </TabsTrigger>
@@ -35,6 +36,11 @@ export default function Settings() {
           {isMaster && (
             <TabsTrigger value="estoque" className="py-2 px-4 flex-1 font-bold tracking-widest">
               ESTOQUE
+            </TabsTrigger>
+          )}
+          {isAdmin && (
+            <TabsTrigger value="negociacao" className="py-2 px-4 flex-1 font-bold tracking-widest">
+              SIMULADOR
             </TabsTrigger>
           )}
         </TabsList>
@@ -58,6 +64,12 @@ export default function Settings() {
         {isMaster && (
           <TabsContent value="estoque">
             <InventorySettings />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="negociacao">
+            <NegotiationSettingsPanel />
           </TabsContent>
         )}
       </Tabs>
