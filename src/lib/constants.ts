@@ -1,1 +1,1 @@
-export const ABSENCE_TYPES = ['VIAGEM', 'CURSO', 'AUSÊNCIA', 'COMPROMISSO DENTISTA', 'BLOQUEIO']
+export const ABSENCE_TYPES = ['manual_absence']

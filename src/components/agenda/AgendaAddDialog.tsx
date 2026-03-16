@@ -24,6 +24,7 @@ import { CalendarDays, Check, ChevronsUpDown } from 'lucide-react'
 import { Employee } from '@/stores/main'
 import { cn } from '@/lib/utils'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
+import { isBefore } from 'date-fns'
 
 interface Props {
   open: boolean
@@ -45,6 +46,7 @@ export function AgendaAddDialog({
   const [title, setTitle] = useState('')
   const [type, setType] = useState('')
   const [date, setDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [time, setTime] = useState('')
   const [location, setLocation] = useState('')
   const [assignedTo, setAssignedTo] = useState('none')
@@ -59,6 +61,7 @@ export function AgendaAddDialog({
     setTitle('')
     setType('')
     setDate('')
+    setEndDate('')
     setTime('')
     setLocation('')
     setAssignedTo('none')
@@ -69,9 +72,18 @@ export function AgendaAddDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (title && date && time && location && type) {
+      const start = new Date(`${date}T00:00:00`)
+      const end = endDate ? new Date(`${endDate}T00:00:00`) : start
+
+      if (endDate && isBefore(end, start)) {
+        alert('A data final não pode ser anterior à data de início.')
+        return
+      }
+
       onAdd({
         title: title.toUpperCase(),
         date,
+        end_date: endDate || date,
         time,
         type,
         location: location.toUpperCase(),
@@ -197,27 +209,40 @@ export function AgendaAddDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">DATA LIMITE *</label>
+              <label className="text-xs font-semibold text-muted-foreground">DATA INÍCIO *</label>
               <DatePickerInput
                 value={date}
-                onChange={(val) => setDate((val as string) || '')}
+                onChange={(val) => {
+                  setDate((val as string) || '')
+                  if (!endDate) setEndDate((val as string) || '')
+                }}
                 className="uppercase"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground">HORÁRIO *</label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+              <label className="text-xs font-semibold text-muted-foreground">DATA FINAL</label>
+              <DatePickerInput
+                value={endDate}
+                onChange={(val) => setEndDate((val as string) || '')}
+                className="uppercase"
+              />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-muted-foreground">LOCAL *</label>
-            <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              required
-              placeholder="SALA 1, ONLINE, ETC."
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">HORÁRIO *</label>
+              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-muted-foreground">LOCAL *</label>
+              <Input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
+                placeholder="SALA 1, ONLINE, ETC."
+              />
+            </div>
           </div>
 
           <div className="pt-4 border-t border-muted">

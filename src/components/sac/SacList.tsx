@@ -21,6 +21,8 @@ import {
   CheckCircle,
   MessageSquareWarning,
   Lightbulb,
+  User,
+  ArrowRight,
 } from 'lucide-react'
 import { SacFormModal } from './SacFormModal'
 import { SacStatusSelect } from './SacStatusSelect'
@@ -99,7 +101,8 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
   }
 
   const getEmpName = (id?: string) => {
-    return employees.find((e) => e.id === id)?.name || 'N/A'
+    if (!id || id === 'none') return 'SISTEMA'
+    return employees.find((e) => e.id === id)?.name || 'SISTEMA'
   }
 
   const filteredRecords = sacRecords
@@ -161,7 +164,7 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
           <TableHeader>
             <TableRow className="bg-[#0A192F] hover:bg-[#0A192F]">
               <TableHead className="font-bold text-[#D4AF37] uppercase">TIPO / PACIENTE</TableHead>
-              <TableHead className="font-bold text-[#D4AF37] uppercase">RECEPTOR / RESP.</TableHead>
+              <TableHead className="font-bold text-[#D4AF37] uppercase">RESPONSABILIDADE</TableHead>
               <TableHead className="font-bold text-[#D4AF37] uppercase">SETOR</TableHead>
               <TableHead className="font-bold text-[#D4AF37] uppercase">DATAS / SLA</TableHead>
               <TableHead className="font-bold text-[#D4AF37] uppercase">STATUS</TableHead>
@@ -192,24 +195,14 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col gap-1 text-[11px] font-bold text-slate-600">
-                      <span className="flex items-center gap-1">
-                        <span className="text-slate-400 w-12 shrink-0">REC:</span>
-                        <span
-                          className="uppercase truncate max-w-[120px]"
-                          title={getEmpName(item.receiving_employee_id)}
-                        >
-                          {getEmpName(item.receiving_employee_id)}
-                        </span>
+                    <div className="flex items-center gap-1.5 text-[#D4AF37] bg-[#0A192F] px-2 py-1 rounded-md border border-[#D4AF37]/30 font-bold uppercase tracking-widest text-[9px] w-fit shadow-sm max-w-[200px] overflow-hidden">
+                      <User className="h-3 w-3 shrink-0" />
+                      <span className="truncate" title={getEmpName(item.receiving_employee_id)}>
+                        {getEmpName(item.receiving_employee_id).split(' ')[0]}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <span className="text-slate-400 w-12 shrink-0">RESP:</span>
-                        <span
-                          className="uppercase text-indigo-700 truncate max-w-[120px]"
-                          title={getEmpName(item.responsible_employee_id)}
-                        >
-                          {getEmpName(item.responsible_employee_id)}
-                        </span>
+                      <ArrowRight className="h-3 w-3 opacity-60 text-[#D4AF37] shrink-0 mx-0.5" />
+                      <span className="truncate" title={getEmpName(item.responsible_employee_id)}>
+                        {getEmpName(item.responsible_employee_id).split(' ')[0]}
                       </span>
                     </div>
                   </TableCell>

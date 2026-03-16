@@ -13,7 +13,16 @@ import { Switch } from '@/components/ui/switch'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, UserMinus } from 'lucide-react'
-import { isSameDay, isSameWeek, isSameMonth, parseISO, format } from 'date-fns'
+import {
+  isSameDay,
+  isSameWeek,
+  isSameMonth,
+  parseISO,
+  format,
+  startOfDay,
+  endOfDay,
+  eachDayOfInterval,
+} from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { AgendaCard } from '@/components/agenda/AgendaCard'
@@ -51,6 +60,7 @@ export default function Agenda() {
   )
   const [agendaFilterValue, setAgendaFilterValue] = useState<string>('all')
   const [showCompleted, setShowCompleted] = useState(false)
+  const [showOpenOnly, setShowOpenOnly] = useState(false)
 
   const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
 
@@ -60,22 +70,45 @@ export default function Agenda() {
 
   const filteredAgenda = allAgendaItems
     .filter((item) => {
+      if (showOpenOnly) {
+        if (item.is_completed) return false
+        if (!isAdmin && item.assignedTo !== currentUserId && item.requester_id !== currentUserId)
+          return false
+        return true
+      }
+
       // If COMPROMISSOS or AUSÊNCIAS or ALERTAS, we ignore calendar selection entirely for indefinite future display
       if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS' || taskView === 'ALERTAS')
         return true
 
       if (!selectedDate) return true
-      const itemDate = parseISO(item.date)
-      if (filterView === 'DIA') return isSameDay(itemDate, selectedDate)
-      if (filterView === 'SEMANA') return isSameWeek(itemDate, selectedDate, { weekStartsOn: 0 })
-      if (filterView === 'MES') return isSameMonth(itemDate, selectedDate)
+      const startD = parseISO(item.date)
+      const endD = parseISO(item.end_date || item.date)
+
+      if (filterView === 'DIA') {
+        return selectedDate >= startOfDay(startD) && selectedDate <= endOfDay(endD)
+      }
+      if (filterView === 'SEMANA')
+        return (
+          isSameWeek(startD, selectedDate, { weekStartsOn: 0 }) ||
+          isSameWeek(endD, selectedDate, { weekStartsOn: 0 }) ||
+          (startD <= selectedDate && endD >= selectedDate)
+        )
+      if (filterView === 'MES')
+        return (
+          isSameMonth(startD, selectedDate) ||
+          isSameMonth(endD, selectedDate) ||
+          (startD <= selectedDate && endD >= selectedDate)
+        )
       return true
     })
     .filter((item) => {
+      if (showOpenOnly) return true
+
       // Enforce date >= today for these tab views
       if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS' || taskView === 'ALERTAS') {
         const todayStr = format(new Date(), 'yyyy-MM-dd')
-        return item.date >= todayStr
+        return item.date >= todayStr || (item.end_date && item.end_date >= todayStr)
       }
       return true
     })
@@ -90,26 +123,35 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
+      if (showOpenOnly) return true
+
       if (taskView === 'TUDO') return true
       if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
 
-      const isAlert = item.type === 'BÔNUS' || item.type === 'FÉRIAS' || item.type === 'SAC'
+      const isAlert = ['BÔNUS', 'FÉRIAS', 'SAC'].includes(item.type.toUpperCase())
 
       if (taskView === 'ALERTAS') {
         return isAlert
       }
 
       if (taskView === 'COMPROMISSOS') {
-        return !ABSENCE_TYPES.includes(item.type.toUpperCase()) && !isAlert
+        return (
+          !ABSENCE_TYPES.includes(item.type.toLowerCase()) &&
+          item.type !== 'manual_absence' &&
+          !isAlert
+        )
       }
 
       if (taskView === 'AUSÊNCIAS') {
-        return ABSENCE_TYPES.includes(item.type.toUpperCase()) && !isAlert
+        return item.type === 'manual_absence' || ABSENCE_TYPES.includes(item.type.toLowerCase())
       }
 
       // PARA MIM
       if (isAlert && item.assignedTo !== currentUserId) return false
-      if (ABSENCE_TYPES.includes(item.type.toUpperCase()) && item.assignedTo !== currentUserId)
+      if (
+        (item.type === 'manual_absence' || ABSENCE_TYPES.includes(item.type.toLowerCase())) &&
+        item.assignedTo !== currentUserId
+      )
         return false
       return item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
     })
@@ -119,7 +161,26 @@ export default function Agenda() {
     )
 
   const datesWithPendingEvents = useMemo(() => {
-    return agenda.filter((a) => !a.is_completed).map((item) => parseISO(item.date))
+    return agenda
+      .filter((a) => !a.is_completed && a.date === (a.end_date || a.date))
+      .map((item) => parseISO(item.date))
+  }, [agenda])
+
+  const multiDayDates = useMemo(() => {
+    const dates: Date[] = []
+    agenda
+      .filter((a) => !a.is_completed)
+      .forEach((item) => {
+        const start = parseISO(item.date)
+        const end = parseISO(item.end_date || item.date)
+        if (start < end) {
+          try {
+            const interval = eachDayOfInterval({ start, end })
+            dates.push(...interval)
+          } catch (e) {}
+        }
+      })
+    return dates
   }, [agenda])
 
   const goToToday = () => {
@@ -127,15 +188,16 @@ export default function Agenda() {
     setSelectedDate(today)
     setCalendarMonth(today)
     setFilterView('DIA')
+    setShowOpenOnly(false)
   }
 
   const handleUpdateItem = (id: string, data: Partial<AgendaItem>) => {
     updateAgendaItem(id, data)
-    if (selectedItem?.id === id) setSelectedItem({ ...selectedItem, ...data })
+    if (selectedItem?.id === id) setSelectedItem({ ...selectedItem, ...data } as AgendaItem)
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up uppercase">
+    <div className="space-y-6 animate-fade-in-up uppercase pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">AGENDA E PEDIDOS</h1>
@@ -175,14 +237,21 @@ export default function Agenda() {
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={(day) => day && setSelectedDate(day)}
+            onSelect={(day) => {
+              if (day) {
+                setSelectedDate(day)
+                setShowOpenOnly(false)
+              }
+            }}
             month={calendarMonth}
             onMonthChange={setCalendarMonth}
             locale={ptBR}
-            modifiers={{ booked: datesWithPendingEvents }}
+            modifiers={{ booked: datesWithPendingEvents, multiDay: multiDayDates }}
             modifiersClassNames={{
               booked:
                 'relative font-bold text-primary after:content-[""] after:absolute after:bottom-1.5 after:left-1/2 after:-translate-x-1/2 after:h-1.5 after:w-1.5 after:bg-primary after:rounded-full',
+              multiDay:
+                'relative font-bold before:content-[""] before:absolute before:bottom-0 before:left-0 before:right-0 before:h-1 before:bg-[#D4AF37] before:rounded-b-sm',
             }}
             className="w-full mx-auto pb-4"
           />
@@ -192,7 +261,10 @@ export default function Agenda() {
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-muted/30 p-2 rounded-lg border">
             <Tabs
               value={filterView}
-              onValueChange={(v) => setFilterView(v as any)}
+              onValueChange={(v) => {
+                setFilterView(v as any)
+                setShowOpenOnly(false)
+              }}
               className="w-full xl:w-auto"
             >
               <TabsList className="grid grid-cols-3 w-full xl:w-[250px]">
@@ -203,6 +275,21 @@ export default function Agenda() {
             </Tabs>
 
             <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto flex-1 justify-end">
+              <div className="flex items-center space-x-2 bg-amber-50 border border-amber-200 text-amber-900 px-3 py-2 rounded-md h-10 transition-colors">
+                <Switch
+                  checked={showOpenOnly}
+                  onCheckedChange={setShowOpenOnly}
+                  id="show-open"
+                  className="data-[state=checked]:bg-amber-500"
+                />
+                <label
+                  htmlFor="show-open"
+                  className="text-xs font-bold cursor-pointer whitespace-nowrap"
+                >
+                  EM ABERTO (TUDO)
+                </label>
+              </div>
+
               <div className="flex items-center space-x-2 bg-background border px-3 py-2 rounded-md h-10">
                 <Switch
                   checked={showCompleted}
@@ -270,8 +357,11 @@ export default function Agenda() {
 
           <div className="flex justify-start overflow-x-auto custom-scrollbar border-b">
             <Tabs
-              value={taskView}
-              onValueChange={(v) => setTaskView(v as any)}
+              value={showOpenOnly ? 'TUDO' : taskView}
+              onValueChange={(v) => {
+                setTaskView(v as any)
+                setShowOpenOnly(false)
+              }}
               className="w-full sm:w-auto min-w-max"
             >
               <TabsList className="bg-transparent rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
@@ -320,13 +410,15 @@ export default function Agenda() {
           <div className="grid gap-3 pt-2">
             {filteredAgenda.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50">
-                {taskView === 'COMPROMISSOS'
-                  ? 'NENHUM COMPROMISSO FUTURO ENCONTRADO PARA OS FILTROS SELECIONADOS.'
-                  : taskView === 'AUSÊNCIAS'
-                    ? 'NENHUMA AUSÊNCIA AGENDADA PARA OS FILTROS SELECIONADOS.'
-                    : taskView === 'ALERTAS'
-                      ? 'NENHUM ALERTA DE SISTEMA ENCONTRADO PARA OS FILTROS SELECIONADOS.'
-                      : 'NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.'}
+                {showOpenOnly
+                  ? 'NENHUMA TAREFA PENDENTE ENCONTRADA.'
+                  : taskView === 'COMPROMISSOS'
+                    ? 'NENHUM COMPROMISSO ENCONTRADO PARA OS FILTROS SELECIONADOS.'
+                    : taskView === 'AUSÊNCIAS'
+                      ? 'NENHUMA AUSÊNCIA AGENDADA PARA OS FILTROS SELECIONADOS.'
+                      : taskView === 'ALERTAS'
+                        ? 'NENHUM ALERTA DE SISTEMA ENCONTRADO PARA OS FILTROS SELECIONADOS.'
+                        : 'NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.'}
               </div>
             ) : (
               filteredAgenda.map((item) => (

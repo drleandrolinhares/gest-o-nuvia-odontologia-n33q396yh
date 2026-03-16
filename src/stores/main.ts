@@ -112,6 +112,7 @@ export type AgendaItem = {
   id: string
   title: string
   date: string
+  end_date?: string
   time: string
   location: string
   type: string
@@ -454,6 +455,8 @@ const mockAgendaTypes = [
   'CONSULTA',
   'REUNIÃO',
   'VIAGEM',
+  'CURSO',
+  'AUSÊNCIA',
   'LEMBRETE',
   'AUDITORIA',
   'COMISSÃO',
@@ -530,6 +533,7 @@ const mAg = (d: any): AgendaItem => ({
   id: d.id,
   title: d.title,
   date: d.date,
+  end_date: d.end_date || d.date,
   time: d.time,
   location: d.location,
   type: d.type,
@@ -672,7 +676,6 @@ const mSac = (d: any): SacRecord => ({
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 const checkAuthError = (err: any) => {
-  // Prevent any accidental global redirects on 400/PGRST204 (Bad Request / Column Not Found)
   if (err?.status === 400 || err?.code === 'PGRST204') {
     return false
   }
@@ -1942,6 +1945,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           {
             title: i.title,
             date: i.date,
+            end_date: i.end_date || i.date,
             time: i.time,
             location: i.location,
             type: i.type,
@@ -1976,6 +1980,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const payload: any = {}
       if (i.title !== undefined) payload.title = i.title
       if (i.date !== undefined) payload.date = i.date
+      if (i.end_date !== undefined) payload.end_date = i.end_date
       if (i.time !== undefined) payload.time = i.time
       if (i.location !== undefined) payload.location = i.location
       if (i.type !== undefined) payload.type = i.type

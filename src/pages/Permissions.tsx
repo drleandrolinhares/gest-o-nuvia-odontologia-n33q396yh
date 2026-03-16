@@ -280,7 +280,7 @@ export default function Permissions() {
                   className="h-10 px-3 text-[#D4AF37] hover:bg-[#D4AF37]/20 disabled:opacity-30"
                   title="Espelhar permissões"
                 >
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4 mr-2" /> COPIAR
                 </Button>
               </div>
             )}

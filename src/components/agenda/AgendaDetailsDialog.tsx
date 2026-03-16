@@ -32,7 +32,8 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
     item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
 
   const isSac = item.type === 'SAC'
-  const isAbsence = ABSENCE_TYPES.includes(item.type.toUpperCase())
+  const isAbsence =
+    ABSENCE_TYPES.includes(item.type.toLowerCase()) || item.type === 'manual_absence'
   const sacRecord =
     isSac && item.sac_record_id ? sacRecords.find((s) => s.id === item.sac_record_id) : null
 
@@ -46,9 +47,10 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
     return item.createdBy || 'SISTEMA'
   }
 
-  const formatDt = (iso?: string) => {
+  const formatDt = (iso?: string, justDate = false) => {
     if (!iso) return ''
     const d = new Date(iso)
+    if (justDate) return d.toLocaleDateString('pt-BR')
     return `${d.toLocaleDateString('pt-BR')} ÀS ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
   }
 
@@ -64,7 +66,9 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
           <div>
             <h3 className="text-xl font-bold text-foreground leading-tight">{item.title}</h3>
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="outline">{item.type}</Badge>
+              <Badge variant="outline">
+                {item.type === 'manual_absence' ? 'AUSÊNCIA' : item.type}
+              </Badge>
               {item.is_completed && (
                 <Badge className="bg-emerald-100 text-emerald-800">CONCLUÍDO</Badge>
               )}
@@ -72,16 +76,18 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
           </div>
 
           <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg border shadow-sm">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 col-span-2 sm:col-span-1">
               <CalendarIcon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold text-muted-foreground">DATA</p>
+                <p className="text-xs font-bold text-muted-foreground">DATA(S)</p>
                 <p className="text-sm font-medium">
-                  {new Date(item.date).toLocaleDateString('pt-BR')}
+                  {item.date !== item.end_date
+                    ? `${formatDt(item.date, true)} A ${formatDt(item.end_date, true)}`
+                    : formatDt(item.date, true)}
                 </p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 col-span-2 sm:col-span-1">
               <Clock className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-muted-foreground">HORÁRIO</p>
@@ -96,13 +102,16 @@ export function AgendaDetailsDialog({ item, onClose, onUpdate, employees, curren
               </div>
             </div>
             <div className="flex items-start gap-3 col-span-2 pt-2 border-t border-muted/50">
-              <User className="h-5 w-5 text-indigo-500 shrink-0 mt-0.5" />
+              <User className="h-5 w-5 text-[#D4AF37] shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold text-muted-foreground">FLUXO DE RESPONSABILIDADE</p>
-                <p className="text-xs font-bold flex items-center gap-1.5 text-indigo-700 mt-1 bg-indigo-50 px-2 py-1 rounded w-fit border border-indigo-100">
-                  DE: {getRequesterName()} <ArrowRight className="h-3 w-3 opacity-50" /> PARA:{' '}
-                  {getEmpName(item.assignedTo)}
+                <p className="text-xs font-bold text-muted-foreground mb-1">
+                  FLUXO DE RESPONSABILIDADE
                 </p>
+                <div className="flex items-center gap-1.5 text-[#D4AF37] bg-[#0A192F] px-2.5 py-1.5 rounded-md border border-[#D4AF37]/30 font-bold uppercase tracking-widest text-[11px] w-fit shadow-sm">
+                  {getRequesterName()}{' '}
+                  <ArrowRight className="h-3.5 w-3.5 opacity-70 text-[#D4AF37]" />{' '}
+                  {getEmpName(item.assignedTo)}
+                </div>
               </div>
             </div>
           </div>

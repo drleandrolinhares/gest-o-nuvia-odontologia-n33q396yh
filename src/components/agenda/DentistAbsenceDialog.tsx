@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select'
 import { UserMinus } from 'lucide-react'
 import { Employee } from '@/stores/main'
-import { format, isBefore, eachDayOfInterval } from 'date-fns'
+import { format, isBefore } from 'date-fns'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
 
 interface Props {
@@ -46,7 +46,6 @@ export function DentistAbsenceDialog({
   const [location, setLocation] = useState('')
 
   const currentUser = employees.find((e) => e.id === currentUserId)
-  // Only dentists (filtering by role/category if needed, but for now we list active)
   const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
 
   useEffect(() => {
@@ -90,23 +89,20 @@ export function DentistAbsenceDialog({
       const baseTitle = title.trim() ? title.toUpperCase() : 'AUSÊNCIA'
       const finalTitle = `${baseTitle} - ${period}`
 
-      const days = eachDayOfInterval({ start, end })
-
-      days.forEach((day) => {
-        onAdd({
-          title: finalTitle,
-          time: timeString,
-          type: 'COMPROMISSO DENTISTA',
-          location: location.toUpperCase(),
-          assignedTo: assignedTo,
-          involvesThirdParty: false,
-          thirdPartyDetails: '',
-          createdBy: currentUser?.name || 'SISTEMA',
-          requester_id: currentUserId,
-          is_completed: false,
-          periodicity: 'ÚNICO',
-          date: format(day, 'yyyy-MM-dd'),
-        })
+      onAdd({
+        title: finalTitle,
+        time: timeString,
+        type: 'manual_absence',
+        location: location.toUpperCase(),
+        assignedTo: assignedTo,
+        involvesThirdParty: false,
+        thirdPartyDetails: '',
+        createdBy: currentUser?.name || 'SISTEMA',
+        requester_id: currentUserId,
+        is_completed: false,
+        periodicity: 'ÚNICO',
+        date: startDate,
+        end_date: finalEndDate,
       })
 
       onOpenChange(false)
@@ -242,7 +238,7 @@ export function DentistAbsenceDialog({
 
           {startDate && endDate && startDate !== endDate && (
             <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-              NOTA: O SISTEMA IRÁ GERAR UM REGISTRO PARA CADA DIA NO INTERVALO SELECIONADO.
+              NOTA: O SISTEMA IRÁ GERAR UM REGISTRO CONTÍNUO PARA O INTERVALO SELECIONADO.
             </p>
           )}
 

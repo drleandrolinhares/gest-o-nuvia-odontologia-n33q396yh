@@ -43,7 +43,8 @@ export function AgendaCard({
   const isRequester = item.requester_id === currentUserId
 
   const isSac = item.type === 'SAC'
-  const isAbsence = ABSENCE_TYPES.includes(item.type.toUpperCase())
+  const isAbsence =
+    ABSENCE_TYPES.includes(item.type.toLowerCase()) || item.type === 'manual_absence'
   const sacRecord =
     isSac && item.sac_record_id ? sacRecords.find((s) => s.id === item.sac_record_id) : null
 
@@ -66,11 +67,14 @@ export function AgendaCard({
     return item.createdBy || 'SISTEMA'
   }
 
-  const formatDt = (iso?: string) => {
+  const formatDt = (iso?: string, justDate = false) => {
     if (!iso) return ''
     const d = new Date(iso)
+    if (justDate) return d.toLocaleDateString('pt-BR')
     return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
   }
+
+  const isMultiDay = item.date !== item.end_date
 
   return (
     <Card
@@ -81,6 +85,9 @@ export function AgendaCard({
           : 'hover:border-primary/40 cursor-pointer',
         needsFollowUp && 'border-amber-300 bg-amber-50/40',
         isAbsence && !item.is_completed && 'border-rose-200 bg-rose-50/40 hover:border-rose-400',
+        isMultiDay && !item.is_completed && !isAbsence
+          ? 'border-l-4 border-l-[#D4AF37] border-y-2 border-y-[#D4AF37]/30 bg-[#D4AF37]/5'
+          : '',
       )}
       onClick={() => !item.is_completed && onSelect(item)}
     >
@@ -99,7 +106,7 @@ export function AgendaCard({
                 </Badge>
               ) : (
                 <Badge className="bg-rose-100 text-rose-800 border-rose-200 text-[10px] uppercase font-bold hover:bg-rose-200">
-                  <UserMinus className="h-3 w-3 mr-1" /> {item.type}
+                  <UserMinus className="h-3 w-3 mr-1" /> AUSÊNCIA
                 </Badge>
               )}
 
@@ -124,27 +131,26 @@ export function AgendaCard({
             >
               {item.title}
             </h3>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2 text-xs font-medium text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mt-2 text-xs font-medium text-muted-foreground">
               <span className="flex items-center gap-1 text-primary">
                 <Clock className="h-3.5 w-3.5" /> {item.time}
               </span>
-              <span className="flex items-center gap-1">
+              <span
+                className={cn('flex items-center gap-1', isMultiDay && 'text-[#0A192F] font-bold')}
+              >
                 <CalendarIcon className="h-3.5 w-3.5" />{' '}
-                {new Date(item.date).toLocaleDateString('pt-BR')}
+                {isMultiDay
+                  ? `${formatDt(item.date, true)} ATÉ ${formatDt(item.end_date, true)}`
+                  : formatDt(item.date, true)}
               </span>
               <span className="flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" /> {item.location}
               </span>
-              <span className="flex items-center gap-1 text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+              <span className="flex items-center gap-1 text-[#D4AF37] bg-[#0A192F] px-2 py-1 rounded border border-[#D4AF37]/30 font-bold uppercase tracking-widest text-[10px] shadow-sm">
                 <User className="h-3 w-3" />
-                {!isAbsence ? (
-                  <>
-                    {getRequesterName()} <ArrowRight className="h-3 w-3 mx-0.5 opacity-50" />{' '}
-                    {getEmpName(item.assignedTo)}
-                  </>
-                ) : (
-                  <span className="font-bold">{getEmpName(item.assignedTo)}</span>
-                )}
+                {getRequesterName()}{' '}
+                <ArrowRight className="h-3 w-3 mx-0.5 opacity-60 text-[#D4AF37]" />{' '}
+                {getEmpName(item.assignedTo)}
               </span>
             </div>
           </div>

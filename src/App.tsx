@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import RH from '@/pages/RH'
@@ -32,11 +32,10 @@ export default function App() {
         <AppProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/force-change-password" element={<ForceChangePassword />} />
               <Route
-                path="/admin"
+                path="/"
                 element={
                   <ProtectedRoute>
                     <ChatProvider>
@@ -45,25 +44,24 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="dashboard" replace />} />
-                <Route path="agenda" element={<Agenda />} />
-                <Route path="dashboard" element={<Index />} />
-                <Route path="chat" element={<Chat />} />
-                <Route path="sac" element={<SAC />} />
-                <Route path="acessos" element={<Acessos />} />
-                <Route path="acessos/:id" element={<AcessoManual />} />
-                <Route path="rh" element={<RH />} />
-                <Route path="rh/colaborador/:id" element={<EmployeeProfile />} />
-                <Route path="rh/escala" element={<WorkSchedule />} />
-                <Route path="estoque" element={<Inventory />} />
-                <Route path="precificacao" element={<Pricing />} />
-                <Route path="operacao/negociacao" element={<Negotiation />} />
-                <Route path="configuracoes" element={<Settings />} />
-                <Route path="permissoes" element={<Permissions />} />
-                <Route path="auditoria" element={<AuditLog />} />
+                <Route index element={<Index />} />
+                <Route path="admin/dashboard" element={<Index />} />
+                <Route path="admin/agenda" element={<Agenda />} />
+                <Route path="admin/chat" element={<Chat />} />
+                <Route path="admin/sac" element={<SAC />} />
+                <Route path="admin/acessos" element={<Acessos />} />
+                <Route path="admin/acessos/:id" element={<AcessoManual />} />
+                <Route path="admin/rh" element={<RH />} />
+                <Route path="admin/rh/colaborador/:id" element={<EmployeeProfile />} />
+                <Route path="admin/rh/escala" element={<WorkSchedule />} />
+                <Route path="admin/estoque" element={<Inventory />} />
+                <Route path="admin/precificacao" element={<Pricing />} />
+                <Route path="admin/operacao/negociacao" element={<Negotiation />} />
+                <Route path="admin/configuracoes" element={<Settings />} />
+                <Route path="admin/permissoes" element={<Permissions />} />
+                <Route path="admin/auditoria" element={<AuditLog />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
-              <Route path="*" element={<NotFound />} />
             </Routes>
           </Router>
           <Toaster />
