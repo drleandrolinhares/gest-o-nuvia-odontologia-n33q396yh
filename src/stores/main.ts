@@ -42,9 +42,9 @@ export type Employee = {
   bonusType?: string
   bonusRules?: string
   bonusDueDate?: string
-  pixNumber?: string
-  pixType?: string
-  bankName?: string
+  pix_number?: string
+  pix_type?: string
+  bank_name?: string
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
 export type OnboardingCandidate = {
@@ -498,9 +498,9 @@ const mEmp = (d: any): Employee => ({
   bonusType: d.bonus_type || '',
   bonusRules: d.bonus_rules || '',
   bonusDueDate: d.bonus_due_date || '',
-  pixNumber: d.pix_number || d.pix_key || '',
-  pixType: d.pix_type || '',
-  bankName: d.bank_name || '',
+  pix_number: d.pix_number || d.pix_key || '',
+  pix_type: d.pix_type || '',
+  bank_name: d.bank_name || '',
 })
 const mInv = (d: any): InventoryItem => ({
   id: d.id,
@@ -1690,9 +1690,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             bonus_type: e.bonusType || '',
             bonus_rules: e.bonusRules || '',
             bonus_due_date: e.bonusDueDate || null,
-            pix_number: e.pixNumber || null,
-            pix_type: e.pixType || null,
-            bank_name: e.bankName || null,
+            pix_number: e.pix_number || null,
+            pix_type: e.pix_type || null,
+            bank_name: e.bank_name || null,
             user_id: userId || null,
           },
         ])
@@ -1795,9 +1795,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.bonusType !== undefined) payload.bonus_type = e.bonusType
       if (e.bonusRules !== undefined) payload.bonus_rules = e.bonusRules
       if (e.bonusDueDate !== undefined) payload.bonus_due_date = e.bonusDueDate || null
-      if (e.pixNumber !== undefined) payload.pix_number = e.pixNumber || null
-      if (e.pixType !== undefined) payload.pix_type = e.pixType || null
-      if (e.bankName !== undefined) payload.bank_name = e.bankName || null
+      if (e.pix_number !== undefined) payload.pix_number = e.pix_number || null
+      if (e.pix_type !== undefined) payload.pix_type = e.pix_type || null
+      if (e.bank_name !== undefined) payload.bank_name = e.bank_name || null
 
       if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal

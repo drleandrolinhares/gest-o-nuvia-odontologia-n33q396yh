@@ -34,9 +34,10 @@ import {
   Key,
   ScrollText,
   Settings,
+  Copy,
+  ShieldAlert,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { Navigate } from 'react-router-dom'
 
 const MODULES = [
   { id: 'DASHBOARD', name: 'Dashboard', icon: LayoutDashboard },
@@ -64,6 +65,7 @@ export default function Permissions() {
   const { toast } = useToast()
 
   const [selectedRole, setSelectedRole] = useState<string>('')
+  const [copyFromRole, setCopyFromRole] = useState<string>('')
   const [formState, setFormState] = useState<Record<string, RolePermission>>({})
   const [isSaving, setIsSaving] = useState(false)
 
@@ -99,7 +101,17 @@ export default function Permissions() {
   }, [selectedRole, rolePermissions])
 
   if (!isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] py-20 uppercase animate-fade-in">
+        <ShieldAlert className="h-16 w-16 text-muted-foreground/50 mb-4" />
+        <h2 className="text-xl font-black text-muted-foreground tracking-widest">
+          Acesso Restrito
+        </h2>
+        <p className="text-sm font-medium text-muted-foreground mt-2">
+          Esta página é exclusiva para administradores.
+        </p>
+      </div>
+    )
   }
 
   const handleCheck = (module: string, field: keyof RolePermission, checked: boolean) => {
@@ -123,6 +135,38 @@ export default function Permissions() {
         can_delete: true,
       },
     }))
+  }
+
+  const handleCopyPermissions = () => {
+    if (!copyFromRole || !selectedRole) return
+    const sourcePermissions = rolePermissions.filter((rp) => rp.role === copyFromRole)
+    const newState = { ...formState }
+    MODULES.forEach((mod) => {
+      const sourcePerm = sourcePermissions.find((rp) => rp.module === mod.id)
+      if (sourcePerm) {
+        newState[mod.id] = {
+          ...newState[mod.id],
+          can_view: sourcePerm.can_view,
+          can_create: sourcePerm.can_create,
+          can_edit: sourcePerm.can_edit,
+          can_delete: sourcePerm.can_delete,
+        }
+      } else {
+        newState[mod.id] = {
+          ...newState[mod.id],
+          can_view: false,
+          can_create: false,
+          can_edit: false,
+          can_delete: false,
+        }
+      }
+    })
+    setFormState(newState)
+    toast({
+      title: 'SUCESSO',
+      description: `Permissões copiadas de ${copyFromRole}. Clique em Salvar para aplicar.`,
+    })
+    setCopyFromRole('')
   }
 
   const handleSave = async () => {
@@ -209,6 +253,38 @@ export default function Permissions() {
           </div>
 
           <div className="w-full xl:w-auto flex flex-col sm:flex-row items-center gap-4 shrink-0">
+            {selectedRole && (
+              <div className="flex items-center gap-2 bg-[#112240]/50 p-1 rounded-lg border border-dashed border-[#D4AF37]/40 w-full sm:w-auto">
+                <Select value={copyFromRole} onValueChange={setCopyFromRole}>
+                  <SelectTrigger className="w-full sm:w-40 h-10 bg-transparent border-none text-[#D4AF37]/80 font-bold tracking-widest uppercase focus:ring-0 text-xs">
+                    <SelectValue placeholder="COPIAR DE..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#112240] border-[#D4AF37]/40 text-slate-100">
+                    {roles
+                      .filter((r) => r.name !== selectedRole)
+                      .map((r) => (
+                        <SelectItem
+                          key={r.id}
+                          value={r.name}
+                          className="uppercase font-bold tracking-widest focus:bg-[#D4AF37]/20 focus:text-[#D4AF37]"
+                        >
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  onClick={handleCopyPermissions}
+                  disabled={!copyFromRole}
+                  className="h-10 px-3 text-[#D4AF37] hover:bg-[#D4AF37]/20 disabled:opacity-30"
+                  title="Espelhar permissões"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
             <div className="w-full sm:w-72">
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger className="w-full h-12 bg-[#112240] border-[#D4AF37]/40 text-[#D4AF37] font-bold tracking-widest uppercase focus:ring-[#D4AF37]">

@@ -29,6 +29,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
+import { GlobalSearch } from '@/components/GlobalSearch'
 
 const NuviaLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 350 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -393,20 +394,23 @@ export function Layout() {
         <Link to="/admin/agenda" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
           <NuviaLogo className="h-12 w-auto" />
         </Link>
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 relative">
-              <Menu className="h-6 w-6" />
-              {(totalUnread > 0 || pendingSacsCount > 0) && (
-                <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#0A192F]"></span>
-              )}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72 bg-[#0A192F] border-r-slate-800">
-            <SheetTitle className="sr-only">Menu Principal</SheetTitle>
-            <SidebarContent isMobile={true} />
-          </SheetContent>
-        </Sheet>
+        <div className="flex items-center gap-1">
+          <GlobalSearch isMobile />
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 relative">
+                <Menu className="h-6 w-6" />
+                {(totalUnread > 0 || pendingSacsCount > 0) && (
+                  <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#0A192F]"></span>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72 bg-[#0A192F] border-r-slate-800">
+              <SheetTitle className="sr-only">Menu Principal</SheetTitle>
+              <SidebarContent isMobile={true} />
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <div
@@ -450,7 +454,9 @@ export function Layout() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-4"></div>
+          <div className="flex items-center gap-4">
+            <GlobalSearch />
+          </div>
         </header>
 
         <div className="flex-1 p-4 md:p-8 overflow-auto">

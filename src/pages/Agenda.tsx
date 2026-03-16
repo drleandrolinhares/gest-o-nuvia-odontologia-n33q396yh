@@ -93,7 +93,7 @@ export default function Agenda() {
       if (taskView === 'TUDO') return true
       if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
 
-      const isAlert = item.type === 'BÔNUS' || item.type === 'FÉRIAS'
+      const isAlert = item.type === 'BÔNUS' || item.type === 'FÉRIAS' || item.type === 'SAC'
 
       if (taskView === 'ALERTAS') {
         return isAlert
@@ -104,7 +104,7 @@ export default function Agenda() {
       }
 
       if (taskView === 'AUSÊNCIAS') {
-        return ABSENCE_TYPES.includes(item.type.toUpperCase())
+        return ABSENCE_TYPES.includes(item.type.toUpperCase()) && !isAlert
       }
 
       // PARA MIM

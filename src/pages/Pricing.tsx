@@ -1,15 +1,25 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import useAppStore from '@/stores/main'
-import { Navigate } from 'react-router-dom'
 import { HourlyCostCalculator } from '@/components/pricing/HourlyCostCalculator'
 import { PricingKanban } from '@/components/pricing/PricingKanban'
 import { FinancialParameters } from '@/components/pricing/FinancialParameters'
+import { ShieldAlert } from 'lucide-react'
 
 export default function Pricing() {
   const { isAdmin } = useAppStore()
 
   if (!isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] py-20 uppercase animate-fade-in">
+        <ShieldAlert className="h-16 w-16 text-muted-foreground/50 mb-4" />
+        <h2 className="text-xl font-black text-muted-foreground tracking-widest">
+          Acesso Restrito
+        </h2>
+        <p className="text-sm font-medium text-muted-foreground mt-2">
+          Esta página é exclusiva para administradores.
+        </p>
+      </div>
+    )
   }
 
   return (
