@@ -28,57 +28,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true
 
-    const initSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession()
-
-        if (error) {
-          throw error
-        }
-
-        if (isMounted) {
-          setSession(data.session)
-          setUser(data.session?.user ?? null)
-          setLoading(false)
-        }
-      } catch (err: any) {
-        console.error('Error fetching session:', err)
-        if (isMounted) {
-          const isAuthError =
-            err?.status === 401 ||
-            err?.message?.includes('refresh_token_not_found') ||
-            err?.message?.includes('Invalid Refresh Token') ||
-            err?.code === 'PGRST303' ||
-            err?.message?.includes('JWT expired')
-
-          if (isAuthError) {
-            supabase.auth.signOut()
-            setSession(null)
-            setUser(null)
-            setLoading(false)
-          } else {
-            setAuthError('Não foi possível verificar a sessão. Verifique sua conexão de rede.')
-            setLoading(false)
-          }
-        }
-      }
-    }
-
-    initSession()
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      // FORBIDDEN: no async/await inside this callback — sync only
       if (isMounted) {
         setSession(session)
         setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    })
 
-        // Prevent setting loading to false on the immediate INITIAL_SESSION
-        // to avoid a flash of unauthenticated state while getSession is still working.
-        if (event !== 'INITIAL_SESSION') {
-          setLoading(false)
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (isMounted) {
+        if (error) {
+          console.error('Error fetching session:', error)
+          setAuthError('Não foi possível verificar a sessão. Verifique sua conexão de rede.')
+        } else {
+          setSession(session)
+          setUser(session?.user ?? null)
         }
+        setLoading(false)
       }
     })
 

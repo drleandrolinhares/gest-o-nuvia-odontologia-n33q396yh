@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import RH from '@/pages/RH'
@@ -28,19 +27,16 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 function RootRedirect() {
   const { user, loading } = useAuth()
-  const navigate = useNavigate()
 
-  useEffect(() => {
-    if (!loading) {
-      navigate(user ? '/admin/agenda' : '/login', { replace: true })
-    }
-  }, [user, loading, navigate])
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#0A192F]">
+        <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
 
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0A192F]">
-      <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  )
+  return <Navigate to={user ? '/admin/dashboard' : '/login'} replace />
 }
 
 export default function App() {
@@ -63,7 +59,7 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="agenda" replace />} />
+                <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="agenda" element={<Agenda />} />
                 <Route path="dashboard" element={<Index />} />
                 <Route path="chat" element={<Chat />} />

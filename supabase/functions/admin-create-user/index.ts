@@ -1,12 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
-}
+import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -53,8 +47,21 @@ Deno.serve(async (req: Request) => {
     })
 
     if (createError) {
-      throw createError
+      // Map error to human readable string and return 200 so the client can parse it properly
+      let msg = createError.message
+      if (msg.includes('already been registered') || msg.includes('already exists')) {
+        msg = 'E-mail já está em uso por outro usuário.'
+      } else if (msg.includes('Password should be at least')) {
+        msg = 'A senha deve ter pelo menos 6 caracteres.'
+      }
+      return new Response(JSON.stringify({ error: msg }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
     }
+
+    // Call RPC to enforce auth.users strict requirements (empty string instead of NULL)
+    await supabaseAdmin.rpc('fix_auth_user_tokens', { user_id: data.user.id })
 
     return new Response(JSON.stringify({ id: data.user.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

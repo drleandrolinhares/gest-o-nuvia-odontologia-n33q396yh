@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2, Building2, Plus, Package, Stethoscope, CalendarDays } from 'lucide-react'
+import { Trash2, Building2, Plus, Package, Stethoscope, CalendarDays, Loader2 } from 'lucide-react'
 import useAppStore from '@/stores/main'
 
 export function GeneralSettings() {
@@ -25,6 +25,8 @@ export function GeneralSettings() {
   const [newPkg, setNewPkg] = useState('')
   const [newSpec, setNewSpec] = useState('')
   const [newAgendaType, setNewAgendaType] = useState('')
+  const [isSpecLoading, setIsSpecLoading] = useState(false)
+  const [removingSpec, setRemovingSpec] = useState<string | null>(null)
 
   const handleAddDept = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +35,7 @@ export function GeneralSettings() {
       setNewDept('')
     }
   }
+
   const handleAddPkg = (e: React.FormEvent) => {
     e.preventDefault()
     if (newPkg.trim() && !packageTypes.includes(newPkg.trim().toUpperCase())) {
@@ -40,13 +43,23 @@ export function GeneralSettings() {
       setNewPkg('')
     }
   }
-  const handleAddSpec = (e: React.FormEvent) => {
+
+  const handleAddSpec = async (e: React.FormEvent) => {
     e.preventDefault()
     if (newSpec.trim() && !specialties.includes(newSpec.trim().toUpperCase())) {
-      addSpecialty(newSpec.trim())
+      setIsSpecLoading(true)
+      await addSpecialty(newSpec.trim())
+      setIsSpecLoading(false)
       setNewSpec('')
     }
   }
+
+  const handleRemoveSpec = async (spec: string) => {
+    setRemovingSpec(spec)
+    await removeSpecialty(spec)
+    setRemovingSpec(null)
+  }
+
   const handleAddAgendaType = (e: React.FormEvent) => {
     e.preventDefault()
     if (newAgendaType.trim() && !agendaTypes.includes(newAgendaType.trim().toUpperCase())) {
@@ -148,13 +161,20 @@ export function GeneralSettings() {
               placeholder="NOVA ESPECIALIDADE..."
               value={newSpec}
               onChange={(e) => setNewSpec(e.target.value)}
+              disabled={isSpecLoading}
             />
             <Button
               type="submit"
-              disabled={!newSpec.trim()}
-              className="bg-[#D81B84] hover:bg-[#B71770] text-white"
+              disabled={!newSpec.trim() || isSpecLoading}
+              className="bg-[#D81B84] hover:bg-[#B71770] text-white w-24"
             >
-              <Plus className="h-4 w-4 mr-2" /> ADD
+              {isSpecLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" /> ADD
+                </>
+              )}
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
@@ -167,10 +187,15 @@ export function GeneralSettings() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  disabled={removingSpec === spec}
                   className="text-muted-foreground hover:text-destructive h-8 w-8"
-                  onClick={() => removeSpecialty(spec)}
+                  onClick={() => handleRemoveSpec(spec)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  {removingSpec === spec ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             ))}

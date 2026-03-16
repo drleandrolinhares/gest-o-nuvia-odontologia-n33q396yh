@@ -280,7 +280,7 @@ export type SacActionHistory = {
   action: string
   user_name?: string
   user_id?: string
-  employeeName?: string // backward compatibility
+  employeeName?: string
   timestamp: string
 }
 
@@ -337,8 +337,8 @@ interface AppStore {
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
   removePackageType: (n: string) => void
-  addSpecialty: (n: string) => void
-  removeSpecialty: (n: string) => void
+  addSpecialty: (n: string) => Promise<{ success: boolean; error?: any }>
+  removeSpecialty: (n: string) => Promise<{ success: boolean; error?: any }>
   addAgendaType: (n: string) => void
   removeAgendaType: (n: string) => void
   toggleTask: (c: string, t: string) => void
@@ -450,14 +450,6 @@ const mockDepartments = [
   'CRC LEAD',
 ]
 const mockPackageTypes = ['CAIXA', 'UNIDADE', 'FRASCO', 'PACOTE', 'SERINGA']
-const mockSpecialties = [
-  'CLÍNICA GERAL',
-  'ORTODONTIA',
-  'IMPLANTODONTIA',
-  'ENDODONTIA',
-  'ODONTOPEDIATRIA',
-  'PRÓTESE',
-]
 const mockAgendaTypes = [
   'CONSULTA',
   'REUNIÃO',
@@ -707,7 +699,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [departments, setDepartments] = useState(mockDepartments)
   const [packageTypes, setPackageTypes] = useState(mockPackageTypes)
-  const [specialties, setSpecialties] = useState(mockSpecialties)
   const [agendaTypes, setAgendaTypes] = useState(mockAgendaTypes)
   const [employees, setEmployees] = useState<Employee[]>([])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
@@ -730,10 +721,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sacRecords, setSacRecords] = useState<SacRecord[]>([])
   const [alerts] = useState<string[]>([])
 
-  const storeRef = useRef({ user, employees, inventory, roles, consultorios, agenda, sacRecords })
+  const storeRef = useRef({
+    user,
+    employees,
+    inventory,
+    roles,
+    rolePermissions,
+    consultorios,
+    agenda,
+    sacRecords,
+    inventoryOptions,
+  })
   useEffect(() => {
-    storeRef.current = { user, employees, inventory, roles, consultorios, agenda, sacRecords }
-  }, [user, employees, inventory, roles, consultorios, agenda, sacRecords])
+    storeRef.current = {
+      user,
+      employees,
+      inventory,
+      roles,
+      rolePermissions,
+      consultorios,
+      agenda,
+      sacRecords,
+      inventoryOptions,
+    }
+  }, [
+    user,
+    employees,
+    inventory,
+    roles,
+    rolePermissions,
+    consultorios,
+    agenda,
+    sacRecords,
+    inventoryOptions,
+  ])
 
   useEffect(() => {
     if (user) {
@@ -920,10 +941,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const can = useCallback(
     (module: string, action: string) => {
+      if (isMaster) return true
       if (isAdmin) return true
+      const me = storeRef.current.employees.find((e) => e.user_id === storeRef.current.user?.id)
+      if (!me) return false
+      const perm = storeRef.current.rolePermissions.find(
+        (p) => p.role === me.role && p.module.toUpperCase() === module.toUpperCase(),
+      )
+      if (!perm) return false
+      if (action === 'view') return perm.can_view
+      if (action === 'create') return perm.can_create
+      if (action === 'edit') return perm.can_edit
+      if (action === 'delete') return perm.can_delete
       return false
     },
-    [isAdmin],
+    [isMaster, isAdmin],
   )
 
   const logAction = useCallback((action: string) => {
@@ -1056,20 +1088,69 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+
+  const specialties = useMemo(() => {
+    return inventoryOptions
+      .filter(
+        (o) =>
+          o.category.toLowerCase() === 'specialty' || o.category.toLowerCase() === 'especialidade',
+      )
+      .map((o) => o.label || o.value)
+      .sort()
+  }, [inventoryOptions])
+
   const addSpecialty = useCallback(
-    (n: string) => {
-      setSpecialties((p) => [...p, n.toUpperCase()])
-      logAction(`CRIOU ESPECIALIDADE: ${n.toUpperCase()}`)
+    async (n: string) => {
+      const label = n.trim().toUpperCase()
+      const value = label
+        .toLowerCase()
+        .replace(/[\s_]+/g, '-')
+        .replace(/[^\w-]/g, '')
+      const { data, error } = await supabase
+        .from('inventory_settings' as any)
+        .insert([{ category: 'specialty', label, value }])
+        .select()
+        .single()
+
+      if (error) {
+        checkAuthError(error)
+        return { success: false, error }
+      }
+      if (data) {
+        setInventoryOptions((p) => [...p, mOpt(data)])
+        logAction(`CRIOU ESPECIALIDADE: ${label}`)
+        return { success: true }
+      }
+      return { success: false }
     },
     [logAction],
   )
+
   const removeSpecialty = useCallback(
-    (n: string) => {
-      setSpecialties((p) => p.filter((s) => s !== n))
+    async (n: string) => {
+      const opt = storeRef.current.inventoryOptions.find(
+        (o) =>
+          (o.category.toLowerCase() === 'specialty' ||
+            o.category.toLowerCase() === 'especialidade') &&
+          (o.label === n || o.value === n),
+      )
+      if (!opt) return { success: false, error: new Error('Não encontrado') }
+
+      const { error } = await supabase
+        .from('inventory_settings' as any)
+        .delete()
+        .eq('id', opt.id)
+      if (error) {
+        checkAuthError(error)
+        return { success: false, error }
+      }
+      setInventoryOptions((p) => p.filter((o) => o.id !== opt.id))
       logAction(`REMOVEU ESPECIALIDADE: ${n}`)
+      return { success: true }
     },
     [logAction],
   )
+
   const addAgendaType = useCallback(
     (n: string) => {
       if (!agendaTypes.includes(n.toUpperCase())) {
@@ -1547,7 +1628,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         if (res.error) {
           checkAuthError(res.error)
-          return { success: false, error: res.error }
+          let errMsg =
+            'Falha ao criar usuário na autenticação. Verifique se o e-mail já está em uso ou se a senha é válida.'
+          try {
+            if (res.error.context && typeof res.error.context.json === 'function') {
+              const ctx = await res.error.context.json()
+              if (ctx.error) errMsg = ctx.error
+            }
+          } catch (err) {}
+          return { success: false, error: new Error(errMsg) }
         }
         if (res.data?.error) {
           return { success: false, error: new Error(res.data.error) }
@@ -1628,7 +1717,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (res.error) {
         checkAuthError(res.error)
-        return { success: false, error: res.error }
+        let errMsg = 'Falha ao criar usuário na autenticação. Verifique se o e-mail já existe.'
+        try {
+          if (res.error.context && typeof res.error.context.json === 'function') {
+            const ctx = await res.error.context.json()
+            if (ctx.error) errMsg = ctx.error
+          }
+        } catch (err) {}
+        return { success: false, error: new Error(errMsg) }
       }
       if (res.data?.error) {
         return { success: false, error: new Error(res.data.error) }
@@ -2622,7 +2718,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const existingHistory = oldRecord?.action_history || []
       payload.action_history = [...newHistoryItems, ...existingHistory]
 
-      // Prevent overriding with undefined on update
       Object.keys(payload).forEach((key) => (payload[key] === undefined ? delete payload[key] : {}))
 
       try {

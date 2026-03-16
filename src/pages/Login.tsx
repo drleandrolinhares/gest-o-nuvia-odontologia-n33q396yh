@@ -29,15 +29,13 @@ export default function Login() {
   const location = useLocation()
   const { toast } = useToast()
 
-  // Ensure we accurately redirect to the intended admin route if it exists
   const locationFrom = location.state?.from
   const from =
     typeof locationFrom === 'string' && locationFrom !== '/' && locationFrom !== '/login'
       ? locationFrom
-      : '/admin/agenda'
+      : '/admin/dashboard'
 
   useEffect(() => {
-    // Prevent showing login to already authenticated users
     if (!loading && user) {
       navigate(from, { replace: true })
     }
@@ -59,7 +57,6 @@ export default function Login() {
         return
       }
 
-      // Successful login automatically navigates to Agenda or requested internal route
       navigate(from, { replace: true })
     } catch (err) {
       toast({
@@ -74,7 +71,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute inset-0 bg-[#0A192F] z-0">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-[#D4AF37]/20 rounded-full blur-[120px]"></div>
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-[#D4AF37]/10 rounded-full blur-[120px]"></div>
