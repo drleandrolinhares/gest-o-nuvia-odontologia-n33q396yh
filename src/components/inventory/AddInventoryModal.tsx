@@ -22,20 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
 import { Switch } from '@/components/ui/switch'
 import { formatCurrency, cn } from '@/lib/utils'
-import {
-  CalendarIcon,
-  Calculator,
-  PackageSearch,
-  Barcode as BarcodeIcon,
-  Tag,
-  Zap,
-} from 'lucide-react'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { Calculator, PackageSearch, Barcode as BarcodeIcon, Tag, Zap } from 'lucide-react'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 import { useToast } from '@/hooks/use-toast'
 
@@ -69,8 +58,8 @@ const schema = z.object({
     .union([z.string(), z.number()])
     .optional()
     .transform((v) => Number(v) || 0),
-  entryDate: z.date().optional(),
-  expirationDate: z.date().optional(),
+  entryDate: z.string().optional(),
+  expirationDate: z.string().optional(),
   storageRoom: z.string().optional(),
   cabinetNumber: z.string().optional(),
   nfeNumber: z.string().optional(),
@@ -126,6 +115,8 @@ export function AddInventoryModal({
       packageType: 'CAIXA',
       itemsPerBox: '' as any,
       quantity: '' as any,
+      entryDate: '',
+      expirationDate: '',
       storageRoom: '',
       cabinetNumber: '',
       nfeNumber: '',
@@ -212,12 +203,14 @@ export function AddInventoryModal({
       itemsPerBox: v.itemsPerBox || 1,
       quantity: v.quantity || 0,
       storageLocation: `${v.storageRoom || ''} - ${v.cabinetNumber || ''}`,
-      storageRoom: v.storageRoom || '',
+      storageRoom: v.storageRoom === 'none' ? '' : v.storageRoom || '',
       cabinetNumber: v.cabinetNumber || '',
       nfeNumber: v.nfeNumber || '',
       minStock: v.minStock || 0,
-      entryDate: v.entryDate ? v.entryDate.toISOString() : undefined,
-      expirationDate: v.expirationDate ? v.expirationDate.toISOString() : undefined,
+      entryDate: v.entryDate ? new Date(`${v.entryDate}T12:00:00Z`).toISOString() : undefined,
+      expirationDate: v.expirationDate
+        ? new Date(`${v.expirationDate}T12:00:00Z`).toISOString()
+        : undefined,
       lastBrand: v.lastBrand || '',
       lastValue: v.lastValue || 0,
       notes: v.notes || '',
@@ -739,35 +732,15 @@ export function AddInventoryModal({
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>DATA DE ENTRADA</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal uppercase',
-                                !field.value && 'text-muted-foreground',
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP', { locale: ptBR })
-                              ) : (
-                                <span>SELECIONE A DATA</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 uppercase" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          className="uppercase"
+                          {...field}
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -777,34 +750,15 @@ export function AddInventoryModal({
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel>DATA DE VALIDADE</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={cn(
-                                'w-full pl-3 text-left font-normal uppercase',
-                                !field.value && 'text-muted-foreground',
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP', { locale: ptBR })
-                              ) : (
-                                <span>SELECIONE A DATA</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 uppercase" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          className="uppercase"
+                          {...field}
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -836,11 +790,17 @@ export function AddInventoryModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {storageRooms.map((opt) => (
-                            <SelectItem key={opt.id} value={opt.value} className="uppercase">
-                              {opt.value}
+                          {storageRooms.length === 0 ? (
+                            <SelectItem value="none" disabled className="uppercase">
+                              NENHUMA SALA CADASTRADA
                             </SelectItem>
-                          ))}
+                          ) : (
+                            storageRooms.map((opt) => (
+                              <SelectItem key={opt.id} value={opt.value} className="uppercase">
+                                {opt.value}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                     </FormItem>

@@ -350,6 +350,15 @@ interface AppStore {
   ) => Promise<{ success: boolean; error?: any }>
   deleteInventoryItem: (id: string) => Promise<{ success: boolean; error?: any }>
   addPurchaseHistory: (i: string, r: Omit<PurchaseRecord, 'id'>) => void
+  removePurchaseHistory: (
+    itemId: string,
+    purchaseId: string,
+  ) => Promise<{ success: boolean; error?: any }>
+  updatePurchaseHistory: (
+    itemId: string,
+    purchaseId: string,
+    data: Partial<PurchaseRecord>,
+  ) => Promise<{ success: boolean; error?: any }>
   addInventoryOption: (category: string, value: string, label?: string) => void
   removeInventoryOption: (id: string) => void
   addTemporaryOutflow: (
@@ -1284,6 +1293,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
             : i,
         )
       })
+    },
+    [logAction],
+  )
+
+  const removePurchaseHistory = useCallback(
+    async (itemId: string, purchaseId: string) => {
+      const item = storeRef.current.inventory.find((i) => i.id === itemId)
+      if (!item || !item.purchaseHistory) return { success: false }
+      const newHistory = item.purchaseHistory.filter((ph) => ph.id !== purchaseId)
+      try {
+        const { error } = await supabase
+          .from('inventory')
+          .update({ purchase_history: newHistory as any })
+          .eq('id', itemId)
+        if (error) throw error
+        setInventory((p) =>
+          p.map((i) => (i.id === itemId ? { ...i, purchaseHistory: newHistory } : i)),
+        )
+        logAction(`REMOVEU HISTÓRICO DE COMPRA DO ITEM ID: ${itemId}`)
+        return { success: true }
+      } catch (err) {
+        checkAuthError(err)
+        return { success: false, error: err }
+      }
+    },
+    [logAction],
+  )
+
+  const updatePurchaseHistory = useCallback(
+    async (itemId: string, purchaseId: string, data: Partial<PurchaseRecord>) => {
+      const item = storeRef.current.inventory.find((i) => i.id === itemId)
+      if (!item || !item.purchaseHistory) return { success: false }
+      const newHistory = item.purchaseHistory.map((ph) =>
+        ph.id === purchaseId ? { ...ph, ...data } : ph,
+      )
+      try {
+        const { error } = await supabase
+          .from('inventory')
+          .update({ purchase_history: newHistory as any })
+          .eq('id', itemId)
+        if (error) throw error
+        setInventory((p) =>
+          p.map((i) => (i.id === itemId ? { ...i, purchaseHistory: newHistory } : i)),
+        )
+        logAction(`ATUALIZOU HISTÓRICO DE COMPRA DO ITEM ID: ${itemId}`)
+        return { success: true }
+      } catch (err) {
+        checkAuthError(err)
+        return { success: false, error: err }
+      }
     },
     [logAction],
   )
@@ -2664,6 +2723,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateInventoryItemDetails,
       deleteInventoryItem,
       addPurchaseHistory,
+      removePurchaseHistory,
+      updatePurchaseHistory,
       addInventoryOption,
       removeInventoryOption,
       addTemporaryOutflow,
@@ -2755,6 +2816,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateInventoryItemDetails,
       deleteInventoryItem,
       addPurchaseHistory,
+      removePurchaseHistory,
+      updatePurchaseHistory,
       addInventoryOption,
       removeInventoryOption,
       addTemporaryOutflow,
