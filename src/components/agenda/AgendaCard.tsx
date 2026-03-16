@@ -12,6 +12,7 @@ import {
   History,
   RefreshCw,
   UserMinus,
+  MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import useAppStore from '@/stores/main'
@@ -131,6 +132,9 @@ export function AgendaCard({
               <span className="flex items-center gap-1">
                 <CalendarIcon className="h-3.5 w-3.5" />{' '}
                 {new Date(item.date).toLocaleDateString('pt-BR')}
+              </span>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" /> {item.location}
               </span>
               <span className="flex items-center gap-1 text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
                 <User className="h-3 w-3" />

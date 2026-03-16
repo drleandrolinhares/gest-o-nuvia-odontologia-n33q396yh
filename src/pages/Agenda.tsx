@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, UserMinus } from 'lucide-react'
-import { isSameDay, isSameWeek, isSameMonth, parseISO } from 'date-fns'
+import { isSameDay, isSameWeek, isSameMonth, parseISO, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { AgendaCard } from '@/components/agenda/AgendaCard'
@@ -39,7 +39,7 @@ export default function Agenda() {
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null)
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
-  const [taskView, setTaskView] = useState<'PARA MIM' | 'DELEGADOS' | 'DENTISTAS' | 'TUDO'>(
+  const [taskView, setTaskView] = useState<'PARA MIM' | 'DELEGADOS' | 'COMPROMISSOS' | 'TUDO'>(
     'PARA MIM',
   )
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
@@ -59,11 +59,22 @@ export default function Agenda() {
 
   const filteredAgenda = allAgendaItems
     .filter((item) => {
+      // If COMPROMISSOS, we ignore calendar selection entirely for indefinite future display
+      if (taskView === 'COMPROMISSOS') return true
+
       if (!selectedDate) return true
       const itemDate = parseISO(item.date)
       if (filterView === 'DIA') return isSameDay(itemDate, selectedDate)
       if (filterView === 'SEMANA') return isSameWeek(itemDate, selectedDate, { weekStartsOn: 0 })
       if (filterView === 'MES') return isSameMonth(itemDate, selectedDate)
+      return true
+    })
+    .filter((item) => {
+      // Enforce date >= today for the COMPROMISSOS tab view
+      if (taskView === 'COMPROMISSOS') {
+        const todayStr = format(new Date(), 'yyyy-MM-dd')
+        return item.date >= todayStr
+      }
       return true
     })
     .filter((item) => {
@@ -77,14 +88,11 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
-      if (taskView === 'DENTISTAS') return item.type === 'COMPROMISSO DENTISTA'
+      if (taskView === 'COMPROMISSOS') return true
       if (taskView === 'TUDO') return true
       if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
 
       // PARA MIM
-      // In PARA MIM, we generally hide COMPROMISSO DENTISTA unless specifically assigned to me,
-      // but typically we can exclude them completely to avoid cluttering the personal view,
-      // or keep them if they are my own absences. Let's keep them if it's assigned to me.
       if (item.type === 'COMPROMISSO DENTISTA' && item.assignedTo !== currentUserId) return false
       return item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
     })
@@ -263,10 +271,10 @@ export default function Agenda() {
                   DELEGADOS POR MIM
                 </TabsTrigger>
                 <TabsTrigger
-                  value="DENTISTAS"
+                  value="COMPROMISSOS"
                   className="data-[state=active]:border-b-2 data-[state=active]:border-rose-600 data-[state=active]:text-rose-700 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
-                  COMPROMISSOS DENTISTAS
+                  COMPROMISSOS
                 </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger
