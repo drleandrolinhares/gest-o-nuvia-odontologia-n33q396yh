@@ -64,7 +64,7 @@ export function AddEmployeeDialog({
   triggerText?: string
   customTrigger?: React.ReactNode
 }) {
-  const { addEmployee, departments } = useAppStore()
+  const { addEmployee, departments, roles } = useAppStore()
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -91,8 +91,23 @@ export function AddEmployeeDialog({
 
   const onSubmit = async (v: FormValues) => {
     setIsLoading(true)
+
+    // Data Consistency Check: Verify role exists in the database
+    const exactRole = roles.find((r) => r.name.toUpperCase() === v.role.toUpperCase())
+    if (!exactRole) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro de Validação',
+        description:
+          'A função selecionada não existe no banco de dados. Adicione-a em Configurações > Permissões primeiro.',
+      })
+      setIsLoading(false)
+      return
+    }
+
     const res = await addEmployee({
       ...v,
+      role: exactRole.name, // Ensure exact match with DB for Reference Integrity
       status: 'Ativo',
       vacationDaysTaken: 0,
       vacationDaysTotal: 30,
@@ -218,9 +233,26 @@ export function AddEmployeeDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>FUNÇÃO</FormLabel>
-                      <FormControl>
-                        <Input {...field} disabled={isLoading} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={isLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="SELECIONE..." />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[...roles]
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((r) => (
+                              <SelectItem key={r.id} value={r.name}>
+                                {r.name.toUpperCase()}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
