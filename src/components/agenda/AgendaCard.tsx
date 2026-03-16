@@ -2,7 +2,17 @@ import { AgendaItem, Employee } from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { AlertTriangle, Clock, Trash2, CalendarIcon, User, ArrowRight, History } from 'lucide-react'
+import {
+  AlertTriangle,
+  Clock,
+  Trash2,
+  CalendarIcon,
+  User,
+  ArrowRight,
+  History,
+  RefreshCw,
+  UserMinus,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import useAppStore from '@/stores/main'
 import { SacStatusSelect } from '@/components/sac/SacStatusSelect'
@@ -31,6 +41,7 @@ export function AgendaCard({
   const isRequester = item.requester_id === currentUserId
 
   const isSac = item.type === 'SAC'
+  const isDentistAbsence = item.type === 'COMPROMISSO DENTISTA'
   const sacRecord =
     isSac && item.sac_record_id ? sacRecords.find((s) => s.id === item.sac_record_id) : null
 
@@ -40,7 +51,8 @@ export function AgendaCard({
     item.assignedTo !== currentUserId &&
     !item.received_at &&
     !item.is_completed &&
-    !isSac
+    !isSac &&
+    !isDentistAbsence
 
   const getEmpName = (id?: string) => {
     if (!id || id === 'none') return 'GERAL'
@@ -66,6 +78,9 @@ export function AgendaCard({
           ? 'opacity-60 bg-muted/40 border-muted'
           : 'hover:border-primary/40 cursor-pointer',
         needsFollowUp && 'border-amber-300 bg-amber-50/40',
+        isDentistAbsence &&
+          !item.is_completed &&
+          'border-rose-200 bg-rose-50/40 hover:border-rose-400',
       )}
       onClick={() => !item.is_completed && onSelect(item)}
     >
@@ -77,10 +92,23 @@ export function AgendaCard({
       <CardContent className="p-4 flex flex-col gap-3">
         <div className="flex justify-between items-start gap-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-[10px] uppercase font-bold bg-background">
-                {item.type}
-              </Badge>
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              {!isDentistAbsence ? (
+                <Badge variant="outline" className="text-[10px] uppercase font-bold bg-background">
+                  {item.type}
+                </Badge>
+              ) : (
+                <Badge className="bg-rose-100 text-rose-800 border-rose-200 text-[10px] uppercase font-bold hover:bg-rose-200">
+                  <UserMinus className="h-3 w-3 mr-1" /> AUSÊNCIA / COMPROMISSO
+                </Badge>
+              )}
+
+              {item.periodicity && item.periodicity !== 'ÚNICO' && (
+                <Badge variant="outline" className="text-[9px] bg-background">
+                  <RefreshCw className="h-2.5 w-2.5 mr-1" /> {item.periodicity}
+                </Badge>
+              )}
+
               {item.is_completed && (
                 <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[10px]">
                   CONCLUÍDO
@@ -89,8 +117,9 @@ export function AgendaCard({
             </div>
             <h3
               className={cn(
-                'font-bold text-base uppercase leading-tight',
+                'font-bold text-base uppercase leading-tight mt-1',
                 item.is_completed && 'line-through text-muted-foreground',
+                isDentistAbsence && !item.is_completed && 'text-rose-950',
               )}
             >
               {item.title}
@@ -105,8 +134,14 @@ export function AgendaCard({
               </span>
               <span className="flex items-center gap-1 text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
                 <User className="h-3 w-3" />
-                {getRequesterName()} <ArrowRight className="h-3 w-3 mx-0.5 opacity-50" />{' '}
-                {getEmpName(item.assignedTo)}
+                {!isDentistAbsence ? (
+                  <>
+                    {getRequesterName()} <ArrowRight className="h-3 w-3 mx-0.5 opacity-50" />{' '}
+                    {getEmpName(item.assignedTo)}
+                  </>
+                ) : (
+                  <span className="font-bold">{getEmpName(item.assignedTo)}</span>
+                )}
               </span>
             </div>
           </div>
@@ -138,14 +173,29 @@ export function AgendaCard({
                 disabled={!isAssignee && !isAdmin}
               />
             ) : isAssignee && !item.is_completed ? (
-              !item.received_at ? (
-                <Button
-                  size="sm"
-                  onClick={() => onUpdate(item.id, { received_at: new Date().toISOString() })}
-                  className="bg-blue-600 hover:bg-blue-700 h-8 text-[11px] px-3 uppercase shadow-sm"
-                >
-                  Recebi e vou resolver
-                </Button>
+              !isDentistAbsence ? (
+                !item.received_at ? (
+                  <Button
+                    size="sm"
+                    onClick={() => onUpdate(item.id, { received_at: new Date().toISOString() })}
+                    className="bg-blue-600 hover:bg-blue-700 h-8 text-[11px] px-3 uppercase shadow-sm"
+                  >
+                    Recebi e vou resolver
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      onUpdate(item.id, {
+                        is_completed: true,
+                        completed_at: new Date().toISOString(),
+                      })
+                    }
+                    className="bg-emerald-600 hover:bg-emerald-700 h-8 text-[11px] px-3 uppercase shadow-sm"
+                  >
+                    Resolvido
+                  </Button>
+                )
               ) : (
                 <Button
                   size="sm"
@@ -155,9 +205,9 @@ export function AgendaCard({
                       completed_at: new Date().toISOString(),
                     })
                   }
-                  className="bg-emerald-600 hover:bg-emerald-700 h-8 text-[11px] px-3 uppercase shadow-sm"
+                  className="bg-rose-600 hover:bg-rose-700 h-8 text-[11px] px-3 uppercase shadow-sm"
                 >
-                  Resolvido
+                  Marcar Passado
                 </Button>
               )
             ) : (

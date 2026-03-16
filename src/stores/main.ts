@@ -124,6 +124,7 @@ export type AgendaItem = {
   completed_at?: string
   created_at?: string
   sac_record_id?: string
+  periodicity?: string
 }
 
 export type ManualStep = { id: string; text: string; completed?: boolean }
@@ -458,6 +459,7 @@ const mockAgendaTypes = [
   'FÉRIAS',
   'PEDIDO',
   'SAC',
+  'COMPROMISSO DENTISTA',
 ]
 
 const mEmp = (d: any): Employee => ({
@@ -539,6 +541,7 @@ const mAg = (d: any): AgendaItem => ({
   completed_at: d.completed_at,
   created_at: d.created_at,
   sac_record_id: d.sac_record_id,
+  periodicity: d.periodicity,
 })
 const mAcc = (d: any): AccessItem => ({
   id: d.id,
@@ -1033,10 +1036,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
   const addAgendaType = useCallback(
     (n: string) => {
-      setAgendaTypes((p) => [...p, n.toUpperCase()])
-      logAction(`CRIOU TIPO DE COMPROMISSO: ${n.toUpperCase()}`)
+      if (!agendaTypes.includes(n.toUpperCase())) {
+        setAgendaTypes((p) => [...p, n.toUpperCase()])
+        logAction(`CRIOU TIPO DE COMPROMISSO: ${n.toUpperCase()}`)
+      }
     },
-    [logAction],
+    [logAction, agendaTypes],
   )
   const removeAgendaType = useCallback(
     (n: string) => {
@@ -1719,6 +1724,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             received_at: i.received_at || null,
             completed_at: i.completed_at || null,
             sac_record_id: i.sac_record_id || null,
+            periodicity: i.periodicity || null,
           } as any,
         ])
         .select()
@@ -1751,6 +1757,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (i.received_at !== undefined) payload.received_at = i.received_at
       if (i.completed_at !== undefined) payload.completed_at = i.completed_at
       if (i.sac_record_id !== undefined) payload.sac_record_id = i.sac_record_id
+      if (i.periodicity !== undefined) payload.periodicity = i.periodicity
 
       supabase
         .from('agenda')

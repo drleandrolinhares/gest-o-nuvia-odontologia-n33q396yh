@@ -12,13 +12,14 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus } from 'lucide-react'
+import { Plus, UserMinus } from 'lucide-react'
 import { isSameDay, isSameWeek, isSameMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 import { AgendaCard } from '@/components/agenda/AgendaCard'
 import { AgendaAddDialog } from '@/components/agenda/AgendaAddDialog'
 import { AgendaDetailsDialog } from '@/components/agenda/AgendaDetailsDialog'
+import { DentistAbsenceDialog } from '@/components/agenda/DentistAbsenceDialog'
 
 export default function Agenda() {
   const {
@@ -34,10 +35,13 @@ export default function Agenda() {
   } = useAppStore()
 
   const [openAdd, setOpenAdd] = useState(false)
+  const [openDentistAdd, setOpenDentistAdd] = useState(false)
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null)
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
-  const [taskView, setTaskView] = useState<'PARA MIM' | 'DELEGADOS' | 'TUDO'>('PARA MIM')
+  const [taskView, setTaskView] = useState<'PARA MIM' | 'DELEGADOS' | 'DENTISTAS' | 'TUDO'>(
+    'PARA MIM',
+  )
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
 
@@ -63,6 +67,7 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
+      // General filters still apply in all views
       if (agendaFilterType === 'TODOS' || agendaFilterValue === 'all') return true
       if (agendaFilterType === 'COLABORADOR') return item.assignedTo === agendaFilterValue
       if (agendaFilterType === 'SETOR') {
@@ -72,8 +77,15 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
+      if (taskView === 'DENTISTAS') return item.type === 'COMPROMISSO DENTISTA'
       if (taskView === 'TUDO') return true
       if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
+
+      // PARA MIM
+      // In PARA MIM, we generally hide COMPROMISSO DENTISTA unless specifically assigned to me,
+      // but typically we can exclude them completely to avoid cluttering the personal view,
+      // or keep them if they are my own absences. Let's keep them if it's assigned to me.
+      if (item.type === 'COMPROMISSO DENTISTA' && item.assignedTo !== currentUserId) return false
       return item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
     })
     .sort(
@@ -106,9 +118,18 @@ export default function Agenda() {
             GERENCIE COMPROMISSOS E ACOMPANHE PEDIDOS DELEGADOS.
           </p>
         </div>
-        <Button onClick={() => setOpenAdd(true)} className="bg-primary text-primary-foreground">
-          <Plus className="h-4 w-4 mr-2" /> NOVO REGISTRO
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setOpenDentistAdd(true)}
+            className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+          >
+            <UserMinus className="h-4 w-4 mr-2" /> NOVA AUSÊNCIA
+          </Button>
+          <Button onClick={() => setOpenAdd(true)} className="bg-primary text-primary-foreground">
+            <Plus className="h-4 w-4 mr-2" /> NOVO REGISTRO
+          </Button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-12 gap-6 items-start">
@@ -222,11 +243,11 @@ export default function Agenda() {
             </div>
           </div>
 
-          <div className="flex justify-start">
+          <div className="flex justify-start overflow-x-auto custom-scrollbar">
             <Tabs
               value={taskView}
               onValueChange={(v) => setTaskView(v as any)}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto min-w-max"
             >
               <TabsList className="bg-transparent border-b rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
                 <TabsTrigger
@@ -240,6 +261,12 @@ export default function Agenda() {
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
                 >
                   DELEGADOS POR MIM
+                </TabsTrigger>
+                <TabsTrigger
+                  value="DENTISTAS"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-rose-600 data-[state=active]:text-rose-700 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                >
+                  COMPROMISSOS DENTISTAS
                 </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger
@@ -281,6 +308,13 @@ export default function Agenda() {
         onAdd={addAgendaItem}
         employees={employees}
         agendaTypes={agendaTypes}
+        currentUserId={currentUserId}
+      />
+      <DentistAbsenceDialog
+        open={openDentistAdd}
+        onOpenChange={setOpenDentistAdd}
+        onAdd={addAgendaItem}
+        employees={employees}
         currentUserId={currentUserId}
       />
       <AgendaDetailsDialog
