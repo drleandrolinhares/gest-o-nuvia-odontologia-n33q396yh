@@ -2,14 +2,6 @@ import { useState, useMemo, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import useAppStore from '@/stores/main'
 import { formatCurrency, cn } from '@/lib/utils'
 import { Calculator, Percent, DollarSign, ListOrdered, AlertCircle } from 'lucide-react'
@@ -26,9 +18,9 @@ export function NegotiationSimulator() {
     defaultPercentage.toString(),
   )
 
-  const totalValue = parseFloat(totalValueText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0
-  const entryPercentage =
-    parseFloat(entryPercentageText.replace(/[^\d.,]/g, '').replace(',', '.')) || 0
+  // FIX: Properly handle BRL format (e.g. 3.500,00 -> 3500.00)
+  const totalValue = parseFloat(totalValueText.replace(/\./g, '').replace(',', '.')) || 0
+  const entryPercentage = parseFloat(entryPercentageText.replace(/\./g, '').replace(',', '.')) || 0
 
   const activeRange = useMemo(() => {
     const ranges = settings?.ranges || []
@@ -101,6 +93,15 @@ export function NegotiationSimulator() {
     return options
   }, [totalValue, entryPercentage, maxInstallments, getDiscountPercentage])
 
+  const groupedResults = useMemo(() => {
+    const groups: Record<number, typeof results> = { 1: [], 2: [], 3: [], 4: [] }
+    results.forEach((r) => {
+      if (!groups[r.level]) groups[r.level] = []
+      groups[r.level].push(r)
+    })
+    return groups
+  }, [results])
+
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '')
     if (value.length > 0) {
@@ -112,36 +113,48 @@ export function NegotiationSimulator() {
     setTotalValueText(value)
   }
 
-  const getRowStyle = (level: number) => {
+  const getCardStyle = (level: number) => {
     switch (level) {
       case 1:
-        return 'bg-blue-100 hover:bg-blue-100/80 font-bold border-b-blue-200'
+        return 'bg-slate-900 text-white border-slate-800'
       case 2:
-        return 'bg-slate-700 hover:bg-slate-800 text-white border-b-slate-600'
+        return 'bg-blue-700 text-white border-blue-600'
       case 3:
-        return 'bg-amber-100 hover:bg-amber-200/80 font-semibold border-b-amber-200 text-amber-950'
+        return 'bg-slate-600 text-white border-slate-500'
       default:
-        return 'bg-white hover:bg-slate-50'
+        return 'bg-slate-50 text-slate-900 border-slate-200'
     }
   }
 
-  const getBadgeStyle = (level: number, pct: number) => {
-    if (pct === 0) return 'bg-slate-100 text-slate-500'
+  const getLevelTitleColor = (level: number) => {
     switch (level) {
       case 1:
-        return 'bg-blue-200 text-blue-900'
+        return 'text-slate-900'
       case 2:
-        return 'bg-slate-600 text-white'
+        return 'text-blue-700'
       case 3:
-        return 'bg-amber-200 text-amber-900'
+        return 'text-slate-600'
       default:
-        return 'bg-emerald-100 text-emerald-800'
+        return 'text-slate-500'
+    }
+  }
+
+  const getLevelDotColor = (level: number) => {
+    switch (level) {
+      case 1:
+        return 'bg-slate-900'
+      case 2:
+        return 'bg-blue-700'
+      case 3:
+        return 'bg-slate-600'
+      default:
+        return 'bg-slate-400'
     }
   }
 
   return (
     <div className="grid lg:grid-cols-12 gap-6 items-start">
-      <Card className="lg:col-span-4 shadow-md border-primary/20">
+      <Card className="lg:col-span-4 shadow-md border-primary/20 sticky top-6">
         <CardHeader className="bg-slate-50/50 pb-4 border-b">
           <CardTitle className="flex items-center gap-2 text-xl">
             <Calculator className="h-5 w-5 text-primary" /> DADOS DA NEGOCIAÇÃO
@@ -220,85 +233,117 @@ export function NegotiationSimulator() {
         </CardContent>
       </Card>
 
-      <Card className="lg:col-span-8 shadow-md">
-        <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
-          <CardTitle className="text-lg">OPÇÕES DE PAGAMENTO</CardTitle>
-          {results.length > 0 && (
-            <span className="text-xs font-bold text-muted-foreground tracking-widest bg-slate-100 px-3 py-1 rounded-full">
-              BASE: {formatCurrency(totalValue)}
-            </span>
-          )}
-        </CardHeader>
-        <div className="overflow-x-auto">
+      <div className="lg:col-span-8">
+        <div className="space-y-8">
           {results.length === 0 ? (
-            <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-3">
+            <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-3 bg-white/50 rounded-xl border border-dashed shadow-sm">
               <Calculator className="h-10 w-10 text-slate-300" />
-              <p className="font-bold text-sm">
+              <p className="font-bold text-sm uppercase">
                 {totalValue > 0
-                  ? 'INFORME UM VALOR ACIMA DE R$ 1.000,00'
+                  ? 'INFORME UM VALOR IGUAL OU ACIMA DE R$ 1.000,00'
                   : 'INFORME O VALOR DO TRATAMENTO PARA SIMULAR'}
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead className="font-black text-slate-700 w-[160px]">FORMA</TableHead>
-                  <TableHead className="font-black text-slate-700 text-center w-[100px]">
-                    DESC. %
-                  </TableHead>
-                  <TableHead className="font-black text-slate-700 text-right">DESCONTO</TableHead>
-                  <TableHead className="font-black text-slate-700 text-right">
-                    VALOR FINAL
-                  </TableHead>
-                  <TableHead className="font-black text-slate-700 text-right">ENTRADA</TableHead>
-                  <TableHead className="font-black text-slate-700 text-right">PARCELA</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results.map((res) => {
-                  const isAVista = res.installments === 0
+            [1, 2, 3, 4].map((level) => {
+              const levelResults = groupedResults[level]
+              if (!levelResults || levelResults.length === 0) return null
 
-                  return (
-                    <TableRow
-                      key={res.installments}
-                      className={cn('transition-colors', getRowStyle(res.level))}
-                    >
-                      <TableCell className="font-black whitespace-nowrap">{res.label}</TableCell>
-                      <TableCell className="text-center">
-                        <span
+              let title = ''
+              switch (level) {
+                case 1:
+                  title = `PAGAMENTO À VISTA (${discounts.level1}% DESC)`
+                  break
+                case 2:
+                  title = `CURTO PRAZO (${discounts.level2}% DESC)`
+                  break
+                case 3:
+                  title = `MÉDIO PRAZO (${discounts.level3}% DESC)`
+                  break
+                case 4:
+                  title = `LONGO PRAZO (${discounts.level4}% DESC)`
+                  break
+              }
+
+              return (
+                <div key={level} className="space-y-3 animate-fade-in-up">
+                  <h3
+                    className={cn(
+                      'text-sm font-black tracking-widest uppercase flex items-center gap-2',
+                      getLevelTitleColor(level),
+                    )}
+                  >
+                    <div className={cn('w-3 h-3 rounded-full', getLevelDotColor(level))} />
+                    {title}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {levelResults.map((res) => {
+                      const isAVista = res.installments === 0
+                      return (
+                        <Card
+                          key={res.installments}
                           className={cn(
-                            'inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-black',
-                            getBadgeStyle(res.level, res.discountPct),
+                            'shadow-md transition-all hover:scale-[1.02] border-2',
+                            getCardStyle(res.level),
                           )}
                         >
-                          {res.discountPct}%
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(res.discountVal)}
-                      </TableCell>
-                      <TableCell
-                        className={cn('text-right font-black', res.level === 4 && 'text-primary')}
-                      >
-                        {formatCurrency(res.finalVal)}
-                      </TableCell>
-                      <TableCell className="text-right font-bold opacity-90">
-                        {isAVista ? '-' : formatCurrency(res.entryVal)}
-                      </TableCell>
-                      <TableCell className="text-right font-black">
-                        {isAVista
-                          ? '-'
-                          : `${res.installments}X ${formatCurrency(res.installmentVal)}`}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                          <CardContent className="p-5 flex flex-col gap-3">
+                            <div className="flex justify-between items-center border-b border-current/20 pb-2">
+                              <span className="font-bold text-[10px] uppercase opacity-80 tracking-wider">
+                                Forma
+                              </span>
+                              <span className="font-black text-sm">{res.label}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center border-b border-current/10 pb-2">
+                              <span className="font-bold text-[10px] uppercase opacity-80 tracking-wider">
+                                Desconto ({res.discountPct}%)
+                              </span>
+                              <span className="font-bold text-sm">
+                                {formatCurrency(res.discountVal)}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between items-center border-b border-current/10 pb-2">
+                              <span className="font-bold text-[10px] uppercase opacity-80 tracking-wider">
+                                Valor Final
+                              </span>
+                              <span className="font-black text-lg">
+                                {formatCurrency(res.finalVal)}
+                              </span>
+                            </div>
+
+                            {!isAVista && (
+                              <>
+                                <div className="flex justify-between items-center border-b border-current/10 pb-2">
+                                  <span className="font-bold text-[10px] uppercase opacity-80 tracking-wider">
+                                    Entrada Boleto
+                                  </span>
+                                  <span className="font-bold text-sm">
+                                    {formatCurrency(res.entryVal)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center pt-1">
+                                  <span className="font-bold text-[10px] uppercase opacity-80 tracking-wider">
+                                    Parcelas
+                                  </span>
+                                  <span className="font-black text-xl">
+                                    {res.installments}X {formatCurrency(res.installmentVal)}
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })
           )}
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

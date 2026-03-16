@@ -38,7 +38,7 @@ export default function Settings() {
               ESTOQUE
             </TabsTrigger>
           )}
-          {isAdmin && (
+          {isMaster && (
             <TabsTrigger value="negociacao" className="py-2 px-4 flex-1 font-bold tracking-widest">
               SIMULADOR
             </TabsTrigger>
@@ -67,7 +67,7 @@ export default function Settings() {
           </TabsContent>
         )}
 
-        {isAdmin && (
+        {isMaster && (
           <TabsContent value="negociacao">
             <NegotiationSettingsPanel />
           </TabsContent>
