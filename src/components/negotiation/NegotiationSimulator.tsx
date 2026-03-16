@@ -37,25 +37,25 @@ export function NegotiationSimulator() {
   const getDiscountLevel = useCallback((val: number, inst: number) => {
     if (inst === 0) return 1
     if (val >= 1000 && val <= 2999.99) {
-      if (inst === 2) return 1
-      if (inst === 3) return 2
-      if (inst === 4) return 3
+      if (inst === 2) return 2
+      if (inst === 3) return 3
+      if (inst >= 4) return 4
     } else if (val >= 3000 && val <= 4999.99) {
-      if (inst >= 2 && inst <= 3) return 1
-      if (inst === 4) return 2
-      if (inst >= 5 && inst <= 8) return 3
+      if (inst >= 2 && inst <= 3) return 2
+      if (inst === 4) return 3
+      if (inst >= 5) return 4
     } else if (val >= 5000 && val <= 7999.99) {
-      if (inst >= 2 && inst <= 3) return 1
-      if (inst === 4) return 2
-      if (inst >= 5 && inst <= 12) return 3
+      if (inst >= 2 && inst <= 3) return 2
+      if (inst === 4) return 3
+      if (inst >= 5) return 4
     } else if (val >= 8000 && val <= 11999.99) {
-      if (inst >= 2 && inst <= 3) return 1
-      if (inst === 4) return 2
-      if (inst >= 5 && inst <= 20) return 3
+      if (inst >= 2 && inst <= 3) return 2
+      if (inst === 4) return 3
+      if (inst >= 5) return 4
     } else if (val >= 12000) {
-      if (inst >= 2 && inst <= 3) return 1
-      if (inst === 4) return 2
-      if (inst >= 5 && inst <= 24) return 3
+      if (inst >= 2 && inst <= 3) return 2
+      if (inst === 4) return 3
+      if (inst >= 5) return 4
     }
     return 4
   }, [])
@@ -124,7 +124,7 @@ export function NegotiationSimulator() {
     1: 'bg-[#3A5693] text-white',
     2: 'bg-[#4B4B4B] text-white',
     3: 'bg-[#767676] text-white',
-    4: 'bg-[#B0B0B0] text-black',
+    4: 'bg-[#F4F4F5] text-black',
   }
 
   return (
@@ -188,7 +188,7 @@ export function NegotiationSimulator() {
           )}
 
           {totalValue >= 1000 && activeRange && (
-            <>
+            <div className="space-y-4 animate-fade-in-up">
               <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-start gap-3">
                 <ListOrdered className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div>
@@ -200,28 +200,35 @@ export function NegotiationSimulator() {
               </div>
 
               {/* Discount Summary Mini-Dash */}
-              <div className="flex rounded-lg overflow-hidden border border-slate-200 shadow-sm h-[120px] animate-fade-in-up">
-                <div className="w-[35%] bg-black flex items-center justify-center p-3">
+              <div className="flex rounded-lg overflow-hidden border border-slate-200 shadow-sm h-[140px]">
+                <div className="w-[35%] bg-black flex flex-col items-center justify-center p-3 text-center">
                   <span className="text-white font-black text-sm uppercase tracking-widest">
                     Descontos
                   </span>
+                  <span className="text-slate-400 font-bold text-[10px] mt-1 uppercase">
+                    Por Faixa
+                  </span>
                 </div>
                 <div className="w-[65%] flex flex-col">
-                  <div className="flex-1 bg-[#3A5693] text-white flex items-center justify-center font-black text-sm tracking-widest">
-                    {discounts.level1}%
+                  <div className="flex-1 bg-[#3A5693] text-white flex items-center justify-between px-4 font-black text-xs tracking-widest border-b border-white/10">
+                    <span>À VISTA</span>
+                    <span>{discounts.level1}%</span>
                   </div>
-                  <div className="flex-1 bg-[#4B4B4B] text-white flex items-center justify-center font-black text-sm tracking-widest">
-                    {discounts.level2}%
+                  <div className="flex-1 bg-[#4B4B4B] text-white flex items-center justify-between px-4 font-black text-xs tracking-widest border-b border-white/10">
+                    <span>TIER 2</span>
+                    <span>{discounts.level2}%</span>
                   </div>
-                  <div className="flex-1 bg-[#767676] text-white flex items-center justify-center font-black text-sm tracking-widest">
-                    {discounts.level3}%
+                  <div className="flex-1 bg-[#767676] text-white flex items-center justify-between px-4 font-black text-xs tracking-widest border-b border-white/10">
+                    <span>TIER 3</span>
+                    <span>{discounts.level3}%</span>
                   </div>
-                  <div className="flex-1 bg-[#B0B0B0] text-black flex items-center justify-center font-black text-sm tracking-widest">
-                    {discounts.level4}%
+                  <div className="flex-1 bg-[#F4F4F5] text-black flex items-center justify-between px-4 font-black text-xs tracking-widest">
+                    <span>TIER 4</span>
+                    <span>{discounts.level4}%</span>
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -270,16 +277,16 @@ export function NegotiationSimulator() {
                     levelColors[1],
                   )}
                 >
-                  <div className="font-black">A Vista</div>
+                  <div className="font-black">À VISTA</div>
                   <div>{formatCurrency(r.finalVal)}</div>
                   <div>{formatCurrency(r.discountVal)}</div>
                 </div>
               ))}
 
             <div className="grid grid-cols-[1fr_1.3fr_1fr] bg-black text-white font-bold text-center py-3 text-base border-b border-white/20">
-              <div className="font-black text-white/90">Entrada</div>
+              <div className="font-black text-white/90">ENTRADA</div>
               <div>{formatCurrency(results.entryVal)}</div>
-              <div></div>
+              <div>-</div>
             </div>
 
             {results.options
@@ -290,11 +297,11 @@ export function NegotiationSimulator() {
                   <div
                     key={r.installments}
                     className={cn(
-                      'grid grid-cols-[1fr_1.3fr_1fr] font-bold text-center py-2 text-base transition-colors border-b border-white/10',
+                      'grid grid-cols-[1fr_1.3fr_1fr] font-bold text-center py-2 text-base transition-colors border-b border-black/5',
                       colors,
                     )}
                   >
-                    <div className="font-black">{r.installments}</div>
+                    <div className="font-black">{r.installments}x</div>
                     <div>{formatCurrency(r.installmentVal)}</div>
                     <div>{r.discountVal > 0 ? formatCurrency(r.discountVal) : '-'}</div>
                   </div>

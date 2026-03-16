@@ -100,9 +100,7 @@ export function NegotiationSettingsPanel() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-black text-muted-foreground">
-                CURTO PRAZO (NÍVEL 2)
-              </Label>
+              <Label className="text-xs font-black text-muted-foreground">TIER 2</Label>
               <div className="relative">
                 <Input
                   type="number"
@@ -112,12 +110,12 @@ export function NegotiationSettingsPanel() {
                 />
                 <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               </div>
-              <p className="text-[10px] text-muted-foreground font-semibold">Até 3x no boleto.</p>
+              <p className="text-[10px] text-muted-foreground font-semibold">
+                Primeiro grupo de parcelas.
+              </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-black text-muted-foreground">
-                MÉDIO PRAZO (NÍVEL 3)
-              </Label>
+              <Label className="text-xs font-black text-muted-foreground">TIER 3</Label>
               <div className="relative">
                 <Input
                   type="number"
@@ -128,13 +126,11 @@ export function NegotiationSettingsPanel() {
                 <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               </div>
               <p className="text-[10px] text-muted-foreground font-semibold">
-                Apenas em 4x no boleto.
+                Segundo grupo de parcelas.
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-black text-muted-foreground">
-                LONGO PRAZO (NÍVEL 4)
-              </Label>
+              <Label className="text-xs font-black text-muted-foreground">TIER 4</Label>
               <div className="relative">
                 <Input
                   type="number"
@@ -144,7 +140,7 @@ export function NegotiationSettingsPanel() {
                 />
                 <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               </div>
-              <p className="text-[10px] text-muted-foreground font-semibold">5x ou mais.</p>
+              <p className="text-[10px] text-muted-foreground font-semibold">Parcelas restantes.</p>
             </div>
           </div>
         </div>
