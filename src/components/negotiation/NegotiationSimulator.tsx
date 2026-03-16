@@ -45,19 +45,45 @@ export function NegotiationSimulator() {
       if (inst === 4) return 3
       if (inst >= 5) return 4
     } else if (val >= 5000 && val <= 7999.99) {
-      if (inst >= 2 && inst <= 3) return 2
-      if (inst === 4) return 3
-      if (inst >= 5) return 4
+      if (inst >= 2 && inst <= 4) return 2
+      if (inst >= 5 && inst <= 8) return 3
+      if (inst >= 9) return 4
     } else if (val >= 8000 && val <= 11999.99) {
-      if (inst >= 2 && inst <= 3) return 2
-      if (inst === 4) return 3
-      if (inst >= 5) return 4
+      if (inst >= 2 && inst <= 5) return 2
+      if (inst >= 6 && inst <= 10) return 3
+      if (inst >= 11) return 4
     } else if (val >= 12000) {
-      if (inst >= 2 && inst <= 3) return 2
-      if (inst === 4) return 3
-      if (inst >= 5) return 4
+      if (inst >= 2 && inst <= 6) return 2
+      if (inst >= 7 && inst <= 12) return 3
+      if (inst >= 13) return 4
     }
     return 4
+  }, [])
+
+  const getInstallmentRangeText = useCallback((level: number, val: number, maxInst: number) => {
+    if (val < 1000) return ''
+    if (val >= 1000 && val <= 2999.99) {
+      if (level === 2) return '(2X)'
+      if (level === 3) return '(3X)'
+      if (level === 4) return `(4X${maxInst > 4 ? ` - ${maxInst}X` : ''})`
+    } else if (val >= 3000 && val <= 4999.99) {
+      if (level === 2) return '(2X - 3X)'
+      if (level === 3) return '(4X)'
+      if (level === 4) return `(5X${maxInst > 5 ? ` - ${maxInst}X` : ''})`
+    } else if (val >= 5000 && val <= 7999.99) {
+      if (level === 2) return '(2X - 4X)'
+      if (level === 3) return '(5X - 8X)'
+      if (level === 4) return `(9X${maxInst > 9 ? ` - ${maxInst}X` : ''})`
+    } else if (val >= 8000 && val <= 11999.99) {
+      if (level === 2) return '(2X - 5X)'
+      if (level === 3) return '(6X - 10X)'
+      if (level === 4) return `(11X${maxInst > 11 ? ` - ${maxInst}X` : ''})`
+    } else if (val >= 12000) {
+      if (level === 2) return '(2X - 6X)'
+      if (level === 3) return '(7X - 12X)'
+      if (level === 4) return `(13X${maxInst > 13 ? ` - ${maxInst}X` : ''})`
+    }
+    return ''
   }, [])
 
   const results = useMemo(() => {
@@ -215,15 +241,30 @@ export function NegotiationSimulator() {
                     <span>{discounts.level1}%</span>
                   </div>
                   <div className="flex-1 bg-[#4B4B4B] text-white flex items-center justify-between px-4 font-black text-xs tracking-widest border-b border-white/10">
-                    <span>TIER 2</span>
+                    <span className="flex items-center gap-1">
+                      FAIXA 2{' '}
+                      <span className="text-[10px] font-bold text-white/60">
+                        {getInstallmentRangeText(2, totalValue, activeRange.maxInstallments)}
+                      </span>
+                    </span>
                     <span>{discounts.level2}%</span>
                   </div>
                   <div className="flex-1 bg-[#767676] text-white flex items-center justify-between px-4 font-black text-xs tracking-widest border-b border-white/10">
-                    <span>TIER 3</span>
+                    <span className="flex items-center gap-1">
+                      FAIXA 3{' '}
+                      <span className="text-[10px] font-bold text-white/60">
+                        {getInstallmentRangeText(3, totalValue, activeRange.maxInstallments)}
+                      </span>
+                    </span>
                     <span>{discounts.level3}%</span>
                   </div>
                   <div className="flex-1 bg-[#F4F4F5] text-black flex items-center justify-between px-4 font-black text-xs tracking-widest">
-                    <span>TIER 4</span>
+                    <span className="flex items-center gap-1">
+                      FAIXA 4{' '}
+                      <span className="text-[10px] font-bold text-black/40">
+                        {getInstallmentRangeText(4, totalValue, activeRange.maxInstallments)}
+                      </span>
+                    </span>
                     <span>{discounts.level4}%</span>
                   </div>
                 </div>

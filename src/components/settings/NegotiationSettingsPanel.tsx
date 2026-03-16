@@ -85,7 +85,7 @@ export function NegotiationSettingsPanel() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-slate-50 p-5 rounded-xl border">
             <div className="space-y-2">
-              <Label className="text-xs font-black text-muted-foreground">À VISTA (NÍVEL 1)</Label>
+              <Label className="text-xs font-black text-muted-foreground">À VISTA (FAIXA 1)</Label>
               <div className="relative">
                 <Input
                   type="number"
@@ -100,7 +100,7 @@ export function NegotiationSettingsPanel() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-black text-muted-foreground">TIER 2</Label>
+              <Label className="text-xs font-black text-muted-foreground">FAIXA 2</Label>
               <div className="relative">
                 <Input
                   type="number"
@@ -115,7 +115,7 @@ export function NegotiationSettingsPanel() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-black text-muted-foreground">TIER 3</Label>
+              <Label className="text-xs font-black text-muted-foreground">FAIXA 3</Label>
               <div className="relative">
                 <Input
                   type="number"
@@ -130,7 +130,7 @@ export function NegotiationSettingsPanel() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-black text-muted-foreground">TIER 4</Label>
+              <Label className="text-xs font-black text-muted-foreground">FAIXA 4</Label>
               <div className="relative">
                 <Input
                   type="number"
