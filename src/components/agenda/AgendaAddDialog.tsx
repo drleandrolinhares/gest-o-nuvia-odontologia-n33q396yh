@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { CalendarDays, Check, ChevronsUpDown } from 'lucide-react'
 import { Employee } from '@/stores/main'
 import { cn } from '@/lib/utils'
+import { DatePickerInput } from '@/components/ui/date-picker-input'
 
 interface Props {
   open: boolean
@@ -197,7 +198,11 @@ export function AgendaAddDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">DATA LIMITE *</label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+              <DatePickerInput
+                value={date}
+                onChange={(val) => setDate((val as string) || '')}
+                className="uppercase"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">HORÁRIO *</label>

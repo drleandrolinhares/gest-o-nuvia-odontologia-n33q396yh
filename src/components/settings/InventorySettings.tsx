@@ -19,7 +19,7 @@ export function InventorySettings() {
   const { inventoryOptions, addInventoryOption, removeInventoryOption } = useAppStore()
 
   const categories = [
-    { id: 'storage_room', label: 'SALAS DE ARMAZENAMENTO' },
+    { id: 'STORAGE_ROOM', label: 'SALAS DE ARMAZENAMENTO' },
     { id: 'MARCA_IMPLANTE', label: 'MARCAS DE IMPLANTE' },
     { id: 'TIPO_COMPONENTE', label: 'TIPOS DE COMPONENTE' },
   ]
@@ -48,14 +48,11 @@ export function InventorySettings() {
       {categories.map((cat) => {
         const options = inventoryOptions
           .filter((o) => {
-            if (cat.id === 'storage_room') {
-              return (
-                o.category.toLowerCase() === 'storage_room' ||
-                o.category === 'STORAGE_ROOM' ||
-                o.category === 'SALA_ARMAZENAMENTO'
-              )
+            const oCat = o.category.toUpperCase()
+            if (cat.id === 'STORAGE_ROOM') {
+              return oCat === 'STORAGE_ROOM' || oCat === 'SALA_ARMAZENAMENTO'
             }
-            return o.category === cat.id
+            return oCat === cat.id
           })
           .sort((a, b) => a.value.localeCompare(b.value))
 
@@ -63,7 +60,7 @@ export function InventorySettings() {
           <Card key={cat.id}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-nuvia-navy text-sm font-bold">
-                {cat.id === 'storage_room' ? (
+                {cat.id === 'STORAGE_ROOM' ? (
                   <LayoutGrid className="h-4 w-4 text-emerald-500" />
                 ) : (
                   <Box className="h-4 w-4 text-blue-500" />

@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Clock, ChevronLeft, ChevronRight, AlertTriangle, Plus, Pencil, Trash2 } from 'lucide-react'
 import { startOfWeek, endOfWeek, format, addDays, subDays } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { DatePickerInput } from '@/components/ui/date-picker-input'
 
 const timeToMin = (t?: string | null) => {
   if (!t) return 0
@@ -272,13 +273,12 @@ export default function WorkSchedule() {
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <Input
-            type="date"
+          <DatePickerInput
             value={dateStr}
-            onChange={(e) => {
-              if (e.target.value) setSelectedDate(new Date(e.target.value + 'T12:00:00'))
+            onChange={(val) => {
+              if (val) setSelectedDate(new Date((val as string) + 'T12:00:00'))
             }}
-            className="w-[180px] font-bold text-center bg-white border-0 shadow-none focus-visible:ring-0 text-base uppercase"
+            className="w-[180px] font-bold text-center bg-white shadow-none focus-visible:ring-0 text-base uppercase"
           />
           <Button
             variant="outline"

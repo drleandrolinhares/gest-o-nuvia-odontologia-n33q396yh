@@ -41,7 +41,7 @@ export default function Agenda() {
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
   const [taskView, setTaskView] = useState<
-    'PARA MIM' | 'DELEGADOS' | 'COMPROMISSOS' | 'AUSÊNCIAS' | 'TUDO'
+    'PARA MIM' | 'DELEGADOS' | 'COMPROMISSOS' | 'AUSÊNCIAS' | 'ALERTAS' | 'TUDO'
   >('PARA MIM')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
@@ -60,8 +60,9 @@ export default function Agenda() {
 
   const filteredAgenda = allAgendaItems
     .filter((item) => {
-      // If COMPROMISSOS or AUSÊNCIAS, we ignore calendar selection entirely for indefinite future display
-      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS') return true
+      // If COMPROMISSOS or AUSÊNCIAS or ALERTAS, we ignore calendar selection entirely for indefinite future display
+      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS' || taskView === 'ALERTAS')
+        return true
 
       if (!selectedDate) return true
       const itemDate = parseISO(item.date)
@@ -71,8 +72,8 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
-      // Enforce date >= today for the COMPROMISSOS and AUSÊNCIAS tab view
-      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS') {
+      // Enforce date >= today for these tab views
+      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS' || taskView === 'ALERTAS') {
         const todayStr = format(new Date(), 'yyyy-MM-dd')
         return item.date >= todayStr
       }
@@ -92,8 +93,14 @@ export default function Agenda() {
       if (taskView === 'TUDO') return true
       if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
 
+      const isAlert = item.type === 'BÔNUS' || item.type === 'FÉRIAS'
+
+      if (taskView === 'ALERTAS') {
+        return isAlert
+      }
+
       if (taskView === 'COMPROMISSOS') {
-        return !ABSENCE_TYPES.includes(item.type.toUpperCase())
+        return !ABSENCE_TYPES.includes(item.type.toUpperCase()) && !isAlert
       }
 
       if (taskView === 'AUSÊNCIAS') {
@@ -101,6 +108,7 @@ export default function Agenda() {
       }
 
       // PARA MIM
+      if (isAlert && item.assignedTo !== currentUserId) return false
       if (ABSENCE_TYPES.includes(item.type.toUpperCase()) && item.assignedTo !== currentUserId)
         return false
       return item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
@@ -260,13 +268,13 @@ export default function Agenda() {
             </div>
           </div>
 
-          <div className="flex justify-start overflow-x-auto custom-scrollbar">
+          <div className="flex justify-start overflow-x-auto custom-scrollbar border-b">
             <Tabs
               value={taskView}
               onValueChange={(v) => setTaskView(v as any)}
               className="w-full sm:w-auto min-w-max"
             >
-              <TabsList className="bg-transparent border-b rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
+              <TabsList className="bg-transparent rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
                 <TabsTrigger
                   value="PARA MIM"
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
@@ -291,6 +299,12 @@ export default function Agenda() {
                 >
                   AUSÊNCIAS
                 </TabsTrigger>
+                <TabsTrigger
+                  value="ALERTAS"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-amber-500 data-[state=active]:text-amber-600 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                >
+                  ALERTAS DE SISTEMA
+                </TabsTrigger>
                 {isAdmin && (
                   <TabsTrigger
                     value="TUDO"
@@ -310,7 +324,9 @@ export default function Agenda() {
                   ? 'NENHUM COMPROMISSO FUTURO ENCONTRADO PARA OS FILTROS SELECIONADOS.'
                   : taskView === 'AUSÊNCIAS'
                     ? 'NENHUMA AUSÊNCIA AGENDADA PARA OS FILTROS SELECIONADOS.'
-                    : 'NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.'}
+                    : taskView === 'ALERTAS'
+                      ? 'NENHUM ALERTA DE SISTEMA ENCONTRADO PARA OS FILTROS SELECIONADOS.'
+                      : 'NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.'}
               </div>
             ) : (
               filteredAgenda.map((item) => (

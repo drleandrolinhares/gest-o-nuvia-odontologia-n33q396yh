@@ -27,6 +27,7 @@ import { formatCurrency, cn } from '@/lib/utils'
 import { Calculator, PackageSearch, Barcode as BarcodeIcon, Tag, Zap } from 'lucide-react'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 import { useToast } from '@/hooks/use-toast'
+import { DatePickerInput } from '@/components/ui/date-picker-input'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
@@ -99,7 +100,9 @@ export function AddInventoryModal({
   const barcodeInputRef = useRef<HTMLInputElement>(null)
 
   const storageRooms = inventoryOptions.filter(
-    (o) => o.category === 'STORAGE_ROOM' || o.category === 'SALA_ARMAZENAMENTO',
+    (o) =>
+      o.category.toUpperCase() === 'STORAGE_ROOM' ||
+      o.category.toUpperCase() === 'SALA_ARMAZENAMENTO',
   )
   const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
@@ -733,11 +736,10 @@ export function AddInventoryModal({
                     <FormItem className="flex flex-col">
                       <FormLabel>DATA DE ENTRADA</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
+                        <DatePickerInput
+                          value={field.value}
+                          onChange={field.onChange}
                           className="uppercase"
-                          {...field}
-                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -751,11 +753,10 @@ export function AddInventoryModal({
                     <FormItem className="flex flex-col">
                       <FormLabel>DATA DE VALIDADE</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
+                        <DatePickerInput
+                          value={field.value}
+                          onChange={field.onChange}
                           className="uppercase"
-                          {...field}
-                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormMessage />
@@ -803,6 +804,11 @@ export function AddInventoryModal({
                           )}
                         </SelectContent>
                       </Select>
+                      {storageRooms.length === 0 && (
+                        <p className="text-[10px] text-amber-600 font-bold mt-1.5 uppercase">
+                          Nenhuma sala cadastrada. Adicione em Configurações.
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />

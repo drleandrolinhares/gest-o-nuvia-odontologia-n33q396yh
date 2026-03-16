@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import RH from '@/pages/RH'
@@ -20,10 +21,27 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import ForceChangePassword from '@/pages/ForceChangePassword'
 import { AppProvider } from '@/stores/main'
-import { AuthProvider } from '@/hooks/use-auth'
+import { AuthProvider, useAuth } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+
+function RootRedirect() {
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!loading) {
+      navigate(user ? '/admin/agenda' : '/login', { replace: true })
+    }
+  }, [user, loading, navigate])
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[#0A192F]">
+      <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -32,7 +50,7 @@ export default function App() {
         <AppProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<Navigate to="/admin/agenda" replace />} />
+              <Route path="/" element={<RootRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route path="/force-change-password" element={<ForceChangePassword />} />
               <Route

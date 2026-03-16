@@ -12,6 +12,7 @@ import {
 import { UserMinus } from 'lucide-react'
 import { Employee } from '@/stores/main'
 import { format, isBefore, eachDayOfInterval } from 'date-fns'
+import { DatePickerInput } from '@/components/ui/date-picker-input'
 
 interface Props {
   open: boolean
@@ -215,28 +216,26 @@ export function DentistAbsenceDialog({
               <label className="text-xs font-semibold text-muted-foreground">
                 DATA DE INÍCIO *
               </label>
-              <Input
-                type="date"
+              <DatePickerInput
                 value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value)
-                  const newStart = new Date(`${e.target.value}T00:00:00`)
+                onChange={(val) => {
+                  const v = (val as string) || ''
+                  setStartDate(v)
+                  const newStart = v ? new Date(`${v}T00:00:00`) : null
                   const currentEnd = endDate ? new Date(`${endDate}T00:00:00`) : null
-                  if (!endDate || (currentEnd && isBefore(currentEnd, newStart))) {
-                    setEndDate(e.target.value)
+                  if (newStart && (!endDate || (currentEnd && isBefore(currentEnd, newStart)))) {
+                    setEndDate(v)
                   }
                 }}
-                required
+                className="uppercase"
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground">DATA FINAL *</label>
-              <Input
-                type="date"
+              <DatePickerInput
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                required
-                min={startDate}
+                onChange={(val) => setEndDate((val as string) || '')}
+                className="uppercase"
               />
             </div>
           </div>

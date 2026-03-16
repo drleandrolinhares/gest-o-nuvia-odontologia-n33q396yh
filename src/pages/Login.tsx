@@ -24,7 +24,7 @@ export default function Login() {
   const [keepSignedIn, setKeepSignedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const { signIn, user } = useAuth()
+  const { signIn, user, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
@@ -38,10 +38,10 @@ export default function Login() {
 
   useEffect(() => {
     // Prevent showing login to already authenticated users
-    if (user) {
+    if (!loading && user) {
       navigate(from, { replace: true })
     }
-  }, [user, navigate, from])
+  }, [user, loading, navigate, from])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
