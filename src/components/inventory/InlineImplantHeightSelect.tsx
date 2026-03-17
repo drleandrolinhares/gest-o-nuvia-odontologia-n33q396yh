@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { ChevronDown, Plus, Trash2 } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { cn } from '@/lib/utils'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export interface InlineImplantHeightSelectProps {
   value: string
@@ -62,42 +63,44 @@ export const InlineImplantHeightSelect = React.forwardRef<
               <Plus className="h-4 w-4" />
             </Button>
           </form>
-          <div className="overflow-y-auto space-y-1 pr-1 flex-1">
-            {heights.map((h) => (
-              <div
-                key={h.id}
-                className="flex items-center justify-between group rounded-md hover:bg-muted/50"
-              >
-                <button
-                  type="button"
-                  className="flex-1 text-left px-2 py-1.5 text-sm uppercase font-medium"
-                  onClick={() => {
-                    onChange(h.value)
-                    setOpen(false)
-                  }}
+          <ScrollArea className="flex-1 pr-3">
+            <div className="space-y-1">
+              {heights.map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center justify-between group rounded-md hover:bg-muted/50"
                 >
-                  {h.value} MM
-                </button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    removeInventoryOption(h.id)
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-            {heights.length === 0 && (
-              <div className="text-center text-xs text-muted-foreground py-2 font-medium">
-                NENHUMA OPÇÃO
-              </div>
-            )}
-          </div>
+                  <button
+                    type="button"
+                    className="flex-1 text-left px-2 py-1.5 text-sm uppercase font-medium"
+                    onClick={() => {
+                      onChange(h.value)
+                      setOpen(false)
+                    }}
+                  >
+                    {h.value} MM
+                  </button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      removeInventoryOption(h.id)
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+              {heights.length === 0 && (
+                <div className="text-center text-xs text-muted-foreground py-2 font-medium">
+                  NENHUMA OPÇÃO
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </PopoverContent>
       </Popover>
     </div>

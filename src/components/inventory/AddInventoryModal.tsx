@@ -97,7 +97,7 @@ export function AddInventoryModal({
   onOpenChange: (val: boolean) => void
   baseItemName?: string
 }) {
-  const { addInventoryItem, packageTypes, inventoryOptions } = useAppStore()
+  const { addInventoryItem, packageTypes, inventoryOptions, inventory } = useAppStore()
   const { toast } = useToast()
 
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
@@ -114,6 +114,9 @@ export function AddInventoryModal({
   )
   const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
+
+  const existingItem = baseItemName ? inventory.find((i) => i.name === baseItemName) : null
+  const realStockBefore = existingItem ? existingItem.quantity * (existingItem.itemsPerBox || 1) : 0
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -825,7 +828,7 @@ export function AddInventoryModal({
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                 <FormField
                   control={form.control}
                   name="storageRoom"
@@ -872,6 +875,9 @@ export function AddInventoryModal({
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4 mt-4">
                 <FormField
                   control={form.control}
                   name="minStock"
@@ -889,6 +895,20 @@ export function AddInventoryModal({
                     </FormItem>
                   )}
                 />
+                <FormItem>
+                  <FormLabel className="text-blue-800">
+                    QTD ESTOQUE REAL ANTES DESTE LANÇAMENTO
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      readOnly
+                      disabled
+                      value={`${realStockBefore} UN`}
+                      className="uppercase font-bold bg-blue-50/50 border-blue-100 text-blue-900"
+                    />
+                  </FormControl>
+                </FormItem>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-slate-100">

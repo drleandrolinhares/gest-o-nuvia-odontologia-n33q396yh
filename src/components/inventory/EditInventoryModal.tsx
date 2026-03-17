@@ -143,6 +143,8 @@ export function EditInventoryModal({
   const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
 
+  const realStockBefore = item ? item.quantity * (item.itemsPerBox || 1) : 0
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -992,7 +994,7 @@ export function EditInventoryModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                     <FormField
                       control={form.control}
                       name="storageRoom"
@@ -1048,12 +1050,15 @@ export function EditInventoryModal({
                         </FormItem>
                       )}
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4 mt-4">
                     <FormField
                       control={form.control}
                       name="minStock"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>ESTOQUE MÍNIMO</FormLabel>
+                          <FormLabel>ESTOQUE MÍNIMO (UNIDADES)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -1065,6 +1070,20 @@ export function EditInventoryModal({
                         </FormItem>
                       )}
                     />
+                    <FormItem>
+                      <FormLabel className="text-blue-800">
+                        QTD ESTOQUE REAL ANTES DESTE LANÇAMENTO
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          readOnly
+                          disabled
+                          value={`${realStockBefore} UN`}
+                          className="uppercase font-bold bg-blue-50/50 border-blue-100 text-blue-900"
+                        />
+                      </FormControl>
+                    </FormItem>
                   </div>
 
                   <div className="space-y-4 pt-4 border-t border-slate-100">
@@ -1176,7 +1195,7 @@ export function EditInventoryModal({
                         FORNECEDOR
                       </TableHead>
                       <TableHead className="font-bold text-xs uppercase text-muted-foreground text-center">
-                        QTD
+                        QTD. COMPRADA
                       </TableHead>
                       <TableHead className="font-bold text-xs uppercase text-muted-foreground">
                         VALOR (EMB)
@@ -1348,7 +1367,7 @@ export function EditInventoryModal({
                   name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>QUANTIDADE</FormLabel>
+                      <FormLabel>QTD. COMPRADA</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} className="uppercase" />
                       </FormControl>

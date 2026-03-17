@@ -152,7 +152,7 @@ export function TemporaryOutflowModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="uppercase font-bold text-muted-foreground tracking-wider">
-                    Quantidade
+                    QTD. A RETIRAR (UNIDADES)
                   </FormLabel>
                   <FormControl>
                     <Input

@@ -141,7 +141,7 @@ export function DecreaseStockModal({
                 render={({ field }) => (
                   <FormItem className="animate-fade-in">
                     <FormLabel className="uppercase font-bold text-muted-foreground tracking-wider">
-                      Quantidade a remover
+                      QTD. A RETIRAR (UNIDADES)
                     </FormLabel>
                     <FormControl>
                       <Input

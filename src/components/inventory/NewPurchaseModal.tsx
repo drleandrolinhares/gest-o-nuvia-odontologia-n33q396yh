@@ -103,7 +103,7 @@ export function NewPurchaseModal({
                 name="quantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>QUANTIDADE</FormLabel>
+                    <FormLabel>QTD. COMPRADA</FormLabel>
                     <FormControl>
                       <Input type="number" min={1} className="uppercase" {...field} />
                     </FormControl>

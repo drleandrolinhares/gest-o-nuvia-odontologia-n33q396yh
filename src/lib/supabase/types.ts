@@ -1798,6 +1798,8 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "authenticated_select_employees" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 // Table: inventory
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1830,6 +1832,8 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "authenticated_select_profiles" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 // Table: role_permissions
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={public}
 //     USING: (auth.role() = 'authenticated'::text)

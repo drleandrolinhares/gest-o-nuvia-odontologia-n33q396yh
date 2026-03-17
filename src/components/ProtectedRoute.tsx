@@ -22,23 +22,31 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       Promise.all([
         supabase.from('profiles').select('must_change_password').eq('id', user.id).maybeSingle(),
         supabase.from('employees').select('no_system_access').eq('user_id', user.id).maybeSingle(),
-      ]).then(([profileRes, empRes]) => {
-        if (!isMounted) return
+      ])
+        .then(([profileRes, empRes]) => {
+          if (!isMounted) return
 
-        if (empRes.data?.no_system_access) {
-          setAccessDenied(true)
+          if (empRes.data?.no_system_access) {
+            setAccessDenied(true)
+            setCheckingProfile(false)
+            signOut()
+            return
+          }
+
+          if (!profileRes.error && profileRes.data) {
+            setMustChange(!!profileRes.data.must_change_password)
+          } else {
+            setMustChange(false)
+          }
           setCheckingProfile(false)
-          signOut()
-          return
-        }
-
-        if (!profileRes.error && profileRes.data) {
-          setMustChange(!!profileRes.data.must_change_password)
-        } else {
-          setMustChange(false)
-        }
-        setCheckingProfile(false)
-      })
+        })
+        .catch((err) => {
+          console.error('Auth profile check error:', err)
+          if (isMounted) {
+            setMustChange(false)
+            setCheckingProfile(false)
+          }
+        })
     } else {
       if (isMounted) {
         setMustChange(null)
