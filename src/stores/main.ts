@@ -1360,8 +1360,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.storageRoom !== undefined) payload.storage_room = data.storageRoom || null
       if (data.cabinetNumber !== undefined) payload.cabinet_number = data.cabinetNumber || null
       if (data.nfeNumber !== undefined) payload.nfe_number = data.nfeNumber || null
-      if (data.minStock !== undefined) payload.minStock = data.minStock
-      if (data.entryDate !== undefined) payload.entryDate = data.entryDate
+      if (data.minStock !== undefined) payload.min_stock = data.minStock
+      if (data.entryDate !== undefined) payload.entry_date = data.entryDate
       if (data.expirationDate !== undefined) payload.expiration_date = data.expirationDate
       if (data.lastBrand !== undefined) payload.last_brand = data.lastBrand
       if (data.lastValue !== undefined) payload.last_value = data.lastValue
