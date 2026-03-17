@@ -147,6 +147,58 @@ export type Database = {
           },
         ]
       }
+      agenda_segmentation: {
+        Row: {
+          consultorio_id: string
+          created_at: string
+          day_of_week: number
+          dentist_id: string | null
+          id: string
+          shift: string
+          specialty_id: string | null
+        }
+        Insert: {
+          consultorio_id: string
+          created_at?: string
+          day_of_week: number
+          dentist_id?: string | null
+          id?: string
+          shift: string
+          specialty_id?: string | null
+        }
+        Update: {
+          consultorio_id?: string
+          created_at?: string
+          day_of_week?: number
+          dentist_id?: string | null
+          id?: string
+          shift?: string
+          specialty_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'agenda_segmentation_consultorio_id_fkey'
+            columns: ['consultorio_id']
+            isOneToOne: false
+            referencedRelation: 'clinica_consultorios'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'agenda_segmentation_dentist_id_fkey'
+            columns: ['dentist_id']
+            isOneToOne: false
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'agenda_segmentation_specialty_id_fkey'
+            columns: ['specialty_id']
+            isOneToOne: false
+            referencedRelation: 'specialty_configs'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -472,6 +524,7 @@ export type Database = {
           id: string
           last_access: string | null
           name: string
+          no_system_access: boolean | null
           phone: string | null
           pix_key: string | null
           pix_number: string | null
@@ -508,6 +561,7 @@ export type Database = {
           id?: string
           last_access?: string | null
           name: string
+          no_system_access?: boolean | null
           phone?: string | null
           pix_key?: string | null
           pix_number?: string | null
@@ -544,6 +598,7 @@ export type Database = {
           id?: string
           last_access?: string | null
           name?: string
+          no_system_access?: boolean | null
           phone?: string | null
           pix_key?: string | null
           pix_number?: string | null
@@ -1009,6 +1064,27 @@ export type Database = {
           },
         ]
       }
+      specialty_configs: {
+        Row: {
+          color_hex: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color_hex: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color_hex?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           cnpj: string
@@ -1309,6 +1385,14 @@ export const Constants = {
 //   sac_record_id: uuid (nullable)
 //   periodicity: text (nullable)
 //   end_date: date (nullable)
+// Table: agenda_segmentation
+//   id: uuid (not null, default: gen_random_uuid())
+//   consultorio_id: uuid (not null)
+//   day_of_week: integer (not null)
+//   shift: text (not null)
+//   specialty_id: uuid (nullable)
+//   dentist_id: uuid (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: app_settings
 //   id: uuid (not null, default: gen_random_uuid())
 //   global_card_fee: numeric (nullable, default: 0)
@@ -1412,6 +1496,7 @@ export const Constants = {
 //   pix_type: text (nullable)
 //   bank_name: text (nullable)
 //   pix_number: text (nullable)
+//   no_system_access: boolean (nullable, default: false)
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1516,6 +1601,11 @@ export const Constants = {
 //   solved_at: timestamp with time zone (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   action_history: jsonb (nullable, default: '[]'::jsonb)
+// Table: specialty_configs
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   color_hex: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: suppliers
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1549,6 +1639,14 @@ export const Constants = {
 //   PRIMARY KEY agenda_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY agenda_requester_id_fkey: FOREIGN KEY (requester_id) REFERENCES employees(id) ON DELETE SET NULL
 //   FOREIGN KEY agenda_sac_record_id_fkey: FOREIGN KEY (sac_record_id) REFERENCES sac_records(id) ON DELETE CASCADE
+// Table: agenda_segmentation
+//   UNIQUE agenda_segmentation_consultorio_id_day_of_week_shift_key: UNIQUE (consultorio_id, day_of_week, shift)
+//   FOREIGN KEY agenda_segmentation_consultorio_id_fkey: FOREIGN KEY (consultorio_id) REFERENCES clinica_consultorios(id) ON DELETE CASCADE
+//   CHECK agenda_segmentation_day_of_week_check: CHECK (((day_of_week >= 1) AND (day_of_week <= 6)))
+//   FOREIGN KEY agenda_segmentation_dentist_id_fkey: FOREIGN KEY (dentist_id) REFERENCES employees(id) ON DELETE SET NULL
+//   PRIMARY KEY agenda_segmentation_pkey: PRIMARY KEY (id)
+//   CHECK agenda_segmentation_shift_check: CHECK ((shift = ANY (ARRAY['MANHÃ'::text, 'TARDE'::text])))
+//   FOREIGN KEY agenda_segmentation_specialty_id_fkey: FOREIGN KEY (specialty_id) REFERENCES specialty_configs(id) ON DELETE SET NULL
 // Table: app_settings
 //   PRIMARY KEY app_settings_pkey: PRIMARY KEY (id)
 // Table: audit_logs
@@ -1622,6 +1720,8 @@ export const Constants = {
 //   FOREIGN KEY sac_records_responsible_employee_id_fkey: FOREIGN KEY (responsible_employee_id) REFERENCES employees(id) ON DELETE SET NULL
 //   CHECK sac_records_status_check: CHECK ((status = ANY (ARRAY['OPORTUNIDADE DE SOLUÇÃO'::text, 'RECEBIDO'::text, 'SENDO TRATADO'::text, 'RESOLVIDO'::text])))
 //   CHECK sac_records_type_check: CHECK ((type = ANY (ARRAY['RECLAMAÇÃO'::text, 'SUGESTÃO'::text])))
+// Table: specialty_configs
+//   PRIMARY KEY specialty_configs_pkey: PRIMARY KEY (id)
 // Table: suppliers
 //   PRIMARY KEY suppliers_pkey: PRIMARY KEY (id)
 // Table: work_schedules
@@ -1643,6 +1743,10 @@ export const Constants = {
 //     USING: true
 //   Policy "Agenda visibility" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: ((assigned_to = ( SELECT (employees.id)::text AS id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (assigned_to = 'none'::text) OR (assigned_to IS NULL) OR (requester_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR is_master_user(auth.uid()) OR (EXISTS ( SELECT 1    FROM employees e   WHERE ((e.user_id = auth.uid()) AND (('ADMIN'::text = ANY (e.team_category)) OR ('DIRETORIA'::text = ANY (e.team_category)))))))
+// Table: agenda_segmentation
+//   Policy "Allow all authenticated users on agenda_segmentation" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: app_settings
 //   Policy "Allow all authenticated users on app_settings" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1748,6 +1852,10 @@ export const Constants = {
 //     USING: true
 //   Policy "Sac visibility" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: ((responsible_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (receiving_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR is_master_user(auth.uid()) OR (EXISTS ( SELECT 1    FROM employees e   WHERE ((e.user_id = auth.uid()) AND (('ADMIN'::text = ANY (e.team_category)) OR ('DIRETORIA'::text = ANY (e.team_category)))))))
+// Table: specialty_configs
+//   Policy "Allow all authenticated users on specialty_configs" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: suppliers
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1979,6 +2087,8 @@ export const Constants = {
 //   trg_sync_sac_to_agenda: CREATE TRIGGER trg_sync_sac_to_agenda AFTER UPDATE ON public.sac_records FOR EACH ROW EXECUTE FUNCTION sync_sac_to_agenda()
 
 // --- INDEXES ---
+// Table: agenda_segmentation
+//   CREATE UNIQUE INDEX agenda_segmentation_consultorio_id_day_of_week_shift_key ON public.agenda_segmentation USING btree (consultorio_id, day_of_week, shift)
 // Table: chat_participants
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
 // Table: consultorio_weekly_schedules
