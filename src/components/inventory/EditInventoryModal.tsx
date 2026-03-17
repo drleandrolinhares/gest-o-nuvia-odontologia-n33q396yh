@@ -846,7 +846,7 @@ export function EditInventoryModal({
                         name="quantity"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>QTD. ESTOQUE</FormLabel>
+                            <FormLabel>QTD. COMPRADA</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"

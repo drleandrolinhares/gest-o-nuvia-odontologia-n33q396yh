@@ -50,8 +50,8 @@ export const InlineImplantHeightSelect = React.forwardRef<
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-2" align="start">
-          <form onSubmit={handleAdd} className="flex gap-2 mb-2">
+        <PopoverContent className="w-full p-2 max-h-[300px] flex flex-col" align="start">
+          <form onSubmit={handleAdd} className="flex gap-2 mb-2 flex-shrink-0">
             <Input
               placeholder="NOVA ALTURA"
               value={newVal}
@@ -62,7 +62,7 @@ export const InlineImplantHeightSelect = React.forwardRef<
               <Plus className="h-4 w-4" />
             </Button>
           </form>
-          <div className="max-h-[200px] overflow-y-auto space-y-1">
+          <div className="overflow-y-auto space-y-1 pr-1 flex-1">
             {heights.map((h) => (
               <div
                 key={h.id}

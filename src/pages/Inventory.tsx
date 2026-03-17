@@ -98,7 +98,8 @@ export default function Inventory() {
   }
 
   const isCriticalStock = (item: InventoryItem) => {
-    return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock
+    const totalUnits = item.quantity * (item.itemsPerBox || 1)
+    return (item.minStock ?? 0) > 0 && totalUnits <= item.minStock
   }
 
   const now = new Date()
@@ -151,6 +152,7 @@ export default function Inventory() {
     return Object.entries(groups)
       .map(([name, items]) => {
         const totalQuantity = items.reduce((acc, i) => acc + i.quantity, 0)
+        const totalUnits = items.reduce((acc, i) => acc + i.quantity * (i.itemsPerBox || 1), 0)
         const isCritical = items.some((i) => isCriticalStock(i))
         const hasCriticalObservations = items.some(
           (i) => i.criticalObservations && i.criticalObservations.trim() !== '',
@@ -160,6 +162,7 @@ export default function Inventory() {
           name,
           items: items.sort((a, b) => (a.brand || '').localeCompare(b.brand || '')),
           totalQuantity,
+          totalUnits,
           totalValue,
           isCritical,
           hasCriticalObservations,
@@ -317,7 +320,7 @@ export default function Inventory() {
         <Card className="border-l-4 border-l-[#D81B84] shadow-sm rounded-xl">
           <CardContent className="p-6">
             <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
-              ITENS EM ESTOQUE ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
+              EMBALAGENS EM ESTOQUE ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
             </p>
             <div className="text-2xl font-extrabold text-[#D81B84] truncate">{totalItems}</div>
           </CardContent>
@@ -347,7 +350,7 @@ export default function Inventory() {
                 {topStats.maxVolSpec}
               </span>
               <span className="text-xs font-medium text-muted-foreground mt-1">
-                {topStats.maxVol} ITENS
+                {topStats.maxVol} EMBALAGENS
               </span>
             </div>
           </CardContent>
@@ -367,7 +370,7 @@ export default function Inventory() {
               <TableHead className="font-semibold text-muted-foreground">VALIDADE / LOTE</TableHead>
               <TableHead className="font-semibold text-muted-foreground">CUSTO</TableHead>
               <TableHead className="font-semibold text-muted-foreground text-center">
-                QTD. TOTAL
+                ESTOQUE
               </TableHead>
               <TableHead className="font-semibold text-muted-foreground text-center">
                 AÇÕES
@@ -413,9 +416,14 @@ export default function Inventory() {
                       {formatCurrency(group.totalValue)}
                     </TableCell>
                     <TableCell className="py-4 text-center">
-                      <span className="inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm bg-blue-100 text-blue-700">
-                        {group.totalQuantity}
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm bg-blue-100 text-blue-700">
+                          {group.totalQuantity} EMB
+                        </span>
+                        <span className="text-[10px] font-bold text-muted-foreground">
+                          {group.totalUnits} UNID
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell className="py-4 text-center"></TableCell>
                   </TableRow>
@@ -523,16 +531,25 @@ export default function Inventory() {
                               {formatCurrency(item.packageCost)}
                             </TableCell>
                             <TableCell className="align-middle py-4 text-center">
-                              <span
-                                className={cn(
-                                  'inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-full font-black text-xs uppercase',
-                                  isCriticalStock(item)
-                                    ? 'bg-red-100 text-red-700'
-                                    : 'bg-slate-100 text-slate-700',
-                                )}
-                              >
-                                {item.quantity}
-                              </span>
+                              <div className="flex flex-col items-center justify-center gap-1">
+                                <span
+                                  className={cn(
+                                    'inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-full font-black text-xs uppercase',
+                                    isCriticalStock(item)
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-slate-100 text-slate-700',
+                                  )}
+                                  title="QTD. COMPRADA (EMBALAGENS)"
+                                >
+                                  {item.quantity} EMB
+                                </span>
+                                <span
+                                  className="text-[10px] font-bold text-muted-foreground"
+                                  title="UNIDADES TOTAIS"
+                                >
+                                  {item.quantity * (item.itemsPerBox || 1)} UN
+                                </span>
+                              </div>
                             </TableCell>
                             <TableCell
                               className="align-middle py-4 text-center"

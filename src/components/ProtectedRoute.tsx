@@ -10,6 +10,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const location = useLocation()
   const [mustChange, setMustChange] = useState<boolean | null>(null)
   const [checkingProfile, setCheckingProfile] = useState(true)
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -19,12 +20,14 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     if (user?.id) {
       // Parallel fetch for profile requirements and access block
       Promise.all([
-        supabase.from('profiles').select('must_change_password').eq('id', user.id).single(),
+        supabase.from('profiles').select('must_change_password').eq('id', user.id).maybeSingle(),
         supabase.from('employees').select('no_system_access').eq('user_id', user.id).maybeSingle(),
       ]).then(([profileRes, empRes]) => {
         if (!isMounted) return
 
         if (empRes.data?.no_system_access) {
+          setAccessDenied(true)
+          setCheckingProfile(false)
           signOut()
           return
         }
@@ -71,6 +74,29 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           className="bg-[#D4AF37] hover:bg-[#B3932D] text-[#0A192F] font-bold uppercase mt-4"
         >
           <RefreshCw className="mr-2 h-4 w-4" /> Tentar Novamente
+        </Button>
+      </div>
+    )
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-white space-y-6">
+        <AlertTriangle className="h-16 w-16 text-red-500" />
+        <div className="text-center space-y-2 px-4">
+          <h2 className="text-2xl font-bold tracking-widest uppercase text-red-500">
+            Acesso Bloqueado
+          </h2>
+          <p className="text-slate-400 max-w-md mx-auto">
+            Seu usuário não possui permissão para acessar o sistema. Entre em contato com o
+            administrador.
+          </p>
+        </div>
+        <Button
+          onClick={() => (window.location.href = '/login')}
+          className="bg-[#D4AF37] hover:bg-[#B3932D] text-[#0A192F] font-bold uppercase mt-4"
+        >
+          Voltar para Login
         </Button>
       </div>
     )

@@ -56,7 +56,10 @@ const schema = z.object({
   itemsPerBox: z
     .union([z.string(), z.number()])
     .optional()
-    .transform((v) => Number(v) || 0),
+    .transform((v) => {
+      const n = Number(v)
+      return n > 0 ? n : 1
+    }),
   quantity: z
     .union([z.string(), z.number()])
     .optional()
@@ -266,7 +269,7 @@ export function AddInventoryModal({
 
       setTimeout(() => {
         barcodeInputRef.current?.focus()
-      }, 100)
+      }, 150)
     } else {
       form.reset()
       onOpenChange(false)
@@ -874,7 +877,7 @@ export function AddInventoryModal({
                   name="minStock"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>ESTOQUE MÍNIMO</FormLabel>
+                      <FormLabel>ESTOQUE MÍNIMO (UNIDADES)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
