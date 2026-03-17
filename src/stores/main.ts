@@ -45,6 +45,7 @@ export type Employee = {
   pix_number?: string
   pix_type?: string
   bank_name?: string
+  noSystemAccess?: boolean
 }
 export type OnboardingTask = { id: string; title: string; completed: boolean }
 export type OnboardingCandidate = {
@@ -302,6 +303,22 @@ export type SacRecord = {
   action_history?: SacActionHistory[]
 }
 
+export type SpecialtyConfig = {
+  id: string
+  name: string
+  color_hex: string
+  created_at?: string
+}
+
+export type AgendaSegmentation = {
+  id: string
+  consultorio_id: string
+  day_of_week: number
+  shift: 'MANHÃ' | 'TARDE'
+  specialty_id?: string
+  dentist_id?: string
+}
+
 interface AppStore {
   isAuthenticated: boolean
   isDataLoading: boolean
@@ -334,6 +351,8 @@ interface AppStore {
   roles: SystemRole[]
   consultorios: Consultorio[]
   sacRecords: SacRecord[]
+  specialtyConfigs: SpecialtyConfig[]
+  agendaSegmentation: AgendaSegmentation[]
   addDepartment: (n: string) => void
   removeDepartment: (n: string) => void
   addPackageType: (n: string) => void
@@ -438,6 +457,14 @@ interface AppStore {
   ) => Promise<{ success: boolean; error?: any }>
   updateSacRecord: (id: string, r: Partial<SacRecord>) => Promise<{ success: boolean; error?: any }>
   deleteSacRecord: (id: string) => Promise<{ success: boolean; error?: any }>
+  addSpecialtyConfig: (
+    name: string,
+    color_hex: string,
+  ) => Promise<{ success: boolean; error?: any }>
+  deleteSpecialtyConfig: (id: string) => Promise<{ success: boolean; error?: any }>
+  upsertAgendaSegmentation: (
+    data: Omit<AgendaSegmentation, 'id'>,
+  ) => Promise<{ success: boolean; error?: any }>
 }
 
 const mockDepartments = [
@@ -504,6 +531,7 @@ const mEmp = (d: any): Employee => ({
   pix_number: d.pix_number || d.pix_key || '',
   pix_type: d.pix_type || '',
   bank_name: d.bank_name || '',
+  noSystemAccess: d.no_system_access || false,
 })
 const mInv = (d: any): InventoryItem => ({
   id: d.id,
@@ -673,6 +701,22 @@ const mSac = (d: any): SacRecord => ({
   action_history: Array.isArray(d.action_history) ? d.action_history : [],
 })
 
+const mSpecConfig = (d: any): SpecialtyConfig => ({
+  id: d.id,
+  name: d.name,
+  color_hex: d.color_hex,
+  created_at: d.created_at,
+})
+
+const mSeg = (d: any): AgendaSegmentation => ({
+  id: d.id,
+  consultorio_id: d.consultorio_id,
+  day_of_week: d.day_of_week,
+  shift: d.shift as any,
+  specialty_id: d.specialty_id || undefined,
+  dentist_id: d.dentist_id || undefined,
+})
+
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
 const checkAuthError = (err: any) => {
@@ -722,6 +766,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<SystemRole[]>([])
   const [consultorios, setConsultorios] = useState<Consultorio[]>([])
   const [sacRecords, setSacRecords] = useState<SacRecord[]>([])
+  const [specialtyConfigs, setSpecialtyConfigs] = useState<SpecialtyConfig[]>([])
+  const [agendaSegmentation, setAgendaSegmentation] = useState<AgendaSegmentation[]>([])
   const [alerts] = useState<string[]>([])
 
   const storeRef = useRef({
@@ -734,6 +780,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     agenda,
     sacRecords,
     inventoryOptions,
+    specialtyConfigs,
+    agendaSegmentation,
   })
   useEffect(() => {
     storeRef.current = {
@@ -746,6 +794,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       agenda,
       sacRecords,
       inventoryOptions,
+      specialtyConfigs,
+      agendaSegmentation,
     }
   }, [
     user,
@@ -757,6 +807,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     agenda,
     sacRecords,
     inventoryOptions,
+    specialtyConfigs,
+    agendaSegmentation,
   ])
 
   useEffect(() => {
@@ -880,6 +932,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
               })),
             )
           }),
+        supabase
+          .from('specialty_configs' as any)
+          .select('*')
+          .then((r) => setSpecialtyConfigs(handleResponse(r, mSpecConfig))),
+        supabase
+          .from('agenda_segmentation' as any)
+          .select('*')
+          .then((r) => setAgendaSegmentation(handleResponse(r, mSeg))),
       ])
         .catch((err) => {
           if (!checkAuthError(err)) {
@@ -909,6 +969,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRoles([])
       setConsultorios([])
       setSacRecords([])
+      setSpecialtyConfigs([])
+      setAgendaSegmentation([])
       setFetchError(null)
       setIsDataLoading(false)
     }
@@ -1692,7 +1754,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             pix_type: e.pix_type || null,
             bank_name: e.bank_name || null,
             user_id: userId || null,
-          },
+            no_system_access: e.noSystemAccess || false,
+          } as any,
         ])
         .select()
         .single()
@@ -1796,6 +1859,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.pix_number !== undefined) payload.pix_number = e.pix_number || null
       if (e.pix_type !== undefined) payload.pix_type = e.pix_type || null
       if (e.bank_name !== undefined) payload.bank_name = e.bank_name || null
+      if (e.noSystemAccess !== undefined) payload.no_system_access = e.noSystemAccess
 
       if (e.vacationDaysTaken !== undefined) payload.vacation_days_taken = e.vacationDaysTaken
       if (e.vacationDaysTotal !== undefined) payload.vacation_days_total = e.vacationDaysTotal
@@ -2780,6 +2844,89 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
+  const addSpecialtyConfig = useCallback(
+    async (name: string, color_hex: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('specialty_configs' as any)
+          .insert([{ name: name.toUpperCase(), color_hex }])
+          .select()
+          .single()
+        if (error) throw error
+        if (data) {
+          setSpecialtyConfigs((prev) => [...prev, mSpecConfig(data)])
+          logAction(`CRIOU ESPECIALIDADE DE AGENDA: ${name}`)
+          return { success: true }
+        }
+        return { success: false }
+      } catch (error: any) {
+        checkAuthError(error)
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
+  const deleteSpecialtyConfig = useCallback(
+    async (id: string) => {
+      try {
+        const { error } = await supabase
+          .from('specialty_configs' as any)
+          .delete()
+          .eq('id', id)
+        if (error) throw error
+        setSpecialtyConfigs((prev) => prev.filter((s) => s.id !== id))
+        logAction(`REMOVEU ESPECIALIDADE DE AGENDA ID: ${id}`)
+        return { success: true }
+      } catch (error: any) {
+        checkAuthError(error)
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
+  const upsertAgendaSegmentation = useCallback(
+    async (data: Omit<AgendaSegmentation, 'id'>) => {
+      try {
+        const payload = {
+          consultorio_id: data.consultorio_id,
+          day_of_week: data.day_of_week,
+          shift: data.shift,
+          specialty_id: data.specialty_id || null,
+          dentist_id: data.dentist_id || null,
+        }
+
+        const { data: result, error } = await supabase
+          .from('agenda_segmentation' as any)
+          .upsert(payload, { onConflict: 'consultorio_id, day_of_week, shift' })
+          .select()
+          .single()
+
+        if (error) throw error
+        if (result) {
+          setAgendaSegmentation((prev) => {
+            const existing = prev.find(
+              (p) =>
+                p.consultorio_id === data.consultorio_id &&
+                p.day_of_week === data.day_of_week &&
+                p.shift === data.shift,
+            )
+            if (existing) return prev.map((p) => (p.id === existing.id ? mSeg(result) : p))
+            return [...prev, mSeg(result)]
+          })
+          logAction(`ATUALIZOU SEGMENTAÇÃO DE AGENDA`)
+          return { success: true }
+        }
+        return { success: false }
+      } catch (error: any) {
+        checkAuthError(error)
+        return { success: false, error }
+      }
+    },
+    [logAction],
+  )
+
   const value = useMemo(
     () => ({
       isAuthenticated,
@@ -2813,6 +2960,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       roles,
       consultorios,
       sacRecords,
+      specialtyConfigs,
+      agendaSegmentation,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2873,6 +3022,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addSacRecord,
       updateSacRecord,
       deleteSacRecord,
+      addSpecialtyConfig,
+      deleteSpecialtyConfig,
+      upsertAgendaSegmentation,
     }),
     [
       isAuthenticated,
@@ -2906,6 +3058,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       roles,
       consultorios,
       sacRecords,
+      specialtyConfigs,
+      agendaSegmentation,
       addDepartment,
       removeDepartment,
       addPackageType,
@@ -2966,6 +3120,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addSacRecord,
       updateSacRecord,
       deleteSacRecord,
+      addSpecialtyConfig,
+      deleteSpecialtyConfig,
+      upsertAgendaSegmentation,
     ],
   )
 

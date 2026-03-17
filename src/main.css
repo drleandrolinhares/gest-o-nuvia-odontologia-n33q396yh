@@ -26,8 +26,8 @@
     --radius: 0.5rem;
 
     /* Nuvia Brand Colors - Updated to match premium identity */
-    --nuvia-blue: 214 42% 15%; /* Navy Blue */
-    --nuvia-gold: 41 69% 51%; /* Mustard Yellow */
+    --nuvia-blue: 214 42% 15%; /* Navy Blue #0A192F */
+    --nuvia-gold: 41 69% 51%; /* Mustard Yellow #D4AF37 */
     --nuvia-dark: 215 50% 10%; /* Deep Navy */
   }
 
@@ -83,5 +83,20 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.2);
   }
 }

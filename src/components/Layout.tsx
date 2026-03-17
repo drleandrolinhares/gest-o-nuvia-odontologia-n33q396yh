@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Calendar,
   Users,
@@ -20,16 +20,19 @@ import {
   ChevronDown,
   HeadphonesIcon,
   Handshake,
+  Grid,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
 import { GlobalSearch } from '@/components/GlobalSearch'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 const NuviaLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 350 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -75,7 +78,14 @@ const NuviaLogo = ({ className }: { className?: string }) => (
 export function Layout() {
   const { signOut, user } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [now, setNow] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem('sidebar_collapsed') === 'true'
@@ -151,6 +161,7 @@ export function Layout() {
         { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
         { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
         { name: 'NEGOCIAÇÃO', href: '/admin/operacao/negociacao', icon: Handshake },
+        { name: 'SEGMENTAÇÃO DA AGENDA', href: '/admin/operacao/segmentacao', icon: Grid },
       ],
     },
     {
@@ -183,7 +194,7 @@ export function Layout() {
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
   const SidebarContent = ({ isMobile = false }) => (
-    <div className="flex h-full flex-col bg-[#0A192F] text-slate-300">
+    <div className="flex h-full flex-col bg-[#0A192F] text-slate-300 border-r border-white/5">
       <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F]">
         <Link
           to="/admin/agenda"
@@ -211,11 +222,9 @@ export function Layout() {
                 if (item.subItems) {
                   const filteredSubItems = item.subItems.filter((s) => !s.adminOnly || isAdmin)
                   if (filteredSubItems.length === 0) return null
-
                   const isAnySubActive = filteredSubItems.some((s) =>
                     location.pathname.startsWith(s.href),
                   )
-
                   return (
                     <Collapsible key={item.name} defaultOpen={isAnySubActive}>
                       <CollapsibleTrigger asChild>
@@ -281,7 +290,6 @@ export function Layout() {
                 const isActive = item.exact
                   ? location.pathname === item.href || location.pathname === `${item.href}/`
                   : location.pathname.startsWith(item.href as string)
-
                 let badgeCount = 0
                 if (item.name === 'MENSAGENS') badgeCount = totalUnread
                 if (item.name === 'AGENDA') badgeCount = pendingSacsCount
@@ -389,16 +397,20 @@ export function Layout() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-      <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-white/5">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row relative">
+      <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-[#D4AF37]/20">
         <Link to="/admin/agenda" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
           <NuviaLogo className="h-12 w-auto" />
         </Link>
         <div className="flex items-center gap-1">
-          <GlobalSearch isMobile />
+          <GlobalSearch isMobile className="text-[#D4AF37] hover:text-white hover:bg-white/10" />
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-[#D4AF37] hover:bg-white/10 relative"
+              >
                 <Menu className="h-6 w-6" />
                 {(totalUnread > 0 || pendingSacsCount > 0) && (
                   <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)] border border-[#0A192F]"></span>
@@ -428,13 +440,13 @@ export function Layout() {
           isCollapsed ? 'md:pl-20' : 'md:pl-72',
         )}
       >
-        <header className="hidden md:flex h-16 bg-white border-b border-slate-200 items-center px-4 justify-between sticky top-0 z-10 transition-all duration-300">
+        <header className="hidden md:flex h-16 bg-[#0A192F] border-b border-[#D4AF37]/20 items-center px-4 justify-between sticky top-0 z-10 transition-all duration-300">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 h-9 w-9 ml-2"
+              className="text-[#D4AF37] hover:text-white hover:bg-white/10 h-9 w-9 ml-2"
             >
               {isCollapsed ? (
                 <PanelLeftOpen className="h-5 w-5" />
@@ -442,10 +454,10 @@ export function Layout() {
                 <PanelLeftClose className="h-5 w-5" />
               )}
             </Button>
-            <div className="flex items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold ml-2">
+            <div className="flex items-center gap-2 text-sm text-[#D4AF37]/60 uppercase tracking-widest font-bold ml-2">
               <Home className="w-4 h-4" />
               <span>/</span>
-              <span className="text-slate-900">
+              <span className="text-[#D4AF37]">
                 {location.pathname === '/admin/agenda' || location.pathname === '/admin'
                   ? 'AGENDA'
                   : location.pathname === '/admin/dashboard'
@@ -454,17 +466,34 @@ export function Layout() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <GlobalSearch />
+          <div className="flex items-center gap-6">
+            <div className="font-mono text-sm tracking-widest uppercase font-bold flex items-center gap-2 bg-[#D4AF37]/10 text-[#D4AF37] px-3 py-1.5 rounded-md border border-[#D4AF37]/20">
+              <Clock className="w-4 h-4" />
+              {format(now, "EEEE, dd 'de' MMMM • HH:mm:ss", { locale: ptBR })}
+            </div>
+            <GlobalSearch className="bg-[#112240] text-[#D4AF37]/70 border-[#D4AF37]/30 hover:bg-[#D4AF37]/10 hover:text-[#D4AF37]" />
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-8 overflow-auto">
+        <div className="flex-1 p-4 md:p-8 overflow-auto pb-24">
           <div className="mx-auto max-w-7xl h-full">
             <Outlet />
           </div>
         </div>
       </main>
+
+      <Button
+        onClick={() => navigate('/admin/chat')}
+        title="Mensagens e Comunicação"
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#D4AF37] hover:bg-[#B3932D] text-[#0A192F] shadow-[0_8px_30px_rgb(212,175,55,0.4)] z-50 p-0 flex items-center justify-center transition-transform hover:scale-110"
+      >
+        <MessageCircle className="h-6 w-6" />
+        {totalUnread > 0 && (
+          <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-600 rounded-full flex items-center justify-center text-[10px] text-white font-bold border-2 border-[#D4AF37] animate-pulse">
+            {totalUnread > 9 ? '9+' : totalUnread}
+          </span>
+        )}
+      </Button>
     </div>
   )
 }

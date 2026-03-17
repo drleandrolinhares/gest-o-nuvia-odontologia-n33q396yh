@@ -26,6 +26,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -36,6 +37,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import { Switch } from '@/components/ui/switch'
 import useAppStore from '@/stores/main'
 import { useToast } from '@/hooks/use-toast'
 import { Plus, Check, ChevronsUpDown, Loader2 } from 'lucide-react'
@@ -54,6 +56,7 @@ const formSchema = z.object({
   hireDate: z.string().min(1, 'OBRIGATÓRIO'),
   vacationDueDate: z.string().min(1, 'OBRIGATÓRIO'),
   contractDetails: z.string().optional(),
+  noSystemAccess: z.boolean().default(false),
 })
 type FormValues = z.infer<typeof formSchema>
 
@@ -86,20 +89,19 @@ export function AddEmployeeDialog({
         .toISOString()
         .split('T')[0],
       contractDetails: '',
+      noSystemAccess: false,
     },
   })
 
   const onSubmit = async (v: FormValues) => {
     setIsLoading(true)
 
-    // Data Consistency Check: Verify role exists in the database
     const exactRole = roles.find((r) => r.name.toUpperCase() === v.role.toUpperCase())
     if (!exactRole) {
       toast({
         variant: 'destructive',
         title: 'Erro de Validação',
-        description:
-          'A função selecionada não existe no banco de dados. Adicione-a em Configurações > Permissões primeiro.',
+        description: 'A função selecionada não existe no banco de dados. Adicione-a primeiro.',
       })
       setIsLoading(false)
       return
@@ -107,7 +109,7 @@ export function AddEmployeeDialog({
 
     const res = await addEmployee({
       ...v,
-      role: exactRole.name, // Ensure exact match with DB for Reference Integrity
+      role: exactRole.name,
       status: 'Ativo',
       vacationDaysTaken: 0,
       vacationDaysTotal: 30,
@@ -321,6 +323,27 @@ export function AddEmployeeDialog({
                 <h4 className="font-semibold text-sm text-muted-foreground">
                   DADOS DE ACESSO E CONTATO
                 </h4>
+                <FormField
+                  control={form.control}
+                  name="noSystemAccess"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-muted/20">
+                      <div className="space-y-0.5">
+                        <FormLabel className="font-bold">SEM ACESSO AO SISTEMA</FormLabel>
+                        <FormDescription className="text-xs">
+                          BLOQUEIA LOGIN E OCULTA O USUÁRIO DAS LISTAS DE SELEÇÃO.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}

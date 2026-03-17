@@ -7,6 +7,7 @@ import WorkSchedule from '@/pages/WorkSchedule'
 import Inventory from '@/pages/Inventory'
 import Pricing from '@/pages/Pricing'
 import Negotiation from '@/pages/Negotiation'
+import AgendaSegmentation from '@/pages/AgendaSegmentation'
 import Settings from '@/pages/Settings'
 import Permissions from '@/pages/Permissions'
 import NotFound from '@/pages/NotFound'
@@ -57,6 +58,7 @@ export default function App() {
                 <Route path="admin/estoque" element={<Inventory />} />
                 <Route path="admin/precificacao" element={<Pricing />} />
                 <Route path="admin/operacao/negociacao" element={<Negotiation />} />
+                <Route path="admin/operacao/segmentacao" element={<AgendaSegmentation />} />
                 <Route path="admin/configuracoes" element={<Settings />} />
                 <Route path="admin/permissoes" element={<Permissions />} />
                 <Route path="admin/auditoria" element={<AuditLog />} />

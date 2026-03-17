@@ -13,6 +13,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import useAppStore, { Employee } from '@/stores/main'
@@ -41,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -79,6 +81,7 @@ const formSchema = z
     pixNumber: z.string().optional(),
     pixType: z.string().optional(),
     bankName: z.string().optional(),
+    noSystemAccess: z.boolean().default(false),
   })
   .refine(
     (data) => {
@@ -167,6 +170,7 @@ export function EditEmployeeDialog({
       pixNumber: '',
       pixType: '',
       bankName: '',
+      noSystemAccess: false,
     },
   })
 
@@ -199,6 +203,7 @@ export function EditEmployeeDialog({
           pixNumber: employee.pixNumber || '',
           pixType: employee.pixType || '',
           bankName: employee.bankName || '',
+          noSystemAccess: employee.noSystemAccess || false,
         })
         setIsEditingData(startInEditMode)
         setActiveTab(defaultTab)
@@ -966,93 +971,127 @@ export function EditEmployeeDialog({
                       )}
                     </div>
                   ) : (
-                    <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
-                      <SectionTitle title="CREDENCIAIS DE ACESSO" icon={Key} />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-8">
+                      <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                        <SectionTitle title="CONTROLE MESTRE" icon={Shield} />
                         <FormField
                           control={form.control}
-                          name="username"
+                          name="noSystemAccess"
                           render={({ field }) => (
-                            <FormItem className="md:col-span-2">
-                              <FormLabel>USERNAME DE ACESSO</FormLabel>
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-red-50/50 border-red-200">
+                              <div className="space-y-0.5">
+                                <FormLabel className="font-bold text-red-900">
+                                  SEM ACESSO AO SISTEMA
+                                </FormLabel>
+                                <FormDescription className="text-xs text-red-700">
+                                  BLOQUEIA O LOGIN E OCULTA O USUÁRIO DAS LISTAS DE SELEÇÃO E
+                                  AGENDAMENTOS.
+                                </FormDescription>
+                              </div>
                               <FormControl>
-                                <Input
-                                  {...field}
-                                  className="bg-background"
-                                  placeholder="EX: JOAO.SILVA"
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  disabled={!isEditingData}
                                 />
                               </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="newPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>NOVA SENHA</FormLabel>
-                              <div className="relative">
-                                <FormControl>
-                                  <Input
-                                    type={showNewPassword ? 'text' : 'password'}
-                                    {...field}
-                                    className="bg-background pr-10"
-                                    placeholder="••••••••"
-                                  />
-                                </FormControl>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowNewPassword(!showNewPassword)}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                >
-                                  {showNewPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                  ) : (
-                                    <Eye className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="confirmPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>CONFIRMAR NOVA SENHA</FormLabel>
-                              <div className="relative">
-                                <FormControl>
-                                  <Input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    {...field}
-                                    className="bg-background pr-10"
-                                    placeholder="••••••••"
-                                  />
-                                </FormControl>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                >
-                                  {showConfirmPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                  ) : (
-                                    <Eye className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                              <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
-                      <p className="text-sm text-muted-foreground mt-4">
-                        <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
-                        AS ALTERAÇÕES DE SENHA REFLETIRÃO NO PRÓXIMO LOGIN DO COLABORADOR.
-                      </p>
+                      <div className="bg-white p-6 rounded-xl border border-muted/50 shadow-sm">
+                        <SectionTitle title="CREDENCIAIS DE ACESSO" icon={Key} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="username"
+                            render={({ field }) => (
+                              <FormItem className="md:col-span-2">
+                                <FormLabel>USERNAME DE ACESSO</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    className="bg-background"
+                                    placeholder="EX: JOAO.SILVA"
+                                    disabled={!isEditingData}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="newPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>NOVA SENHA</FormLabel>
+                                <div className="relative">
+                                  <FormControl>
+                                    <Input
+                                      type={showNewPassword ? 'text' : 'password'}
+                                      {...field}
+                                      className="bg-background pr-10"
+                                      placeholder="••••••••"
+                                      disabled={!isEditingData}
+                                    />
+                                  </FormControl>
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    disabled={!isEditingData}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                  >
+                                    {showNewPassword ? (
+                                      <EyeOff className="w-4 h-4" />
+                                    ) : (
+                                      <Eye className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>CONFIRMAR NOVA SENHA</FormLabel>
+                                <div className="relative">
+                                  <FormControl>
+                                    <Input
+                                      type={showConfirmPassword ? 'text' : 'password'}
+                                      {...field}
+                                      className="bg-background pr-10"
+                                      placeholder="••••••••"
+                                      disabled={!isEditingData}
+                                    />
+                                  </FormControl>
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    disabled={!isEditingData}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                  >
+                                    {showConfirmPassword ? (
+                                      <EyeOff className="w-4 h-4" />
+                                    ) : (
+                                      <Eye className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-4">
+                          <Shield className="w-4 h-4 inline-block mr-1 mb-0.5" />
+                          AS ALTERAÇÕES DE SENHA REFLETIRÃO NO PRÓXIMO LOGIN DO COLABORADOR.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </TabsContent>

@@ -2,7 +2,16 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2, Building2, Plus, Package, Stethoscope, CalendarDays, Loader2 } from 'lucide-react'
+import {
+  Trash2,
+  Building2,
+  Plus,
+  Package,
+  Stethoscope,
+  CalendarDays,
+  Loader2,
+  Palette,
+} from 'lucide-react'
 import useAppStore from '@/stores/main'
 
 export function GeneralSettings() {
@@ -19,6 +28,9 @@ export function GeneralSettings() {
     agendaTypes,
     addAgendaType,
     removeAgendaType,
+    specialtyConfigs,
+    addSpecialtyConfig,
+    deleteSpecialtyConfig,
   } = useAppStore()
 
   const [newDept, setNewDept] = useState('')
@@ -27,6 +39,10 @@ export function GeneralSettings() {
   const [newAgendaType, setNewAgendaType] = useState('')
   const [isSpecLoading, setIsSpecLoading] = useState(false)
   const [removingSpec, setRemovingSpec] = useState<string | null>(null)
+
+  const [newAgendaSpec, setNewAgendaSpec] = useState('')
+  const [newAgendaSpecColor, setNewAgendaSpecColor] = useState('#D4AF37')
+  const [isAgendaSpecLoading, setIsAgendaSpecLoading] = useState(false)
 
   const handleAddDept = (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,6 +81,17 @@ export function GeneralSettings() {
     if (newAgendaType.trim() && !agendaTypes.includes(newAgendaType.trim().toUpperCase())) {
       addAgendaType(newAgendaType.trim())
       setNewAgendaType('')
+    }
+  }
+
+  const handleAddAgendaSpec = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newAgendaSpec.trim()) {
+      setIsAgendaSpecLoading(true)
+      await addSpecialtyConfig(newAgendaSpec.trim(), newAgendaSpecColor)
+      setIsAgendaSpecLoading(false)
+      setNewAgendaSpec('')
+      setNewAgendaSpecColor('#D4AF37')
     }
   }
 
@@ -151,7 +178,7 @@ export function GeneralSettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-nuvia-navy">
-            <Stethoscope className="h-5 w-5 text-[#D81B84]" /> ESPECIALIDADES
+            <Stethoscope className="h-5 w-5 text-[#D81B84]" /> ESPECIALIDADES (ESTOQUE)
           </CardTitle>
           <CardDescription>GERENCIE AS ESPECIALIDADES PARA O ESTOQUE.</CardDescription>
         </CardHeader>
@@ -199,6 +226,75 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
+            <Palette className="h-5 w-5 text-emerald-600" /> ESPECIALIDADES (AGENDA)
+          </CardTitle>
+          <CardDescription>GERENCIE CORES E NOMES PARA A MATRIZ DE AGENDA.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleAddAgendaSpec} className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                placeholder="ESPECIALIDADE..."
+                value={newAgendaSpec}
+                onChange={(e) => setNewAgendaSpec(e.target.value)}
+                disabled={isAgendaSpecLoading}
+                className="pl-12"
+              />
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded overflow-hidden shadow-sm border border-slate-200">
+                <input
+                  type="color"
+                  value={newAgendaSpecColor}
+                  onChange={(e) => setNewAgendaSpecColor(e.target.value)}
+                  className="absolute -top-2 -left-2 w-10 h-10 cursor-pointer"
+                />
+              </div>
+            </div>
+            <Button
+              type="submit"
+              disabled={!newAgendaSpec.trim() || isAgendaSpecLoading}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white w-24"
+            >
+              {isAgendaSpecLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" /> ADD
+                </>
+              )}
+            </Button>
+          </form>
+          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+            {[...specialtyConfigs]
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((spec) => (
+                <div
+                  key={spec.id}
+                  className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-4 h-4 rounded-full shadow-inner border border-black/10"
+                      style={{ backgroundColor: spec.color_hex }}
+                    />
+                    <span className="font-bold text-sm text-nuvia-navy uppercase">{spec.name}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive h-8 w-8"
+                    onClick={() => deleteSpecialtyConfig(spec.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
           </div>
         </CardContent>
       </Card>

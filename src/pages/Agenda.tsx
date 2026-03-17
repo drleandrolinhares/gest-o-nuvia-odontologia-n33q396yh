@@ -12,9 +12,10 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, UserMinus } from 'lucide-react'
+import { Plus, UserMinus, Filter, Check } from 'lucide-react'
 import { isSameWeek, isSameMonth, startOfDay, endOfDay, eachDayOfInterval, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 import { AgendaCard } from '@/components/agenda/AgendaCard'
 import { AgendaAddDialog } from '@/components/agenda/AgendaAddDialog'
@@ -46,7 +47,12 @@ export default function Agenda() {
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
   const [taskView, setTaskView] = useState<
-    'PARA MIM' | 'DELEGADOS' | 'COMPROMISSOS' | 'AUSÊNCIAS' | 'ALERTAS' | 'TUDO'
+    | 'PARA MIM'
+    | 'AUSÊNCIAS'
+    | 'COMPROMISSOS'
+    | 'ALERTAS DO SISTEMA'
+    | 'DELEGADOS POR MIM'
+    | 'VISÃO GERAL (ADMIN)'
   >('PARA MIM')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
@@ -55,27 +61,30 @@ export default function Agenda() {
     'TODOS',
   )
   const [agendaFilterValue, setAgendaFilterValue] = useState<string>('all')
+
+  const [showOpen, setShowOpen] = useState(true)
   const [showCompleted, setShowCompleted] = useState(false)
-  const [showOpenOnly, setShowOpenOnly] = useState(false)
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
 
-  const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
+  const activeEmployees = employees.filter((e) => e.status !== 'Desligado' && !e.noSystemAccess)
 
-  const allAgendaItems = useMemo(() => {
-    return agenda.filter((a) => showCompleted || !a.is_completed)
-  }, [agenda, showCompleted])
+  const toggleTypeFilter = (type: string) => {
+    setHiddenTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
+  }
 
-  const filteredAgenda = allAgendaItems
+  const filteredAgenda = agenda
     .filter((item) => {
-      if (showOpenOnly) {
-        if (item.is_completed) return false
-        if (!isAdmin && item.assignedTo !== currentUserId) return false
-        return true
-      }
-
-      // If COMPROMISSOS or AUSÊNCIAS or ALERTAS, we ignore calendar selection entirely for indefinite future display
-      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS' || taskView === 'ALERTAS')
-        return true
-
+      if (!showOpen && !item.is_completed) return false
+      if (!showCompleted && item.is_completed) return false
+      if (hiddenTypes.has(item.type)) return false
+      return true
+    })
+    .filter((item) => {
       if (!selectedDate) return true
       const startD = getLocalDate(item.date)
       const endD = getLocalDate(item.end_date || item.date)
@@ -83,32 +92,23 @@ export default function Agenda() {
       if (filterView === 'DIA') {
         return selectedDate >= startOfDay(startD) && selectedDate <= endOfDay(endD)
       }
-      if (filterView === 'SEMANA')
+      if (filterView === 'SEMANA') {
         return (
           isSameWeek(startD, selectedDate, { weekStartsOn: 0 }) ||
           isSameWeek(endD, selectedDate, { weekStartsOn: 0 }) ||
           (startD <= selectedDate && endD >= selectedDate)
         )
-      if (filterView === 'MES')
+      }
+      if (filterView === 'MES') {
         return (
           isSameMonth(startD, selectedDate) ||
           isSameMonth(endD, selectedDate) ||
           (startD <= selectedDate && endD >= selectedDate)
         )
-      return true
-    })
-    .filter((item) => {
-      if (showOpenOnly) return true
-
-      // Enforce date >= today for these tab views
-      if (taskView === 'COMPROMISSOS' || taskView === 'AUSÊNCIAS' || taskView === 'ALERTAS') {
-        const todayStr = format(new Date(), 'yyyy-MM-dd')
-        return item.date >= todayStr || (item.end_date && item.end_date >= todayStr)
       }
       return true
     })
     .filter((item) => {
-      // General filters still apply in all views
       if (agendaFilterType === 'TODOS' || agendaFilterValue === 'all') return true
       if (agendaFilterType === 'COLABORADOR') return item.assignedTo === agendaFilterValue
       if (agendaFilterType === 'SETOR') {
@@ -118,14 +118,12 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
-      if (showOpenOnly) return true
-
-      if (taskView === 'TUDO') return true
-      if (taskView === 'DELEGADOS') return item.requester_id === currentUserId
+      if (taskView === 'VISÃO GERAL (ADMIN)') return true
+      if (taskView === 'DELEGADOS POR MIM') return item.requester_id === currentUserId
 
       const isAlert = ['BÔNUS', 'FÉRIAS', 'SAC'].includes(item.type.toUpperCase())
 
-      if (taskView === 'ALERTAS') {
+      if (taskView === 'ALERTAS DO SISTEMA') {
         return isAlert
       }
 
@@ -172,9 +170,7 @@ export default function Agenda() {
           try {
             const interval = eachDayOfInterval({ start, end })
             dates.push(...interval)
-          } catch (e) {
-            // Ignore invalid intervals
-          }
+          } catch (e) {}
         }
       })
     return dates
@@ -185,7 +181,6 @@ export default function Agenda() {
     setSelectedDate(today)
     setCalendarMonth(today)
     setFilterView('DIA')
-    setShowOpenOnly(false)
   }
 
   const handleUpdateItem = (id: string, data: Partial<AgendaItem>) => {
@@ -206,7 +201,7 @@ export default function Agenda() {
           <Button
             variant="outline"
             onClick={() => setOpenDentistAdd(true)}
-            className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+            className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 shadow-sm"
           >
             <UserMinus className="h-4 w-4 mr-2" /> NOVA AUSÊNCIA
           </Button>
@@ -237,12 +232,7 @@ export default function Agenda() {
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={(day) => {
-              if (day) {
-                setSelectedDate(day)
-                setShowOpenOnly(false)
-              }
-            }}
+            onSelect={(day) => day && setSelectedDate(day)}
             month={calendarMonth}
             onMonthChange={setCalendarMonth}
             locale={ptBR}
@@ -261,10 +251,7 @@ export default function Agenda() {
           <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-muted/30 p-2 rounded-lg border">
             <Tabs
               value={filterView}
-              onValueChange={(v) => {
-                setFilterView(v as any)
-                setShowOpenOnly(false)
-              }}
+              onValueChange={(v) => setFilterView(v as any)}
               className="w-full xl:w-auto"
             >
               <TabsList className="grid grid-cols-3 w-full xl:w-[250px]">
@@ -275,34 +262,72 @@ export default function Agenda() {
             </Tabs>
 
             <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto flex-1 justify-end">
-              <div className="flex items-center space-x-2 bg-amber-50 border border-amber-200 text-amber-900 px-3 py-2 rounded-md h-10 transition-colors">
-                <Switch
-                  checked={showOpenOnly}
-                  onCheckedChange={setShowOpenOnly}
-                  id="show-open"
-                  className="data-[state=checked]:bg-amber-500"
-                />
-                <label
-                  htmlFor="show-open"
-                  className="text-xs font-bold cursor-pointer whitespace-nowrap uppercase"
-                >
-                  EM ABERTO
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-2 bg-background border px-3 py-2 rounded-md h-10">
-                <Switch
-                  checked={showCompleted}
-                  onCheckedChange={setShowCompleted}
-                  id="show-completed"
-                />
-                <label
-                  htmlFor="show-completed"
-                  className="text-xs font-bold cursor-pointer whitespace-nowrap"
-                >
-                  CONCLUÍDOS
-                </label>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-amber-200 text-amber-900 bg-amber-50 h-10 w-full sm:w-auto shadow-sm"
+                  >
+                    <Filter className="h-4 w-4 mr-2" /> VISIBILIDADE
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-4 uppercase" align="end">
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black text-muted-foreground border-b pb-1">
+                        STATUS DOS REGISTROS
+                      </h4>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold cursor-pointer" htmlFor="showOpen">
+                          EM ABERTO
+                        </label>
+                        <Switch
+                          id="showOpen"
+                          checked={showOpen}
+                          onCheckedChange={setShowOpen}
+                          className="data-[state=checked]:bg-amber-500"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold cursor-pointer" htmlFor="showCompleted">
+                          CONCLUÍDOS
+                        </label>
+                        <Switch
+                          id="showCompleted"
+                          checked={showCompleted}
+                          onCheckedChange={setShowCompleted}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-black text-muted-foreground border-b pb-1">
+                        CATEGORIAS
+                      </h4>
+                      <div className="max-h-[200px] overflow-y-auto space-y-1.5 pr-2">
+                        {agendaTypes.map((type) => (
+                          <div
+                            key={type}
+                            className="flex items-center gap-2"
+                            onClick={() => toggleTypeFilter(type)}
+                          >
+                            <div
+                              className={cn(
+                                'w-4 h-4 border rounded flex items-center justify-center cursor-pointer transition-colors',
+                                !hiddenTypes.has(type)
+                                  ? 'bg-[#0A192F] border-[#0A192F]'
+                                  : 'border-muted-foreground',
+                              )}
+                            >
+                              {!hiddenTypes.has(type) && <Check className="h-3 w-3 text-white" />}
+                            </div>
+                            <span className="text-xs font-medium cursor-pointer">{type}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
               <Select
                 value={agendaFilterType}
@@ -311,7 +336,7 @@ export default function Agenda() {
                   setAgendaFilterValue('all')
                 }}
               >
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] bg-white">
                   <SelectValue placeholder="FILTRAR POR" />
                 </SelectTrigger>
                 <SelectContent>
@@ -323,7 +348,7 @@ export default function Agenda() {
 
               {agendaFilterType === 'COLABORADOR' && (
                 <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
-                  <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px] bg-white">
                     <SelectValue placeholder="SELECIONE..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -339,7 +364,7 @@ export default function Agenda() {
 
               {agendaFilterType === 'SETOR' && (
                 <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
-                  <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px] bg-white">
                     <SelectValue placeholder="SELECIONE..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -355,50 +380,32 @@ export default function Agenda() {
             </div>
           </div>
 
-          <div className="flex justify-start overflow-x-auto custom-scrollbar border-b">
+          <div className="flex justify-start overflow-x-auto custom-scrollbar border-b border-muted">
             <Tabs
-              value={showOpenOnly ? 'TUDO' : taskView}
-              onValueChange={(v) => {
-                setTaskView(v as any)
-                setShowOpenOnly(false)
-              }}
+              value={taskView}
+              onValueChange={(v) => setTaskView(v as any)}
               className="w-full sm:w-auto min-w-max"
             >
               <TabsList className="bg-transparent rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
-                <TabsTrigger
-                  value="PARA MIM"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
-                >
-                  PARA MIM
-                </TabsTrigger>
-                <TabsTrigger
-                  value="DELEGADOS"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
-                >
-                  DELEGADOS POR MIM
-                </TabsTrigger>
-                <TabsTrigger
-                  value="COMPROMISSOS"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
-                >
-                  COMPROMISSOS
-                </TabsTrigger>
-                <TabsTrigger
-                  value="AUSÊNCIAS"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-rose-600 data-[state=active]:text-rose-700 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
-                >
-                  AUSÊNCIAS
-                </TabsTrigger>
-                <TabsTrigger
-                  value="ALERTAS"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-amber-500 data-[state=active]:text-amber-600 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
-                >
-                  ALERTAS DE SISTEMA
-                </TabsTrigger>
+                {[
+                  'PARA MIM',
+                  'AUSÊNCIAS',
+                  'COMPROMISSOS',
+                  'ALERTAS DO SISTEMA',
+                  'DELEGADOS POR MIM',
+                ].map((tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab}
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent font-bold"
+                  >
+                    {tab}
+                  </TabsTrigger>
+                ))}
                 {isAdmin && (
                   <TabsTrigger
-                    value="TUDO"
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-[#D4AF37] data-[state=active]:text-[#0A192F] data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent"
+                    value="VISÃO GERAL (ADMIN)"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-emerald-600 data-[state=active]:text-emerald-700 data-[state=active]:shadow-none rounded-none px-0 py-3 data-[state=active]:bg-transparent font-bold ml-6"
                   >
                     VISÃO GERAL (ADMIN)
                   </TabsTrigger>
@@ -409,16 +416,8 @@ export default function Agenda() {
 
           <div className="grid gap-3 pt-2">
             {filteredAgenda.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50">
-                {showOpenOnly
-                  ? 'NENHUMA TAREFA PENDENTE ENCONTRADA.'
-                  : taskView === 'COMPROMISSOS'
-                    ? 'NENHUM COMPROMISSO ENCONTRADO PARA OS FILTROS SELECIONADOS.'
-                    : taskView === 'AUSÊNCIAS'
-                      ? 'NENHUMA AUSÊNCIA AGENDADA PARA OS FILTROS SELECIONADOS.'
-                      : taskView === 'ALERTAS'
-                        ? 'NENHUM ALERTA DE SISTEMA ENCONTRADO PARA OS FILTROS SELECIONADOS.'
-                        : 'NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.'}
+              <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50 font-bold">
+                NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.
               </div>
             ) : (
               filteredAgenda.map((item) => (

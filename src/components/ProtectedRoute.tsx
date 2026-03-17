@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, authError } = useAuth()
+  const { user, loading, authError, signOut } = useAuth()
   const location = useLocation()
   const [mustChange, setMustChange] = useState<boolean | null>(null)
   const [checkingProfile, setCheckingProfile] = useState(true)
@@ -17,21 +17,25 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     if (loading) return
 
     if (user?.id) {
-      supabase
-        .from('profiles')
-        .select('must_change_password')
-        .eq('id', user.id)
-        .single()
-        .then(({ data, error }) => {
-          if (isMounted) {
-            if (!error && data) {
-              setMustChange(!!data.must_change_password)
-            } else {
-              setMustChange(false)
-            }
-            setCheckingProfile(false)
-          }
-        })
+      // Parallel fetch for profile requirements and access block
+      Promise.all([
+        supabase.from('profiles').select('must_change_password').eq('id', user.id).single(),
+        supabase.from('employees').select('no_system_access').eq('user_id', user.id).maybeSingle(),
+      ]).then(([profileRes, empRes]) => {
+        if (!isMounted) return
+
+        if (empRes.data?.no_system_access) {
+          signOut()
+          return
+        }
+
+        if (!profileRes.error && profileRes.data) {
+          setMustChange(!!profileRes.data.must_change_password)
+        } else {
+          setMustChange(false)
+        }
+        setCheckingProfile(false)
+      })
     } else {
       if (isMounted) {
         setMustChange(null)
@@ -41,9 +45,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return () => {
       isMounted = false
     }
-  }, [user?.id, loading])
+  }, [user?.id, loading, signOut])
 
-  // Prevent routing redirects if we're just checking
   if (loading || checkingProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
