@@ -15,7 +15,7 @@ export default function ForceChangePassword() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { user, loading } = useAuth()
+  const { user, loading, signOut } = useAuth()
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -74,6 +74,23 @@ export default function ForceChangePassword() {
       toast({
         title: 'Erro',
         description: err.message || 'Falha ao atualizar senha.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    setIsLoading(true)
+    try {
+      const { error } = await signOut()
+      if (error) throw error
+      navigate('/login', { replace: true })
+    } catch (err: any) {
+      toast({
+        title: 'Erro',
+        description: err.message || 'Falha ao sair da conta.',
         variant: 'destructive',
       })
     } finally {
@@ -141,14 +158,27 @@ export default function ForceChangePassword() {
                   required
                 />
               </div>
-              <Button
-                type="submit"
-                className="w-full bg-[#0A192F] hover:bg-[#112240] text-white mt-6 h-11 text-base transition-colors font-bold uppercase"
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                Atualizar Senha
-              </Button>
+
+              <div className="pt-2 space-y-3">
+                <Button
+                  type="submit"
+                  className="w-full bg-[#0A192F] hover:bg-[#112240] text-white h-11 text-base transition-colors font-bold uppercase"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Atualizar Senha
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                  className="w-full h-11 text-sm font-bold uppercase text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                >
+                  SAIR DA CONTA
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
