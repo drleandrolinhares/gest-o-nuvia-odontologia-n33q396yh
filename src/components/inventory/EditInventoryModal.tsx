@@ -51,10 +51,11 @@ import {
 import { format } from 'date-fns'
 import { useToast } from '@/hooks/use-toast'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
+import { FlexibleExpirationInput } from '@/components/ui/flexible-expiration-input'
+import { InlineImplantHeightSelect } from '@/components/inventory/InlineImplantHeightSelect'
 import { supabase } from '@/lib/supabase/client'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
-const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
 
 const parseCurrency = (val: string | number) => {
   if (typeof val === 'number') return val
@@ -599,24 +600,13 @@ export function EditInventoryModal({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-blue-800">ALTURA DO IMPLANTE</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={!isMaster}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="uppercase bg-white border-blue-200">
-                                    <SelectValue placeholder="SELECIONE" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {IMPLANT_HEIGHTS.map((h) => (
-                                    <SelectItem key={h} value={h} className="uppercase">
-                                      {h} MM
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <FormControl>
+                                <InlineImplantHeightSelect
+                                  value={field.value || ''}
+                                  onChange={field.onChange}
+                                  disabled={!isMaster}
+                                />
+                              </FormControl>
                             </FormItem>
                           )}
                         />
@@ -972,9 +962,9 @@ export function EditInventoryModal({
                         <FormItem className="flex flex-col">
                           <FormLabel>DATA DE VALIDADE</FormLabel>
                           <FormControl>
-                            <DatePickerInput
+                            <FlexibleExpirationInput
                               value={field.value}
-                              onChange={(val) => field.onChange((val as string) || '')}
+                              onChange={(val) => field.onChange(val || '')}
                               disabled={!isMaster}
                               className="uppercase"
                             />

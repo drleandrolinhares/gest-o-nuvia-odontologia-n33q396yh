@@ -28,10 +28,11 @@ import { Calculator, PackageSearch, Barcode as BarcodeIcon, Tag, Zap } from 'luc
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 import { useToast } from '@/hooks/use-toast'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
+import { FlexibleExpirationInput } from '@/components/ui/flexible-expiration-input'
+import { InlineImplantHeightSelect } from '@/components/inventory/InlineImplantHeightSelect'
 import { supabase } from '@/lib/supabase/client'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
-const IMPLANT_HEIGHTS = ['4', '5', '5.5', '6', '7', '8', '8.5', '9', '10', '11.5', '13', '15']
 
 const parseCurrency = (val: string | number | undefined | null) => {
   if (!val) return 0
@@ -252,7 +253,10 @@ export function AddInventoryModal({
 
     if (keepFields) {
       form.setValue('barcode', '')
-      form.setValue('name', '')
+      form.setValue('quantity', '' as any)
+      form.setValue('entryDate', '')
+      form.setValue('expirationDate', '')
+      form.setValue('nfeNumber', '')
       form.setValue('implantDiameter', '')
       form.setValue('implantHeight', '')
       form.setValue('prostheticDiameter', '')
@@ -471,20 +475,12 @@ export function AddInventoryModal({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-blue-800">ALTURA DO IMPLANTE</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="uppercase bg-white border-blue-200">
-                                <SelectValue placeholder="SELECIONE" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {IMPLANT_HEIGHTS.map((h) => (
-                                <SelectItem key={h} value={h} className="uppercase">
-                                  {h} MM
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormControl>
+                            <InlineImplantHeightSelect
+                              value={field.value || ''}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />
@@ -787,7 +783,7 @@ export function AddInventoryModal({
                       <FormControl>
                         <DatePickerInput
                           value={field.value}
-                          onChange={field.onChange}
+                          onChange={(val) => field.onChange((val as string) || '')}
                           className="uppercase"
                         />
                       </FormControl>
@@ -802,9 +798,9 @@ export function AddInventoryModal({
                     <FormItem className="flex flex-col">
                       <FormLabel>DATA DE VALIDADE</FormLabel>
                       <FormControl>
-                        <DatePickerInput
+                        <FlexibleExpirationInput
                           value={field.value}
-                          onChange={field.onChange}
+                          onChange={(val) => field.onChange(val || '')}
                           className="uppercase"
                         />
                       </FormControl>
