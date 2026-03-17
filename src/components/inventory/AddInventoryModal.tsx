@@ -97,6 +97,7 @@ const schema = z.object({
   prostheticDiameter: z.string().optional(),
   prostheticHeight: z.string().optional(),
   consumptionMode: z.string().optional(),
+  consumptionPackage: z.string().optional(),
 })
 
 export function AddInventoryModal({
@@ -177,6 +178,7 @@ export function AddInventoryModal({
       prostheticDiameter: '',
       prostheticHeight: '',
       consumptionMode: '',
+      consumptionPackage: '',
     },
   })
 
@@ -751,7 +753,7 @@ export function AddInventoryModal({
                     name="packageType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>TIPO EMBALAGEM</FormLabel>
+                        <FormLabel>EMBALAGEM DE COMPRA</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="bg-white uppercase">
@@ -812,7 +814,25 @@ export function AddInventoryModal({
                     )}
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10 mt-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10 mt-2">
+                  <FormField
+                    control={form.control}
+                    name="consumptionPackage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>EMBALAGEM DE CONSUMO</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="bg-white uppercase"
+                            placeholder="EX: UNIDADE"
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
                     name="consumptionMode"
@@ -879,14 +899,17 @@ export function AddInventoryModal({
                             </PopoverContent>
                           </Popover>
                         </FormLabel>
-                        <FormControl>
-                          <Input
-                            className="bg-white uppercase"
-                            placeholder="EX: 1 UNIDADE POR PROCEDIMENTO"
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-white uppercase">
+                              <SelectValue placeholder="SELECIONE" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="QTDADE COMPRADA">QTDADE COMPRADA</SelectItem>
+                            <SelectItem value="ITENS NA EMBALAGEM">ITENS NA EMBALAGEM</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1019,9 +1042,7 @@ export function AddInventoryModal({
                   )}
                 />
                 <FormItem>
-                  <FormLabel className="text-blue-800">
-                    QTD ESTOQUE REAL ANTES DESTE LANÇAMENTO
-                  </FormLabel>
+                  <FormLabel className="text-blue-800">ESTOQUE ATUAL</FormLabel>
                   <FormControl>
                     <Input
                       type="text"

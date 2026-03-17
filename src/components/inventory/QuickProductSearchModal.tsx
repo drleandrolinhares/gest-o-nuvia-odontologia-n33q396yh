@@ -257,7 +257,11 @@ export function QuickProductSearchModal({
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <DetailItem label="TIPO EMBALAGEM" value={selectedProduct.packageType} icon={Box} />
+                <DetailItem
+                  label="EMBALAGEM DE COMPRA"
+                  value={selectedProduct.packageType}
+                  icon={Box}
+                />
                 <DetailItem
                   label="ITENS / EMB."
                   value={String(selectedProduct.itemsPerBox)}
