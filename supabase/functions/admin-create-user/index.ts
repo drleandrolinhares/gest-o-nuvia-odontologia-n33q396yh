@@ -44,7 +44,9 @@ Deno.serve(async (req: Request) => {
       throw new Error('Missing required fields (email, password, name)')
     }
 
-    // Create the user
+    let userIdToReturn: string | null = null
+
+    // Attempt to create the user
     const { data, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -53,26 +55,94 @@ Deno.serve(async (req: Request) => {
     })
 
     if (createError) {
-      // Map error to human readable string and return 200 so the client can parse it properly
-      let msg = createError.message
-      if (msg.includes('already been registered') || msg.includes('already exists')) {
-        msg = 'E-mail já está em uso por outro usuário.'
-      } else if (msg.includes('Password should be at least')) {
-        msg = 'A senha deve ter pelo menos 6 caracteres.'
+      const isAlreadyRegistered =
+        createError.message.includes('already been registered') ||
+        createError.message.includes('already exists')
+
+      if (isAlreadyRegistered) {
+        // Check if the user exists in the employees table (meaning it's a valid, fully registered user)
+        const { data: employees } = await supabaseAdmin
+          .from('employees')
+          .select('id')
+          .eq('email', email)
+          .limit(1)
+
+        if (employees && employees.length > 0) {
+          return new Response(
+            JSON.stringify({ error: 'E-mail já está em uso por outro usuário ativo no sistema.' }),
+            {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200,
+            },
+          )
+        }
+
+        // If not in employees, check if it's an orphaned auth record
+        const { data: profiles } = await supabaseAdmin
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .limit(1)
+
+        if (profiles && profiles.length > 0) {
+          const orphanId = profiles[0].id
+
+          // Delete the orphaned auth record
+          await supabaseAdmin.auth.admin.deleteUser(orphanId)
+
+          // Retry user creation after cleanup
+          const { data: retryData, error: retryError } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: { name },
+          })
+
+          if (retryError) {
+            return new Response(
+              JSON.stringify({ error: 'Falha ao recuperar conta órfã: ' + retryError.message }),
+              {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 200,
+              },
+            )
+          }
+          userIdToReturn = retryData.user.id
+        } else {
+          return new Response(
+            JSON.stringify({ error: 'E-mail já está em uso por outro usuário.' }),
+            {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200,
+            },
+          )
+        }
+      } else {
+        // Map other errors to human readable strings
+        let msg = createError.message
+        if (msg.includes('Password should be at least')) {
+          msg = 'A senha deve ter pelo menos 6 caracteres.'
+        }
+        return new Response(JSON.stringify({ error: msg }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
       }
-      return new Response(JSON.stringify({ error: msg }), {
+    } else {
+      userIdToReturn = data.user.id
+    }
+
+    if (userIdToReturn) {
+      // Call RPC to enforce auth.users strict requirements (empty string instead of NULL)
+      await supabaseAdmin.rpc('fix_auth_user_tokens', { user_id: userIdToReturn })
+
+      return new Response(JSON.stringify({ id: userIdToReturn }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    // Call RPC to enforce auth.users strict requirements (empty string instead of NULL)
-    await supabaseAdmin.rpc('fix_auth_user_tokens', { user_id: data.user.id })
-
-    return new Response(JSON.stringify({ id: data.user.id }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    throw new Error('Failed to determine user ID')
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

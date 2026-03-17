@@ -10,7 +10,6 @@ import React, {
 } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
-import { toast } from '@/components/ui/use-toast'
 
 export type Employee = {
   id: string
@@ -1360,7 +1359,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.storageRoom !== undefined) payload.storage_room = data.storageRoom || null
       if (data.cabinetNumber !== undefined) payload.cabinet_number = data.cabinetNumber || null
       if (data.nfeNumber !== undefined) payload.nfe_number = data.nfeNumber || null
-      if (data.minStock !== undefined) payload.min_stock = data.minStock
+      if (data.minStock !== undefined) payload.minStock = data.minStock
       if (data.entryDate !== undefined) payload.entry_date = data.entryDate
       if (data.expirationDate !== undefined) payload.expiration_date = data.expirationDate
       if (data.lastBrand !== undefined) payload.last_brand = data.lastBrand
@@ -1762,6 +1761,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (empError) {
         checkAuthError(empError)
+        // Rollback created auth user if employee insertion fails
+        if (userId) {
+          try {
+            await supabase.functions.invoke('admin-delete-user', {
+              body: { userId },
+            })
+          } catch (rollbackErr) {
+            console.warn('Failed to rollback orphaned user during failed creation', rollbackErr)
+          }
+        }
         return { success: false, error: empError }
       }
 
@@ -1817,6 +1826,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (updateError) {
         checkAuthError(updateError)
+        // Rollback created auth user if employee update fails
+        try {
+          await supabase.functions.invoke('admin-delete-user', {
+            body: { userId },
+          })
+        } catch (rollbackErr) {
+          console.warn('Failed to rollback orphaned user during failed generation', rollbackErr)
+        }
         return { success: false, error: updateError }
       }
 
