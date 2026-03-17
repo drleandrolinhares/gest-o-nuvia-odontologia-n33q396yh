@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select'
 import useAppStore, { type InventoryItem } from '@/stores/main'
 import { ShoppingCart } from 'lucide-react'
+import { MonthYearInput } from '@/components/ui/month-year-input'
 
 export function NewPurchaseModal({
   item,
@@ -172,7 +173,11 @@ export function NewPurchaseModal({
                   <FormItem>
                     <FormLabel>VALIDADE DO LOTE</FormLabel>
                     <FormControl>
-                      <Input type="date" className="uppercase" {...field} />
+                      <MonthYearInput
+                        className="uppercase"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

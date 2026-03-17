@@ -24,13 +24,23 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { formatCurrency } from '@/lib/utils'
-import { Calculator, PackageSearch, Barcode as BarcodeIcon, Tag, Zap } from 'lucide-react'
+import {
+  Calculator,
+  PackageSearch,
+  Barcode as BarcodeIcon,
+  Tag,
+  Zap,
+  Info,
+  Check,
+  Edit2,
+} from 'lucide-react'
 import { QuickProductSearchModal } from '@/components/inventory/QuickProductSearchModal'
 import { useToast } from '@/hooks/use-toast'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
-import { FlexibleExpirationInput } from '@/components/ui/flexible-expiration-input'
+import { MonthYearInput } from '@/components/ui/month-year-input'
 import { InlineImplantHeightSelect } from '@/components/inventory/InlineImplantHeightSelect'
 import { supabase } from '@/lib/supabase/client'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 
@@ -86,6 +96,7 @@ const schema = z.object({
   prostheticCollarHeight: z.string().optional(),
   prostheticDiameter: z.string().optional(),
   prostheticHeight: z.string().optional(),
+  consumptionMode: z.string().optional(),
 })
 
 export function AddInventoryModal({
@@ -97,7 +108,16 @@ export function AddInventoryModal({
   onOpenChange: (val: boolean) => void
   baseItemName?: string
 }) {
-  const { addInventoryItem, packageTypes, inventoryOptions, inventory } = useAppStore()
+  const {
+    addInventoryItem,
+    packageTypes,
+    inventoryOptions,
+    inventory,
+    isAdmin,
+    isMaster,
+    addInventoryOption,
+    updateInventoryOption,
+  } = useAppStore()
   const { toast } = useToast()
 
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
@@ -107,6 +127,9 @@ export function AddInventoryModal({
   const [localSpecialties, setLocalSpecialties] = useState<string[]>([])
   const [isLoadingSpecialties, setIsLoadingSpecialties] = useState(false)
 
+  const [editingHelp, setEditingHelp] = useState(false)
+  const [tempHelp, setTempHelp] = useState('')
+
   const storageRooms = inventoryOptions.filter(
     (o) =>
       o.category.toUpperCase() === 'STORAGE_ROOM' ||
@@ -114,6 +137,11 @@ export function AddInventoryModal({
   )
   const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
+
+  const helpTextOption = inventoryOptions.find((o) => o.category === 'CONSUMPTION_MODE_HELP')
+  const helpText =
+    helpTextOption?.label ||
+    'Informe como este produto deve ser consumido na clínica. (Ex: 1 unidade por procedimento, descartável, etc)'
 
   const existingItem = baseItemName ? inventory.find((i) => i.name === baseItemName) : null
   const realStockBefore = existingItem ? existingItem.quantity * (existingItem.itemsPerBox || 1) : 0
@@ -148,6 +176,7 @@ export function AddInventoryModal({
       prostheticCollarHeight: '',
       prostheticDiameter: '',
       prostheticHeight: '',
+      consumptionMode: '',
     },
   })
 
@@ -206,6 +235,15 @@ export function AddInventoryModal({
     }
   }, [currentSpecialty, form])
 
+  const handleSaveHelp = () => {
+    if (helpTextOption) {
+      updateInventoryOption(helpTextOption.id, tempHelp)
+    } else {
+      addInventoryOption('CONSUMPTION_MODE_HELP', 'DEFAULT', tempHelp)
+    }
+    setEditingHelp(false)
+  }
+
   const onSubmit = (v: z.infer<typeof schema>) => {
     const specialtyDetails: any = {}
     if (v.specialty === 'IMPLANTODONTIA') {
@@ -249,6 +287,7 @@ export function AddInventoryModal({
       lastValue: v.lastValue || 0,
       notes: v.notes || '',
       criticalObservations: v.criticalObservations || '',
+      consumptionMode: v.consumptionMode || '',
       specialtyDetails,
     })
 
@@ -709,6 +748,30 @@ export function AddInventoryModal({
                   />
                   <FormField
                     control={form.control}
+                    name="packageType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>TIPO EMBALAGEM</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-white uppercase">
+                              <SelectValue placeholder="SELECIONE" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {packageTypes.map((pt) => (
+                              <SelectItem key={pt} value={pt} className="uppercase">
+                                {pt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="itemsPerBox"
                     render={({ field }) => (
                       <FormItem>
@@ -734,6 +797,10 @@ export function AddInventoryModal({
                         <FormControl>
                           <Input
                             type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            data-lpignore="true"
+                            data-form-type="other"
                             className="bg-white"
                             placeholder="R$ 0,00"
                             value={formatCurrencyInput(field.value)}
@@ -744,37 +811,93 @@ export function AddInventoryModal({
                       </FormItem>
                     )}
                   />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10 mt-2">
                   <FormField
                     control={form.control}
-                    name="packageType"
+                    name="consumptionMode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>TIPO EMBALAGEM</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="bg-white uppercase">
-                              <SelectValue placeholder="SELECIONE" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {packageTypes.map((pt) => (
-                              <SelectItem key={pt} value={pt} className="uppercase">
-                                {pt}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormLabel className="flex items-center gap-2">
+                          MODO DE CONSUMO
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-5 h-5 rounded-full p-0"
+                              >
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 text-sm">
+                              {!editingHelp ? (
+                                <div className="space-y-2">
+                                  <p className="uppercase font-semibold text-slate-700">
+                                    {helpText}
+                                  </p>
+                                  {(isAdmin || isMaster) && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setTempHelp(helpText)
+                                        setEditingHelp(true)
+                                      }}
+                                      className="w-full text-xs font-bold mt-2"
+                                    >
+                                      <Edit2 className="w-3.5 h-3.5 mr-2" /> EDITAR TEXTO DE AJUDA
+                                    </Button>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <Textarea
+                                    value={tempHelp}
+                                    onChange={(e) => setTempHelp(e.target.value)}
+                                    className="min-h-[80px]"
+                                  />
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setEditingHelp(false)}
+                                      className="flex-1 font-bold"
+                                    >
+                                      CANCELAR
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={handleSaveHelp}
+                                      className="flex-1 bg-nuvia-navy text-white hover:bg-nuvia-navy/90 font-bold"
+                                    >
+                                      <Check className="w-4 h-4 mr-2" /> SALVAR
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </PopoverContent>
+                          </Popover>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            className="bg-white uppercase"
+                            placeholder="EX: 1 UNIDADE POR PROCEDIMENTO"
+                            {...field}
+                            value={field.value || ''}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-                <div className="pt-3 border-t border-slate-200 flex justify-between items-center relative z-10">
-                  <span className="text-sm font-semibold text-slate-600 uppercase">
-                    VALOR TOTAL DA COMPRA
-                  </span>
-                  <div className="text-2xl font-black text-slate-800">
-                    {formatCurrency(totalCost)}
+                  <div className="flex flex-col justify-end">
+                    <span className="text-xs font-semibold text-slate-600 uppercase mb-2">
+                      VALOR TOTAL DA COMPRA
+                    </span>
+                    <div className="text-2xl font-black text-slate-800 bg-white border h-10 px-3 flex items-center rounded-md">
+                      {formatCurrency(totalCost)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -804,7 +927,7 @@ export function AddInventoryModal({
                     <FormItem className="flex flex-col">
                       <FormLabel>DATA DE VALIDADE</FormLabel>
                       <FormControl>
-                        <FlexibleExpirationInput
+                        <MonthYearInput
                           value={field.value}
                           onChange={(val) => field.onChange(val || '')}
                           className="uppercase"

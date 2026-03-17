@@ -120,9 +120,14 @@ export default function Inventory() {
     return inventory.filter((item) => {
       const matchSpecialty = selectedSpecialty === 'all' || item.specialty === selectedSpecialty
       const searchLower = searchQuery.toLowerCase()
+
       const matchSearch =
         item.name.toLowerCase().includes(searchLower) ||
-        !!item.brand?.toLowerCase().includes(searchLower)
+        !!item.brand?.toLowerCase().includes(searchLower) ||
+        !!item.specialtyDetails?.implantDiameter?.toLowerCase().includes(searchLower) ||
+        !!item.specialtyDetails?.implantHeight?.toLowerCase().includes(searchLower) ||
+        !!item.specialtyDetails?.prostheticType?.toLowerCase().includes(searchLower)
+
       const matchBarcode = !barcodeQuery || (item.barcode && item.barcode.includes(barcodeQuery))
       const matchLowStock = showLowStock ? isCriticalStock(item) : true
       const matchActiveOutflows = showActiveOutflows
@@ -264,7 +269,7 @@ export default function Inventory() {
         <div className="relative col-span-1 lg:col-span-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="BUSCAR NOME OU MARCA..."
+            placeholder="BUSCAR NOME, MARCA OU VARIAÇÕES..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 bg-white"
@@ -301,7 +306,7 @@ export default function Inventory() {
             <AlertTriangle
               className={cn('w-4 h-4 mr-2', showLowStock ? 'text-white' : 'text-red-500')}
             />{' '}
-            ESTOQUE CRÍTICO
+            CRÍTICO
           </Button>
         </div>
       </div>
@@ -510,9 +515,7 @@ export default function Inventory() {
                                     )}
                                   >
                                     <CalendarClock className="h-3.5 w-3.5" /> VAL:{' '}
-                                    {format(new Date(item.expirationDate), 'dd/MM/yyyy', {
-                                      locale: ptBR,
-                                    })}
+                                    {format(new Date(item.expirationDate), 'MM/yyyy')}
                                     {isExpired && ' (VENCIDO)'}
                                     {isExpiringSoon && ' (ATENÇÃO)'}
                                   </div>

@@ -87,6 +87,7 @@ export type InventoryItem = {
   storageRoom?: string
   cabinetNumber?: string
   criticalObservations?: string
+  consumptionMode?: string
 }
 export type TemporaryOutflow = {
   id: string
@@ -379,6 +380,7 @@ interface AppStore {
     data: Partial<PurchaseRecord>,
   ) => Promise<{ success: boolean; error?: any }>
   addInventoryOption: (category: string, value: string, label?: string) => void
+  updateInventoryOption: (id: string, label: string) => Promise<{ success: boolean; error?: any }>
   removeInventoryOption: (id: string) => void
   addTemporaryOutflow: (
     inventory_id: string,
@@ -555,6 +557,7 @@ const mInv = (d: any): InventoryItem => ({
   storageRoom: d.storage_room,
   cabinetNumber: d.cabinet_number,
   criticalObservations: d.critical_observations,
+  consumptionMode: d.consumption_mode,
 })
 const mAg = (d: any): AgendaItem => ({
   id: d.id,
@@ -1311,6 +1314,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             storage_room: i.storageRoom || null,
             cabinet_number: i.cabinetNumber || null,
             critical_observations: i.criticalObservations || null,
+            consumption_mode: i.consumptionMode || null,
           } as any,
         ])
         .select()
@@ -1369,6 +1373,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         payload.critical_observations = data.criticalObservations || null
       if (data.specialtyDetails !== undefined) payload.specialty_details = data.specialtyDetails
       if (data.storageLocation !== undefined) payload.storage_location = data.storageLocation
+      if (data.consumptionMode !== undefined)
+        payload.consumption_mode = data.consumptionMode || null
 
       try {
         const { error } = await supabase.from('inventory').update(payload).eq('id', id)
@@ -1510,6 +1516,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [logAction],
   )
+
+  const updateInventoryOption = useCallback(async (id: string, label: string) => {
+    try {
+      const { error } = await supabase
+        .from('inventory_settings' as any)
+        .update({ label })
+        .eq('id', id)
+      if (error) throw error
+      setInventoryOptions((p) => p.map((o) => (o.id === id ? { ...o, label } : o)))
+      return { success: true }
+    } catch (err: any) {
+      checkAuthError(err)
+      return { success: false, error: err }
+    }
+  }, [])
 
   const removeInventoryOption = useCallback(
     (id: string) => {
@@ -2996,6 +3017,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removePurchaseHistory,
       updatePurchaseHistory,
       addInventoryOption,
+      updateInventoryOption,
       removeInventoryOption,
       addTemporaryOutflow,
       finalizeTemporaryOutflow,
@@ -3094,6 +3116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removePurchaseHistory,
       updatePurchaseHistory,
       addInventoryOption,
+      updateInventoryOption,
       removeInventoryOption,
       addTemporaryOutflow,
       finalizeTemporaryOutflow,
