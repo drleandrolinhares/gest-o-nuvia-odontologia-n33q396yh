@@ -1,4 +1,4 @@
-DO $
+DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM public.inventory_settings WHERE category = 'ALTURA_IMPLANTE' LIMIT 1) THEN
         INSERT INTO public.inventory_settings (category, value) VALUES
@@ -15,4 +15,4 @@ BEGIN
         ('ALTURA_IMPLANTE', '13'),
         ('ALTURA_IMPLANTE', '15');
     END IF;
-END $;
+END $$;
