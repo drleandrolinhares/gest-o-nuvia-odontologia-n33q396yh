@@ -81,6 +81,7 @@ export function Layout() {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [now, setNow] = useState(new Date())
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000)
@@ -107,6 +108,88 @@ export function Layout() {
       (r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO' && r.responsible_employee_id === currentUserId,
     ).length
   }, [sacRecords, currentUserId])
+
+  const navigationSections = useMemo(
+    () => [
+      {
+        title: 'VISÃO DIÁRIA',
+        items: [
+          { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
+          { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
+          { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
+          { name: 'SAC', href: '/admin/sac', icon: HeadphonesIcon },
+        ],
+      },
+      {
+        title: 'GESTÃO DE EQUIPE',
+        items: [
+          { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
+          { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
+        ],
+      },
+      {
+        title: 'OPERAÇÃO',
+        items: [
+          { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
+          { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
+          { name: 'NEGOCIAÇÃO', href: '/admin/operacao/negociacao', icon: Handshake },
+          { name: 'SEGMENTAÇÃO DA AGENDA', href: '/admin/operacao/segmentacao', icon: Grid },
+        ],
+      },
+      {
+        title: 'ADMINISTRAÇÃO',
+        items: [
+          {
+            name: 'CONFIGURAÇÕES',
+            icon: Settings,
+            subItems: [
+              { name: 'SISTEMA', href: '/admin/configuracoes' },
+              { name: 'PERMISSÕES', href: '/admin/permissoes', adminOnly: true },
+            ],
+          },
+          { name: 'CENTRAL DE ACESSOS', href: '/admin/acessos', icon: Shield },
+          { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
+        ],
+      },
+    ],
+    [],
+  )
+
+  const filteredSections = useMemo(() => {
+    return navigationSections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => {
+          if (item.adminOnly && !isAdmin) return false
+          return true
+        }),
+      }))
+      .filter((section) => section.items.length > 0)
+  }, [navigationSections, isAdmin])
+
+  useEffect(() => {
+    setOpenMenus((prev) => {
+      let hasChanges = false
+      const next = { ...prev }
+
+      filteredSections.forEach((section) => {
+        section.items.forEach((item) => {
+          if (item.subItems) {
+            const filteredSubItems = item.subItems.filter((s) => !s.adminOnly || isAdmin)
+            const isAnySubActive = filteredSubItems.some((s) =>
+              location.pathname.startsWith(s.href),
+            )
+            if (isAnySubActive && next[item.name] === undefined) {
+              next[item.name] = true
+              hasChanges = true
+            }
+          }
+        })
+      })
+
+      return hasChanges ? next : prev
+    })
+  }, [location.pathname, filteredSections, isAdmin])
 
   if (isDataLoading) {
     return (
@@ -138,64 +221,11 @@ export function Layout() {
     )
   }
 
-  const navigationSections = [
-    {
-      title: 'VISÃO DIÁRIA',
-      items: [
-        { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
-        { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
-        { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
-        { name: 'SAC', href: '/admin/sac', icon: HeadphonesIcon },
-      ],
-    },
-    {
-      title: 'GESTÃO DE EQUIPE',
-      items: [
-        { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
-        { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
-      ],
-    },
-    {
-      title: 'OPERAÇÃO',
-      items: [
-        { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
-        { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
-        { name: 'NEGOCIAÇÃO', href: '/admin/operacao/negociacao', icon: Handshake },
-        { name: 'SEGMENTAÇÃO DA AGENDA', href: '/admin/operacao/segmentacao', icon: Grid },
-      ],
-    },
-    {
-      title: 'ADMINISTRAÇÃO',
-      items: [
-        {
-          name: 'CONFIGURAÇÕES',
-          icon: Settings,
-          subItems: [
-            { name: 'SISTEMA', href: '/admin/configuracoes' },
-            { name: 'PERMISSÕES', href: '/admin/permissoes', adminOnly: true },
-          ],
-        },
-        { name: 'CENTRAL DE ACESSOS', href: '/admin/acessos', icon: Shield },
-        { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
-      ],
-    },
-  ]
-
-  const filteredSections = navigationSections
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) => {
-        if (item.adminOnly && !isAdmin) return false
-        return true
-      }),
-    }))
-    .filter((section) => section.items.length > 0)
-
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
-  const SidebarContent = ({ isMobile = false }) => (
+  const renderSidebarContent = (isMobile = false) => (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300 border-r border-white/5">
-      <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F]">
+      <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F] shrink-0">
         <Link
           to="/admin/agenda"
           className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
@@ -208,7 +238,7 @@ export function Layout() {
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4 px-4 custom-scrollbar overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto py-4 px-4 overflow-x-hidden [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
         {filteredSections.map((section, idx) => (
           <div key={section.title} className={cn('mb-6', isCollapsed && !isMobile && 'mb-4')}>
             {(!isCollapsed || isMobile) && (
@@ -226,7 +256,13 @@ export function Layout() {
                     location.pathname.startsWith(s.href),
                   )
                   return (
-                    <Collapsible key={item.name} defaultOpen={isAnySubActive}>
+                    <Collapsible
+                      key={item.name}
+                      open={openMenus[item.name] || false}
+                      onOpenChange={(isOpen) =>
+                        setOpenMenus((prev) => ({ ...prev, [item.name]: isOpen }))
+                      }
+                    >
                       <CollapsibleTrigger asChild>
                         <button
                           onClick={() => {
@@ -356,7 +392,7 @@ export function Layout() {
 
       <div
         className={cn(
-          'p-4 border-t border-white/5 bg-[#0A192F]',
+          'p-4 border-t border-white/5 bg-[#0A192F] shrink-0',
           isCollapsed && !isMobile && 'flex flex-col items-center',
         )}
       >
@@ -419,7 +455,7 @@ export function Layout() {
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72 bg-[#0A192F] border-r-slate-800">
               <SheetTitle className="sr-only">Menu Principal</SheetTitle>
-              <SidebarContent isMobile={true} />
+              {renderSidebarContent(true)}
             </SheetContent>
           </Sheet>
         </div>
@@ -431,7 +467,7 @@ export function Layout() {
           isCollapsed ? 'w-20' : 'w-72',
         )}
       >
-        <SidebarContent />
+        {renderSidebarContent()}
       </div>
 
       <main
@@ -440,7 +476,7 @@ export function Layout() {
           isCollapsed ? 'md:pl-20' : 'md:pl-72',
         )}
       >
-        <header className="hidden md:flex h-16 bg-[#0A192F] border-b border-[#D4AF37]/20 items-center px-4 justify-between sticky top-0 z-10 transition-all duration-300">
+        <header className="hidden md:flex h-16 bg-[#0A192F] border-b border-[#D4AF37]/20 items-center px-4 justify-between sticky top-0 z-10 transition-all duration-300 shrink-0">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -475,7 +511,7 @@ export function Layout() {
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-8 overflow-auto pb-24">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto pb-24">
           <div className="mx-auto max-w-7xl h-full">
             <Outlet />
           </div>
