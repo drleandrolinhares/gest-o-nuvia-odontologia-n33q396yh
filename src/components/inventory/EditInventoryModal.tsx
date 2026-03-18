@@ -127,10 +127,13 @@ export function EditInventoryModal({
     getInventoryMovements,
     suppliers,
     isMaster,
+    isAdmin,
     removePurchaseHistory,
     updatePurchaseHistory,
   } = useAppStore()
   const { toast } = useToast()
+
+  const canEdit = isMaster || isAdmin
 
   const [activeTab, setActiveTab] = useState('details')
   const [isEditing, setIsEditing] = useState(false)
@@ -313,7 +316,7 @@ export function EditInventoryModal({
   }, [consumptionMode, qtyRaw, itemsPerBoxRaw, form])
 
   const onSubmit = async (v: z.infer<typeof schema>) => {
-    if (!item || !isMaster || !isEditing) return
+    if (!item || !canEdit || !isEditing) return
     const specialtyDetails: any = {}
     if (v.specialty === 'IMPLANTODONTIA') {
       if (v.implantBrand) specialtyDetails.implantBrand = v.implantBrand
@@ -414,7 +417,7 @@ export function EditInventoryModal({
               DETALHES DO PRODUTO
             </DialogTitle>
             <div className="flex items-center gap-2 -mt-2">
-              {isMaster && !isEditing && activeTab === 'details' && (
+              {canEdit && !isEditing && activeTab === 'details' && (
                 <Button
                   type="button"
                   variant="outline"
@@ -427,7 +430,7 @@ export function EditInventoryModal({
                   <Pencil className="w-4 h-4 mr-2" /> HABILITAR EDIÇÃO
                 </Button>
               )}
-              {isMaster && (
+              {canEdit && (
                 <Button
                   type="button"
                   onClick={(e) => {
@@ -476,7 +479,7 @@ export function EditInventoryModal({
                               placeholder="BIPAR OU DIGITAR CÓDIGO..."
                               className="bg-white border-blue-200 shadow-sm h-12 text-lg font-mono tracking-widest uppercase"
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                           <FormMessage />
@@ -497,7 +500,7 @@ export function EditInventoryModal({
                               placeholder="EX: MINI PILAR"
                               className="border-[#D81B84] focus-visible:ring-[#D81B84] uppercase"
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                           <FormMessage />
@@ -515,7 +518,7 @@ export function EditInventoryModal({
                               placeholder="EX: 3M, FGM..."
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                           <FormMessage />
@@ -531,7 +534,7 @@ export function EditInventoryModal({
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
-                            disabled={!isMaster || !isEditing}
+                            disabled={!canEdit || !isEditing}
                           >
                             <FormControl>
                               <SelectTrigger className="uppercase">
@@ -584,7 +587,7 @@ export function EditInventoryModal({
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
-                            disabled={!isMaster || !isEditing}
+                            disabled={!canEdit || !isEditing}
                           >
                             <FormControl>
                               <SelectTrigger className="bg-white uppercase">
@@ -620,7 +623,7 @@ export function EditInventoryModal({
                               <Select
                                 onValueChange={field.onChange}
                                 value={field.value}
-                                disabled={!isMaster || !isEditing}
+                                disabled={!canEdit || !isEditing}
                               >
                                 <FormControl>
                                   <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -651,7 +654,7 @@ export function EditInventoryModal({
                               <Select
                                 onValueChange={field.onChange}
                                 value={field.value}
-                                disabled={!isMaster || !isEditing}
+                                disabled={!canEdit || !isEditing}
                               >
                                 <FormControl>
                                   <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -679,7 +682,7 @@ export function EditInventoryModal({
                                 <InlineImplantHeightSelect
                                   value={field.value || ''}
                                   onChange={field.onChange}
-                                  disabled={!isMaster || !isEditing}
+                                  disabled={!canEdit || !isEditing}
                                 />
                               </FormControl>
                             </FormItem>
@@ -704,7 +707,7 @@ export function EditInventoryModal({
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  disabled={!isMaster || !isEditing}
+                                  disabled={!canEdit || !isEditing}
                                 />
                               </FormControl>
                             </FormItem>
@@ -729,7 +732,7 @@ export function EditInventoryModal({
                                   <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
-                                    disabled={!isMaster || !isEditing}
+                                    disabled={!canEdit || !isEditing}
                                   >
                                     <FormControl>
                                       <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -758,7 +761,7 @@ export function EditInventoryModal({
                                     <Select
                                       onValueChange={field.onChange}
                                       value={field.value}
-                                      disabled={!isMaster || !isEditing}
+                                      disabled={!canEdit || !isEditing}
                                     >
                                       <FormControl>
                                         <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -796,7 +799,7 @@ export function EditInventoryModal({
                                       <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
-                                        disabled={!isMaster || !isEditing}
+                                        disabled={!canEdit || !isEditing}
                                       >
                                         <FormControl>
                                           <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -823,7 +826,7 @@ export function EditInventoryModal({
                                         <Select
                                           onValueChange={field.onChange}
                                           value={field.value}
-                                          disabled={!isMaster || !isEditing}
+                                          disabled={!canEdit || !isEditing}
                                         >
                                           <FormControl>
                                             <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -856,7 +859,7 @@ export function EditInventoryModal({
                                       <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
-                                        disabled={!isMaster || !isEditing}
+                                        disabled={!canEdit || !isEditing}
                                       >
                                         <FormControl>
                                           <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -881,7 +884,7 @@ export function EditInventoryModal({
                                         <Select
                                           onValueChange={field.onChange}
                                           value={field.value}
-                                          disabled={!isMaster || !isEditing}
+                                          disabled={!canEdit || !isEditing}
                                         >
                                           <FormControl>
                                             <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -930,7 +933,7 @@ export function EditInventoryModal({
                                 type="number"
                                 className="bg-white uppercase font-bold text-blue-900"
                                 {...field}
-                                disabled={!isMaster || !isEditing}
+                                disabled={!canEdit || !isEditing}
                               />
                             </FormControl>
                             <FormMessage />
@@ -953,7 +956,7 @@ export function EditInventoryModal({
                                 type="number"
                                 className="bg-white uppercase font-bold"
                                 {...field}
-                                disabled={!isMaster || !isEditing}
+                                disabled={!canEdit || !isEditing}
                               />
                             </FormControl>
                             <FormMessage />
@@ -979,7 +982,7 @@ export function EditInventoryModal({
                                 placeholder="R$ 0,00"
                                 value={formatCurrencyInput(field.value || 0)}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                disabled={!isMaster || !isEditing}
+                                disabled={!canEdit || !isEditing}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1033,7 +1036,7 @@ export function EditInventoryModal({
                                   value={form.watch('consumptionMode') || ''}
                                   onValueChange={(val) => form.setValue('consumptionMode', val)}
                                   className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-1"
-                                  disabled={!isMaster || !isEditing}
+                                  disabled={!canEdit || !isEditing}
                                 >
                                   <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="QTD_COMPRADA" id="m1" />
@@ -1087,7 +1090,7 @@ export function EditInventoryModal({
                             <DatePickerInput
                               value={field.value}
                               onChange={(val) => field.onChange((val as string) || '')}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                               className="uppercase"
                             />
                           </FormControl>
@@ -1105,7 +1108,7 @@ export function EditInventoryModal({
                             <MonthYearInput
                               value={field.value}
                               onChange={(val) => field.onChange(val || '')}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                               className="uppercase"
                             />
                           </FormControl>
@@ -1124,7 +1127,7 @@ export function EditInventoryModal({
                               placeholder="EX: 123456"
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1142,7 +1145,7 @@ export function EditInventoryModal({
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
-                            disabled={!isMaster || !isEditing}
+                            disabled={!canEdit || !isEditing}
                           >
                             <FormControl>
                               <SelectTrigger className="uppercase">
@@ -1182,7 +1185,7 @@ export function EditInventoryModal({
                               placeholder="EX: A1"
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1202,7 +1205,7 @@ export function EditInventoryModal({
                               type="number"
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1226,7 +1229,7 @@ export function EditInventoryModal({
                                 placeholder="EX: 3M, IVOCLAR..."
                                 className="uppercase"
                                 {...field}
-                                disabled={!isMaster || !isEditing}
+                                disabled={!canEdit || !isEditing}
                               />
                             </FormControl>
                           </FormItem>
@@ -1249,7 +1252,7 @@ export function EditInventoryModal({
                                 className="uppercase"
                                 value={formatCurrencyInput(field.value || 0)}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                disabled={!isMaster || !isEditing}
+                                disabled={!canEdit || !isEditing}
                               />
                             </FormControl>
                           </FormItem>
@@ -1267,7 +1270,7 @@ export function EditInventoryModal({
                               className="min-h-[100px] uppercase"
                               placeholder="ADICIONE NOTAS, LINKS DE FORNECEDORES OU DETALHES..."
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1286,7 +1289,7 @@ export function EditInventoryModal({
                               className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-50 bg-amber-50/30"
                               placeholder="NOTAS CRÍTICAS QUE GERAM ALERTA (EX: PRODUTO FRÁGIL, VERIFICAR LOTE)..."
                               {...field}
-                              disabled={!isMaster || !isEditing}
+                              disabled={!canEdit || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1294,7 +1297,7 @@ export function EditInventoryModal({
                     />
                   </div>
 
-                  {isMaster && isEditing && (
+                  {canEdit && isEditing && (
                     <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
                       <Button
                         type="button"
@@ -1401,7 +1404,7 @@ export function EditInventoryModal({
                               {formatCurrency(ph.price)}
                             </TableCell>
                             <TableCell className="text-center">
-                              {isMaster ? (
+                              {canEdit ? (
                                 <div className="flex items-center justify-center gap-1">
                                   <Button
                                     variant="ghost"

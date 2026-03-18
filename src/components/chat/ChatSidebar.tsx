@@ -41,14 +41,27 @@ export function ChatSidebar() {
     (r.name || r.department || '').toLowerCase().includes(search.toLowerCase()),
   )
 
-  const getUnreadForUser = (userId: string) => {
-    const room = rooms.find((r) => r.type === 'individual' && r.other_user_id === userId)
-    return room ? unreadCounts[room.id] || 0 : 0
-  }
+  const sortedGroups = useMemo(() => {
+    return [...filteredGroups].sort((a, b) => {
+      const unreadA = unreadCounts[a.id] || 0
+      const unreadB = unreadCounts[b.id] || 0
+      return unreadB - unreadA
+    })
+  }, [filteredGroups, unreadCounts])
 
-  const getUnreadForRoom = (roomId: string) => {
-    return unreadCounts[roomId] || 0
-  }
+  const sortedEmployees = useMemo(() => {
+    return [...filteredEmployees].sort((a, b) => {
+      const roomA = a.user_id
+        ? rooms.find((r) => r.type === 'individual' && r.other_user_id === a.user_id)
+        : null
+      const roomB = b.user_id
+        ? rooms.find((r) => r.type === 'individual' && r.other_user_id === b.user_id)
+        : null
+      const unreadA = roomA ? unreadCounts[roomA.id] || 0 : 0
+      const unreadB = roomB ? unreadCounts[roomB.id] || 0 : 0
+      return unreadB - unreadA
+    })
+  }, [filteredEmployees, rooms, unreadCounts])
 
   return (
     <div className="flex flex-col bg-card h-full shrink-0">
@@ -82,8 +95,8 @@ export function ChatSidebar() {
               </div>
             </div>
             <div className="space-y-0.5 mt-1">
-              {filteredGroups.map((room) => {
-                const unread = getUnreadForRoom(room.id)
+              {sortedGroups.map((room) => {
+                const unread = unreadCounts[room.id] || 0
                 const active = room.id === activeRoomId
                 const displayName = room.name || room.department || 'GRUPO DESCONHECIDO'
                 return (
@@ -103,8 +116,12 @@ export function ChatSidebar() {
                       </div>
                       <span
                         className={cn(
-                          'text-sm font-medium truncate uppercase',
-                          active ? 'text-primary font-bold' : 'text-foreground',
+                          'text-sm truncate uppercase',
+                          active
+                            ? 'text-primary font-bold'
+                            : unread > 0
+                              ? 'font-black text-foreground'
+                              : 'font-medium text-foreground',
                         )}
                       >
                         {displayName}
@@ -121,7 +138,7 @@ export function ChatSidebar() {
                   </button>
                 )
               })}
-              {filteredGroups.length === 0 && (
+              {sortedGroups.length === 0 && (
                 <p className="text-xs text-muted-foreground px-2 py-2 uppercase">
                   NENHUM GRUPO ENCONTRADO.
                 </p>
@@ -134,11 +151,11 @@ export function ChatSidebar() {
               COLABORADORES
             </div>
             <div className="space-y-0.5 mt-1">
-              {filteredEmployees.map((emp) => {
-                const unread = emp.user_id ? getUnreadForUser(emp.user_id) : 0
+              {sortedEmployees.map((emp) => {
                 const room = emp.user_id
                   ? rooms.find((r) => r.type === 'individual' && r.other_user_id === emp.user_id)
                   : undefined
+                const unread = room ? unreadCounts[room.id] || 0 : 0
                 const active = room?.id === activeRoomId
                 const isOnline = emp.user_id ? onlineUsers.includes(emp.user_id) : false
 
@@ -181,8 +198,12 @@ export function ChatSidebar() {
                       <div className="flex flex-col overflow-hidden">
                         <span
                           className={cn(
-                            'text-sm font-medium truncate uppercase',
-                            active ? 'text-primary font-bold' : 'text-foreground',
+                            'text-sm truncate uppercase',
+                            active
+                              ? 'text-primary font-bold'
+                              : unread > 0
+                                ? 'font-black text-foreground'
+                                : 'font-medium text-foreground',
                           )}
                         >
                           {emp.name}

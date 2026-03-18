@@ -46,7 +46,7 @@ export default function Login() {
     setIsLoading(true)
 
     try {
-      const { error } = await signIn(email.trim().toLowerCase(), password, keepSignedIn)
+      const { error } = await signIn(email.trim(), password, keepSignedIn)
 
       if (error) {
         toast({
@@ -131,7 +131,7 @@ export default function Login() {
                     required
                     disabled={isLoading}
                     disableUppercase
-                    className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] pr-10 disabled:opacity-50 normal-case"
+                    className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] pr-10 disabled:opacity-50 normal-case font-sans tracking-normal"
                   />
                   <button
                     type="button"

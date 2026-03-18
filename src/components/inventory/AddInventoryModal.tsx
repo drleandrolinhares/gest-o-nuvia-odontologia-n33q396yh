@@ -255,7 +255,7 @@ export function AddInventoryModal({
       packageCost: v.packageCost || 0,
       packageType: v.packageType,
       itemsPerBox: v.itemsPerBox || 1,
-      quantity: (v.quantity || 0) * (v.itemsPerBox || 1), // Save total units
+      quantity: (v.quantity || 0) * (v.itemsPerBox || 1),
       storageLocation: `${v.storageRoom || ''} - ${v.cabinetNumber || ''}`,
       storageRoom: v.storageRoom === 'none' ? '' : v.storageRoom || '',
       cabinetNumber: v.cabinetNumber || '',
