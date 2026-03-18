@@ -148,7 +148,7 @@ export function EditInventoryModal({
   const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
 
-  const realStockBefore = item ? item.quantity * (item.itemsPerBox || 1) : 0
+  const realStockBefore = item ? item.quantity : 0
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -278,7 +278,7 @@ export function EditInventoryModal({
   const itemsPerBoxRaw = form.watch('itemsPerBox')
   const consumptionMode = form.watch('consumptionMode')
   const qty = Number(qtyRaw) || 0
-  const totalCost = qty * pCost
+  const totalCost = (qty / (Number(itemsPerBoxRaw) || 1)) * pCost
   const currentSpecialty = form.watch('specialty')
   const isProstheticComponent = form.watch('isProstheticComponent')
   const prostheticType = form.watch('prostheticType')
@@ -865,7 +865,7 @@ export function EditInventoryModal({
                       <Calculator className="w-32 h-32" />
                     </div>
                     <h4 className="font-semibold text-slate-800 flex items-center gap-2 relative z-10 uppercase">
-                      INFORMAÇÕES DE COMPRA E EMBALAGEM
+                      INFORMAÇÕES DE ESTOQUE E EMBALAGEM
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
                       <FormField
@@ -873,7 +873,7 @@ export function EditInventoryModal({
                         name="quantity"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>QTD. COMPRADA</FormLabel>
+                            <FormLabel>ESTOQUE ATUAL (UNIDADES)</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -1023,9 +1023,9 @@ export function EditInventoryModal({
                       <div className="w-full flex flex-col items-end border-t border-slate-200 pt-4 mt-2">
                         <span
                           className="text-xs font-semibold text-slate-600 uppercase mb-2"
-                          title="VALOR TOTAL DA COMPRA"
+                          title="VALOR TOTAL EM ESTOQUE"
                         >
-                          VALOR TOTAL
+                          VALOR TOTAL EM ESTOQUE
                         </span>
                         <div className="text-2xl font-black text-slate-800 bg-white border h-12 px-6 flex items-center rounded-lg shadow-sm min-w-[200px] justify-end">
                           {formatCurrency(totalCost)}
@@ -1167,13 +1167,13 @@ export function EditInventoryModal({
                       )}
                     />
                     <FormItem>
-                      <FormLabel className="text-blue-800">ESTOQUE ATUAL</FormLabel>
+                      <FormLabel className="text-blue-800">ESTOQUE ANTERIOR À EDIÇÃO</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
                           readOnly
                           disabled
-                          value={`${realStockBefore} UN`}
+                          value={`${realStockBefore} UNIDADES`}
                           className="uppercase font-bold bg-blue-50/50 border-blue-100 text-blue-900"
                         />
                       </FormControl>
@@ -1293,7 +1293,7 @@ export function EditInventoryModal({
                         FORNECEDOR
                       </TableHead>
                       <TableHead className="font-bold text-xs uppercase text-muted-foreground text-center">
-                        QTD. COMPRADA
+                        QTD. COMPRADA (EMB.)
                       </TableHead>
                       <TableHead className="font-bold text-xs uppercase text-muted-foreground">
                         VALOR (EMB)
@@ -1384,7 +1384,7 @@ export function EditInventoryModal({
                         TIPO
                       </TableHead>
                       <TableHead className="font-bold text-xs uppercase text-muted-foreground w-20 text-center">
-                        QTD
+                        QTD (UNIDADES)
                       </TableHead>
                       <TableHead className="font-bold text-xs uppercase text-muted-foreground">
                         DESTINATÁRIO/DESTINO
@@ -1465,7 +1465,7 @@ export function EditInventoryModal({
                   name="quantity"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>QTD. COMPRADA</FormLabel>
+                      <FormLabel>QTD. COMPRADA (EMB.)</FormLabel>
                       <FormControl>
                         <Input type="number" {...field} className="uppercase" />
                       </FormControl>

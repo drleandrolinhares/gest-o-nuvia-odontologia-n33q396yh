@@ -363,7 +363,7 @@ interface AppStore {
   addAgendaType: (n: string) => void
   removeAgendaType: (n: string) => void
   toggleTask: (c: string, t: string) => void
-  addInventoryItem: (i: Omit<InventoryItem, 'id'>) => void
+  addInventoryItem: (i: Omit<InventoryItem, 'id'> & { initialPackages?: number }) => void
   updateInventoryQuantity: (id: string, q: number) => void
   updateInventoryItemDetails: (
     id: string,
@@ -1277,15 +1277,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addInventoryItem = useCallback(
-    (i: Omit<InventoryItem, 'id'>) => {
+    (i: Omit<InventoryItem, 'id'> & { initialPackages?: number }) => {
+      const pkgs = i.initialPackages ?? i.quantity / (i.itemsPerBox || 1)
       const ph =
-        i.quantity > 0
+        pkgs > 0
           ? [
               {
                 id: crypto.randomUUID(),
                 date: new Date().toISOString(),
                 price: i.packageCost,
-                quantity: i.quantity,
+                quantity: pkgs,
                 expirationDate: i.expirationDate,
                 nfeNumber: i.nfeNumber,
               },
@@ -1420,7 +1421,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const item = prev.find((i) => i.id === itemId)
         if (!item) return prev
         const nh = [{ ...r, id: crypto.randomUUID() }, ...(item.purchaseHistory || [])]
-        const nq = item.quantity + r.quantity
+        const addedUnits = r.quantity * (item.itemsPerBox || 1)
+        const nq = item.quantity + addedUnits
         supabase
           .from('inventory')
           .update({

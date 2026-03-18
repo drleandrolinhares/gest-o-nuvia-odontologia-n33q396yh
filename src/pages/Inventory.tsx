@@ -98,8 +98,7 @@ export default function Inventory() {
   }
 
   const isCriticalStock = (item: InventoryItem) => {
-    const totalUnits = item.quantity * (item.itemsPerBox || 1)
-    return (item.minStock ?? 0) > 0 && totalUnits <= item.minStock
+    return (item.minStock ?? 0) > 0 && item.quantity <= item.minStock
   }
 
   const now = new Date()
@@ -156,17 +155,18 @@ export default function Inventory() {
 
     return Object.entries(groups)
       .map(([name, items]) => {
-        const totalQuantity = items.reduce((acc, i) => acc + i.quantity, 0)
-        const totalUnits = items.reduce((acc, i) => acc + i.quantity * (i.itemsPerBox || 1), 0)
+        const totalUnits = items.reduce((acc, i) => acc + i.quantity, 0)
         const isCritical = items.some((i) => isCriticalStock(i))
         const hasCriticalObservations = items.some(
           (i) => i.criticalObservations && i.criticalObservations.trim() !== '',
         )
-        const totalValue = items.reduce((acc, i) => acc + i.quantity * i.packageCost, 0)
+        const totalValue = items.reduce(
+          (acc, i) => acc + (i.quantity / (i.itemsPerBox || 1)) * i.packageCost,
+          0,
+        )
         return {
           name,
           items: items.sort((a, b) => (a.brand || '').localeCompare(b.brand || '')),
-          totalQuantity,
           totalUnits,
           totalValue,
           isCritical,
@@ -183,7 +183,7 @@ export default function Inventory() {
   }
 
   const totalCapital = filteredInventory.reduce(
-    (acc, item) => acc + item.quantity * item.packageCost,
+    (acc, item) => acc + (item.quantity / (item.itemsPerBox || 1)) * item.packageCost,
     0,
   )
   const totalItems = filteredInventory.reduce((acc, item) => acc + item.quantity, 0)
@@ -194,7 +194,8 @@ export default function Inventory() {
     inventory.forEach((i) => {
       if (!i.specialty) return
       volBySpec[i.specialty] = (volBySpec[i.specialty] || 0) + i.quantity
-      valBySpec[i.specialty] = (valBySpec[i.specialty] || 0) + i.quantity * i.packageCost
+      valBySpec[i.specialty] =
+        (valBySpec[i.specialty] || 0) + (i.quantity / (i.itemsPerBox || 1)) * i.packageCost
     })
     const topVol = Object.entries(volBySpec).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
     const topVal = Object.entries(valBySpec).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
@@ -227,7 +228,7 @@ export default function Inventory() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-[#D81B84]">ESTOQUE</h1>
-            <p className="text-muted-foreground mt-1">GERENCIE EMBALAGENS, CÓDIGOS E LOTES.</p>
+            <p className="text-muted-foreground mt-1">GERENCIE UNIDADES, CÓDIGOS E LOTES.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -325,7 +326,7 @@ export default function Inventory() {
         <Card className="border-l-4 border-l-[#D81B84] shadow-sm rounded-xl">
           <CardContent className="p-6">
             <p className="text-xs font-bold text-muted-foreground tracking-wider mb-2">
-              EMBALAGENS EM ESTOQUE ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
+              UNIDADES EM ESTOQUE ({selectedSpecialty === 'all' ? 'TOTAL' : selectedSpecialty})
             </p>
             <div className="text-2xl font-extrabold text-[#D81B84] truncate">{totalItems}</div>
           </CardContent>
@@ -355,7 +356,7 @@ export default function Inventory() {
                 {topStats.maxVolSpec}
               </span>
               <span className="text-xs font-medium text-muted-foreground mt-1">
-                {topStats.maxVol} EMBALAGENS
+                {topStats.maxVol} UNIDADES
               </span>
             </div>
           </CardContent>
@@ -539,7 +540,7 @@ export default function Inventory() {
                                 )}
                                 title="UNIDADES TOTAIS"
                               >
-                                {item.quantity * (item.itemsPerBox || 1)}{' '}
+                                {item.quantity}{' '}
                                 <span className="text-[10px] text-muted-foreground font-bold ml-1 uppercase">
                                   UNI
                                 </span>

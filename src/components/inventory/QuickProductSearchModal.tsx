@@ -155,7 +155,7 @@ export function QuickProductSearchModal({
                   </div>
                   <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-0 bg-muted/30 sm:bg-transparent p-2 sm:p-0 rounded-lg flex-shrink-0">
                     <div className="text-[10px] font-black text-muted-foreground tracking-wider">
-                      ESTOQUE
+                      ESTOQUE (UN)
                     </div>
                     <div
                       className={cn(
@@ -242,7 +242,7 @@ export function QuickProductSearchModal({
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 text-slate-900 p-4 rounded-xl border border-slate-200 flex flex-col justify-center shadow-sm">
                   <div className="text-[10px] font-black tracking-widest mb-1 opacity-70">
-                    QTD. EM ESTOQUE
+                    ESTOQUE ATUAL (UNIDADES)
                   </div>
                   <div className="text-3xl font-black">{selectedProduct.quantity}</div>
                 </div>

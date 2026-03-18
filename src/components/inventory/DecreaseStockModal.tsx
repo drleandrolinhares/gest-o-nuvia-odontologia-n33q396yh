@@ -94,11 +94,11 @@ export function DecreaseStockModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-muted/50 p-4 rounded-lg flex flex-col gap-1 mb-2 border border-border/50 uppercase">
-          <h4 className="font-semibold text-sm text-foreground">{item.name}</h4>
-          <div className="text-xs text-muted-foreground font-bold tracking-wider">
-            Estoque Atual:{' '}
-            <span className="font-black text-foreground text-sm">{item.quantity}</span>
+        <div className="bg-blue-50/50 p-4 rounded-lg flex flex-col gap-1 mb-2 border border-blue-200/50 uppercase">
+          <h4 className="font-semibold text-sm text-blue-900">{item.name}</h4>
+          <div className="text-xs text-blue-800 font-bold tracking-wider">
+            ESTOQUE ATUAL:{' '}
+            <span className="font-black text-blue-700 text-sm">{item.quantity} UNIDADES</span>
           </div>
         </div>
 

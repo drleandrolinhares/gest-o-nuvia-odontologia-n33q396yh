@@ -98,7 +98,7 @@ export function FinalizeTempOutflowModal({
           <div className="flex justify-between items-center text-xs font-bold text-slate-500 uppercase mt-3 pt-3 border-t">
             <span>COLAB: {outflow.employees?.name}</span>
             <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded font-black">
-              TOTAL RETIRADO: {total} UN
+              TOTAL RETIRADO: {total} UNIDADES
             </span>
           </div>
         </div>

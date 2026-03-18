@@ -121,7 +121,7 @@ export function AddInventoryModal({
   const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
 
   const existingItem = baseItemName ? inventory.find((i) => i.name === baseItemName) : null
-  const realStockBefore = existingItem ? existingItem.quantity * (existingItem.itemsPerBox || 1) : 0
+  const realStockBefore = existingItem ? existingItem.quantity : 0
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -255,7 +255,7 @@ export function AddInventoryModal({
       packageCost: v.packageCost || 0,
       packageType: v.packageType,
       itemsPerBox: v.itemsPerBox || 1,
-      quantity: v.quantity || 0,
+      quantity: (v.quantity || 0) * (v.itemsPerBox || 1), // Save total units
       storageLocation: `${v.storageRoom || ''} - ${v.cabinetNumber || ''}`,
       storageRoom: v.storageRoom === 'none' ? '' : v.storageRoom || '',
       cabinetNumber: v.cabinetNumber || '',
@@ -716,7 +716,7 @@ export function AddInventoryModal({
                     name="quantity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>QTD. COMPRADA</FormLabel>
+                        <FormLabel>QTD. COMPRADA (EMB.)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -1031,6 +1031,10 @@ export function AddInventoryModal({
                         <FormControl>
                           <Input
                             type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            data-lpignore="true"
+                            data-form-type="other"
                             placeholder="R$ 0,00"
                             className="uppercase"
                             value={formatCurrencyInput(field.value)}
