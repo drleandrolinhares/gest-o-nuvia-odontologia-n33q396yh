@@ -357,6 +357,7 @@ export type Database = {
           created_at: string
           department: string | null
           id: string
+          last_message_at: string | null
           name: string | null
           type: string | null
         }
@@ -364,6 +365,7 @@ export type Database = {
           created_at?: string
           department?: string | null
           id?: string
+          last_message_at?: string | null
           name?: string | null
           type?: string | null
         }
@@ -371,6 +373,7 @@ export type Database = {
           created_at?: string
           department?: string | null
           id?: string
+          last_message_at?: string | null
           name?: string | null
           type?: string | null
         }
@@ -1438,6 +1441,7 @@ export const Constants = {
 //   type: text (nullable)
 //   department: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   last_message_at: timestamp with time zone (nullable)
 // Table: clinica_consultorios
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -2089,10 +2093,26 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION update_room_last_message_at()
+//   CREATE OR REPLACE FUNCTION public.update_room_last_message_at()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     UPDATE public.chat_rooms
+//     SET last_message_at = NEW.created_at
+//     WHERE id = NEW.room_id;
+//     RETURN NEW;
+//   END;
+//   $function$
+//
 
 // --- TRIGGERS ---
 // Table: agenda
 //   trg_sync_agenda_to_sac: CREATE TRIGGER trg_sync_agenda_to_sac AFTER UPDATE ON public.agenda FOR EACH ROW EXECUTE FUNCTION sync_agenda_to_sac()
+// Table: chat_messages
+//   on_chat_message_created: CREATE TRIGGER on_chat_message_created AFTER INSERT ON public.chat_messages FOR EACH ROW EXECUTE FUNCTION update_room_last_message_at()
 // Table: employees
 //   trg_sync_employee_dates_to_agenda: CREATE TRIGGER trg_sync_employee_dates_to_agenda AFTER INSERT OR DELETE OR UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION sync_employee_dates_to_agenda()
 // Table: sac_records

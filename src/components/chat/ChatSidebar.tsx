@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Search, Users, Hash, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -25,6 +25,38 @@ export function ChatSidebar() {
     isMasterUser,
     isLoadingRoom,
   } = useChatStore()
+
+  const [pulsingRooms, setPulsingRooms] = useState<Record<string, boolean>>({})
+  const prevUnreadRef = useRef<Record<string, number>>(unreadCounts)
+
+  useEffect(() => {
+    let hasNew = false
+    const currentPulsing: Record<string, boolean> = {}
+
+    Object.entries(unreadCounts).forEach(([roomId, count]) => {
+      const prevCount = prevUnreadRef.current[roomId] || 0
+      if (count > prevCount && roomId !== activeRoomId) {
+        currentPulsing[roomId] = true
+        hasNew = true
+      }
+    })
+
+    if (hasNew) {
+      setPulsingRooms((prev) => ({ ...prev, ...currentPulsing }))
+      const timer = setTimeout(() => {
+        setPulsingRooms((prev) => {
+          const next = { ...prev }
+          Object.keys(currentPulsing).forEach((k) => delete next[k])
+          return next
+        })
+      }, 2500)
+
+      prevUnreadRef.current = unreadCounts
+      return () => clearTimeout(timer)
+    }
+
+    prevUnreadRef.current = unreadCounts
+  }, [unreadCounts, activeRoomId])
 
   const validEmployees = useMemo(() => {
     return employees.filter((e) => e.user_id !== currentUserId && e.status !== 'Desligado')
@@ -118,6 +150,7 @@ export function ChatSidebar() {
               {sortedGroups.map((room) => {
                 const unread = unreadCounts[room.id] || 0
                 const active = room.id === activeRoomId
+                const isPulsing = pulsingRooms[room.id]
                 const displayName = room.name || room.department || 'GRUPO DESCONHECIDO'
                 return (
                   <button
@@ -126,8 +159,12 @@ export function ChatSidebar() {
                     disabled={isLoadingRoom}
                     onClick={() => openRoom(room.id)}
                     className={cn(
-                      'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed',
-                      active && 'bg-primary/10 hover:bg-primary/15',
+                      'w-full flex items-center justify-between px-2 py-2 rounded-md transition-all duration-500 text-left disabled:opacity-50 disabled:cursor-not-allowed border border-transparent',
+                      active
+                        ? 'bg-primary/10 hover:bg-primary/15 border-primary/20'
+                        : isPulsing
+                          ? 'bg-primary/5 border-primary/30 animate-pulse shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                          : 'hover:bg-muted',
                     )}
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
@@ -136,7 +173,7 @@ export function ChatSidebar() {
                       </div>
                       <span
                         className={cn(
-                          'text-sm truncate uppercase transition-all',
+                          'text-sm truncate uppercase transition-all duration-300',
                           active
                             ? 'text-primary font-bold'
                             : unread > 0
@@ -177,6 +214,7 @@ export function ChatSidebar() {
                   : undefined
                 const unread = room ? unreadCounts[room.id] || 0 : 0
                 const active = room?.id === activeRoomId
+                const isPulsing = room && pulsingRooms[room.id]
                 const isOnline = emp.user_id ? onlineUsers.includes(emp.user_id) : false
 
                 return (
@@ -197,8 +235,12 @@ export function ChatSidebar() {
                       openIndividualRoom(emp.user_id)
                     }}
                     className={cn(
-                      'w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-muted transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed',
-                      active && 'bg-primary/10 hover:bg-primary/15',
+                      'w-full flex items-center justify-between px-2 py-2 rounded-md transition-all duration-500 text-left disabled:opacity-50 disabled:cursor-not-allowed border border-transparent',
+                      active
+                        ? 'bg-primary/10 hover:bg-primary/15 border-primary/20'
+                        : isPulsing
+                          ? 'bg-primary/5 border-primary/30 animate-pulse shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                          : 'hover:bg-muted',
                     )}
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
@@ -218,7 +260,7 @@ export function ChatSidebar() {
                       <div className="flex flex-col overflow-hidden">
                         <span
                           className={cn(
-                            'text-sm truncate uppercase transition-all',
+                            'text-sm truncate uppercase transition-all duration-300',
                             active
                               ? 'text-primary font-bold'
                               : unread > 0

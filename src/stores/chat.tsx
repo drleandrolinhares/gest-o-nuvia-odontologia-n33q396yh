@@ -196,16 +196,64 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   )
 
   const handleNewMessage = useCallback(
-    (msg: ChatMessage) => {
+    async (msg: ChatMessage) => {
       setMessages((prev) => {
         const list = prev[msg.room_id] || []
         if (list.find((m) => m.id === msg.id)) return prev
         return { ...prev, [msg.room_id]: [...list, msg] }
       })
 
-      setRooms((prev) =>
-        prev.map((r) => (r.id === msg.room_id ? { ...r, last_message_at: msg.created_at } : r)),
-      )
+      let isRoomMissing = false
+      setRooms((prev) => {
+        if (!prev.some((r) => r.id === msg.room_id)) {
+          isRoomMissing = true
+          return prev
+        }
+        return prev.map((r) =>
+          r.id === msg.room_id ? { ...r, last_message_at: msg.created_at } : r,
+        )
+      })
+
+      if (isRoomMissing && user?.id) {
+        try {
+          const { data: roomData } = await supabase
+            .from('chat_rooms')
+            .select('*')
+            .eq('id', msg.room_id)
+            .maybeSingle()
+
+          if (roomData) {
+            let otherUserId = undefined
+            if (roomData.type === 'individual') {
+              const { data: parts } = await supabase
+                .from('chat_participants')
+                .select('user_id')
+                .eq('room_id', msg.room_id)
+                .neq('user_id', user.id)
+              if (parts && parts.length > 0) {
+                otherUserId = parts[0].user_id
+              }
+            }
+            setRooms((prev) => {
+              if (prev.some((r) => r.id === msg.room_id)) {
+                return prev.map((r) =>
+                  r.id === msg.room_id ? { ...r, last_message_at: msg.created_at } : r,
+                )
+              }
+              return [
+                ...prev,
+                {
+                  ...roomData,
+                  other_user_id: otherUserId,
+                  last_message_at: msg.created_at,
+                } as ChatRoom,
+              ]
+            })
+          }
+        } catch (err) {
+          console.warn('Failed to fetch missing room details:', err)
+        }
+      }
 
       if (msg.sender_id !== user?.id) {
         const isRoomActive = activeRoomIdRef.current === msg.room_id
@@ -286,6 +334,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         }
       })
 
+    const roomChannel = supabase
+      .channel('chat_rooms_updates')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'chat_rooms' },
+        (payload) => {
+          const updatedRoom = payload.new as Partial<ChatRoom>
+          setRooms((prev) =>
+            prev.map((r) => (r.id === updatedRoom.id ? { ...r, ...updatedRoom } : r)),
+          )
+        },
+      )
+      .subscribe()
+
     const participantChannel = supabase
       .channel('chat_participants_updates')
       .on(
@@ -339,6 +401,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       supabase.removeChannel(messageChannel)
       supabase.removeChannel(participantChannel)
       supabase.removeChannel(presenceChannel)
+      supabase.removeChannel(roomChannel)
     }
   }, [user, fetchMyRooms, fetchUnread, handleNewMessage, loadMessages])
 
