@@ -421,12 +421,10 @@ export default function Inventory() {
                       {formatCurrency(group.totalValue)}
                     </TableCell>
                     <TableCell className="py-4 text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="inline-flex items-center justify-center min-w-[32px] h-[32px] px-2 rounded-full font-bold text-sm bg-blue-100 text-blue-700">
-                          {group.totalQuantity} EMB
-                        </span>
-                        <span className="text-[10px] font-bold text-muted-foreground">
-                          {group.totalUnits} UNID
+                      <div className="font-black text-lg text-slate-800 whitespace-nowrap">
+                        {group.totalUnits}{' '}
+                        <span className="text-[10px] text-muted-foreground font-bold ml-1 uppercase">
+                          UNI
                         </span>
                       </div>
                     </TableCell>
@@ -534,23 +532,16 @@ export default function Inventory() {
                               {formatCurrency(item.packageCost)}
                             </TableCell>
                             <TableCell className="align-middle py-4 text-center">
-                              <div className="flex flex-col items-center justify-center gap-1">
-                                <span
-                                  className={cn(
-                                    'inline-flex items-center justify-center min-w-[28px] h-[28px] px-2 rounded-full font-black text-xs uppercase',
-                                    isCriticalStock(item)
-                                      ? 'bg-red-100 text-red-700'
-                                      : 'bg-slate-100 text-slate-700',
-                                  )}
-                                  title="QTD. COMPRADA (EMBALAGENS)"
-                                >
-                                  {item.quantity} EMB
-                                </span>
-                                <span
-                                  className="text-[10px] font-bold text-muted-foreground"
-                                  title="UNIDADES TOTAIS"
-                                >
-                                  {item.quantity * (item.itemsPerBox || 1)} UN
+                              <div
+                                className={cn(
+                                  'font-black text-base whitespace-nowrap',
+                                  isCriticalStock(item) ? 'text-red-600' : 'text-slate-800',
+                                )}
+                                title="UNIDADES TOTAIS"
+                              >
+                                {item.quantity * (item.itemsPerBox || 1)}{' '}
+                                <span className="text-[10px] text-muted-foreground font-bold ml-1 uppercase">
+                                  UNI
                                 </span>
                               </div>
                             </TableCell>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2, Plus, Box, LayoutGrid } from 'lucide-react'
+import { Trash2, Plus, Box, LayoutGrid, Package } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ export function InventorySettings() {
     { id: 'STORAGE_ROOM', label: 'SALAS DE ARMAZENAMENTO' },
     { id: 'MARCA_IMPLANTE', label: 'MARCAS DE IMPLANTE' },
     { id: 'TIPO_COMPONENTE', label: 'TIPOS DE COMPONENTE' },
+    { id: 'EMBALAGEM_CONSUMO', label: 'EMBALAGEM DE CONSUMO' },
   ]
 
   const [newValues, setNewValues] = useState<Record<string, string>>({})
@@ -62,6 +63,8 @@ export function InventorySettings() {
               <CardTitle className="flex items-center gap-2 text-nuvia-navy text-sm font-bold">
                 {cat.id === 'STORAGE_ROOM' ? (
                   <LayoutGrid className="h-4 w-4 text-emerald-500" />
+                ) : cat.id === 'EMBALAGEM_CONSUMO' ? (
+                  <Package className="h-4 w-4 text-[#D81B84]" />
                 ) : (
                   <Box className="h-4 w-4 text-blue-500" />
                 )}
