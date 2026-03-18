@@ -133,6 +133,7 @@ export function EditInventoryModal({
   const { toast } = useToast()
 
   const [activeTab, setActiveTab] = useState('details')
+  const [isEditing, setIsEditing] = useState(false)
   const [movements, setMovements] = useState<InventoryMovement[]>([])
   const [loadingMovements, setLoadingMovements] = useState(false)
 
@@ -221,6 +222,7 @@ export function EditInventoryModal({
   useEffect(() => {
     if (item && open) {
       setActiveTab('details')
+      setIsEditing(false)
       form.reset({
         name: item.name || '',
         barcode: item.barcode || '',
@@ -311,7 +313,7 @@ export function EditInventoryModal({
   }, [consumptionMode, qtyRaw, itemsPerBoxRaw, form])
 
   const onSubmit = async (v: z.infer<typeof schema>) => {
-    if (!item || !isMaster) return
+    if (!item || !isMaster || !isEditing) return
     const specialtyDetails: any = {}
     if (v.specialty === 'IMPLANTODONTIA') {
       if (v.implantBrand) specialtyDetails.implantBrand = v.implantBrand
@@ -361,7 +363,7 @@ export function EditInventoryModal({
 
     if (res.success) {
       toast({ title: 'SUCESSO', description: 'PRODUTO ATUALIZADO COM SUCESSO.' })
-      onOpenChange(false)
+      setIsEditing(false)
     } else {
       toast({ variant: 'destructive', title: 'ERRO', description: 'FALHA AO ATUALIZAR PRODUTO.' })
     }
@@ -400,7 +402,10 @@ export function EditInventoryModal({
         open={open}
         onOpenChange={(val) => {
           onOpenChange(val)
-          if (!val) form.reset()
+          if (!val) {
+            form.reset()
+            setIsEditing(false)
+          }
         }}
       >
         <DialogContent className="max-w-[95vw] lg:max-w-5xl max-h-[90vh] overflow-y-auto uppercase">
@@ -408,19 +413,34 @@ export function EditInventoryModal({
             <DialogTitle className="text-2xl font-bold text-[#D81B84] uppercase">
               DETALHES DO PRODUTO
             </DialogTitle>
-            {isMaster && (
-              <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  onOpenChange(false)
-                  setTimeout(onNewPurchase, 300)
-                }}
-                className="bg-[#D81B84] hover:bg-[#B71770] text-white tracking-widest font-bold h-10 -mt-2"
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" /> NOVA COMPRA
-              </Button>
-            )}
+            <div className="flex items-center gap-2 -mt-2">
+              {isMaster && !isEditing && activeTab === 'details' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsEditing(true)
+                  }}
+                  className="border-[#D81B84] text-[#D81B84] hover:bg-[#D81B84] hover:text-white font-bold tracking-wider h-10"
+                >
+                  <Pencil className="w-4 h-4 mr-2" /> HABILITAR EDIÇÃO
+                </Button>
+              )}
+              {isMaster && (
+                <Button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onOpenChange(false)
+                    setTimeout(onNewPurchase, 300)
+                  }}
+                  className="bg-[#D81B84] hover:bg-[#B71770] text-white tracking-widest font-bold h-10"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" /> NOVA COMPRA
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
@@ -456,7 +476,7 @@ export function EditInventoryModal({
                               placeholder="BIPAR OU DIGITAR CÓDIGO..."
                               className="bg-white border-blue-200 shadow-sm h-12 text-lg font-mono tracking-widest uppercase"
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                           <FormMessage />
@@ -477,7 +497,7 @@ export function EditInventoryModal({
                               placeholder="EX: MINI PILAR"
                               className="border-[#D81B84] focus-visible:ring-[#D81B84] uppercase"
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                           <FormMessage />
@@ -495,7 +515,7 @@ export function EditInventoryModal({
                               placeholder="EX: 3M, FGM..."
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                           <FormMessage />
@@ -511,7 +531,7 @@ export function EditInventoryModal({
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
-                            disabled={!isMaster}
+                            disabled={!isMaster || !isEditing}
                           >
                             <FormControl>
                               <SelectTrigger className="uppercase">
@@ -564,7 +584,7 @@ export function EditInventoryModal({
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
-                            disabled={!isMaster}
+                            disabled={!isMaster || !isEditing}
                           >
                             <FormControl>
                               <SelectTrigger className="bg-white uppercase">
@@ -600,7 +620,7 @@ export function EditInventoryModal({
                               <Select
                                 onValueChange={field.onChange}
                                 value={field.value}
-                                disabled={!isMaster}
+                                disabled={!isMaster || !isEditing}
                               >
                                 <FormControl>
                                   <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -631,7 +651,7 @@ export function EditInventoryModal({
                               <Select
                                 onValueChange={field.onChange}
                                 value={field.value}
-                                disabled={!isMaster}
+                                disabled={!isMaster || !isEditing}
                               >
                                 <FormControl>
                                   <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -659,7 +679,7 @@ export function EditInventoryModal({
                                 <InlineImplantHeightSelect
                                   value={field.value || ''}
                                   onChange={field.onChange}
-                                  disabled={!isMaster}
+                                  disabled={!isMaster || !isEditing}
                                 />
                               </FormControl>
                             </FormItem>
@@ -684,7 +704,7 @@ export function EditInventoryModal({
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  disabled={!isMaster}
+                                  disabled={!isMaster || !isEditing}
                                 />
                               </FormControl>
                             </FormItem>
@@ -709,7 +729,7 @@ export function EditInventoryModal({
                                   <Select
                                     onValueChange={field.onChange}
                                     value={field.value}
-                                    disabled={!isMaster}
+                                    disabled={!isMaster || !isEditing}
                                   >
                                     <FormControl>
                                       <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -738,7 +758,7 @@ export function EditInventoryModal({
                                     <Select
                                       onValueChange={field.onChange}
                                       value={field.value}
-                                      disabled={!isMaster}
+                                      disabled={!isMaster || !isEditing}
                                     >
                                       <FormControl>
                                         <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -776,7 +796,7 @@ export function EditInventoryModal({
                                       <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
-                                        disabled={!isMaster}
+                                        disabled={!isMaster || !isEditing}
                                       >
                                         <FormControl>
                                           <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -803,7 +823,7 @@ export function EditInventoryModal({
                                         <Select
                                           onValueChange={field.onChange}
                                           value={field.value}
-                                          disabled={!isMaster}
+                                          disabled={!isMaster || !isEditing}
                                         >
                                           <FormControl>
                                             <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -836,7 +856,7 @@ export function EditInventoryModal({
                                       <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
-                                        disabled={!isMaster}
+                                        disabled={!isMaster || !isEditing}
                                       >
                                         <FormControl>
                                           <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -861,7 +881,7 @@ export function EditInventoryModal({
                                         <Select
                                           onValueChange={field.onChange}
                                           value={field.value}
-                                          disabled={!isMaster}
+                                          disabled={!isMaster || !isEditing}
                                         >
                                           <FormControl>
                                             <SelectTrigger className="uppercase bg-white border-blue-200">
@@ -896,13 +916,13 @@ export function EditInventoryModal({
                       INFORMAÇÕES DE ESTOQUE E EMBALAGEM
                     </h4>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4 relative z-10 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10 items-end mb-4">
                       <FormField
                         control={form.control}
                         name="quantity"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[11px] font-bold text-slate-700">
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase">
                               NOVO ESTOQUE (UN)
                             </FormLabel>
                             <FormControl>
@@ -910,7 +930,7 @@ export function EditInventoryModal({
                                 type="number"
                                 className="bg-white uppercase font-bold text-blue-900"
                                 {...field}
-                                disabled={!isMaster}
+                                disabled={!isMaster || !isEditing}
                               />
                             </FormControl>
                             <FormMessage />
@@ -923,17 +943,17 @@ export function EditInventoryModal({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel
-                              className="text-[11px] font-bold text-slate-700 truncate"
+                              className="text-[11px] font-bold text-slate-700 truncate uppercase"
                               title="ITENS NA EMBALAGEM"
                             >
-                              ITENS NA EMBAL.
+                              ITENS NA EMBALAGEM
                             </FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 className="bg-white uppercase font-bold"
                                 {...field}
-                                disabled={!isMaster}
+                                disabled={!isMaster || !isEditing}
                               />
                             </FormControl>
                             <FormMessage />
@@ -945,7 +965,7 @@ export function EditInventoryModal({
                         name="packageCost"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[11px] font-bold text-slate-700">
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase">
                               VALOR ATRIBUIDO
                             </FormLabel>
                             <FormControl>
@@ -959,7 +979,7 @@ export function EditInventoryModal({
                                 placeholder="R$ 0,00"
                                 value={formatCurrencyInput(field.value || 0)}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                disabled={!isMaster}
+                                disabled={!isMaster || !isEditing}
                               />
                             </FormControl>
                             <FormMessage />
@@ -968,14 +988,16 @@ export function EditInventoryModal({
                       />
 
                       <div className="w-full flex flex-col">
-                        <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700">
-                          CUSTO TOTAL
+                        <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[#000080] uppercase">
+                          VALOR TOTAL
                         </span>
-                        <div className="text-sm font-black bg-slate-100 text-slate-800 h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-slate-200 truncate">
+                        <div className="text-sm font-black bg-[#000080] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#000080] truncate">
                           {formatCurrency(totalCost)}
                         </div>
                       </div>
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10 items-end">
                       <div className="w-full flex flex-col">
                         <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-blue-800">
                           ESTOQUE ANTERIOR
@@ -986,10 +1008,10 @@ export function EditInventoryModal({
                       </div>
 
                       <div className="w-full flex flex-col">
-                        <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-[#0B1E36]">
-                          ESTOQUE PÓS EDIÇÃO
+                        <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-[#000080]">
+                          ESTOQUE PÓS ADIÇÃO
                         </span>
-                        <div className="text-sm font-black bg-[#0B1E36] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#0B1E36] truncate">
+                        <div className="text-sm font-black bg-[#000080] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#000080] truncate">
                           {qty} UN
                         </div>
                       </div>
@@ -1011,7 +1033,7 @@ export function EditInventoryModal({
                                   value={form.watch('consumptionMode') || ''}
                                   onValueChange={(val) => form.setValue('consumptionMode', val)}
                                   className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-1"
-                                  disabled={!isMaster}
+                                  disabled={!isMaster || !isEditing}
                                 >
                                   <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="QTD_COMPRADA" id="m1" />
@@ -1065,7 +1087,7 @@ export function EditInventoryModal({
                             <DatePickerInput
                               value={field.value}
                               onChange={(val) => field.onChange((val as string) || '')}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                               className="uppercase"
                             />
                           </FormControl>
@@ -1083,7 +1105,7 @@ export function EditInventoryModal({
                             <MonthYearInput
                               value={field.value}
                               onChange={(val) => field.onChange(val || '')}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                               className="uppercase"
                             />
                           </FormControl>
@@ -1102,7 +1124,7 @@ export function EditInventoryModal({
                               placeholder="EX: 123456"
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1120,7 +1142,7 @@ export function EditInventoryModal({
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
-                            disabled={!isMaster}
+                            disabled={!isMaster || !isEditing}
                           >
                             <FormControl>
                               <SelectTrigger className="uppercase">
@@ -1160,7 +1182,7 @@ export function EditInventoryModal({
                               placeholder="EX: A1"
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1180,7 +1202,7 @@ export function EditInventoryModal({
                               type="number"
                               className="uppercase"
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1204,7 +1226,7 @@ export function EditInventoryModal({
                                 placeholder="EX: 3M, IVOCLAR..."
                                 className="uppercase"
                                 {...field}
-                                disabled={!isMaster}
+                                disabled={!isMaster || !isEditing}
                               />
                             </FormControl>
                           </FormItem>
@@ -1227,7 +1249,7 @@ export function EditInventoryModal({
                                 className="uppercase"
                                 value={formatCurrencyInput(field.value || 0)}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                disabled={!isMaster}
+                                disabled={!isMaster || !isEditing}
                               />
                             </FormControl>
                           </FormItem>
@@ -1245,7 +1267,7 @@ export function EditInventoryModal({
                               className="min-h-[100px] uppercase"
                               placeholder="ADICIONE NOTAS, LINKS DE FORNECEDORES OU DETALHES..."
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1264,7 +1286,7 @@ export function EditInventoryModal({
                               className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-50 bg-amber-50/30"
                               placeholder="NOTAS CRÍTICAS QUE GERAM ALERTA (EX: PRODUTO FRÁGIL, VERIFICAR LOTE)..."
                               {...field}
-                              disabled={!isMaster}
+                              disabled={!isMaster || !isEditing}
                             />
                           </FormControl>
                         </FormItem>
@@ -1272,10 +1294,50 @@ export function EditInventoryModal({
                     />
                   </div>
 
-                  {isMaster && (
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                        CANCELAR
+                  {isMaster && isEditing && (
+                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditing(false)
+                          form.reset({
+                            name: item.name || '',
+                            barcode: item.barcode || '',
+                            brand: item.brand || '',
+                            specialty: item.specialty || '',
+                            packageCost: item.packageCost || 0,
+                            packageType: item.packageType || 'CAIXA',
+                            itemsPerBox: item.itemsPerBox || 1,
+                            quantity: item.quantity || 0,
+                            storageRoom: item.storageRoom || '',
+                            cabinetNumber: item.cabinetNumber || '',
+                            nfeNumber: item.nfeNumber || '',
+                            minStock: item.minStock || 0,
+                            entryDate: item.entryDate ? item.entryDate.split('T')[0] : '',
+                            expirationDate: item.expirationDate
+                              ? item.expirationDate.split('T')[0]
+                              : '',
+                            lastBrand: item.lastBrand || '',
+                            lastValue: item.lastValue || 0,
+                            notes: item.notes || '',
+                            criticalObservations: item.criticalObservations || '',
+                            implantBrand: item.specialtyDetails?.implantBrand || '',
+                            implantDiameter: item.specialtyDetails?.implantDiameter || '',
+                            implantHeight: item.specialtyDetails?.implantHeight || '',
+                            isProstheticComponent: !!item.specialtyDetails?.isProstheticComponent,
+                            prostheticType: item.specialtyDetails?.prostheticType || '',
+                            prostheticAngle: item.specialtyDetails?.prostheticAngle || '',
+                            prostheticCollarHeight:
+                              item.specialtyDetails?.prostheticCollarHeight || '',
+                            prostheticDiameter: item.specialtyDetails?.prostheticDiameter || '',
+                            prostheticHeight: item.specialtyDetails?.prostheticHeight || '',
+                            consumptionMode: item.consumptionMode || '',
+                            consumptionReference: item.consumptionReference || '',
+                          })
+                        }}
+                      >
+                        CANCELAR EDIÇÃO
                       </Button>
                       <Button
                         type="submit"

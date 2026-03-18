@@ -735,13 +735,13 @@ export function AddInventoryModal({
                   INFORMAÇÕES DE COMPRA E EMBALAGEM
                 </h4>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4 relative z-10 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10 items-end mb-4">
                   <FormField
                     control={form.control}
                     name="quantity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[11px] font-bold text-slate-700">
+                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase">
                           QTD COMPRADA
                         </FormLabel>
                         <FormControl>
@@ -762,10 +762,10 @@ export function AddInventoryModal({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel
-                          className="text-[11px] font-bold text-slate-700 truncate"
+                          className="text-[11px] font-bold text-slate-700 truncate uppercase"
                           title="ITENS NA EMBALAGEM"
                         >
-                          ITENS NA EMBAL.
+                          ITENS NA EMBALAGEM
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -784,7 +784,7 @@ export function AddInventoryModal({
                     name="packageCost"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[11px] font-bold text-slate-700">
+                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase">
                           VALOR ATRIBUIDO
                         </FormLabel>
                         <FormControl>
@@ -806,14 +806,16 @@ export function AddInventoryModal({
                   />
 
                   <div className="w-full flex flex-col">
-                    <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700">
+                    <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[#000080] uppercase">
                       VALOR TOTAL
                     </span>
-                    <div className="text-sm font-black bg-slate-100 text-slate-800 h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-slate-200 truncate">
+                    <div className="text-sm font-black bg-[#000080] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#000080] truncate">
                       {formatCurrency(totalCost)}
                     </div>
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10 items-end">
                   <div className="w-full flex flex-col">
                     <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-blue-800">
                       ESTOQUE ATUAL
@@ -824,10 +826,10 @@ export function AddInventoryModal({
                   </div>
 
                   <div className="w-full flex flex-col">
-                    <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-[#0B1E36]">
-                      ESTOQUE PÓS COMPRA
+                    <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-[#000080]">
+                      ESTOQUE PÓS ADIÇÃO
                     </span>
-                    <div className="text-sm font-black bg-[#0B1E36] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#0B1E36] truncate">
+                    <div className="text-sm font-black bg-[#000080] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#000080] truncate">
                       {realStockBefore + qty * (Number(itemsPerBoxRaw) || 1)} UN
                     </div>
                   </div>

@@ -147,10 +147,10 @@ export function NewPurchaseModal({
                 </div>
               </div>
               <div className="w-full flex flex-col">
-                <span className="text-[11px] font-bold leading-none mb-2 uppercase text-[#0B1E36]">
-                  ESTOQUE PÓS COMPRA
+                <span className="text-[11px] font-bold leading-none mb-2 uppercase text-[#000080]">
+                  ESTOQUE PÓS ADIÇÃO
                 </span>
-                <div className="text-sm font-black bg-[#0B1E36] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#0B1E36] truncate">
+                <div className="text-sm font-black bg-[#000080] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#000080] truncate">
                   {item.quantity + (Number(form.watch('quantity')) || 0) * (item.itemsPerBox || 1)}{' '}
                   UN
                 </div>

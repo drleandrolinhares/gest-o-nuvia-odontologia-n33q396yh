@@ -106,7 +106,8 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] normal-case disabled:opacity-50"
+                  disableUppercase
+                  className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] disabled:opacity-50 normal-case"
                 />
               </div>
               <div className="space-y-2">
@@ -129,7 +130,8 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] pr-10 normal-case disabled:opacity-50"
+                    disableUppercase
+                    className="bg-white border-slate-300 focus-visible:ring-[#D4AF37] pr-10 disabled:opacity-50 normal-case"
                   />
                   <button
                     type="button"
