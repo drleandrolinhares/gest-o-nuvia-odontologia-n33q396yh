@@ -16,6 +16,7 @@ import { Plus, UserMinus, Filter, Check } from 'lucide-react'
 import { isSameWeek, isSameMonth, startOfDay, endOfDay, eachDayOfInterval, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 
 import { AgendaCard } from '@/components/agenda/AgendaCard'
 import { AgendaAddDialog } from '@/components/agenda/AgendaAddDialog'
