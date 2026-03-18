@@ -465,12 +465,12 @@ export function EditInventoryModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <FormField
                       control={form.control}
                       name="name"
                       render={({ field }) => (
-                        <FormItem className="md:col-span-1">
+                        <FormItem>
                           <FormLabel>NOME DO MATERIAL</FormLabel>
                           <FormControl>
                             <Input
@@ -549,6 +549,34 @@ export function EditInventoryModal({
                                   </SelectItem>
                                 ))
                               )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="packageType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>EMBALAGEM DE COMPRA</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            disabled={!isMaster}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="bg-white uppercase">
+                                <SelectValue placeholder="SELECIONE" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {packageTypes.map((pt) => (
+                                <SelectItem key={pt} value={pt} className="uppercase">
+                                  {pt}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -867,13 +895,13 @@ export function EditInventoryModal({
                     <h4 className="font-semibold text-slate-800 flex items-center gap-2 relative z-10 uppercase">
                       INFORMAÇÕES DE ESTOQUE E EMBALAGEM
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 relative z-10 items-end">
                       <FormField
                         control={form.control}
                         name="quantity"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>ESTOQUE ATUAL (UNIDADES)</FormLabel>
+                            <FormLabel>QTD COMPRADA</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -882,34 +910,6 @@ export function EditInventoryModal({
                                 disabled={!isMaster}
                               />
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="packageType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>EMBALAGEM DE COMPRA</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              disabled={!isMaster}
-                            >
-                              <FormControl>
-                                <SelectTrigger className="bg-white uppercase">
-                                  <SelectValue placeholder="SELECIONE" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {packageTypes.map((pt) => (
-                                  <SelectItem key={pt} value={pt} className="uppercase">
-                                    {pt}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -937,12 +937,7 @@ export function EditInventoryModal({
                         name="packageCost"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel
-                              className="text-[10px] xl:text-xs truncate"
-                              title="VALOR EMB FECHADA"
-                            >
-                              VALOR EMB FECHADA
-                            </FormLabel>
+                            <FormLabel>VALOR ATRIBUIDO</FormLabel>
                             <FormControl>
                               <Input
                                 type="text"
@@ -950,7 +945,7 @@ export function EditInventoryModal({
                                 autoComplete="off"
                                 data-lpignore="true"
                                 data-form-type="other"
-                                className="bg-white"
+                                className="bg-white uppercase"
                                 placeholder="R$ 0,00"
                                 value={formatCurrencyInput(field.value || 0)}
                                 onChange={(e) => field.onChange(e.target.value)}
@@ -961,6 +956,15 @@ export function EditInventoryModal({
                           </FormItem>
                         )}
                       />
+
+                      <div className="w-full flex flex-col">
+                        <span className="text-sm font-medium leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          VALOR TOTAL
+                        </span>
+                        <div className="text-base font-black bg-[#0B1E36] text-[#D4AF37] h-10 px-4 flex items-center justify-end rounded-md shadow-sm border border-[#0B1E36] truncate">
+                          {formatCurrency(totalCost)}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 mt-2 pt-4 border-t border-slate-200 relative z-10">
@@ -1018,18 +1022,6 @@ export function EditInventoryModal({
                             </FormItem>
                           )}
                         />
-                      </div>
-
-                      <div className="w-full flex flex-col items-end border-t border-slate-200 pt-4 mt-2">
-                        <span
-                          className="text-xs font-semibold text-slate-600 uppercase mb-2"
-                          title="VALOR TOTAL EM ESTOQUE"
-                        >
-                          VALOR TOTAL EM ESTOQUE
-                        </span>
-                        <div className="text-2xl font-black text-slate-800 bg-white border h-12 px-6 flex items-center rounded-lg shadow-sm min-w-[200px] justify-end">
-                          {formatCurrency(totalCost)}
-                        </div>
                       </div>
                     </div>
                   </div>
