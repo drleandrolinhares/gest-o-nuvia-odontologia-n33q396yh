@@ -19,6 +19,7 @@ export type ChatRoom = {
   department: string | null
   other_user_id?: string
   created_at?: string
+  last_message_at?: string
 }
 
 export type ChatMessage = {
@@ -143,7 +144,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       }
 
       setRooms(
-        roomsData?.map((r) => ({
+        roomsData?.map((r: any) => ({
           ...r,
           other_user_id: r.type === 'individual' ? otherUsers[r.id] : undefined,
         })) || [],
@@ -176,7 +177,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     async (roomId: string) => {
       if (!user || !user.id) return
       try {
-        // Optimistic update
         setUnreadCounts((prev) => {
           if (prev[roomId] === 0 || prev[roomId] === undefined) return prev
           return { ...prev, [roomId]: 0 }
@@ -202,6 +202,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         if (list.find((m) => m.id === msg.id)) return prev
         return { ...prev, [msg.room_id]: [...list, msg] }
       })
+
+      setRooms((prev) =>
+        prev.map((r) => (r.id === msg.room_id ? { ...r, last_message_at: msg.created_at } : r)),
+      )
 
       if (msg.sender_id !== user?.id) {
         const isRoomActive = activeRoomIdRef.current === msg.room_id
@@ -509,7 +513,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           console.warn('Failed to fetch new room details, proceeding with fallback:', fetchError)
         }
 
-        // Use fallback data if fetch fails (e.g. due to RLS timing)
         roomToOpen = {
           id: roomId,
           type: 'individual',
@@ -517,6 +520,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           name: newRoomData?.name || null,
           department: newRoomData?.department || null,
           created_at: newRoomData?.created_at || new Date().toISOString(),
+          last_message_at: (newRoomData as any)?.last_message_at || new Date().toISOString(),
         } as ChatRoom
 
         setRooms((prev) => (prev.find((r) => r.id === roomId) ? prev : [...prev, roomToOpen!]))
@@ -566,6 +570,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           if (list.find((m) => m.id === data.id)) return prev
           return { ...prev, [roomId]: [...list, data as ChatMessage] }
         })
+        setRooms((prev) =>
+          prev.map((r) => (r.id === roomId ? { ...r, last_message_at: data.created_at } : r)),
+        )
       }
     } catch (err: any) {
       if (!handleAuthError(err)) {

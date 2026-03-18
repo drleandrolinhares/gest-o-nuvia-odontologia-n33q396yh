@@ -45,7 +45,18 @@ export function ChatSidebar() {
     return [...filteredGroups].sort((a, b) => {
       const unreadA = unreadCounts[a.id] || 0
       const unreadB = unreadCounts[b.id] || 0
-      return unreadB - unreadA
+
+      if (unreadA > 0 && unreadB === 0) return -1
+      if (unreadB > 0 && unreadA === 0) return 1
+
+      const timeA = new Date(a.last_message_at || a.created_at || 0).getTime()
+      const timeB = new Date(b.last_message_at || b.created_at || 0).getTime()
+
+      if (timeA !== timeB) return timeB - timeA
+
+      const nameA = a.name || a.department || ''
+      const nameB = b.name || b.department || ''
+      return nameA.localeCompare(nameB)
     })
   }, [filteredGroups, unreadCounts])
 
@@ -59,7 +70,16 @@ export function ChatSidebar() {
         : null
       const unreadA = roomA ? unreadCounts[roomA.id] || 0 : 0
       const unreadB = roomB ? unreadCounts[roomB.id] || 0 : 0
-      return unreadB - unreadA
+
+      if (unreadA > 0 && unreadB === 0) return -1
+      if (unreadB > 0 && unreadA === 0) return 1
+
+      const timeA = roomA ? new Date(roomA.last_message_at || roomA.created_at || 0).getTime() : 0
+      const timeB = roomB ? new Date(roomB.last_message_at || roomB.created_at || 0).getTime() : 0
+
+      if (timeA !== timeB) return timeB - timeA
+
+      return (a.name || '').localeCompare(b.name || '')
     })
   }, [filteredEmployees, rooms, unreadCounts])
 
@@ -116,11 +136,11 @@ export function ChatSidebar() {
                       </div>
                       <span
                         className={cn(
-                          'text-sm truncate uppercase',
+                          'text-sm truncate uppercase transition-all',
                           active
                             ? 'text-primary font-bold'
                             : unread > 0
-                              ? 'font-black text-foreground'
+                              ? 'font-bold text-foreground'
                               : 'font-medium text-foreground',
                         )}
                       >
@@ -130,7 +150,7 @@ export function ChatSidebar() {
                     {unread > 0 && (
                       <Badge
                         variant="destructive"
-                        className="ml-2 h-5 min-w-5 flex items-center justify-center px-1 shrink-0"
+                        className="ml-2 h-5 min-w-5 flex items-center justify-center px-1.5 shrink-0 rounded-full text-[10px]"
                       >
                         {unread}
                       </Badge>
@@ -190,7 +210,7 @@ export function ChatSidebar() {
                         </Avatar>
                         <span
                           className={cn(
-                            'absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background',
+                            'absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-background transition-colors',
                             isOnline ? 'bg-emerald-500' : 'bg-slate-300',
                           )}
                         />
@@ -198,11 +218,11 @@ export function ChatSidebar() {
                       <div className="flex flex-col overflow-hidden">
                         <span
                           className={cn(
-                            'text-sm truncate uppercase',
+                            'text-sm truncate uppercase transition-all',
                             active
                               ? 'text-primary font-bold'
                               : unread > 0
-                                ? 'font-black text-foreground'
+                                ? 'font-bold text-foreground'
                                 : 'font-medium text-foreground',
                           )}
                         >
@@ -216,7 +236,7 @@ export function ChatSidebar() {
                     {unread > 0 && (
                       <Badge
                         variant="destructive"
-                        className="ml-2 h-5 min-w-5 flex items-center justify-center px-1 shrink-0"
+                        className="ml-2 h-5 min-w-5 flex items-center justify-center px-1.5 shrink-0 rounded-full text-[10px]"
                       >
                         {unread}
                       </Badge>
