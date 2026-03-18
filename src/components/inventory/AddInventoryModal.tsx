@@ -310,7 +310,7 @@ export function AddInventoryModal({
           if (!val && !keepFields && !baseItemName) form.reset()
         }}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto uppercase">
+        <DialogContent className="max-w-[95vw] lg:max-w-5xl max-h-[90vh] overflow-y-auto uppercase">
           <DialogHeader className="flex flex-row items-center justify-between pr-8">
             <DialogTitle className="text-2xl font-bold text-nuvia-navy uppercase">
               {baseItemName ? 'NOVA COMPRA (MESMO PRODUTO)' : 'NOVO PRODUTO NO ESTOQUE'}
@@ -734,17 +734,20 @@ export function AddInventoryModal({
                 <h4 className="font-semibold text-slate-800 flex items-center gap-2 relative z-10 uppercase">
                   INFORMAÇÕES DE COMPRA E EMBALAGEM
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 relative z-10 items-end">
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4 relative z-10 items-end">
                   <FormField
                     control={form.control}
                     name="quantity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>QTD COMPRADA</FormLabel>
+                        <FormLabel className="text-[11px] font-bold text-slate-700">
+                          QTD COMPRADA
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            className="bg-white uppercase"
+                            className="bg-white uppercase font-bold"
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -758,11 +761,16 @@ export function AddInventoryModal({
                     name="itemsPerBox"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>ITENS NA EMBALAGEM</FormLabel>
+                        <FormLabel
+                          className="text-[11px] font-bold text-slate-700 truncate"
+                          title="ITENS NA EMBALAGEM"
+                        >
+                          ITENS NA EMBAL.
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            className="bg-white uppercase"
+                            className="bg-white uppercase font-bold"
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -776,7 +784,9 @@ export function AddInventoryModal({
                     name="packageCost"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>VALOR ATRIBUIDO</FormLabel>
+                        <FormLabel className="text-[11px] font-bold text-slate-700">
+                          VALOR ATRIBUIDO
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="text"
@@ -784,7 +794,7 @@ export function AddInventoryModal({
                             autoComplete="off"
                             data-lpignore="true"
                             data-form-type="other"
-                            className="bg-white"
+                            className="bg-white font-bold"
                             placeholder="R$ 0,00"
                             value={formatCurrencyInput(field.value)}
                             onChange={(e) => field.onChange(e.target.value)}
@@ -796,11 +806,29 @@ export function AddInventoryModal({
                   />
 
                   <div className="w-full flex flex-col">
-                    <span className="text-sm font-medium leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700">
                       VALOR TOTAL
                     </span>
-                    <div className="text-base font-black bg-[#0B1E36] text-[#D4AF37] h-10 px-4 flex items-center justify-end rounded-md shadow-sm border border-[#0B1E36] truncate">
+                    <div className="text-sm font-black bg-slate-100 text-slate-800 h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-slate-200 truncate">
                       {formatCurrency(totalCost)}
+                    </div>
+                  </div>
+
+                  <div className="w-full flex flex-col">
+                    <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-blue-800">
+                      ESTOQUE ATUAL
+                    </span>
+                    <div className="text-sm font-bold bg-blue-50/50 border-blue-200 text-blue-900 h-10 px-3 flex items-center justify-end rounded-md shadow-sm border truncate">
+                      {realStockBefore} UN
+                    </div>
+                  </div>
+
+                  <div className="w-full flex flex-col">
+                    <span className="text-[11px] font-bold leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 uppercase text-[#0B1E36]">
+                      ESTOQUE PÓS COMPRA
+                    </span>
+                    <div className="text-sm font-black bg-[#0B1E36] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#0B1E36] truncate">
+                      {realStockBefore + qty * (Number(itemsPerBoxRaw) || 1)} UN
                     </div>
                   </div>
                 </div>
@@ -979,18 +1007,6 @@ export function AddInventoryModal({
                     </FormItem>
                   )}
                 />
-                <FormItem>
-                  <FormLabel className="text-blue-800">ESTOQUE ATUAL</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      readOnly
-                      disabled
-                      value={`${realStockBefore} UN`}
-                      className="uppercase font-bold bg-blue-50/50 border-blue-100 text-blue-900"
-                    />
-                  </FormControl>
-                </FormItem>
               </div>
 
               <div className="space-y-4 pt-4 border-t border-slate-100">

@@ -104,9 +104,11 @@ export function NewPurchaseModal({
                 name="quantity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>QTD. COMPRADA</FormLabel>
+                    <FormLabel className="text-xs font-bold text-slate-700">
+                      QTD. COMPRADA (EMB.)
+                    </FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} className="uppercase" {...field} />
+                      <Input type="number" min={1} className="uppercase font-bold" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -117,14 +119,42 @@ export function NewPurchaseModal({
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>VALOR TOTAL (R$)</FormLabel>
+                    <FormLabel className="text-xs font-bold text-slate-700">
+                      VALOR TOTAL (R$)
+                    </FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min={0} className="uppercase" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        className="uppercase font-bold"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-2 mb-4">
+              <div className="w-full flex flex-col">
+                <span className="text-[11px] font-bold leading-none mb-2 uppercase text-blue-800">
+                  ESTOQUE ATUAL
+                </span>
+                <div className="text-sm font-bold bg-blue-50/50 border-blue-200 text-blue-900 h-10 px-3 flex items-center justify-end rounded-md shadow-sm border truncate">
+                  {item.quantity} UN
+                </div>
+              </div>
+              <div className="w-full flex flex-col">
+                <span className="text-[11px] font-bold leading-none mb-2 uppercase text-[#0B1E36]">
+                  ESTOQUE PÓS COMPRA
+                </span>
+                <div className="text-sm font-black bg-[#0B1E36] text-[#D4AF37] h-10 px-3 flex items-center justify-end rounded-md shadow-sm border border-[#0B1E36] truncate">
+                  {item.quantity + (Number(form.watch('quantity')) || 0) * (item.itemsPerBox || 1)}{' '}
+                  UN
+                </div>
+              </div>
             </div>
 
             <FormField
