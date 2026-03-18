@@ -96,6 +96,7 @@ const schema = z.object({
   prostheticDiameter: z.string().optional(),
   prostheticHeight: z.string().optional(),
   consumptionMode: z.string().optional(),
+  consumptionReference: z.string().optional(),
 })
 
 const editPurchaseSchema = z.object({
@@ -177,6 +178,7 @@ export function EditInventoryModal({
       prostheticDiameter: '',
       prostheticHeight: '',
       consumptionMode: '',
+      consumptionReference: '',
     },
   })
 
@@ -245,6 +247,7 @@ export function EditInventoryModal({
         prostheticDiameter: item.specialtyDetails?.prostheticDiameter || '',
         prostheticHeight: item.specialtyDetails?.prostheticHeight || '',
         consumptionMode: item.consumptionMode || '',
+        consumptionReference: item.consumptionReference || '',
       })
 
       setLoadingMovements(true)
@@ -335,6 +338,7 @@ export function EditInventoryModal({
       notes: v.notes || '',
       criticalObservations: v.criticalObservations || '',
       consumptionMode: v.consumptionMode || '',
+      consumptionReference: v.consumptionReference || '',
       specialtyDetails,
     })
 
@@ -911,12 +915,90 @@ export function EditInventoryModal({
                           </FormItem>
                         )}
                       />
+                      <div className="flex flex-col justify-end">
+                        <span
+                          className="text-xs font-semibold text-slate-600 uppercase mb-2 line-clamp-1"
+                          title="VALOR TOTAL DA COMPRA"
+                        >
+                          VALOR TOTAL
+                        </span>
+                        <div className="text-2xl font-black text-slate-800 bg-white border h-10 px-3 flex items-center rounded-md">
+                          {formatCurrency(totalCost)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10 mt-2 pt-4 border-t border-slate-200">
+                      <FormField
+                        control={form.control}
+                        name="consumptionReference"
+                        render={({ field }) => {
+                          const referenceOptions = inventoryOptions.filter(
+                            (o) =>
+                              o.category === 'REFERENCIA_CONSUMO' ||
+                              o.category === 'CONSUMPTION_REFERENCE',
+                          )
+                          const hasOptions = referenceOptions.length > 0
+                          const isLegacy =
+                            field.value && !referenceOptions.some((o) => o.value === field.value)
+
+                          return (
+                            <FormItem>
+                              <FormLabel
+                                className="text-[10px] xl:text-xs truncate"
+                                title="REFERÊNCIA PARA CONSUMO E ESTOQUE ATUAL"
+                              >
+                                REFERÊNCIA PARA CONSUMO E ESTOQUE ATUAL
+                              </FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={!isMaster}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-white uppercase">
+                                    <SelectValue placeholder="SELECIONE" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {!hasOptions ? (
+                                    <SelectItem value="none" disabled className="uppercase">
+                                      NENHUMA OPÇÃO CADASTRADA
+                                    </SelectItem>
+                                  ) : (
+                                    referenceOptions.map((opt) => (
+                                      <SelectItem
+                                        key={opt.id}
+                                        value={opt.value}
+                                        className="uppercase"
+                                      >
+                                        {opt.value}
+                                      </SelectItem>
+                                    ))
+                                  )}
+                                  {isLegacy && (
+                                    <SelectItem value={field.value} className="uppercase">
+                                      {field.value} (LEGADO)
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )
+                        }}
+                      />
                       <FormField
                         control={form.control}
                         name="packageCost"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>VALOR EMB. FECHADA</FormLabel>
+                            <FormLabel
+                              className="text-[10px] xl:text-xs truncate"
+                              title="VALOR EMB FECHADA"
+                            >
+                              VALOR EMB FECHADA
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 type="text"
@@ -935,8 +1017,6 @@ export function EditInventoryModal({
                           </FormItem>
                         )}
                       />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10 mt-2">
                       <FormField
                         control={form.control}
                         name="consumptionMode"
@@ -950,7 +1030,12 @@ export function EditInventoryModal({
 
                           return (
                             <FormItem>
-                              <FormLabel>EMBALAGEM DE CONSUMO</FormLabel>
+                              <FormLabel
+                                className="text-[10px] xl:text-xs truncate"
+                                title="EMBALAGEM DE CONSUMO"
+                              >
+                                EMBALAGEM DE CONSUMO
+                              </FormLabel>
                               <Select
                                 onValueChange={field.onChange}
                                 value={field.value}
@@ -989,14 +1074,6 @@ export function EditInventoryModal({
                           )
                         }}
                       />
-                      <div className="flex flex-col justify-end">
-                        <span className="text-xs font-semibold text-slate-600 uppercase mb-2">
-                          VALOR TOTAL DA COMPRA
-                        </span>
-                        <div className="text-2xl font-black text-slate-800 bg-white border h-10 px-3 flex items-center rounded-md">
-                          {formatCurrency(totalCost)}
-                        </div>
-                      </div>
                     </div>
                   </div>
 

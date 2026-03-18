@@ -88,6 +88,7 @@ export type InventoryItem = {
   cabinetNumber?: string
   criticalObservations?: string
   consumptionMode?: string
+  consumptionReference?: string
 }
 export type TemporaryOutflow = {
   id: string
@@ -558,6 +559,7 @@ const mInv = (d: any): InventoryItem => ({
   cabinetNumber: d.cabinet_number,
   criticalObservations: d.critical_observations,
   consumptionMode: d.consumption_mode,
+  consumptionReference: d.consumption_reference,
 })
 const mAg = (d: any): AgendaItem => ({
   id: d.id,
@@ -1315,6 +1317,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             cabinet_number: i.cabinetNumber || null,
             critical_observations: i.criticalObservations || null,
             consumption_mode: i.consumptionMode || null,
+            consumption_reference: i.consumptionReference || null,
           } as any,
         ])
         .select()
@@ -1375,6 +1378,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.storageLocation !== undefined) payload.storage_location = data.storageLocation
       if (data.consumptionMode !== undefined)
         payload.consumption_mode = data.consumptionMode || null
+      if (data.consumptionReference !== undefined)
+        payload.consumption_reference = data.consumptionReference || null
 
       try {
         const { error } = await supabase.from('inventory').update(payload).eq('id', id)

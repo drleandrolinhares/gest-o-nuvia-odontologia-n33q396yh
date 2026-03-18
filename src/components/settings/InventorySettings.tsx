@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2, Plus, Box, LayoutGrid, Package } from 'lucide-react'
+import { Trash2, Plus, Box, LayoutGrid, Package, Tag } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ export function InventorySettings() {
     { id: 'STORAGE_ROOM', label: 'SALAS DE ARMAZENAMENTO' },
     { id: 'MARCA_IMPLANTE', label: 'MARCAS DE IMPLANTE' },
     { id: 'TIPO_COMPONENTE', label: 'TIPOS DE COMPONENTE' },
+    { id: 'REFERENCIA_CONSUMO', label: 'REFERÊNCIA PARA CONSUMO E ESTOQUE' },
     { id: 'EMBALAGEM_CONSUMO', label: 'EMBALAGEM DE CONSUMO' },
   ]
 
@@ -53,6 +54,9 @@ export function InventorySettings() {
             if (cat.id === 'STORAGE_ROOM') {
               return oCat === 'STORAGE_ROOM' || oCat === 'SALA_ARMAZENAMENTO'
             }
+            if (cat.id === 'REFERENCIA_CONSUMO') {
+              return oCat === 'REFERENCIA_CONSUMO' || oCat === 'CONSUMPTION_REFERENCE'
+            }
             return oCat === cat.id
           })
           .sort((a, b) => a.value.localeCompare(b.value))
@@ -65,6 +69,8 @@ export function InventorySettings() {
                   <LayoutGrid className="h-4 w-4 text-emerald-500" />
                 ) : cat.id === 'EMBALAGEM_CONSUMO' ? (
                   <Package className="h-4 w-4 text-[#D81B84]" />
+                ) : cat.id === 'REFERENCIA_CONSUMO' ? (
+                  <Tag className="h-4 w-4 text-purple-500" />
                 ) : (
                   <Box className="h-4 w-4 text-blue-500" />
                 )}
