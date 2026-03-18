@@ -54,6 +54,9 @@ import { DatePickerInput } from '@/components/ui/date-picker-input'
 import { MonthYearInput } from '@/components/ui/month-year-input'
 import { InlineImplantHeightSelect } from '@/components/inventory/InlineImplantHeightSelect'
 import { supabase } from '@/lib/supabase/client'
+import { ExplanationPopover } from '@/components/inventory/ExplanationPopover'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 
 const IMPLANT_DIAMETERS = ['3.3', '3.5', '3.75', '4.0', '4.3', '4.5', '5.0', '6.0']
 
@@ -271,7 +274,10 @@ export function EditInventoryModal({
 
   const pCostRaw = form.watch('packageCost')
   const pCost = parseCurrency(pCostRaw || 0)
-  const qty = form.watch('quantity') || 0
+  const qtyRaw = form.watch('quantity')
+  const itemsPerBoxRaw = form.watch('itemsPerBox')
+  const consumptionMode = form.watch('consumptionMode')
+  const qty = Number(qtyRaw) || 0
   const totalCost = qty * pCost
   const currentSpecialty = form.watch('specialty')
   const isProstheticComponent = form.watch('isProstheticComponent')
@@ -292,6 +298,17 @@ export function EditInventoryModal({
       form.setValue('prostheticHeight', '')
     }
   }, [currentSpecialty, form])
+
+  useEffect(() => {
+    const quantity = Number(qtyRaw) || 0
+    const itemsPerBox = Number(itemsPerBoxRaw) || 1
+
+    if (consumptionMode === 'QTD_COMPRADA') {
+      form.setValue('consumptionReference', String(quantity))
+    } else if (consumptionMode === 'ITENS_EMBALAGEM') {
+      form.setValue('consumptionReference', String(itemsPerBox))
+    }
+  }, [consumptionMode, qtyRaw, itemsPerBoxRaw, form])
 
   const onSubmit = async (v: z.infer<typeof schema>) => {
     if (!item || !isMaster) return
@@ -915,79 +932,6 @@ export function EditInventoryModal({
                           </FormItem>
                         )}
                       />
-                      <div className="flex flex-col justify-end">
-                        <span
-                          className="text-xs font-semibold text-slate-600 uppercase mb-2 line-clamp-1"
-                          title="VALOR TOTAL DA COMPRA"
-                        >
-                          VALOR TOTAL
-                        </span>
-                        <div className="text-2xl font-black text-slate-800 bg-white border h-10 px-3 flex items-center rounded-md">
-                          {formatCurrency(totalCost)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10 mt-2 pt-4 border-t border-slate-200">
-                      <FormField
-                        control={form.control}
-                        name="consumptionReference"
-                        render={({ field }) => {
-                          const referenceOptions = inventoryOptions.filter(
-                            (o) =>
-                              o.category === 'REFERENCIA_CONSUMO' ||
-                              o.category === 'CONSUMPTION_REFERENCE',
-                          )
-                          const hasOptions = referenceOptions.length > 0
-                          const isLegacy =
-                            field.value && !referenceOptions.some((o) => o.value === field.value)
-
-                          return (
-                            <FormItem>
-                              <FormLabel
-                                className="text-[10px] xl:text-xs truncate"
-                                title="REFERÊNCIA PARA CONSUMO E ESTOQUE ATUAL"
-                              >
-                                REFERÊNCIA PARA CONSUMO E ESTOQUE ATUAL
-                              </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={!isMaster}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="bg-white uppercase">
-                                    <SelectValue placeholder="SELECIONE" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {!hasOptions ? (
-                                    <SelectItem value="none" disabled className="uppercase">
-                                      NENHUMA OPÇÃO CADASTRADA
-                                    </SelectItem>
-                                  ) : (
-                                    referenceOptions.map((opt) => (
-                                      <SelectItem
-                                        key={opt.id}
-                                        value={opt.value}
-                                        className="uppercase"
-                                      >
-                                        {opt.value}
-                                      </SelectItem>
-                                    ))
-                                  )}
-                                  {isLegacy && (
-                                    <SelectItem value={field.value} className="uppercase">
-                                      {field.value} (LEGADO)
-                                    </SelectItem>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )
-                        }}
-                      />
                       <FormField
                         control={form.control}
                         name="packageCost"
@@ -1017,63 +961,76 @@ export function EditInventoryModal({
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name="consumptionMode"
-                        render={({ field }) => {
-                          const options = inventoryOptions.filter(
-                            (o) => o.category === 'EMBALAGEM_CONSUMO',
-                          )
-                          const hasOptions = options.length > 0
-                          const isLegacy =
-                            field.value && !options.some((o) => o.value === field.value)
+                    </div>
 
-                          return (
+                    <div className="grid grid-cols-1 gap-4 mt-2 pt-4 border-t border-slate-200 relative z-10">
+                      <div className="w-full">
+                        <FormField
+                          control={form.control}
+                          name="consumptionReference"
+                          render={({ field }) => (
                             <FormItem>
-                              <FormLabel
-                                className="text-[10px] xl:text-xs truncate"
-                                title="EMBALAGEM DE CONSUMO"
-                              >
-                                EMBALAGEM DE CONSUMO
+                              <FormLabel className="flex items-center text-xs font-bold text-slate-800 uppercase mb-2">
+                                REFERENCIA CONSUMO
+                                <ExplanationPopover />
                               </FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={!isMaster}
-                              >
-                                <FormControl>
-                                  <SelectTrigger className="bg-white uppercase">
-                                    <SelectValue placeholder="SELECIONE" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {!hasOptions ? (
-                                    <SelectItem value="none" disabled className="uppercase">
-                                      NENHUMA OPÇÃO CADASTRADA
-                                    </SelectItem>
-                                  ) : (
-                                    options.map((opt) => (
-                                      <SelectItem
-                                        key={opt.id}
-                                        value={opt.value}
-                                        className="uppercase"
-                                      >
-                                        {opt.value}
-                                      </SelectItem>
-                                    ))
-                                  )}
-                                  {isLegacy && (
-                                    <SelectItem value={field.value} className="uppercase">
-                                      {field.value} (LEGADO)
-                                    </SelectItem>
-                                  )}
-                                </SelectContent>
-                              </Select>
+                              <div className="flex flex-col gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50/50 shadow-sm md:flex-row md:items-center">
+                                <RadioGroup
+                                  value={form.watch('consumptionMode') || ''}
+                                  onValueChange={(val) => form.setValue('consumptionMode', val)}
+                                  className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-1"
+                                  disabled={!isMaster}
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="QTD_COMPRADA" id="m1" />
+                                    <Label
+                                      htmlFor="m1"
+                                      className="text-xs cursor-pointer font-bold uppercase"
+                                    >
+                                      QTD. COMPRADA
+                                    </Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="ITENS_EMBALAGEM" id="m2" />
+                                    <Label
+                                      htmlFor="m2"
+                                      className="text-xs cursor-pointer font-bold uppercase"
+                                    >
+                                      ITENS NA EMBALAGEM
+                                    </Label>
+                                  </div>
+                                </RadioGroup>
+
+                                <div className="flex items-center gap-2 mt-4 md:mt-0">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">
+                                    VALOR ATRIBUÍDO:
+                                  </span>
+                                  <Input
+                                    {...field}
+                                    readOnly
+                                    placeholder="N/A"
+                                    className="bg-muted border-slate-200 text-slate-700 font-black h-9 text-center w-24 cursor-not-allowed"
+                                    value={field.value || ''}
+                                  />
+                                </div>
+                              </div>
                               <FormMessage />
                             </FormItem>
-                          )
-                        }}
-                      />
+                          )}
+                        />
+                      </div>
+
+                      <div className="w-full flex flex-col items-end border-t border-slate-200 pt-4 mt-2">
+                        <span
+                          className="text-xs font-semibold text-slate-600 uppercase mb-2"
+                          title="VALOR TOTAL DA COMPRA"
+                        >
+                          VALOR TOTAL
+                        </span>
+                        <div className="text-2xl font-black text-slate-800 bg-white border h-12 px-6 flex items-center rounded-lg shadow-sm min-w-[200px] justify-end">
+                          {formatCurrency(totalCost)}
+                        </div>
+                      </div>
                     </div>
                   </div>
 

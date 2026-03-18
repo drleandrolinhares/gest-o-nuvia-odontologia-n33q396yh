@@ -631,6 +631,7 @@ export type Database = {
           brand: string | null
           cabinet_number: string | null
           consumption_mode: string | null
+          consumption_reference: string | null
           created_at: string
           critical_observations: string | null
           entry_date: string | null
@@ -657,6 +658,7 @@ export type Database = {
           brand?: string | null
           cabinet_number?: string | null
           consumption_mode?: string | null
+          consumption_reference?: string | null
           created_at?: string
           critical_observations?: string | null
           entry_date?: string | null
@@ -683,6 +685,7 @@ export type Database = {
           brand?: string | null
           cabinet_number?: string | null
           consumption_mode?: string | null
+          consumption_reference?: string | null
           created_at?: string
           critical_observations?: string | null
           entry_date?: string | null
@@ -1525,6 +1528,7 @@ export const Constants = {
 //   cabinet_number: text (nullable)
 //   critical_observations: text (nullable)
 //   consumption_mode: text (nullable)
+//   consumption_reference: text (nullable)
 // Table: inventory_movements
 //   id: uuid (not null, default: gen_random_uuid())
 //   inventory_id: uuid (not null)
