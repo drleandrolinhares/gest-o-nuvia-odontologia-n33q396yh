@@ -1159,6 +1159,36 @@ export type Database = {
           },
         ]
       }
+      ser_5s_submissions: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          photo_url: string
+          reference_week: string
+          submission_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_url: string
+          reference_week: string
+          submission_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_url?: string
+          reference_week?: string
+          submission_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       specialty_configs: {
         Row: {
           color_hex: string
@@ -1729,6 +1759,14 @@ export const Constants = {
 //   solved_at: timestamp with time zone (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   action_history: jsonb (nullable, default: '[]'::jsonb)
+// Table: ser_5s_submissions
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   submission_date: timestamp with time zone (not null, default: now())
+//   reference_week: text (not null)
+//   photo_url: text (not null)
+//   notes: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: specialty_configs
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1859,6 +1897,10 @@ export const Constants = {
 //   FOREIGN KEY sac_records_responsible_employee_id_fkey: FOREIGN KEY (responsible_employee_id) REFERENCES employees(id) ON DELETE SET NULL
 //   CHECK sac_records_status_check: CHECK ((status = ANY (ARRAY['OPORTUNIDADE DE SOLUÇÃO'::text, 'RECEBIDO'::text, 'SENDO TRATADO'::text, 'RESOLVIDO'::text])))
 //   CHECK sac_records_type_check: CHECK ((type = ANY (ARRAY['RECLAMAÇÃO'::text, 'SUGESTÃO'::text])))
+// Table: ser_5s_submissions
+//   PRIMARY KEY ser_5s_submissions_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY ser_5s_submissions_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   UNIQUE ser_5s_unique_week: UNIQUE (user_id, reference_week)
 // Table: specialty_configs
 //   PRIMARY KEY specialty_configs_pkey: PRIMARY KEY (id)
 // Table: suppliers
@@ -2018,6 +2060,11 @@ export const Constants = {
 //     USING: true
 //   Policy "Sac visibility" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: ((responsible_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (receiving_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR is_master_user(auth.uid()) OR (EXISTS ( SELECT 1    FROM employees e   WHERE ((e.user_id = auth.uid()) AND (('ADMIN'::text = ANY (e.team_category)) OR ('DIRETORIA'::text = ANY (e.team_category)))))))
+// Table: ser_5s_submissions
+//   Policy "Users can insert their own" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (user_id = auth.uid())
+//   Policy "Users can view their own or admins can view all" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: ((user_id = auth.uid()) OR is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
 // Table: specialty_configs
 //   Policy "Allow all authenticated users on specialty_configs" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2325,5 +2372,7 @@ export const Constants = {
 // Table: sac_records
 //   CREATE INDEX sac_records_received_at_idx ON public.sac_records USING btree (received_at)
 //   CREATE INDEX sac_records_status_idx ON public.sac_records USING btree (status)
+// Table: ser_5s_submissions
+//   CREATE UNIQUE INDEX ser_5s_unique_week ON public.ser_5s_submissions USING btree (user_id, reference_week)
 // Table: work_schedules
 //   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)

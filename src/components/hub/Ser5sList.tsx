@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Star } from 'lucide-react'
 
 export function Ser5sList({ refreshKey }: { refreshKey: number }) {
   const [submissions, setSubmissions] = useState<any[]>([])
@@ -77,10 +77,17 @@ export function Ser5sList({ refreshKey }: { refreshKey: number }) {
           </div>
           <CardContent className="p-4 space-y-2 bg-white relative z-10">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-1 rounded uppercase tracking-widest">
-                {sub.reference_week}
-              </span>
-              <span className="text-xs font-medium text-slate-400">
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-1 rounded uppercase tracking-widest">
+                  {sub.reference_week}
+                </span>
+                {sub.points_earned > 0 && (
+                  <span className="flex items-center gap-1 text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-1 rounded uppercase tracking-widest">
+                    <Star className="w-3 h-3 fill-amber-700" /> +{sub.points_earned} PTS
+                  </span>
+                )}
+              </div>
+              <span className="text-xs font-medium text-slate-400 whitespace-nowrap">
                 {format(new Date(sub.created_at), 'dd/MM/yyyy', { locale: ptBR })}
               </span>
             </div>

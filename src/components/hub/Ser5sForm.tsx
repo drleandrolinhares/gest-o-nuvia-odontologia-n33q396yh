@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase/client'
 import { getISOWeek, getYear } from 'date-fns'
 import { useToast } from '@/components/ui/use-toast'
-import { Loader2, CheckCircle2 } from 'lucide-react'
+import { Loader2, CheckCircle2, Star } from 'lucide-react'
 
 export function Ser5sForm({ onSubmitted }: { onSubmitted: () => void }) {
   const { user } = useAuth()
@@ -63,16 +63,22 @@ export function Ser5sForm({ onSubmitted }: { onSubmitted: () => void }) {
         data: { publicUrl },
       } = supabase.storage.from('ser-5s').getPublicUrl(filePath)
 
+      const pointsEarned = 40
+
       const { error: insertError } = await supabase.from('ser_5s_submissions' as any).insert({
         user_id: user.id,
         reference_week: currentWeek,
         photo_url: publicUrl,
         notes: notes || null,
+        points_earned: pointsEarned,
       })
 
       if (insertError) throw insertError
 
-      toast({ title: 'Sucesso', description: 'Registro 5S enviado com sucesso!' })
+      toast({
+        title: 'Sucesso!',
+        description: `Registro 5S enviado com sucesso! Você ganhou ${pointsEarned} pontos.`,
+      })
       setHasSubmitted(true)
       onSubmitted()
     } catch (error: any) {
@@ -96,8 +102,12 @@ export function Ser5sForm({ onSubmitted }: { onSubmitted: () => void }) {
         <p className="font-bold uppercase tracking-wider text-sm">
           Você já enviou seu 5S desta semana!
         </p>
-        <p className="text-xs mt-1 text-emerald-700 font-medium">
+        <p className="text-xs mt-1 text-emerald-700 font-medium text-center">
           Obrigado por contribuir com a organização.
+          <br />
+          <span className="flex items-center justify-center gap-1 mt-2 bg-emerald-100 text-emerald-800 w-fit mx-auto px-3 py-1 rounded-full font-black text-xs">
+            <Star className="w-3 h-3 fill-emerald-800" /> 40 PONTOS GARANTIDOS
+          </span>
         </p>
       </div>
     )
@@ -139,7 +149,7 @@ export function Ser5sForm({ onSubmitted }: { onSubmitted: () => void }) {
               <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...
             </>
           ) : (
-            'Enviar Registro'
+            'Enviar Registro e Ganhar 40 pts'
           )}
         </Button>
       </div>
