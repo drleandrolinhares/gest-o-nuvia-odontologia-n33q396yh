@@ -20,9 +20,13 @@ import SAC from '@/pages/SAC'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import AuditLog from '@/pages/AuditLog'
 import ForceChangePassword from '@/pages/ForceChangePassword'
+import Mural from '@/pages/hub/Mural'
+import Feedback from '@/pages/hub/Feedback'
+import Ranking from '@/pages/hub/Ranking'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
+import { HubProvider } from '@/stores/hub'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
@@ -39,9 +43,11 @@ export default function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <ChatProvider>
-                      <Layout />
-                    </ChatProvider>
+                    <HubProvider>
+                      <ChatProvider>
+                        <Layout />
+                      </ChatProvider>
+                    </HubProvider>
                   </ProtectedRoute>
                 }
               >
@@ -62,6 +68,11 @@ export default function App() {
                 <Route path="admin/configuracoes" element={<Settings />} />
                 <Route path="admin/permissoes" element={<Permissions />} />
                 <Route path="admin/auditoria" element={<AuditLog />} />
+
+                <Route path="hub/mural" element={<Mural />} />
+                <Route path="hub/feedback" element={<Feedback />} />
+                <Route path="hub/ranking" element={<Ranking />} />
+
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

@@ -21,6 +21,9 @@ import {
   HeadphonesIcon,
   Handshake,
   Grid,
+  Megaphone,
+  MessageSquarePlus,
+  Trophy,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -29,10 +32,20 @@ import { useState, useMemo, useEffect } from 'react'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import { useChatStore } from '@/stores/chat'
+import { useHubStore } from '@/stores/hub'
 import useAppStore from '@/stores/main'
 import { GlobalSearch } from '@/components/GlobalSearch'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 
 const NuviaLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 350 120" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -82,6 +95,13 @@ export function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [now, setNow] = useState(new Date())
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({})
+  const [readingAnnouncement, setReadingAnnouncement] = useState(false)
+
+  const { unreadCounts } = useChatStore()
+  const { isDataLoading, fetchError, isAdmin, sacRecords, currentUserId } = useAppStore()
+  const { unreadAnnouncements, markAsRead, isLoading: isHubLoading } = useHubStore()
+
+  const currentUnread = unreadAnnouncements.length > 0 ? unreadAnnouncements[0] : null
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000)
@@ -100,9 +120,6 @@ export function Layout() {
     })
   }
 
-  const { unreadCounts } = useChatStore()
-  const { isDataLoading, fetchError, isAdmin, sacRecords, currentUserId } = useAppStore()
-
   const pendingSacsCount = useMemo(() => {
     return sacRecords.filter(
       (r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO' && r.responsible_employee_id === currentUserId,
@@ -111,6 +128,14 @@ export function Layout() {
 
   const navigationSections = useMemo(
     () => [
+      {
+        title: 'NUVIA HUB',
+        items: [
+          { name: 'MURAL DE AVISOS', href: '/hub/mural', icon: Megaphone },
+          { name: 'PP & PDM', href: '/hub/feedback', icon: MessageSquarePlus },
+          { name: 'RANKING PERFORMANCE', href: '/hub/ranking', icon: Trophy },
+        ],
+      },
       {
         title: 'VISÃO DIÁRIA',
         items: [
@@ -191,12 +216,20 @@ export function Layout() {
     })
   }, [location.pathname, filteredSections, isAdmin])
 
-  if (isDataLoading) {
+  const handleRead = async () => {
+    if (currentUnread) {
+      setReadingAnnouncement(true)
+      await markAsRead(currentUnread)
+      setReadingAnnouncement(false)
+    }
+  }
+
+  if (isDataLoading || isHubLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
         <NuviaLogo className="h-24 w-auto mb-4 animate-pulse opacity-80" />
         <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
-        <p className="text-sm opacity-80 animate-pulse">Sincronizando dados da clínica...</p>
+        <p className="text-sm opacity-80 animate-pulse">Sincronizando dados do sistema...</p>
       </div>
     )
   }
@@ -227,7 +260,7 @@ export function Layout() {
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300 border-r border-white/5">
       <div className="pt-8 pb-4 flex items-center justify-center bg-[#0A192F] shrink-0">
         <Link
-          to="/admin/agenda"
+          to="/admin/dashboard"
           className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
         >
           {isCollapsed && !isMobile ? (
@@ -238,7 +271,7 @@ export function Layout() {
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4 px-4 overflow-x-hidden [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
+      <div className="flex-1 overflow-y-auto py-4 px-4 overflow-x-hidden [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
         {filteredSections.map((section, idx) => (
           <div key={section.title} className={cn('mb-6', isCollapsed && !isMobile && 'mb-4')}>
             {(!isCollapsed || isMobile) && (
@@ -265,9 +298,6 @@ export function Layout() {
                     >
                       <CollapsibleTrigger asChild>
                         <button
-                          onClick={() => {
-                            if (isCollapsed && !isMobile) toggleSidebar()
-                          }}
                           className={cn(
                             'w-full group flex items-center py-3 text-sm font-medium rounded-md transition-all duration-300 relative outline-none',
                             isCollapsed && !isMobile ? 'justify-center px-2' : 'px-4',
@@ -435,7 +465,7 @@ export function Layout() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row relative">
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-[#D4AF37]/20">
-        <Link to="/admin/agenda" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
+        <Link to="/admin/dashboard" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
           <NuviaLogo className="h-12 w-auto" />
         </Link>
         <div className="flex items-center gap-1">
@@ -494,11 +524,7 @@ export function Layout() {
               <Home className="w-4 h-4" />
               <span>/</span>
               <span className="text-[#D4AF37]">
-                {location.pathname === '/admin/agenda' || location.pathname === '/admin'
-                  ? 'AGENDA'
-                  : location.pathname === '/admin/dashboard'
-                    ? 'DASHBOARD'
-                    : location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
+                {location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'SISTEMA'}
               </span>
             </div>
           </div>
@@ -530,6 +556,35 @@ export function Layout() {
           </span>
         )}
       </Button>
+
+      {/* Nuvia Hub Forced Announcement Modal */}
+      <AlertDialog open={!!currentUnread}>
+        <AlertDialogContent className="max-w-2xl border-[#D4AF37]/30 bg-[#0A192F] text-slate-100 p-0 overflow-hidden">
+          <div className="bg-[#D4AF37] p-4 text-[#0A192F] flex items-center justify-center gap-3">
+            <Megaphone className="h-6 w-6 shrink-0" />
+            <AlertDialogTitle className="text-xl uppercase tracking-widest font-black m-0 leading-none mt-1">
+              COMUNICADO IMPORTANTE
+            </AlertDialogTitle>
+          </div>
+          <div className="p-6">
+            <AlertDialogDescription className="text-slate-300 text-base leading-relaxed whitespace-pre-wrap">
+              <div className="font-bold text-white text-xl mb-4 uppercase tracking-wider">
+                {currentUnread?.title}
+              </div>
+              {currentUnread?.content}
+            </AlertDialogDescription>
+          </div>
+          <AlertDialogFooter className="p-6 bg-[#112240] border-t border-[#D4AF37]/20">
+            <AlertDialogAction
+              onClick={handleRead}
+              disabled={readingAnnouncement}
+              className="w-full h-12 bg-[#D4AF37] text-[#0A192F] hover:bg-[#B3932D] font-black uppercase tracking-widest text-base shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+            >
+              {readingAnnouncement ? 'Registrando leitura...' : 'LI E ESTOU CIENTE'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
