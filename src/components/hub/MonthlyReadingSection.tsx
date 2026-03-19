@@ -50,7 +50,7 @@ export function MonthlyReadingSection() {
     if (success) {
       toast({
         title: 'Sucesso',
-        description: 'Leitura do mês registrada com sucesso!',
+        description: 'Leitura do mês registrada com sucesso! Você ganhou 150 pontos.',
       })
       setMaterialName('')
       setMainLearning('')
@@ -97,6 +97,9 @@ export function MonthlyReadingSection() {
             <li>o colaborador faz a leitura do material do mês</li>
             <li>registra o principal aprendizado</li>
             <li>mostra como aquele aprendizado pode ser usado na prática dentro da empresa</li>
+            <li>
+              ganha <strong>150 pontos</strong> no ranking por cada leitura válida registrada.
+            </li>
           </ul>
           <p className="mt-4">
             Isso ajuda a desenvolver visão, repertório, comunicação e crescimento profissional.
@@ -217,11 +220,18 @@ export function MonthlyReadingSection() {
                 >
                   <div className="bg-slate-50 p-4 border-b flex justify-between items-start gap-4">
                     <div>
-                      <span className="text-[10px] font-black tracking-widest text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">
-                        {formatMonth(reading.reference_month)}
-                      </span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-black tracking-widest text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">
+                          {formatMonth(reading.reference_month)}
+                        </span>
+                        {(reading.points_earned || 0) > 0 && (
+                          <span className="text-[10px] font-black tracking-widest text-amber-600 bg-amber-100 px-2 py-0.5 rounded uppercase">
+                            +{reading.points_earned} PTS
+                          </span>
+                        )}
+                      </div>
                       <h4
-                        className="font-black text-slate-800 mt-2 leading-tight uppercase line-clamp-2"
+                        className="font-black text-slate-800 leading-tight uppercase line-clamp-2"
                         title={reading.material_name}
                       >
                         {reading.material_name}

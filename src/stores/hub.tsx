@@ -45,6 +45,7 @@ export type MonthlyReading = {
   main_learning: string
   practical_application: string
   observations?: string
+  points_earned: number
   created_at: string
 }
 
@@ -80,7 +81,10 @@ interface HubStore {
   fetchAllFeedbacks: () => Promise<HubFeedback[]>
   fetchAllReadsForAnnouncement: (announcementId: string) => Promise<HubAnnouncementRead[]>
   submitMonthlyReading: (
-    data: Omit<MonthlyReading, 'id' | 'user_id' | 'submission_date' | 'created_at'>,
+    data: Omit<
+      MonthlyReading,
+      'id' | 'user_id' | 'submission_date' | 'created_at' | 'points_earned'
+    >,
   ) => Promise<{ success: boolean; error?: any }>
 }
 
@@ -227,13 +231,24 @@ export function HubProvider({ children }: { children: ReactNode }) {
   }
 
   const submitMonthlyReading = async (
-    data: Omit<MonthlyReading, 'id' | 'user_id' | 'submission_date' | 'created_at'>,
+    data: Omit<
+      MonthlyReading,
+      'id' | 'user_id' | 'submission_date' | 'created_at' | 'points_earned'
+    >,
   ) => {
     if (!user) return { success: false }
+
+    const hasRequiredFields =
+      data.material_name?.trim().length > 0 &&
+      data.main_learning?.trim().length > 0 &&
+      data.practical_application?.trim().length > 0
+
+    const points_earned = hasRequiredFields ? 150 : 0
+
     try {
       const { data: result, error } = await supabase
         .from('monthly_readings' as any)
-        .insert([{ ...data, user_id: user.id }])
+        .insert([{ ...data, points_earned, user_id: user.id }])
         .select()
         .single()
 

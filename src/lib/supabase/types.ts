@@ -909,6 +909,42 @@ export type Database = {
           },
         ]
       }
+      monthly_readings: {
+        Row: {
+          created_at: string
+          id: string
+          main_learning: string
+          material_name: string
+          observations: string | null
+          practical_application: string
+          reference_month: string
+          submission_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          main_learning: string
+          material_name: string
+          observations?: string | null
+          practical_application: string
+          reference_month: string
+          submission_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          main_learning?: string
+          material_name?: string
+          observations?: string | null
+          practical_application?: string
+          reference_month?: string
+          submission_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding: {
         Row: {
           created_at: string
@@ -1703,6 +1739,16 @@ export const Constants = {
 //   quantity: integer (not null)
 //   status: text (not null, default: 'PENDING'::text)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: monthly_readings
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   submission_date: timestamp with time zone (not null, default: now())
+//   reference_month: text (not null)
+//   material_name: text (not null)
+//   main_learning: text (not null)
+//   practical_application: text (not null)
+//   observations: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: onboarding
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1878,6 +1924,10 @@ export const Constants = {
 //   PRIMARY KEY inventory_temporary_outflows_pkey: PRIMARY KEY (id)
 //   CHECK inventory_temporary_outflows_quantity_check: CHECK ((quantity > 0))
 //   CHECK inventory_temporary_outflows_status_check: CHECK ((status = ANY (ARRAY['PENDING'::text, 'FINALIZED'::text, 'RETURNED'::text])))
+// Table: monthly_readings
+//   PRIMARY KEY monthly_readings_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY monthly_readings_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   UNIQUE monthly_readings_user_month_key: UNIQUE (user_id, reference_month)
 // Table: onboarding
 //   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
 // Table: price_list
@@ -2024,6 +2074,11 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+// Table: monthly_readings
+//   Policy "Users can insert their own monthly_readings" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (user_id = auth.uid())
+//   Policy "Users can view their own or admins can view all monthly_reading" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: ((user_id = auth.uid()) OR is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
 // Table: onboarding
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2378,6 +2433,8 @@ export const Constants = {
 //   CREATE UNIQUE INDEX consultorio_weekly_schedules_consultorio_id_day_of_week_key ON public.consultorio_weekly_schedules USING btree (consultorio_id, day_of_week)
 // Table: hub_announcement_reads
 //   CREATE UNIQUE INDEX hub_announcement_reads_user_id_announcement_id_key ON public.hub_announcement_reads USING btree (user_id, announcement_id)
+// Table: monthly_readings
+//   CREATE UNIQUE INDEX monthly_readings_user_month_key ON public.monthly_readings USING btree (user_id, reference_month)
 // Table: role_permissions
 //   CREATE UNIQUE INDEX role_permissions_role_module_key ON public.role_permissions USING btree (role, module)
 // Table: roles
