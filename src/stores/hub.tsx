@@ -77,6 +77,7 @@ interface HubStore {
     excellent: string,
     improvement: string,
   ) => Promise<{ success: boolean; error?: any }>
+  deleteFeedback: (id: string) => Promise<{ success: boolean; error?: any }>
   getRanking: (year: number, month: number) => Promise<RankingItem[]>
   fetchAllFeedbacks: () => Promise<HubFeedback[]>
   fetchAllReadsForAnnouncement: (announcementId: string) => Promise<HubAnnouncementRead[]>
@@ -230,6 +231,17 @@ export function HubProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const deleteFeedback = async (id: string) => {
+    try {
+      const { error } = await supabase.from('hub_feedbacks').delete().eq('id', id)
+      if (error) throw error
+      setFeedbacks((prev) => prev.filter((f) => f.id !== id))
+      return { success: true }
+    } catch (error) {
+      return { success: false, error }
+    }
+  }
+
   const submitMonthlyReading = async (
     data: Omit<
       MonthlyReading,
@@ -321,6 +333,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
         deleteAnnouncement,
         markAsRead,
         submitFeedback,
+        deleteFeedback,
         getRanking,
         fetchAllFeedbacks,
         fetchAllReadsForAnnouncement,

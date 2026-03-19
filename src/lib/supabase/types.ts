@@ -721,6 +721,7 @@ export type Database = {
           id: string
           implementation_details: string
           perceived_results: string
+          points_earned: number
           problem_description: string
           proposed_solution: string
           title: string
@@ -732,6 +733,7 @@ export type Database = {
           id?: string
           implementation_details: string
           perceived_results: string
+          points_earned?: number
           problem_description: string
           proposed_solution: string
           title: string
@@ -743,6 +745,7 @@ export type Database = {
           id?: string
           implementation_details?: string
           perceived_results?: string
+          points_earned?: number
           problem_description?: string
           proposed_solution?: string
           title?: string
@@ -1741,6 +1744,7 @@ export const Constants = {
 //   perceived_results: text (not null)
 //   evidence_url_or_desc: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   points_earned: integer (not null, default: 0)
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -2260,6 +2264,12 @@ export const Constants = {
 //       SELECT user_id, points_earned as pts
 //       FROM public.monthly_readings
 //       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
+//
+//       UNION ALL
+//
+//       SELECT user_id, points_earned as pts
+//       FROM public.innovation_records
+//       WHERE extract(year from created_at) = year_val AND extract(month from created_at) = month_val
 //
 //     ) points ON points.user_id = e.user_id
 //     WHERE e.status != 'Desligado' AND e.user_id IS NOT NULL
