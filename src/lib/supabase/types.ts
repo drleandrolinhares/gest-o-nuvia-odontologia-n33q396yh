@@ -1165,6 +1165,7 @@ export type Database = {
           id: string
           notes: string | null
           photo_url: string
+          points_earned: number
           reference_week: string
           submission_date: string
           user_id: string
@@ -1174,6 +1175,7 @@ export type Database = {
           id?: string
           notes?: string | null
           photo_url: string
+          points_earned?: number
           reference_week: string
           submission_date?: string
           user_id: string
@@ -1183,6 +1185,7 @@ export type Database = {
           id?: string
           notes?: string | null
           photo_url?: string
+          points_earned?: number
           reference_week?: string
           submission_date?: string
           user_id?: string
@@ -1767,6 +1770,7 @@ export const Constants = {
 //   photo_url: text (not null)
 //   notes: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   points_earned: integer (not null, default: 0)
 // Table: specialty_configs
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -2125,10 +2129,19 @@ export const Constants = {
 //       SELECT user_id, points_earned as pts
 //       FROM public.hub_announcement_reads
 //       WHERE extract(year from read_at) = year_val AND extract(month from read_at) = month_val
+//
 //       UNION ALL
+//
 //       SELECT user_id, points_earned as pts
 //       FROM public.hub_feedbacks
 //       WHERE extract(year from created_at) = year_val AND extract(month from created_at) = month_val
+//
+//       UNION ALL
+//
+//       SELECT user_id, points_earned as pts
+//       FROM public.ser_5s_submissions
+//       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
+//
 //     ) points ON points.user_id = e.user_id
 //     WHERE e.status != 'Desligado' AND e.user_id IS NOT NULL
 //     GROUP BY e.user_id, e.id, e.name

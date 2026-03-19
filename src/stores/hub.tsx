@@ -36,6 +36,18 @@ export type HubFeedback = {
   created_at: string
 }
 
+export type MonthlyReading = {
+  id: string
+  user_id: string
+  submission_date: string
+  reference_month: string
+  material_name: string
+  main_learning: string
+  practical_application: string
+  observations?: string
+  created_at: string
+}
+
 export type RankingItem = {
   user_id: string
   employee_id: string
@@ -47,6 +59,7 @@ interface HubStore {
   announcements: HubAnnouncement[]
   allReads: HubAnnouncementRead[]
   feedbacks: HubFeedback[]
+  monthlyReadings: MonthlyReading[]
   unreadAnnouncements: HubAnnouncement[]
   isLoading: boolean
   fetchAnnouncements: () => Promise<void>
@@ -66,6 +79,9 @@ interface HubStore {
   getRanking: (year: number, month: number) => Promise<RankingItem[]>
   fetchAllFeedbacks: () => Promise<HubFeedback[]>
   fetchAllReadsForAnnouncement: (announcementId: string) => Promise<HubAnnouncementRead[]>
+  submitMonthlyReading: (
+    data: Omit<MonthlyReading, 'id' | 'user_id' | 'submission_date' | 'created_at'>,
+  ) => Promise<{ success: boolean; error?: any }>
 }
 
 const HubContext = createContext<HubStore | undefined>(undefined)
@@ -75,25 +91,32 @@ export function HubProvider({ children }: { children: ReactNode }) {
   const [announcements, setAnnouncements] = useState<HubAnnouncement[]>([])
   const [allReads, setAllReads] = useState<HubAnnouncementRead[]>([])
   const [feedbacks, setFeedbacks] = useState<HubFeedback[]>([])
+  const [monthlyReadings, setMonthlyReadings] = useState<MonthlyReading[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchAnnouncements = useCallback(async () => {
     if (!user) return
     setIsLoading(true)
     try {
-      const [{ data: annData }, { data: readsData }, { data: fbData }] = await Promise.all([
-        supabase.from('hub_announcements').select('*').order('created_at', { ascending: false }),
-        supabase.from('hub_announcement_reads').select('*'),
-        supabase
-          .from('hub_feedbacks')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
-      ])
+      const [{ data: annData }, { data: readsData }, { data: fbData }, { data: readingData }] =
+        await Promise.all([
+          supabase.from('hub_announcements').select('*').order('created_at', { ascending: false }),
+          supabase.from('hub_announcement_reads').select('*'),
+          supabase
+            .from('hub_feedbacks')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('monthly_readings' as any)
+            .select('*')
+            .order('reference_month', { ascending: false }),
+        ])
 
       if (annData) setAnnouncements(annData)
       if (readsData) setAllReads(readsData)
       if (fbData) setFeedbacks(fbData)
+      if (readingData) setMonthlyReadings(readingData)
     } catch (err) {
       console.error('Error fetching hub data:', err)
     } finally {
@@ -203,6 +226,29 @@ export function HubProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const submitMonthlyReading = async (
+    data: Omit<MonthlyReading, 'id' | 'user_id' | 'submission_date' | 'created_at'>,
+  ) => {
+    if (!user) return { success: false }
+    try {
+      const { data: result, error } = await supabase
+        .from('monthly_readings' as any)
+        .insert([{ ...data, user_id: user.id }])
+        .select()
+        .single()
+
+      if (error) throw error
+      if (result) {
+        setMonthlyReadings((prev) =>
+          [result, ...prev].sort((a, b) => b.reference_month.localeCompare(a.reference_month)),
+        )
+      }
+      return { success: true }
+    } catch (error) {
+      return { success: false, error }
+    }
+  }
+
   const getRanking = async (year: number, month: number) => {
     try {
       const { data, error } = await supabase.rpc('get_monthly_ranking', {
@@ -251,6 +297,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
         announcements,
         allReads,
         feedbacks,
+        monthlyReadings,
         unreadAnnouncements,
         isLoading,
         fetchAnnouncements,
@@ -262,6 +309,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
         getRanking,
         fetchAllFeedbacks,
         fetchAllReadsForAnnouncement,
+        submitMonthlyReading,
       }}
     >
       {children}
