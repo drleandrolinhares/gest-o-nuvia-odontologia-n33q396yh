@@ -628,6 +628,92 @@ export type Database = {
           },
         ]
       }
+      hub_announcement_reads: {
+        Row: {
+          announcement_id: string | null
+          id: string
+          points_earned: number
+          read_at: string
+          user_id: string | null
+        }
+        Insert: {
+          announcement_id?: string | null
+          id?: string
+          points_earned?: number
+          read_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          announcement_id?: string | null
+          id?: string
+          points_earned?: number
+          read_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'hub_announcement_reads_announcement_id_fkey'
+            columns: ['announcement_id']
+            isOneToOne: false
+            referencedRelation: 'hub_announcements'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      hub_announcements: {
+        Row: {
+          active: boolean | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          active?: boolean | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          active?: boolean | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      hub_feedbacks: {
+        Row: {
+          created_at: string
+          excellent_content: string
+          id: string
+          improvement_content: string
+          points_earned: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          excellent_content: string
+          id?: string
+          improvement_content: string
+          points_earned?: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          excellent_content?: string
+          id?: string
+          improvement_content?: string
+          points_earned?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           barcode: string | null
@@ -1196,6 +1282,15 @@ export type Database = {
     Functions: {
       fix_auth_user_tokens: { Args: { user_id: string }; Returns: undefined }
       get_auth_user_rooms: { Args: never; Returns: string[] }
+      get_monthly_ranking: {
+        Args: { month_val: number; year_val: number }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          total_points: number
+          user_id: string
+        }[]
+      }
       get_or_create_group_room: {
         Args: { creator_id: string; dept_name: string }
         Returns: string
@@ -1211,6 +1306,7 @@ export type Database = {
           unread_count: number
         }[]
       }
+      is_admin_user: { Args: { user_uuid: string }; Returns: boolean }
       is_master_user: { Args: { user_uuid: string }; Returns: boolean }
       mark_room_read: {
         Args: { p_room_id: string; p_user_id: string }
@@ -1507,6 +1603,26 @@ export const Constants = {
 //   bank_name: text (nullable)
 //   pix_number: text (nullable)
 //   no_system_access: boolean (nullable, default: false)
+// Table: hub_announcement_reads
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   announcement_id: uuid (nullable)
+//   read_at: timestamp with time zone (not null, default: now())
+//   points_earned: integer (not null, default: 0)
+// Table: hub_announcements
+//   id: uuid (not null, default: gen_random_uuid())
+//   title: text (not null)
+//   content: text (not null)
+//   active: boolean (nullable, default: true)
+//   created_by: uuid (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: hub_feedbacks
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   excellent_content: text (not null)
+//   improvement_content: text (not null)
+//   points_earned: integer (not null, default: 0)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1695,6 +1811,17 @@ export const Constants = {
 //   PRIMARY KEY employees_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 //   FOREIGN KEY fk_employees_role: FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE RESTRICT
+// Table: hub_announcement_reads
+//   FOREIGN KEY hub_announcement_reads_announcement_id_fkey: FOREIGN KEY (announcement_id) REFERENCES hub_announcements(id) ON DELETE CASCADE
+//   PRIMARY KEY hub_announcement_reads_pkey: PRIMARY KEY (id)
+//   UNIQUE hub_announcement_reads_user_id_announcement_id_key: UNIQUE (user_id, announcement_id)
+//   FOREIGN KEY hub_announcement_reads_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: hub_announcements
+//   FOREIGN KEY hub_announcements_created_by_fkey: FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL
+//   PRIMARY KEY hub_announcements_pkey: PRIMARY KEY (id)
+// Table: hub_feedbacks
+//   PRIMARY KEY hub_feedbacks_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY hub_feedbacks_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: inventory
 //   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
 // Table: inventory_movements
@@ -1812,6 +1939,29 @@ export const Constants = {
 //     WITH CHECK: true
 //   Policy "authenticated_select_employees" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
+// Table: hub_announcement_reads
+//   Policy "Admins can delete hub_announcement_reads" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+//   Policy "Admins can update hub_announcement_reads" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+//   Policy "Users can insert own hub_announcement_reads" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (user_id = auth.uid())
+//   Policy "Users can read all hub_announcement_reads" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+// Table: hub_announcements
+//   Policy "Admins can delete hub_announcements" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+//   Policy "Admins can insert hub_announcements" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+//   Policy "Admins can update hub_announcements" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+//   Policy "Allow all authenticated users to read hub_announcements" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+// Table: hub_feedbacks
+//   Policy "Users can insert own feedbacks" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (user_id = auth.uid())
+//   Policy "Users can read own feedbacks or admins can read all" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: ((user_id = auth.uid()) OR is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
 // Table: inventory
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1912,6 +2062,32 @@ export const Constants = {
 //     SELECT room_id FROM public.chat_participants WHERE user_id = auth.uid();
 //   $function$
 //
+// FUNCTION get_monthly_ranking(integer, integer)
+//   CREATE OR REPLACE FUNCTION public.get_monthly_ranking(year_val integer, month_val integer)
+//    RETURNS TABLE(user_id uuid, employee_id uuid, employee_name text, total_points bigint)
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     SELECT
+//       e.user_id,
+//       e.id as employee_id,
+//       e.name as employee_name,
+//       COALESCE(SUM(points.pts), 0) as total_points
+//     FROM public.employees e
+//     LEFT JOIN (
+//       SELECT user_id, points_earned as pts
+//       FROM public.hub_announcement_reads
+//       WHERE extract(year from read_at) = year_val AND extract(month from read_at) = month_val
+//       UNION ALL
+//       SELECT user_id, points_earned as pts
+//       FROM public.hub_feedbacks
+//       WHERE extract(year from created_at) = year_val AND extract(month from created_at) = month_val
+//     ) points ON points.user_id = e.user_id
+//     WHERE e.status != 'Desligado' AND e.user_id IS NOT NULL
+//     GROUP BY e.user_id, e.id, e.name
+//     ORDER BY total_points DESC, e.name ASC;
+//   $function$
+//
 // FUNCTION get_or_create_group_room(text, uuid)
 //   CREATE OR REPLACE FUNCTION public.get_or_create_group_room(dept_name text, creator_id uuid)
 //    RETURNS uuid
@@ -1989,6 +2165,21 @@ export const Constants = {
 //       name = EXCLUDED.name;
 //     RETURN NEW;
 //   END;
+//   $function$
+//
+// FUNCTION is_admin_user(uuid)
+//   CREATE OR REPLACE FUNCTION public.is_admin_user(user_uuid uuid)
+//    RETURNS boolean
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     SELECT EXISTS (
+//       SELECT 1 FROM public.employees
+//       WHERE user_id = user_uuid AND (
+//         role ILIKE '%admin%' OR role ILIKE '%diretor%' OR
+//         'ADMIN' = ANY(team_category) OR 'DIRETORIA' = ANY(team_category) OR 'MASTER' = ANY(team_category)
+//       )
+//     );
 //   $function$
 //
 // FUNCTION is_master_user(uuid)
@@ -2125,6 +2316,8 @@ export const Constants = {
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
 // Table: consultorio_weekly_schedules
 //   CREATE UNIQUE INDEX consultorio_weekly_schedules_consultorio_id_day_of_week_key ON public.consultorio_weekly_schedules USING btree (consultorio_id, day_of_week)
+// Table: hub_announcement_reads
+//   CREATE UNIQUE INDEX hub_announcement_reads_user_id_announcement_id_key ON public.hub_announcement_reads USING btree (user_id, announcement_id)
 // Table: role_permissions
 //   CREATE UNIQUE INDEX role_permissions_role_module_key ON public.role_permissions USING btree (role, module)
 // Table: roles

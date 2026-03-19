@@ -45,7 +45,7 @@ export type RankingItem = {
 
 interface HubStore {
   announcements: HubAnnouncement[]
-  reads: HubAnnouncementRead[]
+  allReads: HubAnnouncementRead[]
   feedbacks: HubFeedback[]
   unreadAnnouncements: HubAnnouncement[]
   isLoading: boolean
@@ -56,7 +56,9 @@ interface HubStore {
     data: Partial<HubAnnouncement>,
   ) => Promise<{ success: boolean; error?: any }>
   deleteAnnouncement: (id: string) => Promise<{ success: boolean; error?: any }>
-  markAsRead: (announcement: HubAnnouncement) => Promise<{ success: boolean; error?: any }>
+  markAsRead: (
+    announcement: HubAnnouncement,
+  ) => Promise<{ success: boolean; points?: number; error?: any }>
   submitFeedback: (
     excellent: string,
     improvement: string,
@@ -71,7 +73,7 @@ const HubContext = createContext<HubStore | undefined>(undefined)
 export function HubProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [announcements, setAnnouncements] = useState<HubAnnouncement[]>([])
-  const [reads, setReads] = useState<HubAnnouncementRead[]>([])
+  const [allReads, setAllReads] = useState<HubAnnouncementRead[]>([])
   const [feedbacks, setFeedbacks] = useState<HubFeedback[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -81,7 +83,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
     try {
       const [{ data: annData }, { data: readsData }, { data: fbData }] = await Promise.all([
         supabase.from('hub_announcements').select('*').order('created_at', { ascending: false }),
-        supabase.from('hub_announcement_reads').select('*').eq('user_id', user.id),
+        supabase.from('hub_announcement_reads').select('*'),
         supabase
           .from('hub_feedbacks')
           .select('*')
@@ -90,7 +92,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
       ])
 
       if (annData) setAnnouncements(annData)
-      if (readsData) setReads(readsData)
+      if (readsData) setAllReads(readsData)
       if (fbData) setFeedbacks(fbData)
     } catch (err) {
       console.error('Error fetching hub data:', err)
@@ -105,7 +107,10 @@ export function HubProvider({ children }: { children: ReactNode }) {
   }, [fetchAnnouncements, user])
 
   const unreadAnnouncements = announcements
-    .filter((a) => a.active && !reads.some((r) => r.announcement_id === a.id))
+    .filter(
+      (a) =>
+        a.active && !allReads.some((r) => r.announcement_id === a.id && r.user_id === user?.id),
+    )
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
   const createAnnouncement = async (title: string, content: string) => {
@@ -150,7 +155,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
     if (!user) return { success: false }
     try {
       const diffMinutes = differenceInMinutes(new Date(), new Date(announcement.created_at))
-      let points = 5
+      let points = 0
       if (diffMinutes <= 10) points = 30
       else if (diffMinutes <= 60) points = 10
 
@@ -167,8 +172,8 @@ export function HubProvider({ children }: { children: ReactNode }) {
         .single()
 
       if (error) throw error
-      if (data) setReads((prev) => [...prev, data])
-      return { success: true }
+      if (data) setAllReads((prev) => [...prev, data])
+      return { success: true, points }
     } catch (error) {
       return { success: false, error }
     }
@@ -244,7 +249,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
     <HubContext.Provider
       value={{
         announcements,
-        reads,
+        allReads,
         feedbacks,
         unreadAnnouncements,
         isLoading,

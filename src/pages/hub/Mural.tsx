@@ -3,21 +3,47 @@ import { useHubStore, HubAnnouncement } from '@/stores/hub'
 import useAppStore from '@/stores/main'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Megaphone, Plus, Users, Pencil, Trash2, CalendarClock, ShieldCheck } from 'lucide-react'
+import {
+  Megaphone,
+  Plus,
+  Users,
+  Pencil,
+  Trash2,
+  CalendarClock,
+  CheckCircle2,
+  Clock,
+} from 'lucide-react'
 import { AddAnnouncementDialog } from '@/components/hub/AddAnnouncementDialog'
-import { AnnouncementReadersDialog } from '@/components/hub/AnnouncementReadersDialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 export default function Mural() {
-  const { announcements, deleteAnnouncement } = useHubStore()
-  const { isAdmin } = useAppStore()
+  const { announcements, allReads, deleteAnnouncement } = useHubStore()
+  const { isAdmin, employees } = useAppStore()
   const [openAdd, setOpenAdd] = useState(false)
   const [editItem, setEditItem] = useState<HubAnnouncement | null>(null)
-  const [viewReadersId, setViewReadersId] = useState<string | null>(null)
 
   const displayAnnouncements = isAdmin ? announcements : announcements.filter((a) => a.active)
+
+  const activeEmployees = employees
+    .filter((e) => e.status !== 'Desligado' && e.user_id)
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   const handleEdit = (a: HubAnnouncement) => {
     setEditItem(a)
@@ -95,15 +121,6 @@ export default function Mural() {
                     </p>
 
                     <div className="flex flex-wrap items-center gap-3 mt-6 pt-4 border-t border-slate-100">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setViewReadersId(item.id)}
-                        className="font-bold text-xs tracking-widest text-primary border-primary/30 hover:bg-primary/5"
-                      >
-                        <Users className="h-4 w-4 mr-2" /> VER LEITURAS
-                      </Button>
-
                       {isAdmin && (
                         <div className="flex gap-2 ml-auto">
                           <Button
@@ -125,6 +142,86 @@ export default function Mural() {
                         </div>
                       )}
                     </div>
+
+                    <Accordion type="single" collapsible className="w-full mt-4">
+                      <AccordionItem value="log" className="border-none">
+                        <AccordionTrigger className="text-xs font-bold text-slate-500 hover:text-nuvia-navy tracking-widest uppercase bg-slate-50 px-4 py-3 rounded-lg border data-[state=open]:rounded-b-none data-[state=open]:border-b-0">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" /> LOG DE ASSINATURAS
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="border border-t-0 rounded-b-lg p-0 overflow-hidden">
+                          <Table>
+                            <TableHeader className="bg-slate-50/50">
+                              <TableRow>
+                                <TableHead className="font-black text-xs text-slate-500">
+                                  COLABORADOR
+                                </TableHead>
+                                <TableHead className="font-black text-xs text-slate-500">
+                                  DATA/HORA DA LEITURA
+                                </TableHead>
+                                <TableHead className="font-black text-xs text-slate-500">
+                                  STATUS
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {activeEmployees.map((emp) => {
+                                const read = allReads.find(
+                                  (r) => r.announcement_id === item.id && r.user_id === emp.user_id,
+                                )
+                                const seed =
+                                  (emp.id
+                                    .split('')
+                                    .reduce((acc, char) => acc + char.charCodeAt(0), 0) %
+                                    100) +
+                                  1
+                                return (
+                                  <TableRow key={emp.id} className="hover:bg-slate-50/50">
+                                    <TableCell>
+                                      <div className="flex items-center gap-3">
+                                        <Avatar className="h-8 w-8 border shadow-sm">
+                                          <AvatarImage
+                                            src={`https://img.usecurling.com/ppl/thumbnail?seed=${seed}`}
+                                          />
+                                          <AvatarFallback>{emp.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex flex-col">
+                                          <span className="font-bold text-xs text-slate-800">
+                                            {emp.name}
+                                          </span>
+                                          <span className="text-[9px] font-bold text-muted-foreground">
+                                            {emp.role}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-xs font-bold text-slate-600">
+                                      {read
+                                        ? format(new Date(read.read_at), "dd/MM/yyyy 'às' HH:mm", {
+                                            locale: ptBR,
+                                          })
+                                        : '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                      {read ? (
+                                        <span className="inline-flex items-center gap-1 text-emerald-600 font-black text-[10px] tracking-widest bg-emerald-50 px-2 py-1 rounded">
+                                          <CheckCircle2 className="h-3.5 w-3.5" /> LIDO
+                                        </span>
+                                      ) : (
+                                        <span className="inline-flex items-center gap-1 text-amber-500 font-black text-[10px] tracking-widest bg-amber-50 px-2 py-1 rounded">
+                                          <Clock className="h-3.5 w-3.5" /> PENDENTE
+                                        </span>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </TableBody>
+                          </Table>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </div>
                 </div>
               </CardContent>
@@ -134,10 +231,6 @@ export default function Mural() {
       </div>
 
       <AddAnnouncementDialog open={openAdd} onOpenChange={setOpenAdd} item={editItem} />
-      <AnnouncementReadersDialog
-        announcementId={viewReadersId}
-        onClose={() => setViewReadersId(null)}
-      />
     </div>
   )
 }
