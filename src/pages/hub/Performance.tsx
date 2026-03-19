@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Target, BookOpen, Lightbulb, Sparkles } from 'lucide-react'
 import { Ser5sSection } from '@/components/hub/Ser5sSection'
 import { MonthlyReadingSection } from '@/components/hub/MonthlyReadingSection'
+import { InnovationSection } from '@/components/hub/InnovationSection'
 
 export default function Performance() {
   return (
@@ -78,11 +79,7 @@ export default function Performance() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 flex items-center justify-center text-slate-400 bg-slate-50/50">
-              <span className="text-xs font-bold tracking-widest uppercase text-center">
-                [ ÁREA RESERVADA PARA SUBMISSÃO E LISTAGEM DE INOVAÇÕES ]
-              </span>
-            </div>
+            <InnovationSection />
           </CardContent>
         </Card>
       </div>

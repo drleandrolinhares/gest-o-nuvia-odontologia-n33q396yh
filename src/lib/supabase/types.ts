@@ -916,6 +916,7 @@ export type Database = {
           main_learning: string
           material_name: string
           observations: string | null
+          points_earned: number
           practical_application: string
           reference_month: string
           submission_date: string
@@ -927,6 +928,7 @@ export type Database = {
           main_learning: string
           material_name: string
           observations?: string | null
+          points_earned?: number
           practical_application: string
           reference_month: string
           submission_date?: string
@@ -938,6 +940,7 @@ export type Database = {
           main_learning?: string
           material_name?: string
           observations?: string | null
+          points_earned?: number
           practical_application?: string
           reference_month?: string
           submission_date?: string
@@ -1749,6 +1752,7 @@ export const Constants = {
 //   practical_application: text (not null)
 //   observations: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+//   points_earned: integer (not null, default: 0)
 // Table: onboarding
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -2195,6 +2199,12 @@ export const Constants = {
 //
 //       SELECT user_id, points_earned as pts
 //       FROM public.ser_5s_submissions
+//       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
+//
+//       UNION ALL
+//
+//       SELECT user_id, points_earned as pts
+//       FROM public.monthly_readings
 //       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
 //
 //     ) points ON points.user_id = e.user_id
