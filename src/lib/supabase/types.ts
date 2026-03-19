@@ -714,6 +714,42 @@ export type Database = {
         }
         Relationships: []
       }
+      innovation_records: {
+        Row: {
+          created_at: string
+          evidence_url_or_desc: string | null
+          id: string
+          implementation_details: string
+          perceived_results: string
+          problem_description: string
+          proposed_solution: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evidence_url_or_desc?: string | null
+          id?: string
+          implementation_details: string
+          perceived_results: string
+          problem_description: string
+          proposed_solution: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evidence_url_or_desc?: string | null
+          id?: string
+          implementation_details?: string
+          perceived_results?: string
+          problem_description?: string
+          proposed_solution?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           barcode: string | null
@@ -1695,6 +1731,16 @@ export const Constants = {
 //   improvement_content: text (not null)
 //   points_earned: integer (not null, default: 0)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: innovation_records
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   title: text (not null)
+//   problem_description: text (not null)
+//   proposed_solution: text (not null)
+//   implementation_details: text (not null)
+//   perceived_results: text (not null)
+//   evidence_url_or_desc: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: inventory
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -1914,6 +1960,9 @@ export const Constants = {
 // Table: hub_feedbacks
 //   PRIMARY KEY hub_feedbacks_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY hub_feedbacks_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: innovation_records
+//   PRIMARY KEY innovation_records_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY innovation_records_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: inventory
 //   PRIMARY KEY inventory_pkey: PRIMARY KEY (id)
 // Table: inventory_movements
@@ -2061,6 +2110,11 @@ export const Constants = {
 //   Policy "Users can insert own feedbacks" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (user_id = auth.uid())
 //   Policy "Users can read own feedbacks or admins can read all" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: ((user_id = auth.uid()) OR is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+// Table: innovation_records
+//   Policy "Users can insert their own innovation_records" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (user_id = auth.uid())
+//   Policy "Users can view their own or admins can view all innovation_reco" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: ((user_id = auth.uid()) OR is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
 // Table: inventory
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}

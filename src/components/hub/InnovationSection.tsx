@@ -18,6 +18,7 @@ type InnovationRecord = {
   implementation_details: string
   perceived_results: string
   evidence_url_or_desc: string | null
+  points_earned: number
   created_at: string
 }
 
@@ -76,6 +77,15 @@ export function InnovationSection() {
       return
     }
 
+    const hasRequiredFields =
+      title.trim().length > 0 &&
+      problemDescription.trim().length > 0 &&
+      proposedSolution.trim().length > 0 &&
+      implementationDetails.trim().length > 0 &&
+      perceivedResults.trim().length > 0
+
+    const points_earned = hasRequiredFields ? 200 : 0
+
     setIsSubmitting(true)
     const { error } = await supabase.from('innovation_records' as any).insert({
       user_id: user.id,
@@ -85,6 +95,7 @@ export function InnovationSection() {
       implementation_details: implementationDetails,
       perceived_results: perceivedResults,
       evidence_url_or_desc: evidence || null,
+      points_earned,
     })
 
     setIsSubmitting(false)
@@ -98,7 +109,7 @@ export function InnovationSection() {
     } else {
       toast({
         title: 'Sucesso',
-        description: 'Inovação registrada com sucesso!',
+        description: `Inovação registrada com sucesso!${points_earned > 0 ? ` Você ganhou ${points_earned} pontos.` : ''}`,
       })
       setTitle('')
       setProblemDescription('')
@@ -132,6 +143,9 @@ export function InnovationSection() {
             <li>propor uma solução</li>
             <li>mostrar o que foi feito</li>
             <li>registrar o resultado obtido</li>
+            <li>
+              ganhar <strong>200 pontos</strong> no ranking por cada inovação implementada validada.
+            </li>
           </ul>
         </div>
       </div>
@@ -262,6 +276,13 @@ export function InnovationSection() {
                 >
                   <div className="bg-slate-50 p-4 border-b flex justify-between items-start gap-4">
                     <div>
+                      {(record.points_earned || 0) > 0 && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-black tracking-widest text-amber-600 bg-amber-100 px-2 py-0.5 rounded uppercase">
+                            +{record.points_earned} PTS
+                          </span>
+                        </div>
+                      )}
                       <h4
                         className="font-black text-slate-800 leading-tight uppercase line-clamp-2"
                         title={record.title}
