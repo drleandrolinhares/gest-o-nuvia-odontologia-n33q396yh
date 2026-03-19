@@ -45,7 +45,7 @@ export function FeedbackList({
                     <p className="text-[10px] font-bold text-muted-foreground mb-1 tracking-widest">
                       COLABORADOR:
                     </p>
-                    <p className="text-xs font-bold text-primary flex items-center gap-1.5 line-clamp-2">
+                    <p className="text-xs font-bold text-primary flex items-center gap-1.5 line-clamp-2 uppercase">
                       <User className="h-3 w-3 shrink-0" /> {getAuthorName(item.user_id)}
                     </p>
                   </div>
@@ -62,7 +62,7 @@ export function FeedbackList({
                 </div>
                 <div className="pt-3 border-t border-slate-100">
                   <h4 className="flex items-center gap-1.5 text-xs font-black tracking-widest text-amber-600 mb-1">
-                    <TrendingUp className="h-3.5 w-3.5" /> OPORTUNIDADES DE MELHORIA
+                    <TrendingUp className="h-3.5 w-3.5" /> PONTOS DE MELHORIA
                   </h4>
                   <p className="text-sm text-slate-600 whitespace-pre-wrap normal-case font-medium">
                     {item.improvement_content}

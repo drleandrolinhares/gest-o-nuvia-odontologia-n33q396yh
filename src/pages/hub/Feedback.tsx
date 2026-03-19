@@ -16,7 +16,7 @@ export default function Feedback() {
     if (isAdmin) {
       fetchAllFeedbacks().then(setAllFb)
     }
-  }, [isAdmin, fetchAllFeedbacks, feedbacks]) // re-fetch if feedbacks changes
+  }, [isAdmin, fetchAllFeedbacks, feedbacks])
 
   const today = new Date()
   const dayOfWeek = today.getDay() // 0 = Sunday

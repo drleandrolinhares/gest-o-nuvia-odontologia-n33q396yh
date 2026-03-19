@@ -3,7 +3,7 @@ import { useHubStore } from '@/stores/hub'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Send, CheckCircle } from 'lucide-react'
+import { Send, CheckCircle, TrendingUp } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 export function FeedbackForm() {
@@ -55,12 +55,12 @@ export function FeedbackForm() {
 
         <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
           <label className="flex items-center gap-2 text-sm font-black text-amber-800 tracking-widest mb-2">
-            PONTOS DE MELHORIA (O QUE PODEMOS MELHORAR?)
+            <TrendingUp className="h-4 w-4" /> PONTOS DE MELHORIA (O QUE PODEMOS MELHORAR?)
           </label>
           <Textarea
             value={improvement}
             onChange={(e) => setImprovement(e.target.value)}
-            placeholder="DESCREVA OPORTUNIDADES DE SOLUÇÃO..."
+            placeholder="DESCREVA OPORTUNIDADES DE SOLUÇÃO E MELHORIA..."
             className="bg-white min-h-[120px] resize-none"
             disableUppercase
           />
@@ -69,7 +69,7 @@ export function FeedbackForm() {
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting || !excellent.trim() || !improvement.trim()}
-          className="w-full h-12 text-base font-black tracking-widest uppercase shadow-lg"
+          className="w-full h-12 text-base font-black tracking-widest uppercase shadow-lg bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37]"
         >
           <Send className="h-5 w-5 mr-2" />
           {isSubmitting ? 'ENVIANDO...' : 'ENVIAR FEEDBACK SEMANAL (GANHAR 50 PTS)'}
