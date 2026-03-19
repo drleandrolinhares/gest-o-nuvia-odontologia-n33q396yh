@@ -178,7 +178,7 @@ export default function Login() {
             </form>
           </CardContent>
           <CardFooter className="flex justify-center border-t p-4 text-sm text-slate-500">
-            <p>
+            <div>
               Precisa de acesso?{' '}
               <a
                 href="#contact"
@@ -186,7 +186,7 @@ export default function Login() {
               >
                 Fale com o administrador
               </a>
-            </p>
+            </div>
           </CardFooter>
         </Card>
       </div>
