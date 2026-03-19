@@ -26,6 +26,10 @@ const SEARCH_ROUTES = [
   { title: 'Permissões', href: '/admin/permissoes' },
   { title: 'Central de Acessos', href: '/admin/acessos' },
   { title: 'Logs de Auditoria', href: '/admin/auditoria' },
+  { title: 'Nuvia Hub - Mural', href: '/hub/mural' },
+  { title: 'Nuvia Hub - PP & PDM', href: '/hub/feedback' },
+  { title: 'Nuvia Hub - Desenv. e Performance', href: '/hub/performance' },
+  { title: 'Nuvia Hub - Ranking', href: '/hub/ranking' },
 ]
 
 export function GlobalSearch({ className, isMobile }: { className?: string; isMobile?: boolean }) {

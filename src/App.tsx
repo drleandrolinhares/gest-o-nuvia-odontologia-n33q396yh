@@ -23,6 +23,7 @@ import ForceChangePassword from '@/pages/ForceChangePassword'
 import Mural from '@/pages/hub/Mural'
 import Feedback from '@/pages/hub/Feedback'
 import Ranking from '@/pages/hub/Ranking'
+import Performance from '@/pages/hub/Performance'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
@@ -71,6 +72,7 @@ export default function App() {
 
                 <Route path="hub/mural" element={<Mural />} />
                 <Route path="hub/feedback" element={<Feedback />} />
+                <Route path="hub/performance" element={<Performance />} />
                 <Route path="hub/ranking" element={<Ranking />} />
 
                 <Route path="*" element={<NotFound />} />

@@ -24,6 +24,7 @@ import {
   Megaphone,
   MessageSquarePlus,
   Trophy,
+  Target,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -138,6 +139,7 @@ export function Layout() {
         items: [
           { name: 'MURAL DE AVISOS', href: '/hub/mural', icon: Megaphone },
           { name: 'PP & PDM', href: '/hub/feedback', icon: MessageSquarePlus },
+          { name: 'DESENVOLVIMENTO E PERFORMANCE', href: '/hub/performance', icon: Target },
           { name: 'RANKING PERFORMANCE', href: '/hub/ranking', icon: Trophy },
         ],
       },
