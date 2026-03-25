@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { checkAuthError } from '@/lib/supabase/authHelpers'
 import { inventoryService } from '@/services/inventoryService'
 import { employeeService } from '@/services/employeeService'
+import { pricingService } from '@/services/pricingService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -2202,10 +2203,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (insertErr) throw insertErr
           if (newData) setAppSettings(mAppSet(newData))
         } else {
-          const { error } = await supabase
-            .from('app_settings' as any)
-            .update(payload)
-            .eq('id', currentId)
+          const { error } = await pricingService.updateSettings(currentId, payload)
           if (error) throw error
           setAppSettings((p) => (p ? { ...p, ...data } : null))
         }
@@ -2223,23 +2221,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addPriceItem = useCallback(
     async (p: Omit<PriceItem, 'id'>) => {
       try {
-        const { data, error } = await supabase
-          .from('price_list' as any)
-          .insert([
-            {
-              work_type: p.work_type,
-              category: p.category,
-              material: p.material,
-              price: p.price,
-              sector: p.sector,
-              execution_time: p.execution_time,
-              cadista_cost: p.cadista_cost,
-              material_cost: p.material_cost,
-              fixed_cost: p.fixed_cost,
-            },
-          ])
-          .select()
-          .single()
+        const { data, error } = await pricingService.addPriceItem({
+          work_type: p.work_type,
+          category: p.category,
+          material: p.material,
+          price: p.price,
+          sector: p.sector,
+          execution_time: p.execution_time,
+          cadista_cost: p.cadista_cost,
+          material_cost: p.material_cost,
+          fixed_cost: p.fixed_cost,
+        })
         if (error) throw error
         if (data) {
           setPriceList((prev) => [...prev, mPrice(data)])
@@ -2270,10 +2262,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (p.fixed_cost !== undefined) payload.fixed_cost = p.fixed_cost
 
       try {
-        const { error } = await supabase
-          .from('price_list' as any)
-          .update(payload)
-          .eq('id', id)
+        const { error } = await pricingService.updatePriceItem(id, payload)
         if (error) throw error
         setPriceList((prev) => prev.map((item) => (item.id === id ? { ...item, ...p } : item)))
         logAction(`ATUALIZOU ITEM DE PRECIFICAÇÃO ID: ${id}`)
@@ -2290,10 +2279,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removePriceItem = useCallback(
     async (id: string) => {
       try {
-        const { error } = await supabase
-          .from('price_list' as any)
-          .delete()
-          .eq('id', id)
+        const { error } = await pricingService.deletePriceItem(id)
         if (error) throw error
         setPriceList((prev) => prev.filter((item) => item.id !== id))
         logAction(`REMOVEU ITEM DE PRECIFICAÇÃO ID: ${id}`)
