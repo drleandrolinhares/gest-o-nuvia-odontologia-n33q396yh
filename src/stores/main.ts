@@ -612,8 +612,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         settingsService.fetchRolePermissions().then((r) => {
           if (!r.error) setRolePermissions((r.data || []) as any)
         }),
-        clinicService.fetchSpecialtyConfigs().then((r) => setSpecialtyConfigs(handleResponse(r, mSpecConfig))),
-        agendaService.fetchSegmentation().then((r) => setAgendaSegmentation(handleResponse(r, mSeg))),
+        clinicService
+          .fetchSpecialtyConfigs()
+          .then((r) => setSpecialtyConfigs(handleResponse(r, mSpecConfig))),
+        agendaService
+          .fetchSegmentation()
+          .then((r) => setAgendaSegmentation(handleResponse(r, mSeg))),
       ])
         .catch((err) => {
           if (!checkAuthError(err)) {

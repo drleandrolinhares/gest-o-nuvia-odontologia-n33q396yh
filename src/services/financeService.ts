@@ -3,7 +3,7 @@ import type { PriceItem, AppSettings } from '@/types/pricing'
 
 export const financeService = {
   // Price List Management
-  fetchPriceList: () => 
+  fetchPriceList: () =>
     supabase
       .from('price_list' as any)
       .select('*')
