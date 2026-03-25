@@ -72,13 +72,19 @@ export default function AuditLog() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-12 text-muted-foreground font-bold">
+                <TableCell
+                  colSpan={3}
+                  className="text-center py-12 text-muted-foreground font-bold"
+                >
                   CARREGANDO...
                 </TableCell>
               </TableRow>
             ) : logs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-12 text-muted-foreground font-bold">
+                <TableCell
+                  colSpan={3}
+                  className="text-center py-12 text-muted-foreground font-bold"
+                >
                   NENHUM REGISTRO DE AUDITORIA ENCONTRADO.
                 </TableCell>
               </TableRow>

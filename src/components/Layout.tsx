@@ -100,7 +100,8 @@ export function Layout() {
   const { toast } = useToast()
 
   const { unreadCounts } = useChatStore()
-  const { isDataLoading, fetchError, isAdmin, isMaster, can, sacRecords, currentUserId } = useAppStore()
+  const { isDataLoading, fetchError, isAdmin, isMaster, can, sacRecords, currentUserId } =
+    useAppStore()
   const { unreadAnnouncements, markAsRead, isLoading: isHubLoading } = useHubStore()
 
   const currentUnread = unreadAnnouncements.length > 0 ? unreadAnnouncements[0] : null
@@ -146,7 +147,12 @@ export function Layout() {
       {
         title: 'VISÃO DIÁRIA',
         items: [
-          { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard, module: 'DASHBOARD' },
+          {
+            name: 'DASHBOARD',
+            href: '/admin/dashboard',
+            icon: LayoutDashboard,
+            module: 'DASHBOARD',
+          },
           { name: 'AGENDA', href: '/admin/agenda', icon: Calendar, module: 'AGENDA' },
           { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle, module: 'MENSAGENS' },
           { name: 'SAC', href: '/admin/sac', icon: HeadphonesIcon },
@@ -156,7 +162,12 @@ export function Layout() {
         title: 'GESTÃO DE EQUIPE',
         items: [
           { name: 'RH', href: '/admin/rh', icon: Users, exact: true, module: 'RH' },
-          { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock, module: 'ESCALA DE TRABALHO' },
+          {
+            name: 'ESCALA DE TRABALHO',
+            href: '/admin/rh/escala',
+            icon: Clock,
+            module: 'ESCALA DE TRABALHO',
+          },
         ],
       },
       {
