@@ -15,7 +15,10 @@ interface EditInventoryMovementsTableProps {
   loading: boolean
 }
 
-export function EditInventoryMovementsTable({ movements, loading }: EditInventoryMovementsTableProps) {
+export function EditInventoryMovementsTable({
+  movements,
+  loading,
+}: EditInventoryMovementsTableProps) {
   return (
     <div className="border rounded-xl shadow-sm bg-white overflow-hidden mt-2">
       <Table>

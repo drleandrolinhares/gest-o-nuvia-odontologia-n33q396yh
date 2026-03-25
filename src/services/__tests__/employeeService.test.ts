@@ -63,14 +63,24 @@ describe('employeeService.fetchAll', () => {
 
 describe('employeeService.create', () => {
   it('insere na tabela employees com os dados fornecidos', () => {
-    const data = { name: 'Fulano', email: 'fulano@test.com', role: 'Dentista', department: 'Clínica' }
+    const data = {
+      name: 'Fulano',
+      email: 'fulano@test.com',
+      role: 'Dentista',
+      department: 'Clínica',
+    }
     employeeService.create(data as Parameters<typeof employeeService.create>[0])
     expect(fromMock).toHaveBeenCalledWith('employees')
     expect(qb.insert).toHaveBeenCalledWith([data])
   })
 
   it('encadeia .select().single() para retornar o registro criado', () => {
-    const data = { name: 'Fulano', email: 'fulano@test.com', role: 'Dentista', department: 'Clínica' }
+    const data = {
+      name: 'Fulano',
+      email: 'fulano@test.com',
+      role: 'Dentista',
+      department: 'Clínica',
+    }
     employeeService.create(data as Parameters<typeof employeeService.create>[0])
     expect(qb.select).toHaveBeenCalled()
     expect(qb.single).toHaveBeenCalled()

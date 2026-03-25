@@ -483,7 +483,6 @@ const mSeg = (d: Record<string, unknown>): AgendaSegmentation => ({
 
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -563,7 +562,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsDataLoading(true)
       setFetchError(null)
 
-      const handleResponse = <T>(r: { data: unknown[] | null; error: unknown }, mapper?: (d: unknown) => T): T[] => {
+      const handleResponse = <T>(
+        r: { data: unknown[] | null; error: unknown },
+        mapper?: (d: unknown) => T,
+      ): T[] => {
         if (r.error) throw r.error
         return mapper ? (r.data || []).map(mapper) : r.data || []
       }

@@ -72,14 +72,8 @@ export function EditEmployeeDialog({
   startInEditMode?: boolean
   focusSection?: string | null
 }) {
-  const {
-    updateEmployee,
-    updateEmployeePassword,
-    bonusTypes,
-    roles,
-    departments,
-    isAdmin,
-  } = useAppStore()
+  const { updateEmployee, updateEmployeePassword, bonusTypes, roles, departments, isAdmin } =
+    useAppStore()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditingData, setIsEditingData] = useState(false)

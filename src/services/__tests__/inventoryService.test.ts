@@ -140,12 +140,16 @@ describe('inventoryService.addOption', () => {
   it('insere na tabela inventory_settings', () => {
     inventoryService.addOption('MARCA_IMPLANTE', 'Straumann', 'Straumann')
     expect(fromMock).toHaveBeenCalledWith('inventory_settings')
-    expect(qb.insert).toHaveBeenCalledWith([{ category: 'MARCA_IMPLANTE', label: 'Straumann', value: 'Straumann' }])
+    expect(qb.insert).toHaveBeenCalledWith([
+      { category: 'MARCA_IMPLANTE', label: 'Straumann', value: 'Straumann' },
+    ])
   })
 
   it('usa value como label quando label não é fornecido', () => {
     inventoryService.addOption('specialty', 'PRÓTESE')
-    expect(qb.insert).toHaveBeenCalledWith([{ category: 'specialty', label: 'PRÓTESE', value: 'PRÓTESE' }])
+    expect(qb.insert).toHaveBeenCalledWith([
+      { category: 'specialty', label: 'PRÓTESE', value: 'PRÓTESE' },
+    ])
   })
 })
 

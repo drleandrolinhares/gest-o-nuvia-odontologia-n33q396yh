@@ -72,7 +72,10 @@ export const inventoryService = {
   delete: (id: string) => supabase.from('inventory').delete().eq('id', id),
 
   addPurchaseHistory: (id: string, history: unknown[]) =>
-    supabase.from('inventory').update({ purchase_history: history as any }).eq('id', id),
+    supabase
+      .from('inventory')
+      .update({ purchase_history: history as any })
+      .eq('id', id),
 
   addOption: (category: string, value: string, label?: string) =>
     supabase
@@ -82,9 +85,16 @@ export const inventoryService = {
       .single(),
 
   updateOption: (id: string, label: string) =>
-    supabase.from('inventory_settings' as any).update({ label }).eq('id', id),
+    supabase
+      .from('inventory_settings' as any)
+      .update({ label })
+      .eq('id', id),
 
-  removeOption: (id: string) => supabase.from('inventory_settings' as any).delete().eq('id', id),
+  removeOption: (id: string) =>
+    supabase
+      .from('inventory_settings' as any)
+      .delete()
+      .eq('id', id),
 
   addTemporaryOutflow: (
     inventoryId: string,
@@ -113,7 +123,13 @@ export const inventoryService = {
       .eq('inventory_id', inventoryId)
       .order('created_at', { ascending: false }),
 
-  addMovement: (inventoryId: string, userId: string, type: string, quantity: number, recipient: string) =>
+  addMovement: (
+    inventoryId: string,
+    userId: string,
+    type: string,
+    quantity: number,
+    recipient: string,
+  ) =>
     supabase
       .from('inventory_movements')
       .insert([{ inventory_id: inventoryId, user_id: userId, type, quantity, recipient }]),

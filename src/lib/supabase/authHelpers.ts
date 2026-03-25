@@ -10,7 +10,7 @@ export function isAuthError(err: unknown): boolean {
     e?.message?.includes('JWT expired') ||
     e?.status === 401 ||
     e?.message?.includes('Sessão expirada') ||
-    e?.message?.includes('Unauthorized')
+    e?.message?.includes('Unauthorized'),
   )
 }
 

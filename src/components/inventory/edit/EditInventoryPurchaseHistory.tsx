@@ -32,7 +32,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import useAppStore, { type InventoryItem, type PurchaseRecord } from '@/stores/main'
-import { editPurchaseSchema, formatCurrencyInput, type EditPurchaseFormSchema } from './editInventorySchema'
+import {
+  editPurchaseSchema,
+  formatCurrencyInput,
+  type EditPurchaseFormSchema,
+} from './editInventorySchema'
 
 interface EditInventoryPurchaseHistoryProps {
   item: InventoryItem | null

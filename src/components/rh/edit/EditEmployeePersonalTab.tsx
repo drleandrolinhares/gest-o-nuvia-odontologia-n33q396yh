@@ -1,13 +1,7 @@
 import type { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -80,11 +74,7 @@ export function EditEmployeePersonalTab({ form, isEditingData }: EditEmployeePer
               <FormItem>
                 <FormLabel>EMAIL *</FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    disabled={!isEditingData}
-                    className="bg-background lowercase"
-                  />
+                  <Input {...field} disabled={!isEditingData} className="bg-background lowercase" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -448,11 +438,7 @@ export function EditEmployeePersonalTab({ form, isEditingData }: EditEmployeePer
                   <FormLabel>CEP</FormLabel>
                   <div className="relative">
                     <FormControl>
-                      <Input
-                        {...field}
-                        disabled={!isEditingData}
-                        className="bg-background pr-10"
-                      />
+                      <Input {...field} disabled={!isEditingData} className="bg-background pr-10" />
                     </FormControl>
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   </div>

@@ -6,10 +6,17 @@ export const settingsService = {
   fetchSuppliers: () => supabase.from('suppliers').select('*'),
 
   addSupplier: (item: Omit<Supplier, 'id'>) =>
-    supabase.from('suppliers').insert([item as any]).select().single(),
+    supabase
+      .from('suppliers')
+      .insert([item as any])
+      .select()
+      .single(),
 
   updateSupplier: (id: string, item: Partial<Supplier>) =>
-    supabase.from('suppliers').update(item as any).eq('id', id),
+    supabase
+      .from('suppliers')
+      .update(item as any)
+      .eq('id', id),
 
   deleteSupplier: (id: string) => supabase.from('suppliers').delete().eq('id', id),
 
@@ -35,15 +42,29 @@ export const settingsService = {
 
   // Roles & Permissions
   fetchRoles: () =>
-    supabase.from('roles' as any).select('*').order('name', { ascending: true }),
+    supabase
+      .from('roles' as any)
+      .select('*')
+      .order('name', { ascending: true }),
 
   addRole: (name: string) =>
-    supabase.from('roles' as any).insert([{ name }]).select().single(),
+    supabase
+      .from('roles' as any)
+      .insert([{ name }])
+      .select()
+      .single(),
 
   updateRole: (id: string, name: string) =>
-    supabase.from('roles' as any).update({ name }).eq('id', id),
+    supabase
+      .from('roles' as any)
+      .update({ name })
+      .eq('id', id),
 
-  deleteRole: (id: string) => supabase.from('roles' as any).delete().eq('id', id),
+  deleteRole: (id: string) =>
+    supabase
+      .from('roles' as any)
+      .delete()
+      .eq('id', id),
 
   fetchRolePermissions: () => supabase.from('role_permissions' as any).select('*'),
 

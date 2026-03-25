@@ -177,9 +177,13 @@ export function ChatWindow() {
                 disabled={isLoadingMore}
               >
                 {isLoadingMore ? (
-                  <><Loader2 className="h-3 w-3 mr-2 animate-spin" /> CARREGANDO...</>
+                  <>
+                    <Loader2 className="h-3 w-3 mr-2 animate-spin" /> CARREGANDO...
+                  </>
                 ) : (
-                  <><ChevronUp className="h-3 w-3 mr-2" /> CARREGAR MENSAGENS ANTERIORES</>
+                  <>
+                    <ChevronUp className="h-3 w-3 mr-2" /> CARREGAR MENSAGENS ANTERIORES
+                  </>
                 )}
               </Button>
             </div>

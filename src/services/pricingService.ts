@@ -6,18 +6,37 @@ export const pricingService = {
   fetchPriceList: () => supabase.from('price_list' as any).select('*'),
 
   addPriceItem: (item: Omit<PriceItem, 'id'>) =>
-    supabase.from('price_list' as any).insert([item as any]).select().single(),
+    supabase
+      .from('price_list' as any)
+      .insert([item as any])
+      .select()
+      .single(),
 
   updatePriceItem: (id: string, item: Partial<PriceItem>) =>
-    supabase.from('price_list' as any).update(item as any).eq('id', id),
+    supabase
+      .from('price_list' as any)
+      .update(item as any)
+      .eq('id', id),
 
-  deletePriceItem: (id: string) => supabase.from('price_list' as any).delete().eq('id', id),
+  deletePriceItem: (id: string) =>
+    supabase
+      .from('price_list' as any)
+      .delete()
+      .eq('id', id),
 
   fetchSettings: () =>
-    supabase.from('app_settings' as any).select('*').limit(1).maybeSingle(),
+    supabase
+      .from('app_settings' as any)
+      .select('*')
+      .limit(1)
+      .maybeSingle(),
 
   createDefaultSettings: () =>
-    supabase.from('app_settings' as any).insert([{}]).select().single(),
+    supabase
+      .from('app_settings' as any)
+      .insert([{}])
+      .select()
+      .single(),
 
   updateSettings: (id: string, data: Partial<AppSettings>) =>
     supabase
@@ -41,7 +60,10 @@ export const pricingService = {
       .single(),
 
   deleteConsultorio: (id: string) =>
-    supabase.from('clinica_consultorios' as any).delete().eq('id', id),
+    supabase
+      .from('clinica_consultorios' as any)
+      .delete()
+      .eq('id', id),
 
   upsertConsultorioSchedules: (schedules: unknown[]) =>
     supabase.from('consultorio_weekly_schedules' as any).upsert(schedules as any),
@@ -56,5 +78,8 @@ export const pricingService = {
       .single(),
 
   deleteSpecialtyConfig: (id: string) =>
-    supabase.from('specialty_configs' as any).delete().eq('id', id),
+    supabase
+      .from('specialty_configs' as any)
+      .delete()
+      .eq('id', id),
 }

@@ -3,7 +3,10 @@ import type { SacRecord } from '@/types/sac'
 
 export const sacService = {
   fetchAll: () =>
-    supabase.from('sac_records' as any).select('*').order('created_at', { ascending: false }),
+    supabase
+      .from('sac_records' as any)
+      .select('*')
+      .order('created_at', { ascending: false }),
 
   create: (record: Omit<SacRecord, 'id' | 'created_at' | 'received_at' | 'limit_at'>) => {
     const received = new Date().toISOString()
@@ -29,7 +32,16 @@ export const sacService = {
   },
 
   update: (id: string, data: Partial<SacRecord>) =>
-    supabase.from('sac_records' as any).update(data as any).eq('id', id).select().single(),
+    supabase
+      .from('sac_records' as any)
+      .update(data as any)
+      .eq('id', id)
+      .select()
+      .single(),
 
-  delete: (id: string) => supabase.from('sac_records' as any).delete().eq('id', id),
+  delete: (id: string) =>
+    supabase
+      .from('sac_records' as any)
+      .delete()
+      .eq('id', id),
 }

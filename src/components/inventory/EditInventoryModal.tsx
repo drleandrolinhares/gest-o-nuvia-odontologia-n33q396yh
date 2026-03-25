@@ -23,7 +23,14 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatCurrency } from '@/lib/utils'
-import { Calculator, Barcode as BarcodeIcon, ShoppingCart, History, Info, Pencil } from 'lucide-react'
+import {
+  Calculator,
+  Barcode as BarcodeIcon,
+  ShoppingCart,
+  History,
+  Info,
+  Pencil,
+} from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { DatePickerInput } from '@/components/ui/date-picker-input'
 import { MonthYearInput } from '@/components/ui/month-year-input'
@@ -31,7 +38,12 @@ import { supabase } from '@/lib/supabase/client'
 import { ExplanationPopover } from '@/components/inventory/ExplanationPopover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import { schema, formatCurrencyInput, parseCurrency, type FormSchema } from './edit/editInventorySchema'
+import {
+  schema,
+  formatCurrencyInput,
+  parseCurrency,
+  type FormSchema,
+} from './edit/editInventorySchema'
 import { EditInventorySpecialtyDetails } from './edit/EditInventorySpecialtyDetails'
 import { EditInventoryPurchaseHistory } from './edit/EditInventoryPurchaseHistory'
 import { EditInventoryMovementsTable } from './edit/EditInventoryMovementsTable'

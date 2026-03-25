@@ -114,8 +114,8 @@ export function SecurityTab({ control, isEditingData, employee }: SecurityTabPro
                   disabled={isGenerating || !genEmail || !genPass}
                   className="bg-nuvia-gold hover:bg-nuvia-gold/90 text-nuvia-navy font-bold"
                 >
-                  {isGenerating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}{' '}
-                  CONFIRMAR GERAÇÃO DE ACESSO
+                  {isGenerating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} CONFIRMAR
+                  GERAÇÃO DE ACESSO
                 </Button>
               </div>
             </div>
@@ -190,7 +190,11 @@ export function SecurityTab({ control, isEditingData, employee }: SecurityTabPro
                         disabled={!isEditingData}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showNewPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                     <FormMessage />
@@ -219,7 +223,11 @@ export function SecurityTab({ control, isEditingData, employee }: SecurityTabPro
                         disabled={!isEditingData}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                     <FormMessage />

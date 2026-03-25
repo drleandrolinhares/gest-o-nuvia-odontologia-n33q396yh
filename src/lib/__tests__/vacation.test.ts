@@ -86,7 +86,7 @@ describe('getVacationStatus', () => {
   it('badgeClass contém a cor correspondente ao status', () => {
     setToday(FIXED_TODAY)
     expect(getVacationStatus('2024-06-01').badgeClass).toContain('emerald') // ok
-    expect(getVacationStatus('2024-02-10').badgeClass).toContain('amber')   // warning
-    expect(getVacationStatus('2024-01-15').badgeClass).toContain('red')     // critical
+    expect(getVacationStatus('2024-02-10').badgeClass).toContain('amber') // warning
+    expect(getVacationStatus('2024-01-15').badgeClass).toContain('red') // critical
   })
 })

@@ -45,7 +45,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const pendingSacsCount = useMemo(
     () =>
       sacRecords.filter(
-        (r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO' && r.responsible_employee_id === currentUserId,
+        (r) =>
+          r.status === 'OPORTUNIDADE DE SOLUÇÃO' && r.responsible_employee_id === currentUserId,
       ).length,
     [sacRecords, currentUserId],
   )
@@ -125,7 +126,13 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           ...section,
           items: section.items.filter((item) => {
             if ('adminOnly' in item && item.adminOnly && !isAdmin && !isMaster) return false
-            if ('module' in item && item.module && !isAdmin && !isMaster && !can(item.module, 'view'))
+            if (
+              'module' in item &&
+              item.module &&
+              !isAdmin &&
+              !isMaster &&
+              !can(item.module, 'view')
+            )
               return false
             return true
           }),

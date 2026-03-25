@@ -3,13 +3,7 @@ import { UseFormReturn } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -167,32 +161,21 @@ export function AddInventoryForm({
                 </FormControl>
                 <SelectContent>
                   {isLoadingSpecialties ? (
-                    <SelectItem
-                      value={field.value || 'loading'}
-                      disabled
-                      className="uppercase"
-                    >
+                    <SelectItem value={field.value || 'loading'} disabled className="uppercase">
                       CARREGANDO...
                     </SelectItem>
                   ) : localSpecialties.length === 0 ? (
-                    <SelectItem
-                      value={field.value || 'empty'}
-                      disabled
-                      className="uppercase"
-                    >
+                    <SelectItem value={field.value || 'empty'} disabled className="uppercase">
                       NENHUMA ESPECIALIDADE ENCONTRADA
                     </SelectItem>
                   ) : (
-                    [
-                      ...new Set([
-                        ...localSpecialties,
-                        ...(field.value ? [field.value] : []),
-                      ]),
-                    ].map((spec) => (
-                      <SelectItem key={spec} value={spec} className="uppercase">
-                        {spec}
-                      </SelectItem>
-                    ))
+                    [...new Set([...localSpecialties, ...(field.value ? [field.value] : [])])].map(
+                      (spec) => (
+                        <SelectItem key={spec} value={spec} className="uppercase">
+                          {spec}
+                        </SelectItem>
+                      ),
+                    )
                   )}
                 </SelectContent>
               </Select>
@@ -365,19 +348,13 @@ export function AddInventoryForm({
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="QTD_COMPRADA" id="m1" />
-                        <Label
-                          htmlFor="m1"
-                          className="text-xs cursor-pointer font-bold uppercase"
-                        >
+                        <Label htmlFor="m1" className="text-xs cursor-pointer font-bold uppercase">
                           QTD. COMPRADA
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="ITENS_EMBALAGEM" id="m2" />
-                        <Label
-                          htmlFor="m2"
-                          className="text-xs cursor-pointer font-bold uppercase"
-                        >
+                        <Label htmlFor="m2" className="text-xs cursor-pointer font-bold uppercase">
                           ITENS NA EMBALAGEM
                         </Label>
                       </div>
@@ -512,12 +489,7 @@ export function AddInventoryForm({
             <FormItem>
               <FormLabel>ESTOQUE MÍNIMO (UNIDADES)</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  className="uppercase"
-                  {...field}
-                  value={field.value ?? ''}
-                />
+                <Input type="number" className="uppercase" {...field} value={field.value ?? ''} />
               </FormControl>
             </FormItem>
           )}
@@ -537,11 +509,7 @@ export function AddInventoryForm({
               <FormItem>
                 <FormLabel>MARCA DA ÚLTIMA COMPRA</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="EX: 3M, IVOCLAR..."
-                    className="uppercase"
-                    {...field}
-                  />
+                  <Input placeholder="EX: 3M, IVOCLAR..." className="uppercase" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -590,9 +558,7 @@ export function AddInventoryForm({
           name="criticalObservations"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-amber-600 font-bold">
-                OBSERVAÇÕES CRÍTICAS
-              </FormLabel>
+              <FormLabel className="text-amber-600 font-bold">OBSERVAÇÕES CRÍTICAS</FormLabel>
               <FormControl>
                 <Textarea
                   className="min-h-[80px] uppercase border-amber-200 focus-visible:ring-amber-50 bg-amber-50/30"

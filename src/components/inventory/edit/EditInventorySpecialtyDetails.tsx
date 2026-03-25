@@ -1,11 +1,6 @@
 import type { UseFormReturn } from 'react-hook-form'
 import { Tag, Zap } from 'lucide-react'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
 import {
   Select,
   SelectContent,

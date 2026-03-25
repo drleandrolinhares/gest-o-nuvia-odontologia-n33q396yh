@@ -57,7 +57,6 @@ interface ChatStore {
 
 const ChatContext = createContext<ChatStore | undefined>(undefined)
 
-
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [rooms, setRooms] = useState<ChatRoom[]>([])
@@ -303,18 +302,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const loadMoreMessages = useCallback(async (roomId: string) => {
-    if (!roomId || isLoadingMore) return
-    const roomMsgs = messages[roomId]
-    if (!roomMsgs || roomMsgs.length === 0) return
-    const oldestMsg = roomMsgs[0]
-    setIsLoadingMore(true)
-    try {
-      await loadMessages(roomId, oldestMsg.created_at)
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }, [isLoadingMore, messages, loadMessages])
+  const loadMoreMessages = useCallback(
+    async (roomId: string) => {
+      if (!roomId || isLoadingMore) return
+      const roomMsgs = messages[roomId]
+      if (!roomMsgs || roomMsgs.length === 0) return
+      const oldestMsg = roomMsgs[0]
+      setIsLoadingMore(true)
+      try {
+        await loadMessages(roomId, oldestMsg.created_at)
+      } finally {
+        setIsLoadingMore(false)
+      }
+    },
+    [isLoadingMore, messages, loadMessages],
+  )
 
   useEffect(() => {
     const handleVisibilityChange = () => {

@@ -56,7 +56,10 @@ describe('getCostPerMinute', () => {
 describe('calculateProfitability', () => {
   it('retorna todos os campos esperados', () => {
     const settings = makeSettings()
-    const result = calculateProfitability({ price: 500, execution_time: 60, material_cost: 50, cadista_cost: 0 }, settings)
+    const result = calculateProfitability(
+      { price: 500, execution_time: 60, material_cost: 50, cadista_cost: 0 },
+      settings,
+    )
     expect(result).toHaveProperty('fixedCost')
     expect(result).toHaveProperty('netProfit')
     expect(result).toHaveProperty('marginPct')
@@ -65,22 +68,34 @@ describe('calculateProfitability', () => {
   })
 
   it('marginPct é 0 quando price é 0', () => {
-    const result = calculateProfitability({ price: 0, execution_time: 30, material_cost: 0, cadista_cost: 0 }, makeSettings())
+    const result = calculateProfitability(
+      { price: 0, execution_time: 30, material_cost: 0, cadista_cost: 0 },
+      makeSettings(),
+    )
     expect(result.marginPct).toBe(0)
   })
 
   it('lucro líquido é positivo quando preço cobre todos os custos', () => {
-    const result = calculateProfitability({ price: 10000, execution_time: 30, material_cost: 0, cadista_cost: 0 }, makeSettings())
+    const result = calculateProfitability(
+      { price: 10000, execution_time: 30, material_cost: 0, cadista_cost: 0 },
+      makeSettings(),
+    )
     expect(result.netProfit).toBeGreaterThan(0)
   })
 
   it('lucro líquido é negativo quando preço não cobre os custos', () => {
-    const result = calculateProfitability({ price: 1, execution_time: 120, material_cost: 1000, cadista_cost: 0 }, makeSettings())
+    const result = calculateProfitability(
+      { price: 1, execution_time: 120, material_cost: 1000, cadista_cost: 0 },
+      makeSettings(),
+    )
     expect(result.netProfit).toBeLessThan(0)
   })
 
   it('funciona com settings null (sem taxas)', () => {
-    const result = calculateProfitability({ price: 100, execution_time: 0, material_cost: 0, cadista_cost: 0 }, null)
+    const result = calculateProfitability(
+      { price: 100, execution_time: 0, material_cost: 0, cadista_cost: 0 },
+      null,
+    )
     expect(result.netProfit).toBe(100)
     expect(result.marginPct).toBe(100)
   })
