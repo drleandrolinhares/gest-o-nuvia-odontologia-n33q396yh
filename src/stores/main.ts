@@ -15,6 +15,8 @@ import { inventoryService } from '@/services/inventoryService'
 import { employeeService } from '@/services/employeeService'
 import { pricingService } from '@/services/pricingService'
 import { agendaService } from '@/services/agendaService'
+import { accessService } from '@/services/accessService'
+import { settingsService } from '@/services/settingsService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -1721,37 +1723,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addDocument = useCallback(
-    (n: string) => {
-      supabase
-        .from('documents')
-        .insert([{ name: n, date: new Date().toLocaleDateString('pt-BR') }])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setDocuments((p) => [...p, mDoc(data)])
-            logAction(`ADICIONOU DOC: ${n}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao adicionar documento', err))
+    async (n: string) => {
+      try {
+        const { data, error } = await settingsService.addDocument(n)
+        if (error) checkAuthError(error)
+        if (data) {
+          setDocuments((p) => [...p, mDoc(data)])
+          logAction(`ADICIONOU DOC: ${n}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao adicionar documento', err)
+      }
     },
     [logAction],
   )
   const removeDocument = useCallback(
-    (id: string) => {
-      supabase
-        .from('documents')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setDocuments((p) => p.filter((d) => d.id !== id))
-            logAction(`REMOVEU DOC ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover documento', err))
+    async (id: string) => {
+      try {
+        const { error } = await settingsService.removeDocument(id)
+        if (error) checkAuthError(error)
+        else {
+          setDocuments((p) => p.filter((d) => d.id !== id))
+          logAction(`REMOVEU DOC ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover documento', err)
+      }
     },
     [logAction],
   )
@@ -1831,196 +1828,156 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addAccess = useCallback(
-    (i: Omit<AccessItem, 'id'>) => {
-      supabase
-        .from('acessos')
-        .insert([
-          {
-            platform: i.platform,
-            url: i.url,
-            login: i.login,
-            pass: i.pass,
-            instructions: i.instructions || '',
-            sector: i.sector || 'GERAL',
-            access_level: i.access_level || 'ACESSO GERAL',
-            logo_url: i.logo_url || '',
-            description: i.description || '',
-            target_users: i.target_users || '',
-            frequency: i.frequency || '',
-            video_url: i.video_url || '',
-            manual_steps: (i.manual_steps as any) || [],
-            troubleshooting: (i.troubleshooting as any) || [],
-            security_note: i.security_note || '',
-          },
-        ])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setAcessos((p) => [...p, mAcc(data)])
-            logAction(`CRIOU ACESSO: ${i.platform}`)
-          }
+    async (i: Omit<AccessItem, 'id'>) => {
+      try {
+        const { data, error } = await accessService.create({
+          ...i,
+          instructions: i.instructions || '',
+          sector: i.sector || 'GERAL',
+          access_level: i.access_level || 'ACESSO GERAL',
+          logo_url: i.logo_url || '',
+          description: i.description || '',
+          target_users: i.target_users || '',
+          frequency: i.frequency || '',
+          video_url: i.video_url || '',
+          manual_steps: (i.manual_steps as any) || [],
+          troubleshooting: (i.troubleshooting as any) || [],
+          security_note: i.security_note || '',
         })
-        .catch((err) => console.warn('Erro ao criar acesso', err))
+        if (error) checkAuthError(error)
+        if (data) {
+          setAcessos((p) => [...p, mAcc(data)])
+          logAction(`CRIOU ACESSO: ${i.platform}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao criar acesso', err)
+      }
     },
     [logAction],
   )
   const updateAccess = useCallback(
-    (id: string, i: Partial<AccessItem>) => {
-      supabase
-        .from('acessos')
-        .update({
-          platform: i.platform,
-          url: i.url,
-          login: i.login,
-          pass: i.pass,
-          instructions: i.instructions,
-          sector: i.sector,
-          access_level: i.access_level,
-          logo_url: i.logo_url,
-          description: i.description,
-          target_users: i.target_users,
-          frequency: i.frequency,
-          video_url: i.video_url,
-          manual_steps: i.manual_steps as any,
-          troubleshooting: i.troubleshooting as any,
-          security_note: i.security_note,
-        })
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
-            logAction(`ATUALIZOU ACESSO ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao atualizar acesso', err))
+    async (id: string, i: Partial<AccessItem>) => {
+      try {
+        const { error } = await accessService.update(id, i)
+        if (error) checkAuthError(error)
+        else {
+          setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
+          logAction(`ATUALIZOU ACESSO ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao atualizar acesso', err)
+      }
     },
     [logAction],
   )
   const removeAccess = useCallback(
-    (id: string) => {
-      supabase
-        .from('acessos')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setAcessos((p) => p.filter((i) => i.id !== id))
-            logAction(`REMOVEU ACESSO ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover acesso', err))
+    async (id: string) => {
+      try {
+        const { error } = await accessService.delete(id)
+        if (error) checkAuthError(error)
+        else {
+          setAcessos((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU ACESSO ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover acesso', err)
+      }
     },
     [logAction],
   )
 
   const addSupplier = useCallback(
-    (i: Omit<Supplier, 'id'>) => {
-      supabase
-        .from('suppliers')
-        .insert([
-          {
-            name: i.name,
-            contact: i.contact,
-            phone: i.phone,
-            email: i.email,
-            cnpj: i.cnpj,
-            website: i.website,
-            has_special_negotiation: i.hasSpecialNegotiation,
-            negotiation_notes: i.negotiationNotes,
-          },
-        ])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setSuppliers((p) => [...p, mSup(data)])
-            logAction(`CRIOU FORNECEDOR: ${i.name}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao criar fornecedor', err))
-    },
-    [logAction],
-  )
-  const updateSupplier = useCallback(
-    (id: string, i: Partial<Supplier>) => {
-      supabase
-        .from('suppliers')
-        .update({
+    async (i: Omit<Supplier, 'id'>) => {
+      try {
+        const { data, error } = await settingsService.addSupplier({
           name: i.name,
           contact: i.contact,
           phone: i.phone,
           email: i.email,
           cnpj: i.cnpj,
           website: i.website,
-          has_special_negotiation: i.hasSpecialNegotiation,
-          negotiation_notes: i.negotiationNotes,
+          hasSpecialNegotiation: i.hasSpecialNegotiation,
+          negotiationNotes: i.negotiationNotes,
         })
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
-            logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao atualizar fornecedor', err))
+        if (error) checkAuthError(error)
+        if (data) {
+          setSuppliers((p) => [...p, mSup(data)])
+          logAction(`CRIOU FORNECEDOR: ${i.name}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao criar fornecedor', err)
+      }
+    },
+    [logAction],
+  )
+  const updateSupplier = useCallback(
+    async (id: string, i: Partial<Supplier>) => {
+      const payload: any = {
+        name: i.name,
+        contact: i.contact,
+        phone: i.phone,
+        email: i.email,
+        cnpj: i.cnpj,
+        website: i.website,
+      }
+      if (i.hasSpecialNegotiation !== undefined) payload.has_special_negotiation = i.hasSpecialNegotiation
+      if (i.negotiationNotes !== undefined) payload.negotiation_notes = i.negotiationNotes
+
+      try {
+        const { error } = await settingsService.updateSupplier(id, payload)
+        if (error) checkAuthError(error)
+        else {
+          setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
+          logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao atualizar fornecedor', err)
+      }
     },
     [logAction],
   )
   const removeSupplier = useCallback(
-    (id: string) => {
-      supabase
-        .from('suppliers')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setSuppliers((p) => p.filter((i) => i.id !== id))
-            logAction(`REMOVEU FORNECEDOR ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover fornecedor', err))
+    async (id: string) => {
+      try {
+        const { error } = await settingsService.deleteSupplier(id)
+        if (error) checkAuthError(error)
+        else {
+          setSuppliers((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU FORNECEDOR ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover fornecedor', err)
+      }
     },
     [logAction],
   )
 
   const addBonusType = useCallback(
-    (name: string) => {
-      supabase
-        .from('bonus_settings')
-        .insert([{ name }])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) setBonusTypes((p) => [...p, data])
-          logAction(`ADICIONOU TIPO DE BONIFICAÇÃO: ${name}`)
-        })
-        .catch((err) => console.warn('Erro ao adicionar tipo de bonificação', err))
+    async (name: string) => {
+      try {
+        const { data, error } = await settingsService.addBonusType(name)
+        if (error) checkAuthError(error)
+        if (data) setBonusTypes((p) => [...p, data])
+        logAction(`ADICIONOU TIPO DE BONIFICAÇÃO: ${name}`)
+      } catch (err) {
+        console.warn('Erro ao adicionar tipo de bonificação', err)
+      }
     },
     [logAction],
   )
 
   const removeBonusType = useCallback(
-    (id: string) => {
-      supabase
-        .from('bonus_settings')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setBonusTypes((p) => p.filter((b) => b.id !== id))
-            logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover tipo de bonificação', err))
+    async (id: string) => {
+      try {
+        const { error } = await settingsService.removeBonusType(id)
+        if (error) checkAuthError(error)
+        else {
+          setBonusTypes((p) => p.filter((b) => b.id !== id))
+          logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover tipo de bonificação', err)
+      }
     },
     [logAction],
   )
