@@ -133,4 +133,15 @@ export const inventoryService = {
     supabase
       .from('inventory_movements')
       .insert([{ inventory_id: inventoryId, user_id: userId, type, quantity, recipient }]),
+
+  addMovements: (movements: any[]) =>
+    supabase.from('inventory_movements' as any).insert(movements),
+
+  finalizeTemporaryOutflow: (id: string) =>
+    supabase
+      .from('inventory_temporary_outflows' as any)
+      .update({ status: 'FINALIZED' })
+      .eq('id', id)
+      .select()
+      .single(),
 }

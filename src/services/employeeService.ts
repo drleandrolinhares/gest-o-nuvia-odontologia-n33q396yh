@@ -65,4 +65,9 @@ export const employeeService = {
 
   requirePasswordChange: (userId: string) =>
     supabase.from('profiles').update({ must_change_password: true }).eq('id', userId),
+
+  generateAccess: (email: string, password: string, name: string) =>
+    supabase.functions.invoke('admin-create-user', {
+      body: { email, password, name },
+    }),
 } satisfies Record<string, (...args: any[]) => any>

@@ -18,6 +18,7 @@ import { agendaService } from '@/services/agendaService'
 import { accessService } from '@/services/accessService'
 import { settingsService } from '@/services/settingsService'
 import { sacService } from '@/services/sacService'
+import { clinicService } from '@/services/clinicService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -794,11 +795,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addRole = useCallback(
     async (name: string) => {
       try {
-        const { data, error } = await supabase
-          .from('roles' as any)
-          .insert([{ name }])
-          .select()
-          .single()
+        const { data, error } = await settingsService.addRole(name)
         if (error) throw error
         if (data) {
           setRoles((prev) => [...prev, data as any].sort((a, b) => a.name.localeCompare(b.name)))
@@ -818,10 +815,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (id: string, name: string) => {
       const oldRole = storeRef.current.roles.find((r) => r.id === id)?.name
       try {
-        const { error } = await supabase
-          .from('roles' as any)
-          .update({ name })
-          .eq('id', id)
+        const { error } = await settingsService.updateRole(id, name)
         if (error) throw error
 
         setRoles((p) =>
@@ -851,19 +845,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (id: string) => {
       const roleName = storeRef.current.roles.find((r) => r.id === id)?.name
       try {
-        const { error } = await supabase
-          .from('roles' as any)
-          .delete()
-          .eq('id', id)
+        const { error } = await settingsService.deleteRole(id)
         if (error) throw error
-
         setRoles((p) => p.filter((r) => r.id !== id))
-        logAction(`REMOVEU CARGO: ${roleName}`)
-
-        if (roleName) {
-          setRolePermissions((p) => p.filter((rp) => rp.role !== roleName))
-        }
-
+        logAction(`REMOVEU CARGO: ${roleName || id}`)
         return { success: true }
       } catch (error: any) {
         checkAuthError(error)
@@ -1309,59 +1294,59 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const finalizeTemporaryOutflow = useCallback(
     async (id: string, usedQty: number, returnedQty: number) => {
-      const { data, error } = await supabase
-        .from('inventory_temporary_outflows' as any)
-        .update({ status: 'FINALIZED' })
-        .eq('id', id)
-        .select()
-        .single()
+      try {
+        const { data, error } = await inventoryService.finalizeTemporaryOutflow(id)
+        if (error) {
+          checkAuthError(error)
+          return { success: false, error }
+        }
 
-      if (error) {
-        checkAuthError(error)
-        return { success: false, error }
-      }
+        if (data) {
+          setTemporaryOutflows((p) => p.filter((t) => t.id !== id))
 
-      if (data) {
-        setTemporaryOutflows((p) => p.filter((t) => t.id !== id))
-
-        if (usedQty > 0) {
-          const invItem = storeRef.current.inventory?.find((i) => i.id === data.inventory_id)
-          if (invItem) {
-            updateInventoryQuantity(invItem.id, Math.max(0, invItem.quantity - usedQty))
+          if (usedQty > 0) {
+            const invItem = storeRef.current.inventory?.find((i: any) => i.id === data.inventory_id)
+            if (invItem) {
+              updateInventoryQuantity(invItem.id, Math.max(0, invItem.quantity - usedQty))
+            }
           }
-        }
 
-        const user = storeRef.current.user
-        const movements = []
-        if (usedQty > 0) {
-          movements.push({
-            inventory_id: data.inventory_id,
-            user_id: user?.id,
-            type: 'SAÍDA',
-            quantity: usedQty,
-            recipient: 'RECONCILIAÇÃO DE BAIXA TEMPORÁRIA (USO)',
-          })
-        }
-        if (returnedQty > 0) {
-          movements.push({
-            inventory_id: data.inventory_id,
-            user_id: user?.id,
-            type: 'RETORNO',
-            quantity: returnedQty,
-            recipient: 'RECONCILIAÇÃO DE BAIXA TEMPORÁRIA (RETORNO)',
-          })
-        }
+          const user = storeRef.current.user
+          const movements = []
+          if (usedQty > 0) {
+            movements.push({
+              inventory_id: data.inventory_id,
+              user_id: user?.id,
+              type: 'SAÍDA',
+              quantity: usedQty,
+              recipient: 'RECONCILIAÇÃO DE BAIXA TEMPORÁRIA (USO)',
+            })
+          }
+          if (returnedQty > 0) {
+            movements.push({
+              inventory_id: data.inventory_id,
+              user_id: user?.id,
+              type: 'RETORNO',
+              quantity: returnedQty,
+              recipient: 'RECONCILIAÇÃO DE BAIXA TEMPORÁRIA (RETORNO)',
+            })
+          }
 
-        if (movements.length > 0 && user) {
-          await supabase.from('inventory_movements' as any).insert(movements)
-        }
+          if (movements.length > 0 && user) {
+            await inventoryService.addMovements(movements)
+          }
 
-        logAction(
-          `RECONCILIADA BAIXA TEMPORÁRIA ID: ${id} (USOU: ${usedQty}, DEVOLVEU: ${returnedQty})`,
-        )
-        return { success: true }
+          logAction(
+            `RECONCILIADA BAIXA TEMPORÁRIA ID: ${id} (USOU: ${usedQty}, DEVOLVEU: ${returnedQty})`,
+          )
+          return { success: true }
+        }
+        return { success: false }
+      } catch (err: any) {
+        checkAuthError(err)
+        console.warn('Erro ao finalizar baixa temporária', err)
+        return { success: false, error: err }
       }
-      return { success: false }
     },
     [logAction, updateInventoryQuantity],
   )
@@ -1617,32 +1602,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const deleteEmployee = useCallback(
-    (id: string) => {
-      employeeService
-        .delete(id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setEmployees((p) => p.filter((e) => e.id !== id))
-            logAction(`REMOVEU COLABORADOR: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover colaborador', err))
+    async (id: string) => {
+      try {
+        const { error } = await employeeService.delete(id)
+        if (error) {
+          checkAuthError(error)
+          return { success: false, error }
+        }
+        setEmployees((p) => p.filter((e) => e.id !== id))
+        logAction(`REMOVEU COLABORADOR: ${id}`)
+        return { success: true }
+      } catch (err: any) {
+        console.warn('Erro ao remover colaborador', err)
+        return { success: false, error: err }
+      }
     },
     [logAction],
   )
   const updateEmployeeStatus = useCallback(
-    (id: string, s: string) => {
-      employeeService
-        .updateStatus(id, s)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setEmployees((p) => p.map((e) => (e.id === id ? { ...e, status: s as any } : e)))
-            logAction(`ALTEROU STATUS COLAB ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao atualizar status do colaborador', err))
+    async (id: string, s: string) => {
+      try {
+        const { error } = await employeeService.updateStatus(id, s)
+        if (error) {
+          checkAuthError(error)
+          return { success: false, error }
+        }
+        setEmployees((p) => p.map((e) => (e.id === id ? { ...e, status: s as any } : e)))
+        logAction(`ALTEROU STATUS COLAB ID: ${id}`)
+        return { success: true }
+      } catch (err: any) {
+        console.warn('Erro ao atualizar status do colaborador', err)
+        return { success: false, error: err }
+      }
     },
     [logAction],
   )
@@ -2018,17 +2009,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const currentId = appSettings?.id
         if (!currentId) {
-          const { data: newData, error: insertErr } = await supabase
-            .from('app_settings' as any)
-            .insert([payload])
-            .select()
-            .single()
+          const { data: newData, error: insertErr } = await pricingService.createSettings(payload)
           if (insertErr) throw insertErr
           if (newData) setAppSettings(mAppSet(newData))
         } else {
           const { error } = await pricingService.updateSettings(currentId, payload)
           if (error) throw error
-          setAppSettings((p) => (p ? { ...p, ...data } : null))
+          setAppSettings((p: any) => (p ? { ...p, ...data } : null))
         }
         logAction('ATUALIZOU CONFIGURAÇÕES GLOBAIS DO SISTEMA')
         return { success: true }
@@ -2119,9 +2106,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateRolePermissions = useCallback(
     async (permissions: RolePermission[]) => {
       try {
-        const { error } = await supabase
-          .from('role_permissions' as any)
-          .upsert(permissions, { onConflict: 'role, module' })
+        const { error } = await settingsService.upsertRolePermissions(permissions)
         if (error) throw error
         setRolePermissions((prev) => {
           const newState = [...prev]
@@ -2151,29 +2136,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const toDelete = currentIds.filter((id) => !newIds.includes(id))
 
         if (toDelete.length > 0) {
-          await supabase
-            .from('clinica_consultorios' as any)
-            .delete()
-            .in('id', toDelete)
+          await clinicService.deleteConsultoriosIn(toDelete)
         }
 
         for (let i = 0; i < items.length; i++) {
           const c = items[i]
           let cid = c.id
           if (cid.startsWith('new-')) {
-            const { data, error } = await supabase
-              .from('clinica_consultorios' as any)
-              .insert([{ name: c.name || 'Novo Consultório' }])
-              .select()
-              .single()
+            const { data, error } = await clinicService.upsertConsultorio({
+              name: c.name || 'Novo Consultório',
+            })
             if (error) throw error
             cid = data.id
             items[i].id = cid
           } else {
-            await supabase
-              .from('clinica_consultorios' as any)
-              .update({ name: c.name || 'Novo Consultório' })
-              .eq('id', cid)
+            await clinicService.upsertConsultorio({ id: cid, name: c.name || 'Novo Consultório' })
           }
 
           if (c.schedules && c.schedules.length > 0) {
@@ -2186,18 +2163,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
               afternoon_end: s.afternoon_end || null,
               is_closed: s.is_closed,
             }))
-            await supabase
-              .from('consultorio_weekly_schedules' as any)
-              .upsert(schedulesToUpsert, { onConflict: 'consultorio_id, day_of_week' })
+            await clinicService.upsertConsultorioSchedules(schedulesToUpsert)
           }
         }
 
-        const { data: finalData, error } = await supabase
-          .from('clinica_consultorios' as any)
-          .select('*, schedules:consultorio_weekly_schedules(*)')
-          .order('created_at', { ascending: true })
+        const { data: finalData, error } = await clinicService.fetchConsultorios()
         if (error) throw error
-        if (finalData) setConsultorios(finalData)
+        if (finalData) setConsultorios(finalData as any)
 
         await updateAppSettings({ hourly_cost_monthly_hours: newMonthlyHours })
         logAction('ATUALIZOU CONSULTÓRIOS E HORAS MENSAIS')
@@ -2403,11 +2375,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addSpecialtyConfig = useCallback(
     async (name: string, color_hex: string) => {
       try {
-        const { data, error } = await supabase
-          .from('specialty_configs' as any)
-          .insert([{ name: name.toUpperCase(), color_hex }])
-          .select()
-          .single()
+        const { data, error } = await clinicService.addSpecialtyConfig(name, color_hex)
         if (error) throw error
         if (data) {
           setSpecialtyConfigs((prev) => [...prev, mSpecConfig(data)])
@@ -2426,10 +2394,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteSpecialtyConfig = useCallback(
     async (id: string) => {
       try {
-        const { error } = await supabase
-          .from('specialty_configs' as any)
-          .delete()
-          .eq('id', id)
+        const { error } = await clinicService.deleteSpecialtyConfig(id)
         if (error) throw error
         setSpecialtyConfigs((prev) => prev.filter((s) => s.id !== id))
         logAction(`REMOVEU ESPECIALIDADE DE AGENDA ID: ${id}`)
