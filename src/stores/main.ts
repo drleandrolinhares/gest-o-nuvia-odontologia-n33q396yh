@@ -15,6 +15,8 @@ import { inventoryService } from '@/services/inventoryService'
 import { employeeService } from '@/services/employeeService'
 import { pricingService } from '@/services/pricingService'
 import { agendaService } from '@/services/agendaService'
+import { accessService } from '@/services/accessService'
+import { settingsService } from '@/services/settingsService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -1008,60 +1010,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addInventoryItem = useCallback(
-    (i: Omit<InventoryItem, 'id'> & { initialPackages?: number }) => {
-      const pkgs = i.initialPackages ?? i.quantity / (i.itemsPerBox || 1)
-      const ph =
-        pkgs > 0
-          ? [
-              {
-                id: crypto.randomUUID(),
-                date: new Date().toISOString(),
-                price: i.packageCost,
-                quantity: pkgs,
-                expirationDate: i.expirationDate,
-                nfeNumber: i.nfeNumber,
-              },
-            ]
-          : []
-      supabase
-        .from('inventory')
-        .insert([
-          {
-            name: i.name,
-            package_cost: i.packageCost,
-            storage_location: i.storageLocation,
-            package_type: i.packageType,
-            items_per_box: i.itemsPerBox,
-            min_stock: i.minStock,
-            quantity: i.quantity,
-            specialty: i.specialty,
-            entry_date: i.entryDate,
-            expiration_date: i.expirationDate,
-            brand: i.brand,
-            last_brand: i.lastBrand,
-            last_value: i.lastValue,
-            notes: i.notes,
-            barcode: i.barcode,
-            purchase_history: ph,
-            specialty_details: i.specialtyDetails || {},
-            nfe_number: i.nfeNumber || null,
-            storage_room: i.storageRoom || null,
-            cabinet_number: i.cabinetNumber || null,
-            critical_observations: i.criticalObservations || null,
-            consumption_mode: i.consumptionMode || null,
-            consumption_reference: i.consumptionReference || null,
-          } as any,
-        ])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setInventory((p) => [...p, mInv(data)])
-            logAction(`CRIOU PRODUTO: ${i.name}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao adicionar produto no inventário', err))
+    async (i: Omit<InventoryItem, 'id'> & { initialPackages?: number }) => {
+      try {
+        const { data, error } = await inventoryService.create(i)
+        if (error) checkAuthError(error)
+        if (data) {
+          setInventory((p) => [...p, mInv(data)])
+          logAction(`CRIOU PRODUTO: ${i.name}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao adicionar produto no inventário', err)
+      }
     },
     [logAction],
   )
@@ -1112,7 +1071,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         payload.consumption_reference = data.consumptionReference || null
 
       try {
-        const { error } = await supabase.from('inventory').update(payload).eq('id', id)
+        const { error } = await inventoryService.update(id, payload)
         if (error) throw error
 
         setInventory((p) => p.map((i) => (i.id === id ? { ...i, ...data } : i)))
@@ -1145,41 +1104,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addPurchaseHistory = useCallback(
-    (itemId: string, r: Omit<PurchaseRecord, 'id'>) => {
-      setInventory((prev) => {
-        const item = prev.find((i) => i.id === itemId)
-        if (!item) return prev
-        const nh = [{ ...r, id: crypto.randomUUID() }, ...(item.purchaseHistory || [])]
-        const addedUnits = r.quantity * (item.itemsPerBox || 1)
-        const nq = item.quantity + addedUnits
-        supabase
-          .from('inventory')
-          .update({
-            purchase_history: nh as any,
-            quantity: nq,
-            package_cost: r.price,
-            expiration_date: r.expirationDate || item.expirationDate,
-            ...(r.nfeNumber ? { nfe_number: r.nfeNumber } : {}),
-          })
-          .eq('id', itemId)
-          .then(({ error }) => {
-            if (error) checkAuthError(error)
-            else logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`)
-          })
-          .catch((err) => console.warn('Erro ao adicionar histórico de compra', err))
-        return prev.map((i) =>
-          i.id === itemId
-            ? {
-                ...i,
-                purchaseHistory: nh,
-                quantity: nq,
-                packageCost: r.price,
-                expirationDate: r.expirationDate || item.expirationDate,
-                nfeNumber: r.nfeNumber || i.nfeNumber,
-              }
-            : i,
-        )
-      })
+    async (itemId: string, r: Omit<PurchaseRecord, 'id'>) => {
+      const item = storeRef.current.inventory.find((i) => i.id === itemId)
+      if (!item) return
+      const nh = [{ ...r, id: crypto.randomUUID() }, ...(item.purchaseHistory || [])]
+      const addedUnits = r.quantity * (item.itemsPerBox || 1)
+      const nq = item.quantity + addedUnits
+      
+      try {
+        const { error } = await inventoryService.update(itemId, {
+          purchase_history: nh as any,
+          quantity: nq,
+          package_cost: r.price,
+          expiration_date: r.expirationDate || item.expirationDate,
+          ...(r.nfeNumber ? { nfe_number: r.nfeNumber } : {}),
+        })
+        if (error) checkAuthError(error)
+        else {
+          logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`)
+          setInventory((prev) =>
+            prev.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    purchaseHistory: nh,
+                    quantity: nq,
+                    packageCost: r.price,
+                    expirationDate: r.expirationDate || item.expirationDate,
+                    nfeNumber: r.nfeNumber || i.nfeNumber,
+                  }
+                : i,
+            )
+          )
+        }
+      } catch (err) {
+        console.warn('Erro ao adicionar histórico de compra', err)
+      }
     },
     [logAction],
   )
@@ -1190,10 +1150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!item || !item.purchaseHistory) return { success: false }
       const newHistory = item.purchaseHistory.filter((ph) => ph.id !== purchaseId)
       try {
-        const { error } = await supabase
-          .from('inventory')
-          .update({ purchase_history: newHistory as any })
-          .eq('id', itemId)
+        const { error } = await inventoryService.addPurchaseHistory(itemId, newHistory)
         if (error) throw error
         setInventory((p) =>
           p.map((i) => (i.id === itemId ? { ...i, purchaseHistory: newHistory } : i)),
@@ -1216,10 +1173,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ph.id === purchaseId ? { ...ph, ...data } : ph,
       )
       try {
-        const { error } = await supabase
-          .from('inventory')
-          .update({ purchase_history: newHistory as any })
-          .eq('id', itemId)
+        const { error } = await inventoryService.addPurchaseHistory(itemId, newHistory)
         if (error) throw error
         setInventory((p) =>
           p.map((i) => (i.id === itemId ? { ...i, purchaseHistory: newHistory } : i)),
@@ -1235,30 +1189,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addInventoryOption = useCallback(
-    (category: string, value: string, label?: string) => {
-      supabase
-        .from('inventory_settings' as any)
-        .insert([{ category, value, label }])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setInventoryOptions((p) => [...p, mOpt(data)])
-            logAction(`CRIOU OPÇÃO DE ESTOQUE: ${category} - ${value}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao criar opção', err))
+    async (category: string, value: string, label?: string) => {
+      try {
+        const { data, error } = await inventoryService.addOption(category, value, label)
+        if (error) checkAuthError(error)
+        if (data) {
+          setInventoryOptions((p) => [...p, mOpt(data)])
+          logAction(`CRIOU OPÇÃO DE ESTOQUE: ${category} - ${value}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao criar opção', err)
+      }
     },
     [logAction],
   )
 
   const updateInventoryOption = useCallback(async (id: string, label: string) => {
     try {
-      const { error } = await supabase
-        .from('inventory_settings' as any)
-        .update({ label })
-        .eq('id', id)
+      const { error } = await inventoryService.updateOption(id, label)
       if (error) throw error
       setInventoryOptions((p) => p.map((o) => (o.id === id ? { ...o, label } : o)))
       return { success: true }
@@ -1269,19 +1217,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const removeInventoryOption = useCallback(
-    (id: string) => {
-      supabase
-        .from('inventory_settings' as any)
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setInventoryOptions((p) => p.filter((o) => o.id !== id))
-            logAction(`REMOVEU OPÇÃO DE ESTOQUE ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover opção', err))
+    async (id: string) => {
+      try {
+        const { error } = await inventoryService.removeOption(id)
+        if (error) checkAuthError(error)
+        else {
+          setInventoryOptions((p) => p.filter((o) => o.id !== id))
+          logAction(`REMOVEU OPÇÃO DE ESTOQUE ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover opção', err)
+      }
     },
     [logAction],
   )
@@ -1292,10 +1238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!item) return { success: false }
       const newQty = Math.max(0, item.quantity - quantity)
 
-      const { error: invErr } = await supabase
-        .from('inventory')
-        .update({ quantity: newQty })
-        .eq('id', inventory_id)
+      const { error: invErr } = await inventoryService.updateQuantity(inventory_id, newQty)
 
       if (invErr) {
         checkAuthError(invErr)
@@ -1306,15 +1249,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const user = storeRef.current.user
       if (user) {
-        await supabase.from('inventory_movements' as any).insert([
-          {
-            inventory_id,
-            user_id: user.id,
-            type: 'SAÍDA',
-            quantity,
-            recipient,
-          },
-        ])
+        await inventoryService.addMovement(inventory_id, user.id, 'SAÍDA', quantity, recipient)
       }
 
       logAction(`BAIXA DEFINITIVA: ${quantity} UN DO PRODUTO ID: ${inventory_id}`)
@@ -1325,11 +1260,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addTemporaryOutflow = useCallback(
     async (inventory_id: string, employee_id: string, quantity: number, destination: string) => {
-      const { data, error } = await supabase
-        .from('inventory_temporary_outflows' as any)
-        .insert([{ inventory_id, employee_id, quantity, status: 'PENDING' }])
-        .select('*, employees(name)')
-        .single()
+      const { data, error } = await inventoryService.addTemporaryOutflow(inventory_id, employee_id, quantity, destination)
 
       if (error) {
         checkAuthError(error)
@@ -1343,15 +1274,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const recipientStr = `Colab: ${emp?.name || 'Desconhecido'} - ${destination}`
 
         if (user) {
-          await supabase.from('inventory_movements' as any).insert([
-            {
-              inventory_id,
-              user_id: user.id,
-              type: 'BAIXA TEMPORÁRIA',
-              quantity,
-              recipient: recipientStr,
-            },
-          ])
+          await inventoryService.addMovement(inventory_id, user.id, 'BAIXA TEMPORÁRIA', quantity, recipientStr)
         }
 
         logAction(`BAIXA TEMPORÁRIA: ${quantity} UN PARA COLAB ID: ${employee_id}`)
@@ -1721,37 +1644,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addDocument = useCallback(
-    (n: string) => {
-      supabase
-        .from('documents')
-        .insert([{ name: n, date: new Date().toLocaleDateString('pt-BR') }])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setDocuments((p) => [...p, mDoc(data)])
-            logAction(`ADICIONOU DOC: ${n}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao adicionar documento', err))
+    async (n: string) => {
+      try {
+        const { data, error } = await settingsService.addDocument(n)
+        if (error) checkAuthError(error)
+        if (data) {
+          setDocuments((p) => [...p, mDoc(data)])
+          logAction(`ADICIONOU DOC: ${n}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao adicionar documento', err)
+      }
     },
     [logAction],
   )
   const removeDocument = useCallback(
-    (id: string) => {
-      supabase
-        .from('documents')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setDocuments((p) => p.filter((d) => d.id !== id))
-            logAction(`REMOVEU DOC ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover documento', err))
+    async (id: string) => {
+      try {
+        const { error } = await settingsService.removeDocument(id)
+        if (error) checkAuthError(error)
+        else {
+          setDocuments((p) => p.filter((d) => d.id !== id))
+          logAction(`REMOVEU DOC ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover documento', err)
+      }
     },
     [logAction],
   )
@@ -1831,196 +1749,156 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addAccess = useCallback(
-    (i: Omit<AccessItem, 'id'>) => {
-      supabase
-        .from('acessos')
-        .insert([
-          {
-            platform: i.platform,
-            url: i.url,
-            login: i.login,
-            pass: i.pass,
-            instructions: i.instructions || '',
-            sector: i.sector || 'GERAL',
-            access_level: i.access_level || 'ACESSO GERAL',
-            logo_url: i.logo_url || '',
-            description: i.description || '',
-            target_users: i.target_users || '',
-            frequency: i.frequency || '',
-            video_url: i.video_url || '',
-            manual_steps: (i.manual_steps as any) || [],
-            troubleshooting: (i.troubleshooting as any) || [],
-            security_note: i.security_note || '',
-          },
-        ])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setAcessos((p) => [...p, mAcc(data)])
-            logAction(`CRIOU ACESSO: ${i.platform}`)
-          }
+    async (i: Omit<AccessItem, 'id'>) => {
+      try {
+        const { data, error } = await accessService.create({
+          ...i,
+          instructions: i.instructions || '',
+          sector: i.sector || 'GERAL',
+          access_level: i.access_level || 'ACESSO GERAL',
+          logo_url: i.logo_url || '',
+          description: i.description || '',
+          target_users: i.target_users || '',
+          frequency: i.frequency || '',
+          video_url: i.video_url || '',
+          manual_steps: (i.manual_steps as any) || [],
+          troubleshooting: (i.troubleshooting as any) || [],
+          security_note: i.security_note || '',
         })
-        .catch((err) => console.warn('Erro ao criar acesso', err))
+        if (error) checkAuthError(error)
+        if (data) {
+          setAcessos((p) => [...p, mAcc(data)])
+          logAction(`CRIOU ACESSO: ${i.platform}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao criar acesso', err)
+      }
     },
     [logAction],
   )
   const updateAccess = useCallback(
-    (id: string, i: Partial<AccessItem>) => {
-      supabase
-        .from('acessos')
-        .update({
-          platform: i.platform,
-          url: i.url,
-          login: i.login,
-          pass: i.pass,
-          instructions: i.instructions,
-          sector: i.sector,
-          access_level: i.access_level,
-          logo_url: i.logo_url,
-          description: i.description,
-          target_users: i.target_users,
-          frequency: i.frequency,
-          video_url: i.video_url,
-          manual_steps: i.manual_steps as any,
-          troubleshooting: i.troubleshooting as any,
-          security_note: i.security_note,
-        })
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
-            logAction(`ATUALIZOU ACESSO ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao atualizar acesso', err))
+    async (id: string, i: Partial<AccessItem>) => {
+      try {
+        const { error } = await accessService.update(id, i)
+        if (error) checkAuthError(error)
+        else {
+          setAcessos((p) => p.map((a) => (a.id === id ? { ...a, ...i } : a)))
+          logAction(`ATUALIZOU ACESSO ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao atualizar acesso', err)
+      }
     },
     [logAction],
   )
   const removeAccess = useCallback(
-    (id: string) => {
-      supabase
-        .from('acessos')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setAcessos((p) => p.filter((i) => i.id !== id))
-            logAction(`REMOVEU ACESSO ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover acesso', err))
+    async (id: string) => {
+      try {
+        const { error } = await accessService.delete(id)
+        if (error) checkAuthError(error)
+        else {
+          setAcessos((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU ACESSO ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover acesso', err)
+      }
     },
     [logAction],
   )
 
   const addSupplier = useCallback(
-    (i: Omit<Supplier, 'id'>) => {
-      supabase
-        .from('suppliers')
-        .insert([
-          {
-            name: i.name,
-            contact: i.contact,
-            phone: i.phone,
-            email: i.email,
-            cnpj: i.cnpj,
-            website: i.website,
-            has_special_negotiation: i.hasSpecialNegotiation,
-            negotiation_notes: i.negotiationNotes,
-          },
-        ])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setSuppliers((p) => [...p, mSup(data)])
-            logAction(`CRIOU FORNECEDOR: ${i.name}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao criar fornecedor', err))
-    },
-    [logAction],
-  )
-  const updateSupplier = useCallback(
-    (id: string, i: Partial<Supplier>) => {
-      supabase
-        .from('suppliers')
-        .update({
+    async (i: Omit<Supplier, 'id'>) => {
+      try {
+        const { data, error } = await settingsService.addSupplier({
           name: i.name,
           contact: i.contact,
           phone: i.phone,
           email: i.email,
           cnpj: i.cnpj,
           website: i.website,
-          has_special_negotiation: i.hasSpecialNegotiation,
-          negotiation_notes: i.negotiationNotes,
+          hasSpecialNegotiation: i.hasSpecialNegotiation,
+          negotiationNotes: i.negotiationNotes,
         })
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
-            logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao atualizar fornecedor', err))
+        if (error) checkAuthError(error)
+        if (data) {
+          setSuppliers((p) => [...p, mSup(data)])
+          logAction(`CRIOU FORNECEDOR: ${i.name}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao criar fornecedor', err)
+      }
+    },
+    [logAction],
+  )
+  const updateSupplier = useCallback(
+    async (id: string, i: Partial<Supplier>) => {
+      const payload: any = {
+        name: i.name,
+        contact: i.contact,
+        phone: i.phone,
+        email: i.email,
+        cnpj: i.cnpj,
+        website: i.website,
+      }
+      if (i.hasSpecialNegotiation !== undefined) payload.has_special_negotiation = i.hasSpecialNegotiation
+      if (i.negotiationNotes !== undefined) payload.negotiation_notes = i.negotiationNotes
+
+      try {
+        const { error } = await settingsService.updateSupplier(id, payload)
+        if (error) checkAuthError(error)
+        else {
+          setSuppliers((p) => p.map((s) => (s.id === id ? { ...s, ...i } : s)))
+          logAction(`ATUALIZOU FORNECEDOR ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao atualizar fornecedor', err)
+      }
     },
     [logAction],
   )
   const removeSupplier = useCallback(
-    (id: string) => {
-      supabase
-        .from('suppliers')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setSuppliers((p) => p.filter((i) => i.id !== id))
-            logAction(`REMOVEU FORNECEDOR ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover fornecedor', err))
+    async (id: string) => {
+      try {
+        const { error } = await settingsService.deleteSupplier(id)
+        if (error) checkAuthError(error)
+        else {
+          setSuppliers((p) => p.filter((i) => i.id !== id))
+          logAction(`REMOVEU FORNECEDOR ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover fornecedor', err)
+      }
     },
     [logAction],
   )
 
   const addBonusType = useCallback(
-    (name: string) => {
-      supabase
-        .from('bonus_settings')
-        .insert([{ name }])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) setBonusTypes((p) => [...p, data])
-          logAction(`ADICIONOU TIPO DE BONIFICAÇÃO: ${name}`)
-        })
-        .catch((err) => console.warn('Erro ao adicionar tipo de bonificação', err))
+    async (name: string) => {
+      try {
+        const { data, error } = await settingsService.addBonusType(name)
+        if (error) checkAuthError(error)
+        if (data) setBonusTypes((p) => [...p, data])
+        logAction(`ADICIONOU TIPO DE BONIFICAÇÃO: ${name}`)
+      } catch (err) {
+        console.warn('Erro ao adicionar tipo de bonificação', err)
+      }
     },
     [logAction],
   )
 
   const removeBonusType = useCallback(
-    (id: string) => {
-      supabase
-        .from('bonus_settings')
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setBonusTypes((p) => p.filter((b) => b.id !== id))
-            logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover tipo de bonificação', err))
+    async (id: string) => {
+      try {
+        const { error } = await settingsService.removeBonusType(id)
+        if (error) checkAuthError(error)
+        else {
+          setBonusTypes((p) => p.filter((b) => b.id !== id))
+          logAction(`REMOVEU TIPO DE BONIFICAÇÃO ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover tipo de bonificação', err)
+      }
     },
     [logAction],
   )
