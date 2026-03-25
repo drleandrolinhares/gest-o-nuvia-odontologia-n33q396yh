@@ -11,6 +11,10 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
+    // Verify the user making the request is authenticated
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error('Missing Authorization header')
+
     // Create an admin client using the service role key to bypass RLS and use Admin API
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
@@ -19,10 +23,7 @@ Deno.serve(async (req: Request) => {
       },
     })
 
-    // Verify the user making the request is authenticated
-    const authHeader = req.headers.get('Authorization')!
-    if (!authHeader) throw new Error('Missing Authorization header')
-
+    // Validate the token to ensure the caller is authenticated
     const token = authHeader.replace('Bearer ', '')
     const {
       data: { user },
@@ -58,3 +59,4 @@ Deno.serve(async (req: Request) => {
     })
   }
 })
+
