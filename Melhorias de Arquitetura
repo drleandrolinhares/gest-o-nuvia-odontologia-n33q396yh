@@ -1,0 +1,229 @@
+Problema Crítico — God Store (src/stores/main.ts)
+
+Situação atual: Um único arquivo de 3.167 linhas contém:
+
+20+ definições de tipos TypeScript
+
+Funções mapper de DB → domínio (mEmp, mInv, mAg, mAcc, etc.)
+
+Todo o estado global da aplicação (20+ useState)
+
+Todas as queries Supabase de todos os módulos
+
+Lógica de negócio misturada com gerenciamento de estado
+
+Impacto: Qualquer alteração em qualquer módulo toca o mesmo arquivo, criando conflitos de merge, dificultando code review e escondendo bugs.
+
+Estrutura recomendada:
+
+src/
+├── types/
+│   ├── employee.ts
+│   ├── inventory.ts
+│   ├── agenda.ts
+│   ├── sac.ts
+│   └── ... (um arquivo por domínio)
+│
+├── mappers/
+│   ├── employeeMapper.ts
+│   ├── inventoryMapper.ts
+│   └── ...
+│
+├── services/          ← NOVA CAMADA (acesso ao Supabase)
+│   ├── employeeService.ts
+│   ├── inventoryService.ts
+│   ├── agendaService.ts
+│   └── ...
+│
+└── stores/
+    ├── employeeStore.ts
+    ├── inventoryStore.ts
+    ├── agendaStore.ts
+    └── appStore.ts    ← apenas estado global compartilhado
+
+Ausência de Camada de Serviço
+
+Situação atual: Queries Supabase são feitas diretamente dentro dos stores (AppProvider, ChatProvider, HubProvider). Exemplo em chat.tsx:
+
+const { data, error } = await supabase
+  .from('chat_messages')
+  .select('*')
+  .eq('room_id', roomId)
+  .order('created_at', { ascending: true })
+  .limit(300)
+
+Problema: Impossível testar a lógica sem conexão real com Supabase. Se o backend mudar, há dezenas de pontos para alterar.
+
+Recomendação: Criar uma camada de serviços que encapsula as queries:
+
+// services/chatService.ts
+export const chatService = {
+  getMessages: (roomId: string) =>
+    supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('room_id', roomId)
+      .order('created_at', { ascending: true })
+      .limit(300),
+}
+
+Zero Cobertura de Testes
+
+Situação atual:
+
+"test": "echo "there are no tests for this project" && exit 0"
+
+Para um sistema com dados financeiros, dados de funcionários (CPF, RG, salário), lógica de precificação e controle de estoque médico, a ausência de testes é um risco crítico de negócio.
+
+Recomendação por prioridade:
+
+PrioridadeO que testarFerramentaAltaLógica de precificação (src/lib/pricing.ts)VitestAltaCálculo de férias (src/lib/vacation.ts)VitestAltaFunções de permissão (can, isAdmin)VitestMédiaComponentes críticos (modais de estoque, RH)Testing LibraryBaixaEdge Functions SupabaseDeno Test
+
+Código Duplicado — Tratamento de Erros de Auth
+
+Situação atual: Existe checkAuthError em main.ts e handleAuthError em chat.tsx — lógica quase idêntica duplicada em dois arquivos. Além disso, isMasterUser é buscado independentemente no ChatProvider via RPC, sendo que isMaster já existe no AppStore.
+
+Recomendação:
+
+// lib/supabase/authHelpers.ts
+export const isAuthError = (err: any): boolean => {
+  return (
+    err?.code === 'PGRST303' ||
+    err?.message?.includes('JWT expired') ||
+    err?.status === 401
+  )
+}
+
+export const handleAuthError = (err: any): boolean => {
+  if (!isAuthError(err)) return false
+  supabase.auth.signOut()
+  toast({ title: 'Sessão Expirada', variant: 'destructive' })
+  return true
+}
+
+Rotas sem Proteção de Permissão
+
+Situação atual em App.tsx:
+
+<Route path="admin/sac" element={} />
+<Route path="admin/operacao/negociacao" element={} />
+<Route path="admin/operacao/segmentacao" element={} />
+
+Estas três rotas estão dentro do ProtectedRoute (exigem login) mas não têm PermissionRoute, ou seja, qualquer usuário autenticado acessa SAC, Negociação e Segmentação independentemente de seu papel.
+
+As rotas do Hub também não têm verificação de módulo:
+
+<Route path="hub/mural" element={} />
+<Route path="hub/feedback" element={} />
+<Route path="hub/performance" element={} />
+<Route path="hub/ranking" element={} />
+
+Segurança — Credenciais Hardcoded no Código-Fonte
+
+Situação atual em src/lib/supabase/client.ts:
+
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string) 
+  || 'https://eisawcnuqtroudyeqcqn.supabase.co'
+
+const SUPABASE_PUBLISHABLE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) 
+  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+
+Embora a anon key do Supabase seja tecnicamente pública, commitá-la diretamente no repositório é má prática: impossibilita a rotação de chaves, expõe a URL do projeto e pode facilitar ataques direcionados.
+
+Recomendação: Remover os fallbacks hardcoded e exigir as variáveis de ambiente:
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Supabase env vars missing')
+
+Senhas em Texto Plano na Tabela acessos
+
+O schema do banco (types.ts) revela que a tabela acessos possui o campo pass armazenando senhas de plataformas externas em texto claro. Se o banco for comprometido, todas as credenciais de sistemas externos da clínica ficam expostas.
+
+Recomendação: Usar criptografia simétrica (ex: AES-256 via Edge Function) para armazenar e recuperar essas senhas, ou migrar para um cofre de segredos (ex: HashiCorp Vault, Supabase Vault).
+
+Falta de Tipagem Forte nos Mappers
+
+Situação atual:
+
+const mEmp = (d: any): Employee => ({ ... })
+const mInv = (d: any): InventoryItem => ({ ... })
+
+O arquivo src/lib/supabase/types.ts tem os tipos gerados automaticamente do banco. Os mappers deveriam usar esses tipos como entrada:
+
+import type { Database } from '@/lib/supabase/types'
+type DbEmployee = Database['public']['Tables']['employees']['Row']
+
+const mapEmployee = (d: DbEmployee): Employee => ({ ... })
+
+Isso elimina a camada de any e garante que mudanças no schema sejam detectadas em tempo de compilação.
+
+Componentes Gigantes — Violação do SRP
+
+Os maiores componentes precisam ser decompostos:
+
+ArquivoLinhasAção RecomendadaEditInventoryModal.tsx1.627Separar em tabs/seções como componentes própriosAddInventoryModal.tsx1.124Extrair PurchaseHistorySection, SpecialtyDetailsSectionEditEmployeeDialog.tsx1.123Extrair abas (dados pessoais, financeiro, documentos)Layout.tsx641Extrair Sidebar, Header, MobileNavHourlyCostCalculator.tsx538Extrair FixedCostTable, VariableCostSection
+
+React Context vs. Gerenciador de Estado
+
+Situação atual: Toda a lógica de estado usa React Context API com useState manual. Com 20+ entidades no AppStore, qualquer atualização de qualquer dado dispara re-render em todos os consumidores do contexto.
+
+Recomendação: Migrar para Zustand (minimalista, compatível com a arquitetura atual) que resolve o problema de re-renders granulares e tem melhor suporte para DevTools:
+
+// stores/employeeStore.ts
+import { create } from 'zustand'
+
+interface EmployeeStore {
+  employees: Employee[]
+  isLoading: boolean
+  fetchEmployees: () => Promise
+  addEmployee: (e: Omit<Employee, 'id'>) => Promise
+}
+
+export const useEmployeeStore = create((set) => ({
+  employees: [],
+  isLoading: false,
+  fetchEmployees: async () => { ... },
+  addEmployee: async (e) => { ... },
+}))
+
+Paginação e Histórico de Chat
+
+Situação atual: loadMessages busca os últimos 300 mensagens sem paginação:
+
+.select('*')
+.eq('room_id', roomId)
+.order('created_at', { ascending: true })
+.limit(300)
+
+Em conversas ativas, mensagens antigas serão perdidas. Implementar cursor-based pagination ou infinite scroll.
+
+Dados Estáticos Hardcoded no Store
+
+const mockDepartments = ['ODONTOLOGIA', 'OPERACIONAL', ...]
+const mockPackageTypes = ['CAIXA', 'UNIDADE', ...]
+const mockAgendaTypes = ['CONSULTA', 'REUNIÃO', ...]
+
+Esses valores são inicializados no cliente e depois sobrescritos com dados do banco. Se o banco estiver indisponível no primeiro carregamento, o usuário vê dados incorretos temporariamente. Devem ser buscados exclusivamente do banco, com estado de loading adequado.
+
+Arquivo de Configuração Vestigial
+
+src/config/navigation.ts contém publicNavigation com links para seções de um website público (#sobre, #servicos, #blog). O sistema não tem área pública. Esse arquivo parece herança do template original e pode ser removido.
+
+Roadmap Priorizado
+
+#MelhoriaEsforçoImpacto1Quebrar main.ts em stores/services por móduloAltoCrítico2Criar camada de serviços (services/)MédioAlto3Proteger rotas SAC, Negociação, Segmentação, HubBaixoAlto4Remover credenciais hardcoded do client.tsBaixoAlto5Unificar handleAuthError em helper compartilhadoBaixoMédio6Adicionar tipos fortes nos mappers (remover any)MédioMédio7Testes para lógica financeira e de permissõesMédioAlto8Decompor componentes > 500 linhasAltoMédio9Migrar para ZustandAltoMédio10Paginação no chatMédioBaixo11Criptografar senhas em acessosMédioAlto (segurança)
+
+Pontos Positivos
+
+Estrutura de módulos por pasta (/components/agenda, /components/inventory, etc.) está bem organizada
+
+Uso correto de ErrorBoundary global
+
+PermissionRoute com lógica de RBAC é um bom padrão
+
+Migrações SQL versionadas no Supabase estão organizadas cronologicamente
+
+Realtime do chat bem implementado com presença e canais separados
+
+Tipos gerados automaticamente do Supabase (types.ts) — bom sinal de maturidade do projeto

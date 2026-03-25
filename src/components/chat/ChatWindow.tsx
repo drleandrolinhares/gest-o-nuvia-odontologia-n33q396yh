@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { ArrowLeft, Send, Users, Loader2, Settings, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Send, Users, Loader2, Settings, AlertTriangle, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -18,9 +18,12 @@ export function ChatWindow() {
     sendMessage,
     onlineUsers,
     isLoadingRoom,
+    isLoadingMore,
+    hasMoreMessages,
     isMasterUser,
     closeRoom,
     roomError,
+    loadMoreMessages,
   } = useChatStore()
   const { employees, currentUserId } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -163,6 +166,24 @@ export function ChatWindow() {
 
       <ScrollArea className="flex-1 p-4 md:p-6 min-h-0">
         <div className="space-y-4 pb-4">
+          {hasMoreMessages[activeRoomId] && (
+            <div className="flex justify-center py-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs uppercase font-bold text-muted-foreground hover:text-foreground"
+                onClick={() => loadMoreMessages(activeRoomId)}
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? (
+                  <><Loader2 className="h-3 w-3 mr-2 animate-spin" /> CARREGANDO...</>
+                ) : (
+                  <><ChevronUp className="h-3 w-3 mr-2" /> CARREGAR MENSAGENS ANTERIORES</>
+                )}
+              </Button>
+            </div>
+          )}
           {roomMsgs.map((msg, idx) => {
             const isMe = msg.sender_id === currentUserId
             const sender = employees.find((e) => e.user_id === msg.sender_id)
