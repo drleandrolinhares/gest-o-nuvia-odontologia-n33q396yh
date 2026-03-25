@@ -61,6 +61,8 @@ export const employeeService = {
     supabase
       .from('work_schedules')
       .upsert(data as any, { onConflict: 'employee_id,work_date' })
-      .select()
       .single(),
+
+  requirePasswordChange: (userId: string) =>
+    supabase.from('profiles').update({ must_change_password: true }).eq('id', userId),
 } satisfies Record<string, (...args: any[]) => any>

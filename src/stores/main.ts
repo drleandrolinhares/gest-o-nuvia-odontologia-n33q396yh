@@ -17,6 +17,7 @@ import { pricingService } from '@/services/pricingService'
 import { agendaService } from '@/services/agendaService'
 import { accessService } from '@/services/accessService'
 import { settingsService } from '@/services/settingsService'
+import { sacService } from '@/services/sacService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -268,7 +269,7 @@ const mEmp = (d: DbEmployee): Employee => ({
   username: d.username,
   role: d.role,
   department: d.department,
-  status: d.status,
+  status: d.status as any,
   hireDate: d.hire_date || '',
   salary: d.salary,
   vacationDaysTaken: d.vacation_days_taken,
@@ -317,8 +318,8 @@ const mInv = (d: DbInventory): InventoryItem => ({
   lastValue: d.last_value,
   notes: d.notes,
   barcode: d.barcode,
-  purchaseHistory: d.purchase_history,
-  specialtyDetails: d.specialty_details,
+  purchaseHistory: d.purchase_history as any,
+  specialtyDetails: d.specialty_details as any,
   nfeNumber: d.nfe_number,
   storageRoom: d.storage_room,
   cabinetNumber: d.cabinet_number,
@@ -360,11 +361,11 @@ const mAcc = (d: DbAcesso): AccessItem => ({
   target_users: d.target_users || '',
   frequency: d.frequency || '',
   video_url: d.video_url || '',
-  manual_steps: d.manual_steps || [],
-  troubleshooting: d.troubleshooting || [],
+  manual_steps: d.manual_steps as any,
+  troubleshooting: d.troubleshooting as any,
   security_note: d.security_note || '',
 })
-const mSup = (d: Record<string, unknown>): Supplier => ({
+const mSup = (d: any): Supplier => ({
   id: d.id,
   name: d.name,
   contact: d.contact,
@@ -375,7 +376,7 @@ const mSup = (d: Record<string, unknown>): Supplier => ({
   hasSpecialNegotiation: d.has_special_negotiation,
   negotiationNotes: d.negotiation_notes,
 })
-const mOnb = (d: Record<string, unknown>): OnboardingCandidate => ({
+const mOnb = (d: any): OnboardingCandidate => ({
   id: d.id,
   name: d.name,
   role: d.role,
@@ -434,13 +435,15 @@ const mAppSet = (d: DbAppSettings): AppSettings => ({
   negotiation_settings: d.negotiation_settings
     ? {
         ...defaultNegotiationSettings,
-        ...d.negotiation_settings,
-        discounts: d.negotiation_settings.discounts || defaultNegotiationSettings.discounts,
+        ...(d.negotiation_settings as Record<string, any>),
+        discounts:
+          (d.negotiation_settings as Record<string, any>)?.discounts ||
+          defaultNegotiationSettings.discounts,
       }
     : defaultNegotiationSettings,
 })
 
-const mPrice = (d: Record<string, unknown>): PriceItem => ({
+const mPrice = (d: any): PriceItem => ({
   id: d.id,
   work_type: d.work_type,
   category: d.category,
@@ -453,7 +456,7 @@ const mPrice = (d: Record<string, unknown>): PriceItem => ({
   fixed_cost: Number(d.fixed_cost) || 0,
 })
 
-const mSac = (d: Record<string, unknown>): SacRecord => ({
+const mSac = (d: any): SacRecord => ({
   id: d.id,
   type: d.type,
   patient_name: d.patient_name,
@@ -470,14 +473,14 @@ const mSac = (d: Record<string, unknown>): SacRecord => ({
   action_history: Array.isArray(d.action_history) ? d.action_history : [],
 })
 
-const mSpecConfig = (d: Record<string, unknown>): SpecialtyConfig => ({
+const mSpecConfig = (d: any): SpecialtyConfig => ({
   id: d.id,
   name: d.name,
   color_hex: d.color_hex,
   created_at: d.created_at,
 })
 
-const mSeg = (d: Record<string, unknown>): AgendaSegmentation => ({
+const mSeg = (d: any): AgendaSegmentation => ({
   id: d.id,
   consultorio_id: d.consultorio_id,
   day_of_week: d.day_of_week,
@@ -532,6 +535,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     inventoryOptions,
     specialtyConfigs,
     agendaSegmentation,
+    employeeDocuments,
   })
   useEffect(() => {
     storeRef.current = {
@@ -546,6 +550,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       inventoryOptions,
       specialtyConfigs,
       agendaSegmentation,
+      employeeDocuments,
     }
   }, [
     user,
@@ -567,12 +572,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsDataLoading(true)
       setFetchError(null)
 
-      const handleResponse = <T>(
-        r: { data: unknown[] | null; error: unknown },
-        mapper?: (d: unknown) => T,
+      const handleResponse = <T = any>(
+        r: any,
+        mapper?: (d: any) => T,
       ): T[] => {
         if (r.error) throw r.error
-        return mapper ? (r.data || []).map(mapper) : r.data || []
+        const data = Array.isArray(r.data) ? r.data : []
+        return mapper ? data.map(mapper) : (data as unknown as T[])
       }
 
       Promise.all([
@@ -593,7 +599,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .select('*, employees(name)')
           .eq('status', 'PENDING')
           .then((r) => {
-            if (!r.error) setTemporaryOutflows(r.data || [])
+            if (!r.error) setTemporaryOutflows((r.data || []) as any)
           }),
         supabase
           .from('agenda')
@@ -633,7 +639,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .select('*, schedules:consultorio_weekly_schedules(*)')
           .order('created_at', { ascending: true })
           .then((r) => {
-            if (!r.error) setConsultorios(r.data || [])
+            if (!r.error) setConsultorios((r.data || []) as any)
           }),
         supabase
           .from('sac_records' as any)
@@ -647,14 +653,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .maybeSingle()
           .then(async (r) => {
             if (r.data) {
-              setAppSettings(mAppSet(r.data))
+              setAppSettings(mAppSet(r.data as any))
             } else if (!r.error) {
               const { data: newData } = await supabase
                 .from('app_settings' as any)
                 .insert([{}])
                 .select()
                 .single()
-              if (newData) setAppSettings(mAppSet(newData))
+              if (newData) setAppSettings(mAppSet(newData as any))
             }
           }),
         supabase
@@ -667,7 +673,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .from('role_permissions' as any)
           .select('*')
           .then((r) => {
-            if (!r.error) setRolePermissions(r.data || [])
+            if (!r.error) setRolePermissions((r.data || []) as any)
           }),
         supabase
           .from('specialty_configs' as any)
@@ -764,20 +770,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!storeRef.current.user) return
     const u = storeRef.current.user
     const n = storeRef.current.employees.find((e) => e.user_id === u.id)?.name || 'SISTEMA'
-    supabase
-      .from('audit_logs')
-      .insert([{ user_id: u.id, action: action.toUpperCase() }])
-      .select()
-      .single()
-      .then(({ data, error }) => {
+    const runLog = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('audit_logs')
+          .insert([{ user_id: u.id, action: action.toUpperCase() }])
+          .select()
+          .single()
         if (error) checkAuthError(error)
-        if (data)
+        if (data) {
           setAuditLogs((p) => [
             { id: data.id, userName: n, action: data.action, timestamp: data.created_at },
             ...p,
           ])
-      })
-      .catch((err) => console.warn('Falha ao registrar log de auditoria', err))
+        }
+      } catch (err) {
+        console.warn('Falha ao registrar log de auditoria', err)
+      }
+    }
+    runLog()
   }, [])
 
   const addRole = useCallback(
@@ -790,7 +801,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           .single()
         if (error) throw error
         if (data) {
-          setRoles((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
+          setRoles((prev) => [...prev, data as any].sort((a, b) => a.name.localeCompare(b.name)))
           logAction(`CRIOU CARGO: ${name}`)
           return { success: true }
         }
@@ -1272,7 +1283,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { success: false, error }
       }
       if (data) {
-        setTemporaryOutflows((p) => [data, ...p])
+        setTemporaryOutflows((p) => [data as any, ...p])
 
         const user = storeRef.current.user
         const emp = storeRef.current.employees.find((e) => e.id === employee_id)
@@ -1404,45 +1415,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
         e.email = formattedEmail
       }
 
-      const { data: empData, error: empError } = await supabase
-        .from('employees')
-        .insert([
-          {
-            name: e.name,
-            username: e.username || null,
-            role: e.role,
-            department: e.department,
-            status: e.status,
-            hire_date: e.hireDate || null,
-            salary: e.salary,
-            vacation_days_taken: e.vacationDaysTaken,
-            vacation_days_total: e.vacationDaysTotal,
-            vacation_due_date: e.vacationDueDate || null,
-            email: e.email || null,
-            phone: e.phone || null,
-            rg: e.rg || null,
-            cpf: e.cpf || null,
-            birth_date: e.birthDate || null,
-            cep: e.cep || null,
-            address: e.address || null,
-            address_number: e.addressNumber || null,
-            address_complement: e.addressComplement || null,
-            city: e.city || null,
-            state: e.state || null,
-            team_category: e.teamCategory || ['COLABORADOR'],
-            contract_details: e.contractDetails || '',
-            bonus_type: e.bonusType || '',
-            bonus_rules: e.bonusRules || '',
-            bonus_due_date: e.bonusDueDate || null,
-            pix_number: e.pix_number || null,
-            pix_type: e.pix_type || null,
-            bank_name: e.bank_name || null,
-            user_id: userId || null,
-            no_system_access: e.noSystemAccess || false,
-          } as any,
-        ])
-        .select()
-        .single()
+      const { data: empData, error: empError } = await employeeService.create({
+        name: e.name,
+        username: e.username || null,
+        role: e.role,
+        department: e.department,
+        status: e.status,
+        hire_date: e.hireDate || null,
+        salary: e.salary,
+        vacation_days_taken: e.vacationDaysTaken,
+        vacation_days_total: e.vacationDaysTotal,
+        vacation_due_date: e.vacationDueDate || null,
+        email: e.email || null,
+        phone: e.phone || null,
+        rg: e.rg || null,
+        cpf: e.cpf || null,
+        birth_date: e.birthDate || null,
+        cep: e.cep || null,
+        address: e.address || null,
+        address_number: e.addressNumber || null,
+        address_complement: e.addressComplement || null,
+        city: e.city || null,
+        state: e.state || null,
+        team_category: e.teamCategory || ['COLABORADOR'],
+        contract_details: e.contractDetails || '',
+        bonus_type: e.bonusType || '',
+        bonus_rules: e.bonusRules || '',
+        bonus_due_date: e.bonusDueDate || null,
+        pix_number: e.pix_number || null,
+        pix_type: e.pix_type || null,
+        bank_name: e.bank_name || null,
+        user_id: userId || null,
+        no_system_access: e.noSystemAccess || false,
+      } as any)
 
       if (empError) {
         checkAuthError(empError)
@@ -1471,9 +1476,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const generateEmployeeAccess = useCallback(
     async (id: string, email: string, password: string, name: string) => {
       const formattedEmail = email.trim().toLowerCase()
-      const res = await supabase.functions.invoke('admin-create-user', {
-        body: { email: formattedEmail, password, name },
-      })
+      const res = await employeeService.createAuthUser(formattedEmail, password, name)
 
       if (res.error) {
         checkAuthError(res.error)
@@ -1502,18 +1505,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const userId = res.data.id
 
-      const { error: updateError } = await supabase
-        .from('employees')
-        .update({ user_id: userId, email: formattedEmail })
-        .eq('id', id)
+      const { error: updateError } = await employeeService.update(id, { user_id: userId, email: formattedEmail } as any)
 
       if (updateError) {
         checkAuthError(updateError)
         // Rollback created auth user if employee update fails
         try {
-          await supabase.functions.invoke('admin-delete-user', {
-            body: { userId },
-          })
+          await employeeService.deleteAuthUser(userId)
         } catch (rollbackErr) {
           console.warn('Failed to rollback orphaned user during failed generation', rollbackErr)
         }
@@ -1566,7 +1564,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (e.vacationDueDate !== undefined) payload.vacation_due_date = e.vacationDueDate || null
 
       try {
-        const { error } = await supabase.from('employees').update(payload).eq('id', id)
+        const { error } = await employeeService.update(id, payload)
         if (!error) {
           setEmployees((p) => p.map((emp) => (emp.id === id ? { ...emp, ...e } : emp)))
           logAction(`ATUALIZOU DADOS DO COLABORADOR ID: ${id}`)
@@ -1600,15 +1598,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const forceResetPassword = useCallback(
     async (userId: string) => {
       try {
-        const { error: fnError } = await supabase.functions.invoke('update-user-password', {
-          body: { userId, password: '123456' },
-        })
+        const { error: fnError } = await employeeService.updatePassword(userId, '123456')
         if (fnError) throw fnError
 
-        const { error: dbError } = await supabase
-          .from('profiles')
-          .update({ must_change_password: true })
-          .eq('id', userId)
+        const { error: dbError } = await employeeService.requirePasswordChange(userId)
 
         if (dbError) throw dbError
 
@@ -1917,36 +1910,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addEmployeeDocument = useCallback(
     async (employeeId: string, fileName: string, file: File) => {
-      return new Promise<void>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = async () => {
-          try {
-            const base64 = reader.result as string
-            const { data, error } = await supabase
-              .from('employee_documents')
-              .insert([
-                {
-                  employee_id: employeeId,
-                  file_name: fileName,
-                  file_path: base64,
-                },
-              ])
-              .select()
-              .single()
-
-            if (error) throw error
-            if (data) setEmployeeDocuments((p) => [...p, data])
-            logAction(`ANEXOU DOCUMENTO: ${fileName}`)
-            resolve()
-          } catch (err) {
-            checkAuthError(err)
-            console.error('Erro ao salvar documento:', err)
-            reject(err)
-          }
-        }
-        reader.onerror = (err) => reject(err)
-        reader.readAsDataURL(file)
-      })
+      try {
+        const { data, error } = await employeeService.uploadDocument(employeeId, fileName, file)
+        if (error) throw error
+        if (data) setEmployeeDocuments((p) => [...p, data])
+        logAction(`ANEXOU DOCUMENTO: ${fileName}`)
+      } catch (err) {
+        checkAuthError(err)
+        console.error('Erro ao salvar documento:', err)
+        throw err
+      }
     },
     [logAction],
   )
@@ -1954,7 +1927,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeEmployeeDocument = useCallback(
     async (id: string) => {
       try {
-        const { error } = await supabase.from('employee_documents').delete().eq('id', id)
+        const doc = storeRef.current.employeeDocuments.find((d) => d.id === id)
+        const filePath = doc?.file_path || ''
+        const { error } = await employeeService.deleteDocument(id, filePath)
         if (error) throw error
         setEmployeeDocuments((p) => p.filter((d) => d.id !== id))
         logAction(`REMOVEU DOCUMENTO ID: ${id}`)
@@ -1968,12 +1943,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const fetchWorkSchedules = useCallback(async (start: string, end: string) => {
     try {
-      const { data, error } = await supabase
-        .from('work_schedules' as any)
-        .select('*')
-        .gte('work_date', start)
-        .lte('work_date', end)
-
+      const { data, error } = await employeeService.fetchWorkSchedules(start, end)
       if (error) throw error
       if (data) {
         setWorkSchedules((prev) => {
@@ -1990,37 +1960,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const upsertWorkSchedule = useCallback(
     async (s: Partial<WorkSchedule> & { employee_id: string; work_date: string }) => {
       try {
-        const { data, error } = await supabase
-          .from('work_schedules' as any)
-          .upsert(
-            {
-              employee_id: s.employee_id,
-              work_date: s.work_date,
-              morning_start: s.morning_start || null,
-              morning_end: s.morning_end || null,
-              afternoon_start: s.afternoon_start || null,
-              afternoon_end: s.afternoon_end || null,
-              morning_snack_start: s.morning_snack_start || null,
-              morning_snack_end: s.morning_snack_end || null,
-              afternoon_snack_start: s.afternoon_snack_start || null,
-              afternoon_snack_end: s.afternoon_snack_end || null,
-              total_daily_hours: s.total_daily_hours || 0,
-            },
-            { onConflict: 'employee_id, work_date' },
-          )
-          .select()
-          .single()
+        const { data, error } = await employeeService.upsertWorkSchedule({
+          employee_id: s.employee_id,
+          work_date: s.work_date,
+          morning_start: s.morning_start || null,
+          morning_end: s.morning_end || null,
+          afternoon_start: s.afternoon_start || null,
+          afternoon_end: s.afternoon_end || null,
+          morning_snack_start: s.morning_snack_start || null,
+          morning_snack_end: s.morning_snack_end || null,
+          afternoon_snack_start: s.afternoon_snack_start || null,
+          afternoon_snack_end: s.afternoon_snack_end || null,
+          total_daily_hours: s.total_daily_hours || 0,
+        })
 
         if (error) throw error
         if (data) {
+          const res = data as any
           setWorkSchedules((prev) => {
             const exists = prev.find(
               (p) =>
-                p.id === data.id ||
-                (p.employee_id === data.employee_id && p.work_date === data.work_date),
+                p.id === res.id ||
+                (p.employee_id === res.employee_id && p.work_date === res.work_date),
             )
-            if (exists) return prev.map((p) => (p.id === exists.id ? data : p))
-            return [...prev, data]
+            if (exists) return prev.map((p) => (p.id === exists.id ? res : p))
+            return [...prev, res]
           })
         }
       } catch (err) {
@@ -2266,23 +2230,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ]
 
       try {
-        const { data, error } = await supabase
-          .from('sac_records' as any)
-          .insert([
-            {
-              type: r.type,
-              patient_name: r.patient_name,
-              receiving_employee_id: r.receiving_employee_id || null,
-              responsible_employee_id: r.responsible_employee_id || null,
-              status: r.status || 'OPORTUNIDADE DE SOLUÇÃO',
-              sector: r.sector,
-              description: r.description,
-              limit_at: limit_at,
-              action_history: action_history,
-            },
-          ])
-          .select()
-          .single()
+        const { data, error } = await sacService.create({
+          type: r.type,
+          patient_name: r.patient_name,
+          receiving_employee_id: r.receiving_employee_id || null,
+          responsible_employee_id: r.responsible_employee_id || null,
+          status: r.status || 'OPORTUNIDADE DE SOLUÇÃO',
+          sector: r.sector,
+          description: r.description,
+          limit_at: limit_at,
+          action_history: action_history as any,
+        })
 
         if (error) throw error
         if (data) {
@@ -2316,6 +2274,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 user2: respEmp.user_id,
               })
               if (roomId) {
+                // Keep chat insert as inline for now unless there's chatService
                 await supabase.from('chat_messages').insert({
                   room_id: roomId,
                   sender_id: currentUser.id,
@@ -2397,10 +2356,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       Object.keys(payload).forEach((key) => (payload[key] === undefined ? delete payload[key] : {}))
 
       try {
-        const { error } = await supabase
-          .from('sac_records' as any)
-          .update(payload)
-          .eq('id', id)
+        const { error } = await sacService.update(id, payload)
         if (error) throw error
 
         setSacRecords((prev) => prev.map((s) => (s.id === id ? { ...s, ...payload } : s)))
@@ -2429,10 +2385,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteSacRecord = useCallback(
     async (id: string) => {
       try {
-        const { error } = await supabase
-          .from('sac_records' as any)
-          .delete()
-          .eq('id', id)
+        const { error } = await sacService.delete(id)
         if (error) throw error
 
         setSacRecords((prev) => prev.filter((s) => s.id !== id))
