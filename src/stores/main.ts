@@ -572,10 +572,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsDataLoading(true)
       setFetchError(null)
 
-      const handleResponse = <T = any>(
-        r: any,
-        mapper?: (d: any) => T,
-      ): T[] => {
+      const handleResponse = <T = any>(r: any, mapper?: (d: any) => T): T[] => {
         if (r.error) throw r.error
         const data = Array.isArray(r.data) ? r.data : []
         return mapper ? data.map(mapper) : (data as unknown as T[])
@@ -1505,7 +1502,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const userId = res.data.id
 
-      const { error: updateError } = await employeeService.update(id, { user_id: userId, email: formattedEmail } as any)
+      const { error: updateError } = await employeeService.update(id, {
+        user_id: userId,
+        email: formattedEmail,
+      } as any)
 
       if (updateError) {
         checkAuthError(updateError)
