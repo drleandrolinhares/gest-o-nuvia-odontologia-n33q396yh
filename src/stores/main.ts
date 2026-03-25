@@ -1110,7 +1110,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const nh = [{ ...r, id: crypto.randomUUID() }, ...(item.purchaseHistory || [])]
       const addedUnits = r.quantity * (item.itemsPerBox || 1)
       const nq = item.quantity + addedUnits
-      
+
       try {
         const { error } = await inventoryService.update(itemId, {
           purchase_history: nh as any,
@@ -1134,7 +1134,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     nfeNumber: r.nfeNumber || i.nfeNumber,
                   }
                 : i,
-            )
+            ),
           )
         }
       } catch (err) {
@@ -1260,7 +1260,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addTemporaryOutflow = useCallback(
     async (inventory_id: string, employee_id: string, quantity: number, destination: string) => {
-      const { data, error } = await inventoryService.addTemporaryOutflow(inventory_id, employee_id, quantity, destination)
+      const { data, error } = await inventoryService.addTemporaryOutflow(
+        inventory_id,
+        employee_id,
+        quantity,
+        destination,
+      )
 
       if (error) {
         checkAuthError(error)
@@ -1274,7 +1279,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const recipientStr = `Colab: ${emp?.name || 'Desconhecido'} - ${destination}`
 
         if (user) {
-          await inventoryService.addMovement(inventory_id, user.id, 'BAIXA TEMPORÁRIA', quantity, recipientStr)
+          await inventoryService.addMovement(
+            inventory_id,
+            user.id,
+            'BAIXA TEMPORÁRIA',
+            quantity,
+            recipientStr,
+          )
         }
 
         logAction(`BAIXA TEMPORÁRIA: ${quantity} UN PARA COLAB ID: ${employee_id}`)
@@ -1841,7 +1852,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         cnpj: i.cnpj,
         website: i.website,
       }
-      if (i.hasSpecialNegotiation !== undefined) payload.has_special_negotiation = i.hasSpecialNegotiation
+      if (i.hasSpecialNegotiation !== undefined)
+        payload.has_special_negotiation = i.hasSpecialNegotiation
       if (i.negotiationNotes !== undefined) payload.negotiation_notes = i.negotiationNotes
 
       try {
