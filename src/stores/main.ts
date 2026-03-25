@@ -1010,60 +1010,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addInventoryItem = useCallback(
-    (i: Omit<InventoryItem, 'id'> & { initialPackages?: number }) => {
-      const pkgs = i.initialPackages ?? i.quantity / (i.itemsPerBox || 1)
-      const ph =
-        pkgs > 0
-          ? [
-              {
-                id: crypto.randomUUID(),
-                date: new Date().toISOString(),
-                price: i.packageCost,
-                quantity: pkgs,
-                expirationDate: i.expirationDate,
-                nfeNumber: i.nfeNumber,
-              },
-            ]
-          : []
-      supabase
-        .from('inventory')
-        .insert([
-          {
-            name: i.name,
-            package_cost: i.packageCost,
-            storage_location: i.storageLocation,
-            package_type: i.packageType,
-            items_per_box: i.itemsPerBox,
-            min_stock: i.minStock,
-            quantity: i.quantity,
-            specialty: i.specialty,
-            entry_date: i.entryDate,
-            expiration_date: i.expirationDate,
-            brand: i.brand,
-            last_brand: i.lastBrand,
-            last_value: i.lastValue,
-            notes: i.notes,
-            barcode: i.barcode,
-            purchase_history: ph,
-            specialty_details: i.specialtyDetails || {},
-            nfe_number: i.nfeNumber || null,
-            storage_room: i.storageRoom || null,
-            cabinet_number: i.cabinetNumber || null,
-            critical_observations: i.criticalObservations || null,
-            consumption_mode: i.consumptionMode || null,
-            consumption_reference: i.consumptionReference || null,
-          } as any,
-        ])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setInventory((p) => [...p, mInv(data)])
-            logAction(`CRIOU PRODUTO: ${i.name}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao adicionar produto no inventário', err))
+    async (i: Omit<InventoryItem, 'id'> & { initialPackages?: number }) => {
+      try {
+        const { data, error } = await inventoryService.create(i)
+        if (error) checkAuthError(error)
+        if (data) {
+          setInventory((p) => [...p, mInv(data)])
+          logAction(`CRIOU PRODUTO: ${i.name}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao adicionar produto no inventário', err)
+      }
     },
     [logAction],
   )
@@ -1114,7 +1071,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         payload.consumption_reference = data.consumptionReference || null
 
       try {
-        const { error } = await supabase.from('inventory').update(payload).eq('id', id)
+        const { error } = await inventoryService.update(id, payload)
         if (error) throw error
 
         setInventory((p) => p.map((i) => (i.id === id ? { ...i, ...data } : i)))
@@ -1147,41 +1104,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addPurchaseHistory = useCallback(
-    (itemId: string, r: Omit<PurchaseRecord, 'id'>) => {
-      setInventory((prev) => {
-        const item = prev.find((i) => i.id === itemId)
-        if (!item) return prev
-        const nh = [{ ...r, id: crypto.randomUUID() }, ...(item.purchaseHistory || [])]
-        const addedUnits = r.quantity * (item.itemsPerBox || 1)
-        const nq = item.quantity + addedUnits
-        supabase
-          .from('inventory')
-          .update({
-            purchase_history: nh as any,
-            quantity: nq,
-            package_cost: r.price,
-            expiration_date: r.expirationDate || item.expirationDate,
-            ...(r.nfeNumber ? { nfe_number: r.nfeNumber } : {}),
-          })
-          .eq('id', itemId)
-          .then(({ error }) => {
-            if (error) checkAuthError(error)
-            else logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`)
-          })
-          .catch((err) => console.warn('Erro ao adicionar histórico de compra', err))
-        return prev.map((i) =>
-          i.id === itemId
-            ? {
-                ...i,
-                purchaseHistory: nh,
-                quantity: nq,
-                packageCost: r.price,
-                expirationDate: r.expirationDate || item.expirationDate,
-                nfeNumber: r.nfeNumber || i.nfeNumber,
-              }
-            : i,
-        )
-      })
+    async (itemId: string, r: Omit<PurchaseRecord, 'id'>) => {
+      const item = storeRef.current.inventory.find((i) => i.id === itemId)
+      if (!item) return
+      const nh = [{ ...r, id: crypto.randomUUID() }, ...(item.purchaseHistory || [])]
+      const addedUnits = r.quantity * (item.itemsPerBox || 1)
+      const nq = item.quantity + addedUnits
+      
+      try {
+        const { error } = await inventoryService.update(itemId, {
+          purchase_history: nh as any,
+          quantity: nq,
+          package_cost: r.price,
+          expiration_date: r.expirationDate || item.expirationDate,
+          ...(r.nfeNumber ? { nfe_number: r.nfeNumber } : {}),
+        })
+        if (error) checkAuthError(error)
+        else {
+          logAction(`NOVA COMPRA PARA PRODUTO ID: ${itemId}`)
+          setInventory((prev) =>
+            prev.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    purchaseHistory: nh,
+                    quantity: nq,
+                    packageCost: r.price,
+                    expirationDate: r.expirationDate || item.expirationDate,
+                    nfeNumber: r.nfeNumber || i.nfeNumber,
+                  }
+                : i,
+            )
+          )
+        }
+      } catch (err) {
+        console.warn('Erro ao adicionar histórico de compra', err)
+      }
     },
     [logAction],
   )
@@ -1192,10 +1150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!item || !item.purchaseHistory) return { success: false }
       const newHistory = item.purchaseHistory.filter((ph) => ph.id !== purchaseId)
       try {
-        const { error } = await supabase
-          .from('inventory')
-          .update({ purchase_history: newHistory as any })
-          .eq('id', itemId)
+        const { error } = await inventoryService.addPurchaseHistory(itemId, newHistory)
         if (error) throw error
         setInventory((p) =>
           p.map((i) => (i.id === itemId ? { ...i, purchaseHistory: newHistory } : i)),
@@ -1218,10 +1173,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ph.id === purchaseId ? { ...ph, ...data } : ph,
       )
       try {
-        const { error } = await supabase
-          .from('inventory')
-          .update({ purchase_history: newHistory as any })
-          .eq('id', itemId)
+        const { error } = await inventoryService.addPurchaseHistory(itemId, newHistory)
         if (error) throw error
         setInventory((p) =>
           p.map((i) => (i.id === itemId ? { ...i, purchaseHistory: newHistory } : i)),
@@ -1237,30 +1189,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const addInventoryOption = useCallback(
-    (category: string, value: string, label?: string) => {
-      supabase
-        .from('inventory_settings' as any)
-        .insert([{ category, value, label }])
-        .select()
-        .single()
-        .then(({ data, error }) => {
-          if (error) checkAuthError(error)
-          if (data) {
-            setInventoryOptions((p) => [...p, mOpt(data)])
-            logAction(`CRIOU OPÇÃO DE ESTOQUE: ${category} - ${value}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao criar opção', err))
+    async (category: string, value: string, label?: string) => {
+      try {
+        const { data, error } = await inventoryService.addOption(category, value, label)
+        if (error) checkAuthError(error)
+        if (data) {
+          setInventoryOptions((p) => [...p, mOpt(data)])
+          logAction(`CRIOU OPÇÃO DE ESTOQUE: ${category} - ${value}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao criar opção', err)
+      }
     },
     [logAction],
   )
 
   const updateInventoryOption = useCallback(async (id: string, label: string) => {
     try {
-      const { error } = await supabase
-        .from('inventory_settings' as any)
-        .update({ label })
-        .eq('id', id)
+      const { error } = await inventoryService.updateOption(id, label)
       if (error) throw error
       setInventoryOptions((p) => p.map((o) => (o.id === id ? { ...o, label } : o)))
       return { success: true }
@@ -1271,19 +1217,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const removeInventoryOption = useCallback(
-    (id: string) => {
-      supabase
-        .from('inventory_settings' as any)
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => {
-          if (error) checkAuthError(error)
-          else {
-            setInventoryOptions((p) => p.filter((o) => o.id !== id))
-            logAction(`REMOVEU OPÇÃO DE ESTOQUE ID: ${id}`)
-          }
-        })
-        .catch((err) => console.warn('Erro ao remover opção', err))
+    async (id: string) => {
+      try {
+        const { error } = await inventoryService.removeOption(id)
+        if (error) checkAuthError(error)
+        else {
+          setInventoryOptions((p) => p.filter((o) => o.id !== id))
+          logAction(`REMOVEU OPÇÃO DE ESTOQUE ID: ${id}`)
+        }
+      } catch (err) {
+        console.warn('Erro ao remover opção', err)
+      }
     },
     [logAction],
   )
@@ -1294,10 +1238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!item) return { success: false }
       const newQty = Math.max(0, item.quantity - quantity)
 
-      const { error: invErr } = await supabase
-        .from('inventory')
-        .update({ quantity: newQty })
-        .eq('id', inventory_id)
+      const { error: invErr } = await inventoryService.updateQuantity(inventory_id, newQty)
 
       if (invErr) {
         checkAuthError(invErr)
@@ -1308,15 +1249,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       const user = storeRef.current.user
       if (user) {
-        await supabase.from('inventory_movements' as any).insert([
-          {
-            inventory_id,
-            user_id: user.id,
-            type: 'SAÍDA',
-            quantity,
-            recipient,
-          },
-        ])
+        await inventoryService.addMovement(inventory_id, user.id, 'SAÍDA', quantity, recipient)
       }
 
       logAction(`BAIXA DEFINITIVA: ${quantity} UN DO PRODUTO ID: ${inventory_id}`)
@@ -1327,11 +1260,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addTemporaryOutflow = useCallback(
     async (inventory_id: string, employee_id: string, quantity: number, destination: string) => {
-      const { data, error } = await supabase
-        .from('inventory_temporary_outflows' as any)
-        .insert([{ inventory_id, employee_id, quantity, status: 'PENDING' }])
-        .select('*, employees(name)')
-        .single()
+      const { data, error } = await inventoryService.addTemporaryOutflow(inventory_id, employee_id, quantity, destination)
 
       if (error) {
         checkAuthError(error)
@@ -1345,15 +1274,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const recipientStr = `Colab: ${emp?.name || 'Desconhecido'} - ${destination}`
 
         if (user) {
-          await supabase.from('inventory_movements' as any).insert([
-            {
-              inventory_id,
-              user_id: user.id,
-              type: 'BAIXA TEMPORÁRIA',
-              quantity,
-              recipient: recipientStr,
-            },
-          ])
+          await inventoryService.addMovement(inventory_id, user.id, 'BAIXA TEMPORÁRIA', quantity, recipientStr)
         }
 
         logAction(`BAIXA TEMPORÁRIA: ${quantity} UN PARA COLAB ID: ${employee_id}`)
