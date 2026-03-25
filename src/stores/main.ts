@@ -17,6 +17,7 @@ import { pricingService } from '@/services/pricingService'
 import { agendaService } from '@/services/agendaService'
 import { accessService } from '@/services/accessService'
 import { settingsService } from '@/services/settingsService'
+import { sacService } from '@/services/sacService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -2254,23 +2255,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ]
 
       try {
-        const { data, error } = await supabase
-          .from('sac_records' as any)
-          .insert([
-            {
-              type: r.type,
-              patient_name: r.patient_name,
-              receiving_employee_id: r.receiving_employee_id || null,
-              responsible_employee_id: r.responsible_employee_id || null,
-              status: r.status || 'OPORTUNIDADE DE SOLUÇÃO',
-              sector: r.sector,
-              description: r.description,
-              limit_at: limit_at,
-              action_history: action_history,
-            },
-          ])
-          .select()
-          .single()
+        const { data, error } = await sacService.create({
+          type: r.type,
+          patient_name: r.patient_name,
+          receiving_employee_id: r.receiving_employee_id || null,
+          responsible_employee_id: r.responsible_employee_id || null,
+          status: r.status || 'OPORTUNIDADE DE SOLUÇÃO',
+          sector: r.sector,
+          description: r.description,
+          limit_at: limit_at,
+          action_history: action_history as any,
+        })
 
         if (error) throw error
         if (data) {
@@ -2304,6 +2299,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 user2: respEmp.user_id,
               })
               if (roomId) {
+                // Keep chat insert as inline for now unless there's chatService
                 await supabase.from('chat_messages').insert({
                   room_id: roomId,
                   sender_id: currentUser.id,
@@ -2385,10 +2381,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       Object.keys(payload).forEach((key) => (payload[key] === undefined ? delete payload[key] : {}))
 
       try {
-        const { error } = await supabase
-          .from('sac_records' as any)
-          .update(payload)
-          .eq('id', id)
+        const { error } = await sacService.update(id, payload)
         if (error) throw error
 
         setSacRecords((prev) => prev.map((s) => (s.id === id ? { ...s, ...payload } : s)))
@@ -2417,10 +2410,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteSacRecord = useCallback(
     async (id: string) => {
       try {
-        const { error } = await supabase
-          .from('sac_records' as any)
-          .delete()
-          .eq('id', id)
+        const { error } = await sacService.delete(id)
         if (error) throw error
 
         setSacRecords((prev) => prev.filter((s) => s.id !== id))
