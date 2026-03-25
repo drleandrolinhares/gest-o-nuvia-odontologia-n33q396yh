@@ -14,6 +14,7 @@ import { checkAuthError } from '@/lib/supabase/authHelpers'
 import { inventoryService } from '@/services/inventoryService'
 import { employeeService } from '@/services/employeeService'
 import { pricingService } from '@/services/pricingService'
+import { agendaService } from '@/services/agendaService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -1757,30 +1758,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addAgendaItem = useCallback(
     (i: Omit<AgendaItem, 'id'>) => {
-      supabase
-        .from('agenda')
-        .insert([
-          {
-            title: i.title,
-            date: i.date,
-            end_date: i.end_date || i.date,
-            time: i.time,
-            location: i.location,
-            type: i.type,
-            assigned_to: i.assignedTo,
-            involves_third_party: i.involvesThirdParty,
-            third_party_details: i.thirdPartyDetails,
-            created_by: i.createdBy,
-            is_completed: i.is_completed || false,
-            requester_id: i.requester_id || null,
-            received_at: i.received_at || null,
-            completed_at: i.completed_at || null,
-            sac_record_id: i.sac_record_id || null,
-            periodicity: i.periodicity || null,
-          } as any,
-        ])
-        .select()
-        .single()
+      agendaService
+        .create({
+          ...i,
+          end_date: i.end_date || i.date,
+          is_completed: i.is_completed || false,
+          requester_id: i.requester_id || null,
+          received_at: i.received_at || null,
+          completed_at: i.completed_at || null,
+          sac_record_id: i.sac_record_id || null,
+          periodicity: i.periodicity || null,
+        } as any)
         .then(({ data, error }) => {
           if (error) checkAuthError(error)
           if (data) {
@@ -1795,28 +1783,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateAgendaItem = useCallback(
     (id: string, i: Partial<AgendaItem>) => {
-      const payload: any = {}
-      if (i.title !== undefined) payload.title = i.title
-      if (i.date !== undefined) payload.date = i.date
-      if (i.end_date !== undefined) payload.end_date = i.end_date
-      if (i.time !== undefined) payload.time = i.time
-      if (i.location !== undefined) payload.location = i.location
-      if (i.type !== undefined) payload.type = i.type
-      if (i.assignedTo !== undefined) payload.assigned_to = i.assignedTo
-      if (i.involvesThirdParty !== undefined) payload.involves_third_party = i.involvesThirdParty
-      if (i.thirdPartyDetails !== undefined) payload.thirdPartyDetails = i.thirdPartyDetails
-      if (i.createdBy !== undefined) payload.created_by = i.createdBy
-      if (i.is_completed !== undefined) payload.is_completed = i.is_completed
-      if (i.requester_id !== undefined) payload.requester_id = i.requester_id
-      if (i.received_at !== undefined) payload.received_at = i.received_at
-      if (i.completed_at !== undefined) payload.completed_at = i.completed_at
-      if (i.sac_record_id !== undefined) payload.sac_record_id = i.sac_record_id
-      if (i.periodicity !== undefined) payload.periodicity = i.periodicity
+      const payload: any = { ...i }
+      if (payload.is_completed !== undefined) payload.is_completed = i.is_completed
 
-      supabase
-        .from('agenda')
-        .update(payload)
-        .eq('id', id)
+      agendaService
+        .update(id, i)
         .then(({ error }) => {
           if (error) checkAuthError(error)
           if (!error) {
@@ -1845,10 +1816,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const removeAgendaItem = useCallback(
     (id: string) => {
-      supabase
-        .from('agenda')
-        .delete()
-        .eq('id', id)
+      agendaService
+        .delete(id)
         .then(({ error }) => {
           if (error) checkAuthError(error)
           else {
@@ -2641,11 +2610,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           dentist_id: data.dentist_id || null,
         }
 
-        const { data: result, error } = await supabase
-          .from('agenda_segmentation' as any)
-          .upsert(payload, { onConflict: 'consultorio_id, day_of_week, shift' })
-          .select()
-          .single()
+        const { data: result, error } = await agendaService.upsertSegmentation(payload)
 
         if (error) throw error
         if (result) {
