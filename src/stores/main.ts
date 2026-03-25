@@ -13,7 +13,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { checkAuthError } from '@/lib/supabase/authHelpers'
 import { inventoryService } from '@/services/inventoryService'
 import { employeeService } from '@/services/employeeService'
-import { pricingService } from '@/services/pricingService'
+import { financeService } from '@/services/financeService'
 import { agendaService } from '@/services/agendaService'
 import { accessService } from '@/services/accessService'
 import { settingsService } from '@/services/settingsService'
@@ -580,107 +580,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       Promise.all([
-        supabase
-          .from('employees')
-          .select('*')
-          .then((r) => setEmployees(handleResponse(r, mEmp))),
-        supabase
-          .from('inventory')
-          .select('*')
-          .then((r) => setInventory(handleResponse(r, mInv))),
-        supabase
-          .from('inventory_settings' as any)
-          .select('*')
-          .then((r) => setInventoryOptions(handleResponse(r, mOpt))),
-        supabase
-          .from('inventory_temporary_outflows' as any)
-          .select('*, employees(name)')
-          .eq('status', 'PENDING')
-          .then((r) => {
-            if (!r.error) setTemporaryOutflows((r.data || []) as any)
-          }),
-        supabase
-          .from('agenda')
-          .select('*')
-          .then((r) => setAgenda(handleResponse(r, mAg))),
-        supabase
-          .from('acessos')
-          .select('*')
-          .then((r) => setAcessos(handleResponse(r, mAcc))),
-        supabase
-          .from('suppliers')
-          .select('*')
-          .then((r) => setSuppliers(handleResponse(r, mSup))),
-        supabase
-          .from('onboarding')
-          .select('*')
-          .then((r) => setOnboarding(handleResponse(r, mOnb))),
-        supabase
-          .from('documents')
-          .select('*')
-          .then((r) => setDocuments(handleResponse(r, mDoc))),
-        supabase
-          .from('bonus_settings')
-          .select('*')
-          .then((r) => setBonusTypes(handleResponse(r))),
-        supabase
-          .from('employee_documents')
-          .select('*')
-          .then((r) => setEmployeeDocuments(handleResponse(r))),
-        supabase
-          .from('roles' as any)
-          .select('*')
-          .order('name', { ascending: true })
-          .then((r) => setRoles(handleResponse(r))),
-        supabase
-          .from('clinica_consultorios' as any)
-          .select('*, schedules:consultorio_weekly_schedules(*)')
-          .order('created_at', { ascending: true })
-          .then((r) => {
-            if (!r.error) setConsultorios((r.data || []) as any)
-          }),
-        supabase
-          .from('sac_records' as any)
-          .select('*')
-          .order('created_at', { ascending: false })
-          .then((r) => setSacRecords(handleResponse(r, mSac))),
-        supabase
-          .from('app_settings' as any)
-          .select('*')
-          .limit(1)
-          .maybeSingle()
-          .then(async (r) => {
-            if (r.data) {
-              setAppSettings(mAppSet(r.data as any))
-            } else if (!r.error) {
-              const { data: newData } = await supabase
-                .from('app_settings' as any)
-                .insert([{}])
-                .select()
-                .single()
-              if (newData) setAppSettings(mAppSet(newData as any))
-            }
-          }),
-        supabase
-          .from('price_list' as any)
-          .select('*')
-          .then((r) => {
-            if (r.data) setPriceList(r.data.map(mPrice))
-          }),
-        supabase
-          .from('role_permissions' as any)
-          .select('*')
-          .then((r) => {
-            if (!r.error) setRolePermissions((r.data || []) as any)
-          }),
-        supabase
-          .from('specialty_configs' as any)
-          .select('*')
-          .then((r) => setSpecialtyConfigs(handleResponse(r, mSpecConfig))),
-        supabase
-          .from('agenda_segmentation' as any)
-          .select('*')
-          .then((r) => setAgendaSegmentation(handleResponse(r, mSeg))),
+        employeeService.fetchAll().then((r) => setEmployees(handleResponse(r, mEmp))),
+        inventoryService.fetchAll().then((r) => setInventory(handleResponse(r, mInv))),
+        inventoryService.fetchOptions().then((r) => setInventoryOptions(handleResponse(r, mOpt))),
+        inventoryService.fetchPendingOutflows().then((r) => {
+          if (!r.error) setTemporaryOutflows((r.data || []) as any)
+        }),
+        agendaService.fetchAll().then((r) => setAgenda(handleResponse(r, mAg))),
+        accessService.fetchAll().then((r) => setAcessos(handleResponse(r, mAcc))),
+        settingsService.fetchSuppliers().then((r) => setSuppliers(handleResponse(r, mSup))),
+        settingsService.fetchOnboarding().then((r) => setOnboarding(handleResponse(r, mOnb))),
+        settingsService.fetchDocuments().then((r) => setDocuments(handleResponse(r, mDoc))),
+        settingsService.fetchBonusTypes().then((r) => setBonusTypes(handleResponse(r))),
+        employeeService.fetchDocuments().then((r) => setEmployeeDocuments(handleResponse(r))),
+        settingsService.fetchRoles().then((r) => setRoles(handleResponse(r))),
+        clinicService.fetchConsultorios().then((r) => {
+          if (!r.error) setConsultorios((r.data || []) as any)
+        }),
+        sacService.fetchAll().then((r) => setSacRecords(handleResponse(r, mSac))),
+        financeService.fetchSettings().then(async (r) => {
+          if (r.data) {
+            setAppSettings(mAppSet(r.data as any))
+          } else if (!r.error) {
+            const { data: newData } = await financeService.createSettings({})
+            if (newData) setAppSettings(mAppSet(newData as any))
+          }
+        }),
+        financeService.fetchPriceList().then((r) => {
+          if (r.data) setPriceList(r.data.map(mPrice))
+        }),
+        settingsService.fetchRolePermissions().then((r) => {
+          if (!r.error) setRolePermissions((r.data || []) as any)
+        }),
+        clinicService.fetchSpecialtyConfigs().then((r) => setSpecialtyConfigs(handleResponse(r, mSpecConfig))),
+        agendaService.fetchSegmentation().then((r) => setAgendaSegmentation(handleResponse(r, mSeg))),
       ])
         .catch((err) => {
           if (!checkAuthError(err)) {
@@ -2009,11 +1942,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const currentId = appSettings?.id
         if (!currentId) {
-          const { data: newData, error: insertErr } = await pricingService.createSettings(payload)
+          const { data: newData, error: insertErr } = await financeService.createSettings(payload)
           if (insertErr) throw insertErr
           if (newData) setAppSettings(mAppSet(newData))
         } else {
-          const { error } = await pricingService.updateSettings(currentId, payload)
+          const { error } = await financeService.updateSettings(currentId, payload)
           if (error) throw error
           setAppSettings((p: any) => (p ? { ...p, ...data } : null))
         }
@@ -2031,7 +1964,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addPriceItem = useCallback(
     async (p: Omit<PriceItem, 'id'>) => {
       try {
-        const { data, error } = await pricingService.addPriceItem({
+        const { data, error } = await financeService.addPriceItem({
           work_type: p.work_type,
           category: p.category,
           material: p.material,
@@ -2072,7 +2005,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (p.fixed_cost !== undefined) payload.fixed_cost = p.fixed_cost
 
       try {
-        const { error } = await pricingService.updatePriceItem(id, payload)
+        const { error } = await financeService.updatePriceItem(id, payload)
         if (error) throw error
         setPriceList((prev) => prev.map((item) => (item.id === id ? { ...item, ...p } : item)))
         logAction(`ATUALIZOU ITEM DE PRECIFICAÇÃO ID: ${id}`)
@@ -2089,7 +2022,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removePriceItem = useCallback(
     async (id: string) => {
       try {
-        const { error } = await pricingService.deletePriceItem(id)
+        const { error } = await financeService.deletePriceItem(id)
         if (error) throw error
         setPriceList((prev) => prev.filter((item) => item.id !== id))
         logAction(`REMOVEU ITEM DE PRECIFICAÇÃO ID: ${id}`)
