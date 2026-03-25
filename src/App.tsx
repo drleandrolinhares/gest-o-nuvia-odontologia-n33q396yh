@@ -18,6 +18,7 @@ import Login from '@/pages/Login'
 import Chat from '@/pages/Chat'
 import SAC from '@/pages/SAC'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import PermissionRoute from '@/components/PermissionRoute'
 import AuditLog from '@/pages/AuditLog'
 import ForceChangePassword from '@/pages/ForceChangePassword'
 import Mural from '@/pages/hub/Mural'
@@ -53,22 +54,22 @@ export default function App() {
                 }
               >
                 <Route index element={<Index />} />
-                <Route path="admin/dashboard" element={<Index />} />
-                <Route path="admin/agenda" element={<Agenda />} />
-                <Route path="admin/chat" element={<Chat />} />
+                <Route path="admin/dashboard" element={<PermissionRoute module="DASHBOARD"><Index /></PermissionRoute>} />
+                <Route path="admin/agenda" element={<PermissionRoute module="AGENDA"><Agenda /></PermissionRoute>} />
+                <Route path="admin/chat" element={<PermissionRoute module="MENSAGENS"><Chat /></PermissionRoute>} />
                 <Route path="admin/sac" element={<SAC />} />
-                <Route path="admin/acessos" element={<Acessos />} />
-                <Route path="admin/acessos/:id" element={<AcessoManual />} />
-                <Route path="admin/rh" element={<RH />} />
-                <Route path="admin/rh/colaborador/:id" element={<EmployeeProfile />} />
-                <Route path="admin/rh/escala" element={<WorkSchedule />} />
-                <Route path="admin/estoque" element={<Inventory />} />
-                <Route path="admin/precificacao" element={<Pricing />} />
+                <Route path="admin/acessos" element={<PermissionRoute module="ACESSOS"><Acessos /></PermissionRoute>} />
+                <Route path="admin/acessos/:id" element={<PermissionRoute module="ACESSOS"><AcessoManual /></PermissionRoute>} />
+                <Route path="admin/rh" element={<PermissionRoute module="RH"><RH /></PermissionRoute>} />
+                <Route path="admin/rh/colaborador/:id" element={<PermissionRoute module="RH"><EmployeeProfile /></PermissionRoute>} />
+                <Route path="admin/rh/escala" element={<PermissionRoute module="ESCALA DE TRABALHO"><WorkSchedule /></PermissionRoute>} />
+                <Route path="admin/estoque" element={<PermissionRoute module="ESTOQUE"><Inventory /></PermissionRoute>} />
+                <Route path="admin/precificacao" element={<PermissionRoute adminOnly><Pricing /></PermissionRoute>} />
                 <Route path="admin/operacao/negociacao" element={<Negotiation />} />
                 <Route path="admin/operacao/segmentacao" element={<AgendaSegmentation />} />
-                <Route path="admin/configuracoes" element={<Settings />} />
-                <Route path="admin/permissoes" element={<Permissions />} />
-                <Route path="admin/auditoria" element={<AuditLog />} />
+                <Route path="admin/configuracoes" element={<PermissionRoute module="CONFIGURAÇÕES"><Settings /></PermissionRoute>} />
+                <Route path="admin/permissoes" element={<PermissionRoute adminOnly><Permissions /></PermissionRoute>} />
+                <Route path="admin/auditoria" element={<PermissionRoute module="LOGS"><AuditLog /></PermissionRoute>} />
 
                 <Route path="hub/mural" element={<Mural />} />
                 <Route path="hub/feedback" element={<Feedback />} />

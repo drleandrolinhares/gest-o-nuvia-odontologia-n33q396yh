@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import {
   Table,
@@ -7,11 +8,40 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import useAppStore from '@/stores/main'
+import { supabase } from '@/lib/supabase/client'
 import { ClipboardList } from 'lucide-react'
 
+type AuditEntry = {
+  id: string
+  userName: string
+  action: string
+  timestamp: string
+}
+
 export default function AuditLog() {
-  const { auditLogs } = useAppStore()
+  const [logs, setLogs] = useState<AuditEntry[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase
+      .from('audit_logs')
+      .select('*, profiles(name)')
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setLogs(
+            data.map((d) => ({
+              id: d.id,
+              userName: d.profiles?.name || 'SISTEMA',
+              action: d.action,
+              timestamp: d.created_at,
+            })),
+          )
+        }
+        setLoading(false)
+      })
+  }, [])
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
@@ -40,24 +70,28 @@ export default function AuditLog() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {auditLogs.map((log) => (
-              <TableRow key={log.id} className="hover:bg-muted/10">
-                <TableCell className="font-medium text-sm text-muted-foreground">
-                  {new Date(log.timestamp).toLocaleString('pt-BR')}
-                </TableCell>
-                <TableCell className="font-bold text-nuvia-navy">{log.userName}</TableCell>
-                <TableCell className="text-sm font-semibold">{log.action}</TableCell>
-              </TableRow>
-            ))}
-            {auditLogs.length === 0 && (
+            {loading ? (
               <TableRow>
-                <TableCell
-                  colSpan={3}
-                  className="text-center py-12 text-muted-foreground font-bold"
-                >
+                <TableCell colSpan={3} className="text-center py-12 text-muted-foreground font-bold">
+                  CARREGANDO...
+                </TableCell>
+              </TableRow>
+            ) : logs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-12 text-muted-foreground font-bold">
                   NENHUM REGISTRO DE AUDITORIA ENCONTRADO.
                 </TableCell>
               </TableRow>
+            ) : (
+              logs.map((log) => (
+                <TableRow key={log.id} className="hover:bg-muted/10">
+                  <TableCell className="font-medium text-sm text-muted-foreground">
+                    {new Date(log.timestamp).toLocaleString('pt-BR')}
+                  </TableCell>
+                  <TableCell className="font-bold text-nuvia-navy">{log.userName}</TableCell>
+                  <TableCell className="text-sm font-semibold">{log.action}</TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
