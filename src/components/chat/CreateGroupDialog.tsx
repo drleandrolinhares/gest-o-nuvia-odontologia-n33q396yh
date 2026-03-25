@@ -26,7 +26,7 @@ export function CreateGroupDialog({
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<string[]>([])
   const { createGroupRoom, isLoadingRoom } = useChatStore()
-  const { employees, currentUserId } = useAppStore()
+  const { employees, currentUserId, isMaster } = useAppStore()
 
   const validEmployees = useMemo(() => {
     return employees.filter(
@@ -39,7 +39,7 @@ export function CreateGroupDialog({
   }, [validEmployees, search])
 
   const handleCreate = async () => {
-    if (!name.trim()) return
+    if (!name.trim() || !isMaster) return
     await createGroupRoom(name.trim(), selected)
     onOpenChange(false)
     setName('')
@@ -127,7 +127,12 @@ export function CreateGroupDialog({
           >
             CANCELAR
           </Button>
-          <Button type="button" onClick={handleCreate} disabled={!name.trim() || isLoadingRoom}>
+          <Button
+            type="button"
+            onClick={handleCreate}
+            disabled={!name.trim() || isLoadingRoom || !isMaster}
+            title={!isMaster ? 'Apenas usuários MASTER podem criar grupos' : undefined}
+          >
             CRIAR GRUPO
           </Button>
         </DialogFooter>

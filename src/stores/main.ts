@@ -921,22 +921,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (!r.error) setRolePermissions(r.data || [])
           }),
         supabase
-          .from('audit_logs')
-          .select('*, profiles(name)')
-          .order('created_at', { ascending: false })
-          .limit(50)
-          .then((r) => {
-            if (r.error) throw r.error
-            setAuditLogs(
-              (r.data || []).map((d) => ({
-                id: d.id,
-                userName: d.profiles?.name || 'SISTEMA',
-                action: d.action,
-                timestamp: d.created_at,
-              })),
-            )
-          }),
-        supabase
           .from('specialty_configs' as any)
           .select('*')
           .then((r) => setSpecialtyConfigs(handleResponse(r, mSpecConfig))),
@@ -1010,10 +994,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const can = useCallback(
     (module: string, action: string) => {
+      const me = storeRef.current.employees.find((e) => e.user_id === storeRef.current.user?.id)
+      if (!me || me.noSystemAccess) return false
       if (isMaster) return true
       if (isAdmin) return true
-      const me = storeRef.current.employees.find((e) => e.user_id === storeRef.current.user?.id)
-      if (!me) return false
       const perm = storeRef.current.rolePermissions.find(
         (p) => p.role === me.role && p.module.toUpperCase() === module.toUpperCase(),
       )

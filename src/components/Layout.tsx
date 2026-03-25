@@ -100,7 +100,7 @@ export function Layout() {
   const { toast } = useToast()
 
   const { unreadCounts } = useChatStore()
-  const { isDataLoading, fetchError, isAdmin, sacRecords, currentUserId } = useAppStore()
+  const { isDataLoading, fetchError, isAdmin, isMaster, can, sacRecords, currentUserId } = useAppStore()
   const { unreadAnnouncements, markAsRead, isLoading: isHubLoading } = useHubStore()
 
   const currentUnread = unreadAnnouncements.length > 0 ? unreadAnnouncements[0] : null
@@ -146,23 +146,23 @@ export function Layout() {
       {
         title: 'VISÃO DIÁRIA',
         items: [
-          { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard },
-          { name: 'AGENDA', href: '/admin/agenda', icon: Calendar },
-          { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle },
+          { name: 'DASHBOARD', href: '/admin/dashboard', icon: LayoutDashboard, module: 'DASHBOARD' },
+          { name: 'AGENDA', href: '/admin/agenda', icon: Calendar, module: 'AGENDA' },
+          { name: 'MENSAGENS', href: '/admin/chat', icon: MessageCircle, module: 'MENSAGENS' },
           { name: 'SAC', href: '/admin/sac', icon: HeadphonesIcon },
         ],
       },
       {
         title: 'GESTÃO DE EQUIPE',
         items: [
-          { name: 'RH', href: '/admin/rh', icon: Users, exact: true },
-          { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock },
+          { name: 'RH', href: '/admin/rh', icon: Users, exact: true, module: 'RH' },
+          { name: 'ESCALA DE TRABALHO', href: '/admin/rh/escala', icon: Clock, module: 'ESCALA DE TRABALHO' },
         ],
       },
       {
         title: 'OPERAÇÃO',
         items: [
-          { name: 'ESTOQUE', href: '/admin/estoque', icon: Package },
+          { name: 'ESTOQUE', href: '/admin/estoque', icon: Package, module: 'ESTOQUE' },
           { name: 'PRECIFICAÇÃO', href: '/admin/precificacao', icon: DollarSign, adminOnly: true },
           { name: 'NEGOCIAÇÃO', href: '/admin/operacao/negociacao', icon: Handshake },
           { name: 'SEGMENTAÇÃO DA AGENDA', href: '/admin/operacao/segmentacao', icon: Grid },
@@ -174,13 +174,14 @@ export function Layout() {
           {
             name: 'CONFIGURAÇÕES',
             icon: Settings,
+            module: 'CONFIGURAÇÕES',
             subItems: [
               { name: 'SISTEMA', href: '/admin/configuracoes' },
               { name: 'PERMISSÕES', href: '/admin/permissoes', adminOnly: true },
             ],
           },
-          { name: 'CENTRAL DE ACESSOS', href: '/admin/acessos', icon: Shield },
-          { name: 'LOGS', href: '/admin/auditoria', icon: FileText },
+          { name: 'CENTRAL DE ACESSOS', href: '/admin/acessos', icon: Shield, module: 'ACESSOS' },
+          { name: 'LOGS', href: '/admin/auditoria', icon: FileText, module: 'LOGS' },
         ],
       },
     ],
@@ -192,12 +193,13 @@ export function Layout() {
       .map((section) => ({
         ...section,
         items: section.items.filter((item) => {
-          if (item.adminOnly && !isAdmin) return false
+          if (item.adminOnly && !isAdmin && !isMaster) return false
+          if (item.module && !isAdmin && !isMaster && !can(item.module, 'view')) return false
           return true
         }),
       }))
       .filter((section) => section.items.length > 0)
-  }, [navigationSections, isAdmin])
+  }, [navigationSections, isAdmin, isMaster, can])
 
   useEffect(() => {
     setOpenMenus((prev) => {
