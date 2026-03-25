@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
-import type { PriceItem, AppSettings, Consultorio } from '@/types/pricing'
-import type { SpecialtyConfig } from '@/types/clinic'
+import type { PriceItem, AppSettings } from '@/types/pricing'
+import type { SpecialtyConfig, Consultorio } from '@/types/clinic'
 
 export const pricingService = {
   fetchPriceList: () => supabase.from('price_list' as any).select('*'),
@@ -31,10 +31,10 @@ export const pricingService = {
       .limit(1)
       .maybeSingle(),
 
-  createDefaultSettings: () =>
+  createSettings: (data: Partial<AppSettings>) =>
     supabase
       .from('app_settings' as any)
-      .insert([{}])
+      .insert([data as any])
       .select()
       .single(),
 
@@ -64,6 +64,18 @@ export const pricingService = {
       .from('clinica_consultorios' as any)
       .delete()
       .eq('id', id),
+
+  deleteConsultoriosIn: (ids: string[]) =>
+    supabase
+      .from('clinica_consultorios' as any)
+      .delete()
+      .in('id', ids),
+
+  fetchFullConsultorios: () =>
+    supabase
+      .from('clinica_consultorios' as any)
+      .select('*, schedules:consultorio_weekly_schedules(*)')
+      .order('created_at', { ascending: true }),
 
   upsertConsultorioSchedules: (schedules: unknown[]) =>
     supabase.from('consultorio_weekly_schedules' as any).upsert(schedules as any),
