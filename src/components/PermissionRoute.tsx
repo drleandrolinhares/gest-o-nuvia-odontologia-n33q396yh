@@ -12,10 +12,10 @@ export default function PermissionRoute({ children, module, adminOnly }: Props) 
 
   if ((adminOnly || module) && !isAdmin && !isMaster) {
     if (adminOnly) {
-      return <Navigate to="/admin/dashboard" replace />
+      return <Navigate to="/hub/mural" replace />
     }
     if (module && !can(module, 'view')) {
-      return <Navigate to="/admin/dashboard" replace />
+      return <Navigate to="/hub/mural" replace />
     }
   }
 

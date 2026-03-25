@@ -53,7 +53,14 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Index />} />
+                <Route
+                  index
+                  element={
+                    <PermissionRoute module="DASHBOARD">
+                      <Index />
+                    </PermissionRoute>
+                  }
+                />
                 <Route
                   path="admin/dashboard"
                   element={
