@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { checkAuthError } from '@/lib/supabase/authHelpers'
 import { inventoryService } from '@/services/inventoryService'
+import { employeeService } from '@/services/employeeService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   Employee,
@@ -1436,9 +1437,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (e.password && e.email) {
         const formattedEmail = e.email.trim().toLowerCase()
-        const res = await supabase.functions.invoke('admin-create-user', {
-          body: { email: formattedEmail, password: e.password, name: e.name },
-        })
+        const res = await employeeService.createAuthUser(formattedEmail, e.password, e.name)
 
         if (res.error) {
           checkAuthError(res.error)
@@ -1514,9 +1513,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Rollback created auth user if employee insertion fails
         if (userId) {
           try {
-            await supabase.functions.invoke('admin-delete-user', {
-              body: { userId },
-            })
+            await employeeService.deleteAuthUser(userId)
           } catch (rollbackErr) {
             console.warn('Failed to rollback orphaned user during failed creation', rollbackErr)
           }
@@ -1652,9 +1649,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const updateEmployeePassword = useCallback(
     async (userId: string, newPass: string) => {
       try {
-        const { error } = await supabase.functions.invoke('update-user-password', {
-          body: { userId, password: newPass },
-        })
+        const { error } = await employeeService.updatePassword(userId, newPass)
         if (error) throw error
         logAction(`ALTEROU SENHA DE ACESSO DO USUÁRIO ID: ${userId}`)
         return { success: true }
@@ -1694,10 +1689,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const deleteEmployee = useCallback(
     (id: string) => {
-      supabase
-        .from('employees')
-        .delete()
-        .eq('id', id)
+      employeeService
+        .delete(id)
         .then(({ error }) => {
           if (error) checkAuthError(error)
           else {
@@ -1711,10 +1704,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
   const updateEmployeeStatus = useCallback(
     (id: string, s: string) => {
-      supabase
-        .from('employees')
-        .update({ status: s })
-        .eq('id', id)
+      employeeService
+        .updateStatus(id, s)
         .then(({ error }) => {
           if (error) checkAuthError(error)
           else {
