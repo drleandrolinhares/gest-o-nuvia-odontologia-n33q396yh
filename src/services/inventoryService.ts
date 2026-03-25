@@ -134,8 +134,7 @@ export const inventoryService = {
       .from('inventory_movements')
       .insert([{ inventory_id: inventoryId, user_id: userId, type, quantity, recipient }]),
 
-  addMovements: (movements: any[]) =>
-    supabase.from('inventory_movements' as any).insert(movements),
+  addMovements: (movements: any[]) => supabase.from('inventory_movements' as any).insert(movements),
 
   finalizeTemporaryOutflow: (id: string) =>
     supabase

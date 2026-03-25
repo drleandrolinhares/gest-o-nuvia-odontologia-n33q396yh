@@ -28,7 +28,9 @@ export const clinicService = {
       .in('id', ids),
 
   upsertConsultorioSchedules: (schedules: any[]) =>
-    supabase.from('consultorio_weekly_schedules' as any).upsert(schedules, { onConflict: 'consultorio_id, day_of_week' }),
+    supabase
+      .from('consultorio_weekly_schedules' as any)
+      .upsert(schedules, { onConflict: 'consultorio_id, day_of_week' }),
 
   fetchSpecialtyConfigs: () => supabase.from('specialty_configs' as any).select('*'),
 
