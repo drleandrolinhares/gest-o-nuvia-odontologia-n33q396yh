@@ -85,7 +85,14 @@ export default function App() {
                     </PermissionRoute>
                   }
                 />
-                <Route path="admin/sac" element={<SAC />} />
+                <Route
+                  path="admin/sac"
+                  element={
+                    <PermissionRoute module="SAC">
+                      <SAC />
+                    </PermissionRoute>
+                  }
+                />
                 <Route
                   path="admin/acessos"
                   element={
@@ -142,8 +149,22 @@ export default function App() {
                     </PermissionRoute>
                   }
                 />
-                <Route path="admin/operacao/negociacao" element={<Negotiation />} />
-                <Route path="admin/operacao/segmentacao" element={<AgendaSegmentation />} />
+                <Route
+                  path="admin/operacao/negociacao"
+                  element={
+                    <PermissionRoute module="NEGOCIAÇÃO">
+                      <Negotiation />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="admin/operacao/segmentacao"
+                  element={
+                    <PermissionRoute module="SEGMENTAÇÃO">
+                      <AgendaSegmentation />
+                    </PermissionRoute>
+                  }
+                />
                 <Route
                   path="admin/configuracoes"
                   element={

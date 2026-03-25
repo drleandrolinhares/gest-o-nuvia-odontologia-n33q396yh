@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { playNotificationSound } from '@/lib/audio'
 import { toast } from '@/components/ui/use-toast'
+import { handleAuthError } from '@/lib/supabase/authHelpers'
 
 export type ChatRoom = {
   id: string
@@ -30,6 +31,8 @@ export type ChatMessage = {
   created_at: string
 }
 
+const MESSAGES_PER_PAGE = 50
+
 interface ChatStore {
   rooms: ChatRoom[]
   messages: Record<string, ChatMessage[]>
@@ -37,6 +40,8 @@ interface ChatStore {
   onlineUsers: string[]
   activeRoomId: string | null
   isLoadingRoom: boolean
+  isLoadingMore: boolean
+  hasMoreMessages: Record<string, boolean>
   isMasterUser: boolean
   roomError: string | null
   openIndividualRoom: (userId: string) => Promise<void>
@@ -46,30 +51,12 @@ interface ChatStore {
   removeGroupParticipant: (roomId: string, userId: string) => Promise<void>
   getGroupParticipants: (roomId: string) => Promise<string[]>
   sendMessage: (roomId: string, content: string) => Promise<void>
+  loadMoreMessages: (roomId: string) => Promise<void>
   closeRoom: () => void
 }
 
 const ChatContext = createContext<ChatStore | undefined>(undefined)
 
-const handleAuthError = (err: any) => {
-  const isAuthError =
-    err?.code === 'PGRST303' ||
-    err?.message?.includes('JWT expired') ||
-    err?.status === 401 ||
-    err?.message?.includes('Sessão expirada') ||
-    err?.message?.includes('Unauthorized')
-
-  if (isAuthError) {
-    supabase.auth.signOut()
-    toast({
-      title: 'Sessão Expirada',
-      description: 'Sua sessão de acesso expirou. Faça login novamente.',
-      variant: 'destructive',
-    })
-    return true
-  }
-  return false
-}
 
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -79,6 +66,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([])
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null)
   const [isLoadingRoom, setIsLoadingRoom] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({})
   const [isMasterUser, setIsMasterUser] = useState(false)
   const [roomError, setRoomError] = useState<string | null>(null)
 
@@ -268,7 +257,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [user?.id, markRoomAsRead],
   )
 
-  const loadMessages = useCallback(async (roomId: string) => {
+  const loadMessages = useCallback(async (roomId: string, cursor?: string) => {
     if (!roomId) return
     try {
       const {
@@ -280,21 +269,52 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         throw new Error('Sessão expirada. Verifique seu login.')
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('chat_messages')
         .select('*')
         .eq('room_id', roomId)
-        .order('created_at', { ascending: true })
-        .limit(300)
+        .order('created_at', { ascending: false })
+        .limit(MESSAGES_PER_PAGE)
+
+      if (cursor) {
+        query = query.lt('created_at', cursor)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
-      if (data) setMessages((prev) => ({ ...prev, [roomId]: data }))
+      if (data) {
+        const sorted = [...data].reverse()
+        setHasMoreMessages((prev) => ({ ...prev, [roomId]: data.length === MESSAGES_PER_PAGE }))
+        if (cursor) {
+          // Prepend older messages
+          setMessages((prev) => ({
+            ...prev,
+            [roomId]: [...sorted, ...(prev[roomId] || [])],
+          }))
+        } else {
+          setMessages((prev) => ({ ...prev, [roomId]: sorted }))
+        }
+      }
     } catch (err: any) {
       if (!handleAuthError(err)) {
         console.warn('Error in loadMessages:', err)
       }
     }
   }, [])
+
+  const loadMoreMessages = useCallback(async (roomId: string) => {
+    if (!roomId || isLoadingMore) return
+    const roomMsgs = messages[roomId]
+    if (!roomMsgs || roomMsgs.length === 0) return
+    const oldestMsg = roomMsgs[0]
+    setIsLoadingMore(true)
+    try {
+      await loadMessages(roomId, oldestMsg.created_at)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [isLoadingMore, messages, loadMessages])
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -658,6 +678,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         onlineUsers,
         activeRoomId,
         isLoadingRoom,
+        isLoadingMore,
+        hasMoreMessages,
         isMasterUser,
         roomError,
         openIndividualRoom,
@@ -667,6 +689,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         removeGroupParticipant,
         getGroupParticipants,
         sendMessage,
+        loadMoreMessages,
         closeRoom,
       }}
     >

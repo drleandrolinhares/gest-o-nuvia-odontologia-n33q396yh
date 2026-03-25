@@ -10,315 +10,75 @@ import React, {
 } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
+import { checkAuthError } from '@/lib/supabase/authHelpers'
+import { inventoryService } from '@/services/inventoryService'
+import type { Database } from '@/lib/supabase/types'
+import type {
+  Employee,
+  OnboardingTask,
+  OnboardingCandidate,
+  EmployeeDocument,
+  WorkSchedule,
+} from '@/types/employee'
+import type {
+  PurchaseRecord,
+  InventoryItem,
+  TemporaryOutflow,
+  InventoryMovement,
+  InventoryOption,
+} from '@/types/inventory'
+import type { AgendaItem, AgendaSegmentation } from '@/types/agenda'
+import type { ManualStep, TroubleshootingFaq, AccessItem } from '@/types/access'
+import type {
+  FixedExpenseDetail,
+  FixedExpense,
+  NegotiationSettings,
+  AppSettings,
+  PriceItem,
+} from '@/types/pricing'
+import type { SacRecord, SacActionHistory } from '@/types/sac'
+import type { Supplier, BonusSetting, SystemRole, RolePermission } from '@/types/settings'
+import type { Consultorio, ConsultorioWeeklySchedule, SpecialtyConfig } from '@/types/clinic'
+import type { AuditLog, DocumentItem } from '@/types/common'
 
-export type Employee = {
-  id: string
-  user_id?: string
-  name: string
-  username?: string
-  role: string
-  department: string
-  status: 'Ativo' | 'Férias' | 'Aviso Prévio' | 'Desligado' | 'Inativo'
-  hireDate: string
-  salary: string
-  vacationDaysTaken: number
-  vacationDaysTotal: number
-  vacationDueDate: string
-  email: string
-  phone: string
-  rg?: string
-  cpf?: string
-  birthDate?: string
-  cep?: string
-  address?: string
-  addressNumber?: string
-  addressComplement?: string
-  city?: string
-  state?: string
-  lastAccess?: string
-  teamCategory?: string[]
-  contractDetails?: string
-  bonusType?: string
-  bonusRules?: string
-  bonusDueDate?: string
-  pix_number?: string
-  pix_type?: string
-  bank_name?: string
-  noSystemAccess?: boolean
-}
-export type OnboardingTask = { id: string; title: string; completed: boolean }
-export type OnboardingCandidate = {
-  id: string
-  name: string
-  role: string
-  department: string
-  tasks: OnboardingTask[]
-}
-export type PurchaseRecord = {
-  id: string
-  date: string
-  price: number
-  quantity: number
-  expirationDate?: string
-  lot?: string
-  supplierId?: string
-  nfeNumber?: string
-}
-export type InventoryItem = {
-  id: string
-  name: string
-  packageCost: number
-  storageLocation: string
-  packageType: string
-  itemsPerBox: number
-  minStock: number
-  quantity: number
-  specialty?: string
-  entryDate?: string
-  expirationDate?: string
-  brand?: string
-  lastBrand?: string
-  lastValue?: number
-  notes?: string
-  barcode?: string
-  purchaseHistory?: PurchaseRecord[]
-  specialtyDetails?: any
-  nfeNumber?: string
-  storageRoom?: string
-  cabinetNumber?: string
-  criticalObservations?: string
-  consumptionMode?: string
-  consumptionReference?: string
-}
-export type TemporaryOutflow = {
-  id: string
-  inventory_id: string
-  employee_id: string
-  quantity: number
-  status: 'PENDING' | 'FINALIZED' | 'RETURNED'
-  created_at: string
-  employees?: { name: string }
-}
-export type InventoryMovement = {
-  id: string
-  inventory_id: string
-  user_id: string
-  type: string
-  quantity: number
-  recipient: string
-  created_at: string
-  profiles?: { name: string }
-}
-export type DocumentItem = { id: string; name: string; date: string }
-export type AgendaItem = {
-  id: string
-  title: string
-  date: string
-  end_date?: string
-  time: string
-  location: string
-  type: string
-  assignedTo?: string
-  involvesThirdParty?: boolean
-  thirdPartyDetails?: string
-  createdBy?: string
-  is_completed?: boolean
-  requester_id?: string
-  received_at?: string
-  completed_at?: string
-  created_at?: string
-  sac_record_id?: string
-  periodicity?: string
-}
+// DB row type aliases for typed mappers
+type DbEmployee = Database['public']['Tables']['employees']['Row']
+type DbInventory = Database['public']['Tables']['inventory']['Row']
+type DbAgenda = Database['public']['Tables']['agenda']['Row']
+type DbAcesso = Database['public']['Tables']['acessos']['Row']
+type DbDocument = Database['public']['Tables']['documents']['Row']
+type DbInventoryOption = Database['public']['Tables']['inventory_settings']['Row']
+type DbAppSettings = Database['public']['Tables']['app_settings']['Row']
 
-export type ManualStep = { id: string; text: string; completed?: boolean }
-export type TroubleshootingFaq = { id: string; question: string; answer: string }
-
-export type AccessItem = {
-  id: string
-  platform: string
-  url: string
-  login: string
-  pass: string
-  instructions: string
-  sector?: string
-  access_level?: string
-  logo_url?: string
-  description?: string
-  target_users?: string
-  frequency?: string
-  video_url?: string
-  manual_steps?: ManualStep[]
-  troubleshooting?: TroubleshootingFaq[]
-  security_note?: string
-}
-
-export type Supplier = {
-  id: string
-  name: string
-  contact: string
-  phone: string
-  email: string
-  cnpj: string
-  website?: string
-  hasSpecialNegotiation?: boolean
-  negotiationNotes?: string
-}
-export type AuditLog = { id: string; userName: string; action: string; timestamp: string }
-export type BonusSetting = { id: string; name: string }
-export type EmployeeDocument = {
-  id: string
-  employee_id: string
-  file_name: string
-  file_path: string
-  created_at: string
-}
-export type WorkSchedule = {
-  id: string
-  employee_id: string
-  work_date: string
-  morning_start: string | null
-  morning_end: string | null
-  afternoon_start: string | null
-  afternoon_end: string | null
-  morning_snack_start: string | null
-  morning_snack_end: string | null
-  afternoon_snack_start: string | null
-  afternoon_snack_end: string | null
-  total_daily_hours: number | null
-}
-export type InventoryOption = {
-  id: string
-  category: string
-  label?: string
-  value: string
-}
-
-export type FixedExpenseDetail = {
-  id: string
-  description: string
-  amount: number
-  is_annual?: boolean
-}
-export type FixedExpense = {
-  id: string
-  label: string
-  value: number
-  details?: FixedExpenseDetail[]
-}
-export type NegotiationSettings = {
-  ranges: { min: number; max: number; maxInstallments: number }[]
-  defaultEntryPercentage: number
-  discounts?: {
-    level1: number
-    level2: number
-    level3: number
-    level4: number
-  }
-}
-export type AppSettings = {
-  id: string
-  global_card_fee: number
-  global_commission: number
-  global_inadimplency: number
-  global_taxes: number
-  hourly_cost_fixed_items: FixedExpense[]
-  hourly_cost_monthly_hours: number
-  predicted_loss_percentage: number
-  evaluation_factor_percentage: number
-  negotiation_settings?: NegotiationSettings
-}
-export type PriceItem = {
-  id: string
-  work_type: string
-  category: string
-  material: string | null
-  price: number
-  sector: string | null
-  execution_time: number
-  cadista_cost: number
-  material_cost: number
-  fixed_cost: number
-}
-
-export type ConsultorioWeeklySchedule = {
-  id?: string
-  consultorio_id?: string
-  day_of_week: number
-  morning_start: string | null
-  morning_end: string | null
-  afternoon_start: string | null
-  afternoon_end: string | null
-  is_closed: boolean
-}
-
-export type Consultorio = {
-  id: string
-  name: string
-  morning_start?: string | null
-  morning_end?: string | null
-  afternoon_start?: string | null
-  afternoon_end?: string | null
-  schedules?: ConsultorioWeeklySchedule[]
-}
-
-export type RolePermission = {
-  id?: string
-  role: string
-  module: string
-  can_view: boolean
-  can_create: boolean
-  can_edit: boolean
-  can_delete: boolean
-  updated_at?: string
-}
-
-export type SystemRole = {
-  id: string
-  name: string
-  created_at?: string
-}
-
-export type SacActionHistory = {
-  action: string
-  user_name?: string
-  user_id?: string
-  employeeName?: string
-  timestamp: string
-}
-
-export type SacRecord = {
-  id: string
-  type: 'RECLAMAÇÃO' | 'SUGESTÃO'
-  patient_name: string
-  receiving_employee_id?: string
-  responsible_employee_id?: string
-  status: 'OPORTUNIDADE DE SOLUÇÃO' | 'RECEBIDO' | 'SENDO TRATADO' | 'RESOLVIDO'
-  sector: string
-  description: string
-  solution_details?: string
-  received_at: string
-  limit_at: string
-  solved_at?: string
-  created_at: string
-  action_history?: SacActionHistory[]
-}
-
-export type SpecialtyConfig = {
-  id: string
-  name: string
-  color_hex: string
-  created_at?: string
-}
-
-export type AgendaSegmentation = {
-  id: string
-  consultorio_id: string
-  day_of_week: number
-  shift: 'MANHÃ' | 'TARDE'
-  specialty_id?: string
-  dentist_id?: string
-}
+// Domain types are in src/types/ — re-exported here for backwards compatibility.
+// In new code, import directly from '@/types'.
+export type {
+  Employee,
+  OnboardingTask,
+  OnboardingCandidate,
+  EmployeeDocument,
+  WorkSchedule,
+} from '@/types/employee'
+export type {
+  PurchaseRecord,
+  InventoryItem,
+  TemporaryOutflow,
+  InventoryMovement,
+  InventoryOption,
+} from '@/types/inventory'
+export type { AgendaItem, AgendaSegmentation } from '@/types/agenda'
+export type { ManualStep, TroubleshootingFaq, AccessItem } from '@/types/access'
+export type {
+  FixedExpenseDetail,
+  FixedExpense,
+  NegotiationSettings,
+  AppSettings,
+  PriceItem,
+} from '@/types/pricing'
+export type { SacRecord, SacActionHistory } from '@/types/sac'
+export type { Supplier, BonusSetting, SystemRole, RolePermission } from '@/types/settings'
+export type { Consultorio, ConsultorioWeeklySchedule, SpecialtyConfig } from '@/types/clinic'
+export type { AuditLog, DocumentItem } from '@/types/common'
 
 interface AppStore {
   isAuthenticated: boolean
@@ -496,7 +256,7 @@ const mockAgendaTypes = [
   'COMPROMISSO DENTISTA',
 ]
 
-const mEmp = (d: any): Employee => ({
+const mEmp = (d: DbEmployee): Employee => ({
   id: d.id,
   user_id: d.user_id,
   name: d.name,
@@ -535,7 +295,7 @@ const mEmp = (d: any): Employee => ({
   bank_name: d.bank_name || '',
   noSystemAccess: d.no_system_access || false,
 })
-const mInv = (d: any): InventoryItem => ({
+const mInv = (d: DbInventory): InventoryItem => ({
   id: d.id,
   name: d.name,
   packageCost: d.package_cost,
@@ -561,7 +321,7 @@ const mInv = (d: any): InventoryItem => ({
   consumptionMode: d.consumption_mode,
   consumptionReference: d.consumption_reference,
 })
-const mAg = (d: any): AgendaItem => ({
+const mAg = (d: DbAgenda): AgendaItem => ({
   id: d.id,
   title: d.title,
   date: d.date,
@@ -581,7 +341,7 @@ const mAg = (d: any): AgendaItem => ({
   sac_record_id: d.sac_record_id,
   periodicity: d.periodicity,
 })
-const mAcc = (d: any): AccessItem => ({
+const mAcc = (d: DbAcesso): AccessItem => ({
   id: d.id,
   platform: d.platform,
   url: d.url,
@@ -599,7 +359,7 @@ const mAcc = (d: any): AccessItem => ({
   troubleshooting: d.troubleshooting || [],
   security_note: d.security_note || '',
 })
-const mSup = (d: any): Supplier => ({
+const mSup = (d: Record<string, unknown>): Supplier => ({
   id: d.id,
   name: d.name,
   contact: d.contact,
@@ -610,15 +370,15 @@ const mSup = (d: any): Supplier => ({
   hasSpecialNegotiation: d.has_special_negotiation,
   negotiationNotes: d.negotiation_notes,
 })
-const mOnb = (d: any): OnboardingCandidate => ({
+const mOnb = (d: Record<string, unknown>): OnboardingCandidate => ({
   id: d.id,
   name: d.name,
   role: d.role,
   department: d.department,
   tasks: d.tasks,
 })
-const mDoc = (d: any): DocumentItem => ({ id: d.id, name: d.name, date: d.date })
-const mOpt = (d: any): InventoryOption => ({
+const mDoc = (d: DbDocument): DocumentItem => ({ id: d.id, name: d.name, date: d.date })
+const mOpt = (d: DbInventoryOption): InventoryOption => ({
   id: d.id,
   category: d.category,
   label: d.label,
@@ -642,7 +402,7 @@ const defaultNegotiationSettings: NegotiationSettings = {
   },
 }
 
-const mAppSet = (d: any): AppSettings => ({
+const mAppSet = (d: DbAppSettings): AppSettings => ({
   id: d.id,
   global_card_fee: Number(d.global_card_fee) || 0,
   global_commission: Number(d.global_commission) || 0,
@@ -651,14 +411,14 @@ const mAppSet = (d: any): AppSettings => ({
   predicted_loss_percentage: Number(d.predicted_loss_percentage ?? 20),
   evaluation_factor_percentage: Number(d.evaluation_factor_percentage ?? 15),
   hourly_cost_fixed_items: Array.isArray(d.hourly_cost_fixed_items)
-    ? d.hourly_cost_fixed_items.map((i: any) => ({
-        id: i.id || crypto.randomUUID(),
-        label: i.label || i.name || '',
+    ? (d.hourly_cost_fixed_items as Record<string, unknown>[]).map((i) => ({
+        id: (i.id as string) || crypto.randomUUID(),
+        label: (i.label as string) || (i.name as string) || '',
         value: Number(i.value) || 0,
         details: Array.isArray(i.details)
-          ? i.details.map((det: any) => ({
-              id: det.id || crypto.randomUUID(),
-              description: det.description || '',
+          ? (i.details as Record<string, unknown>[]).map((det) => ({
+              id: (det.id as string) || crypto.randomUUID(),
+              description: (det.description as string) || '',
               amount: Number(det.amount) || 0,
               is_annual: Boolean(det.is_annual) || false,
             }))
@@ -675,7 +435,7 @@ const mAppSet = (d: any): AppSettings => ({
     : defaultNegotiationSettings,
 })
 
-const mPrice = (d: any): PriceItem => ({
+const mPrice = (d: Record<string, unknown>): PriceItem => ({
   id: d.id,
   work_type: d.work_type,
   category: d.category,
@@ -688,7 +448,7 @@ const mPrice = (d: any): PriceItem => ({
   fixed_cost: Number(d.fixed_cost) || 0,
 })
 
-const mSac = (d: any): SacRecord => ({
+const mSac = (d: Record<string, unknown>): SacRecord => ({
   id: d.id,
   type: d.type,
   patient_name: d.patient_name,
@@ -705,14 +465,14 @@ const mSac = (d: any): SacRecord => ({
   action_history: Array.isArray(d.action_history) ? d.action_history : [],
 })
 
-const mSpecConfig = (d: any): SpecialtyConfig => ({
+const mSpecConfig = (d: Record<string, unknown>): SpecialtyConfig => ({
   id: d.id,
   name: d.name,
   color_hex: d.color_hex,
   created_at: d.created_at,
 })
 
-const mSeg = (d: any): AgendaSegmentation => ({
+const mSeg = (d: Record<string, unknown>): AgendaSegmentation => ({
   id: d.id,
   consultorio_id: d.consultorio_id,
   day_of_week: d.day_of_week,
@@ -723,24 +483,6 @@ const mSeg = (d: any): AgendaSegmentation => ({
 
 const StoreContext = createContext<AppStore | undefined>(undefined)
 
-const checkAuthError = (err: any) => {
-  if (err?.status === 400 || err?.code === 'PGRST204') {
-    return false
-  }
-
-  const isAuthError =
-    err?.code === 'PGRST303' ||
-    err?.message?.includes('JWT expired') ||
-    err?.status === 401 ||
-    err?.message?.includes('Sessão expirada') ||
-    err?.message?.includes('Unauthorized')
-
-  if (isAuthError) {
-    console.warn('Auth token may be expired or refreshing. Deferring to Supabase auth client.')
-    return true
-  }
-  return false
-}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -821,7 +563,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsDataLoading(true)
       setFetchError(null)
 
-      const handleResponse = <T>(r: any, mapper?: (d: any) => T): T[] => {
+      const handleResponse = <T>(r: { data: unknown[] | null; error: unknown }, mapper?: (d: unknown) => T): T[] => {
         if (r.error) throw r.error
         return mapper ? (r.data || []).map(mapper) : r.data || []
       }
@@ -1321,10 +1063,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateInventoryQuantity = useCallback(
     (id: string, q: number) => {
-      supabase
-        .from('inventory')
-        .update({ quantity: q })
-        .eq('id', id)
+      inventoryService
+        .updateQuantity(id, q)
         .then(({ error }) => {
           if (error) checkAuthError(error)
           if (!error) {
@@ -1385,7 +1125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteInventoryItem = useCallback(
     async (id: string) => {
       try {
-        const { error } = await supabase.from('inventory').delete().eq('id', id)
+        const { error } = await inventoryService.delete(id)
         if (error) throw error
         setInventory((p) => p.filter((i) => i.id !== id))
         logAction(`REMOVEU PRODUTO ID: ${id}`)
@@ -1678,11 +1418,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const getInventoryMovements = useCallback(async (inventory_id: string) => {
     try {
-      const { data, error } = await supabase
-        .from('inventory_movements' as any)
-        .select('*, profiles(name)')
-        .eq('inventory_id', inventory_id)
-        .order('created_at', { ascending: false })
+      const { data, error } = await inventoryService.fetchMovements(inventory_id)
       if (error) throw error
       return data || []
     } catch (err) {
