@@ -27,6 +27,7 @@ import Mural from '@/pages/hub/Mural'
 import Feedback from '@/pages/hub/Feedback'
 import Ranking from '@/pages/hub/Ranking'
 import Performance from '@/pages/hub/Performance'
+import TestRoutes from '@/pages/TestRoutes'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
@@ -215,6 +216,14 @@ export default function App() {
                   element={
                     <PermissionRoute module="LOGS">
                       <AuditLog />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="auditoria-rotas"
+                  element={
+                    <PermissionRoute adminOnly>
+                      <TestRoutes />
                     </PermissionRoute>
                   }
                 />

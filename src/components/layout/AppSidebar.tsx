@@ -107,6 +107,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           { name: 'PERMISSÕES', href: '/permissoes', adminOnly: true },
           { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
           { name: 'LOGS', href: '/logs', module: 'LOGS' },
+          { name: 'AUDITORIA DE ROTAS', href: '/auditoria-rotas', adminOnly: true },
         ],
       },
     ],
