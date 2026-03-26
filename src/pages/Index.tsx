@@ -1,17 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Users,
-  Package,
-  ListTodo,
-  TrendingDown,
-  AlertCircle,
-  DollarSign,
-  Boxes,
-  UserCheck,
-  Stethoscope,
-  Briefcase,
-  CalendarDays,
-} from 'lucide-react'
+import { TrendingDown, AlertCircle, DollarSign, Boxes, CalendarDays, Package } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -19,21 +7,15 @@ import { cn, formatCurrency } from '@/lib/utils'
 import { Link, useNavigate } from 'react-router-dom'
 
 export default function Index() {
-  const { employees, alerts, onboarding, inventory } = useAppStore()
+  const { alerts, inventory } = useAppStore()
   const navigate = useNavigate()
 
-  const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
-  const countSocios = activeEmployees.filter((e) => e.teamCategory === 'SÓCIO').length
-  const countDentistas = activeEmployees.filter((e) => e.teamCategory === 'DENTISTA').length
-  const countColaboradores = activeEmployees.filter(
-    (e) => e.teamCategory === 'COLABORADOR' || !e.teamCategory,
-  ).length
-  const totalTeam = activeEmployees.length
-
-  const pendingOnboarding = onboarding.length
-  const lowStockItems = inventory.filter((i) => i.quantity <= i.minStock).length
+  const lowStockItems = inventory.filter((i) => i.quantity <= (i.minStock || 0)).length
   const totalItemsInStock = inventory.reduce((acc, item) => acc + item.quantity, 0)
-  const investedCapital = inventory.reduce((acc, item) => acc + item.quantity * item.packageCost, 0)
+  const investedCapital = inventory.reduce(
+    (acc, item) => acc + (item.quantity / (item.itemsPerBox || 1)) * (item.packageCost || 0),
+    0,
+  )
 
   const now = new Date()
   const sixtyDays = new Date()
@@ -55,82 +37,10 @@ export default function Index() {
     <div className="space-y-8 animate-fade-in uppercase pb-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">DASHBOARD NUVIA</h1>
-        <p className="text-muted-foreground mt-1">VISÃO GERAL DA GESTÃO DE RH E ESTOQUE.</p>
+        <p className="text-muted-foreground mt-1">VISÃO GERAL DA GESTÃO DE ESTOQUE E ROTINAS.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card
-          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
-          onClick={() => navigate('/rh')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SÓCIOS</CardTitle>
-            <Briefcase className="h-4 w-4 text-nuvia-navy" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-nuvia-navy">{countSocios}</div>
-            <p className="text-xs text-muted-foreground mt-1">SÓCIOS ATIVOS</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
-          onClick={() => navigate('/rh')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">DENTISTAS</CardTitle>
-            <Stethoscope className="h-4 w-4 text-nuvia-navy" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-nuvia-navy">{countDentistas}</div>
-            <p className="text-xs text-muted-foreground mt-1">CLÍNICOS</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
-          onClick={() => navigate('/rh')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">COLABORADORES</CardTitle>
-            <UserCheck className="h-4 w-4 text-nuvia-navy" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-nuvia-navy">{countColaboradores}</div>
-            <p className="text-xs text-muted-foreground mt-1">APOIO / GESTÃO</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-primary/5 border-primary/20"
-          onClick={() => navigate('/rh')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">TIME TOTAL</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-primary">{totalTeam}</div>
-            <p className="text-xs text-muted-foreground mt-1">PESSOAS ATIVAS</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card
-          className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
-          onClick={() => navigate('/rh')}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ONBOARDING PENDENTE</CardTitle>
-            <ListTodo className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingOnboarding}</div>
-            <p className="text-xs text-muted-foreground mt-1">PROCESSOS EM ANDAMENTO (RH)</p>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card
           className={cn(
             'cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md',
@@ -190,11 +100,7 @@ export default function Index() {
           </CardHeader>
           <CardContent className="space-y-4">
             {alerts.map((alert, idx) => (
-              <div
-                key={idx}
-                onClick={() => navigate('/rh')}
-                className="cursor-pointer transition-transform hover:scale-[1.01]"
-              >
+              <div key={idx} className="cursor-pointer transition-transform hover:scale-[1.01]">
                 <Alert
                   variant={idx === 0 ? 'destructive' : 'default'}
                   className={cn(idx !== 0 && 'border-amber-200 bg-amber-50 text-amber-900')}
@@ -275,11 +181,6 @@ export default function Index() {
             <Link to="/agenda" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <CalendarDays className="mr-2 h-4 w-4" /> COMPROMISSOS DE HOJE
-              </Button>
-            </Link>
-            <Link to="/rh" className="w-full block">
-              <Button className="w-full justify-start" variant="outline">
-                <Users className="mr-2 h-4 w-4" /> GESTÃO DE EQUIPE (RH)
               </Button>
             </Link>
             <Link to="/estoque" className="w-full block">

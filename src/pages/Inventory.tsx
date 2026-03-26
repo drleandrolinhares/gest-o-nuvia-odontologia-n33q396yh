@@ -621,10 +621,7 @@ export default function Inventory() {
                                       >
                                         <div className="flex items-center gap-4 flex-wrap">
                                           <span className="font-extrabold text-sm text-slate-800 uppercase flex items-center gap-1.5">
-                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-[10px] border border-slate-200">
-                                              {outflow.employees?.name?.charAt(0)}
-                                            </div>
-                                            {outflow.employees?.name}
+                                            SISTEMA
                                           </span>
                                           <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
                                           <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-black">

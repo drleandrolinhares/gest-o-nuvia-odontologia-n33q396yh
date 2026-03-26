@@ -9,7 +9,6 @@ import {
   Briefcase,
   DollarSign,
   Bug,
-  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -40,18 +39,12 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   })
 
   const { unreadCounts } = useChatStore()
-  const { isAdmin, isMaster, sacRecords, currentUserId } = useAppStore()
+  const { sacRecords } = useAppStore()
 
-  const [dbPermissions, setDbPermissions] = useState<any[] | null>(null)
-  const [isCheckingPermissions, setIsCheckingPermissions] = useState(true)
-
+  // Removed currentUserId dependency for SAC counts since user tables are dropped
   const pendingSacsCount = useMemo(
-    () =>
-      sacRecords.filter(
-        (r) =>
-          r.status === 'OPORTUNIDADE DE SOLUÇÃO' && r.responsible_employee_id === currentUserId,
-      ).length,
-    [sacRecords, currentUserId],
+    () => sacRecords.filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
+    [sacRecords],
   )
 
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
@@ -69,7 +62,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
             href: '/hub/performance',
             module: 'PERFORMANCE',
           },
-          { name: 'RANKING PERFORMANCE', href: '/hub/ranking', module: 'PERFORMANCE' },
         ],
       },
       {
@@ -103,8 +95,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         items: [
           { name: 'DASHBOARDS', href: '/dashboard', module: 'DASHBOARD' },
           { name: 'KPIS', href: '/kpis', module: 'KPIS' },
-          { name: 'USUÁRIOS / RH', href: '/rh', module: 'RH' },
-          { name: 'ESCALA DE TRABALHO', href: '/rh/escala', module: 'ESCALA DE TRABALHO' },
+          { name: 'DOCUMENTOS', href: '/rh', module: 'RH' },
           { name: 'PRECIFICAÇÃO', href: '/precificacao', module: 'PRECIFICAÇÃO' },
           {
             name: 'SEGMENTAÇÃO DA AGENDA',
@@ -117,61 +108,14 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         title: 'SISTEMA',
         icon: Settings,
         items: [
-          { name: 'PERMISSÕES', href: '/permissoes', module: 'CONFIGURAÇÕES', adminOnly: true },
           { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
           { name: 'LOGS', href: '/logs', module: 'LOGS' },
-          { name: 'AUDITORIA DE ROTAS', href: '/auditoria-rotas', module: 'LOGS', adminOnly: true },
           { name: 'DEBUG', href: '/debug', module: 'LOGS', adminOnly: true, icon: Bug },
         ],
       },
     ],
     [totalUnread, pendingSacsCount],
   )
-
-  useEffect(() => {
-    if (!user) {
-      setIsCheckingPermissions(false)
-      return
-    }
-
-    // Como as tabelas de permissões foram removidas, vamos permitir acesso a tudo
-    // para usuários master e admin, evitando o bloqueio total do sistema.
-    if (isAdmin || isMaster) {
-      setDbPermissions(
-        navigationSections.flatMap((s) =>
-          s.items.map((i) => ({ module: i.module, can_view: true })),
-        ),
-      )
-    } else {
-      setDbPermissions([])
-    }
-
-    setIsCheckingPermissions(false)
-  }, [user, isAdmin, isMaster, navigationSections])
-
-  const filteredSections = useMemo(() => {
-    if (isCheckingPermissions || dbPermissions === null) return []
-
-    return navigationSections
-      .map((section) => ({
-        ...section,
-        items: section.items.filter((item) => {
-          if ('adminOnly' in item && item.adminOnly && !isAdmin && !isMaster) {
-            return false
-          }
-
-          if ('module' in item && item.module) {
-            const hasPermission = dbPermissions.some(
-              (p) => p.module.toLowerCase() === item.module.toLowerCase() && p.can_view === true,
-            )
-            if (!hasPermission) return false
-          }
-
-          return true
-        }),
-      }))
-      .filter((section) => section.items.length > 0)
-  }, [navigationSections, isAdmin, isMaster, dbPermissions, isCheckingPermissions])
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => {
@@ -182,12 +126,10 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   }
 
   useEffect(() => {
-    if (isCheckingPermissions) return
-
     setOpenSections((prev) => {
       let hasChanges = false
       const next = { ...prev }
-      filteredSections.forEach((section) => {
+      navigationSections.forEach((section) => {
         const isAnySubActive = section.items.some((item) => location.pathname.startsWith(item.href))
         if (isAnySubActive && !next[section.title]) {
           next[section.title] = true
@@ -200,7 +142,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       }
       return prev
     })
-  }, [location.pathname, filteredSections, isCheckingPermissions])
+  }, [location.pathname, navigationSections])
 
   return (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300 border-r border-white/5">
@@ -218,119 +160,102 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-3 overflow-x-hidden [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
-        {isCheckingPermissions ? (
-          <div className="flex justify-center items-center h-20">
-            <Loader2 className="w-6 h-6 text-[#D4AF37] animate-spin" />
-          </div>
-        ) : filteredSections.length === 0 ? (
-          <div className="text-center py-6 px-4">
-            <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">
-              Sem permissões
-            </p>
-            <p className="text-[10px] text-slate-600 mt-2">
-              Nenhum menu liberado para visualização.
-            </p>
-          </div>
-        ) : (
-          filteredSections.map((section) => {
-            const isActiveSection = section.items.some((item) =>
-              location.pathname.startsWith(item.href),
-            )
+        {navigationSections.map((section) => {
+          const isActiveSection = section.items.some((item) =>
+            location.pathname.startsWith(item.href),
+          )
 
-            return (
-              <div key={section.title} className="mb-2">
-                <Collapsible
-                  open={(openSections[section.title] || false) && (!isCollapsed || isMobile)}
-                  onOpenChange={() => toggleSection(section.title)}
-                >
-                  <CollapsibleTrigger asChild>
-                    <button
+          return (
+            <div key={section.title} className="mb-2">
+              <Collapsible
+                open={(openSections[section.title] || false) && (!isCollapsed || isMobile)}
+                onOpenChange={() => toggleSection(section.title)}
+              >
+                <CollapsibleTrigger asChild>
+                  <button
+                    className={cn(
+                      'w-full flex items-center py-3 px-3 text-xs font-bold uppercase tracking-wider rounded-md transition-all outline-none group',
+                      isCollapsed && !isMobile ? 'justify-center px-2' : '',
+                      isActiveSection
+                        ? 'text-white'
+                        : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                    )}
+                    title={isCollapsed && !isMobile ? section.title : undefined}
+                  >
+                    <section.icon
                       className={cn(
-                        'w-full flex items-center py-3 px-3 text-xs font-bold uppercase tracking-wider rounded-md transition-all outline-none group',
-                        isCollapsed && !isMobile ? 'justify-center px-2' : '',
+                        'h-5 w-5 shrink-0 transition-colors',
+                        isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
                         isActiveSection
-                          ? 'text-white'
-                          : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                          ? 'text-[#D4AF37]'
+                          : 'text-slate-500 group-hover:text-white',
                       )}
-                      title={isCollapsed && !isMobile ? section.title : undefined}
-                    >
-                      <section.icon
-                        className={cn(
-                          'h-5 w-5 shrink-0 transition-colors',
-                          isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
-                          isActiveSection
-                            ? 'text-[#D4AF37]'
-                            : 'text-slate-500 group-hover:text-white',
-                        )}
-                      />
-                      {(!isCollapsed || isMobile) && (
-                        <>
-                          <span className="flex-1 text-left whitespace-nowrap">
-                            {section.title}
-                          </span>
-                          <ChevronDown
-                            className={cn(
-                              'h-4 w-4 shrink-0 transition-transform opacity-50 group-hover:opacity-100',
-                              openSections[section.title] ? 'rotate-180' : '',
-                            )}
-                          />
-                        </>
-                      )}
-                    </button>
-                  </CollapsibleTrigger>
-                  {(!isCollapsed || isMobile) && (
-                    <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
-                      {section.items.map((item) => {
-                        const isActive =
-                          item.href === '/agenda'
-                            ? location.pathname === '/agenda' || location.pathname === '/agenda/'
-                            : location.pathname.startsWith(item.href)
+                    />
+                    {(!isCollapsed || isMobile) && (
+                      <>
+                        <span className="flex-1 text-left whitespace-nowrap">{section.title}</span>
+                        <ChevronDown
+                          className={cn(
+                            'h-4 w-4 shrink-0 transition-transform opacity-50 group-hover:opacity-100',
+                            openSections[section.title] ? 'rotate-180' : '',
+                          )}
+                        />
+                      </>
+                    )}
+                  </button>
+                </CollapsibleTrigger>
+                {(!isCollapsed || isMobile) && (
+                  <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
+                    {section.items.map((item) => {
+                      const isActive =
+                        item.href === '/agenda'
+                          ? location.pathname === '/agenda' || location.pathname === '/agenda/'
+                          : location.pathname.startsWith(item.href)
 
-                        return (
-                          <Link
-                            key={item.name}
-                            to={item.href}
-                            onClick={onLinkClick}
-                            className={cn(
-                              'flex items-center justify-between py-2.5 px-3 text-[11px] font-bold tracking-widest rounded-md transition-colors whitespace-nowrap relative',
-                              isActive
-                                ? 'bg-white/10 text-white'
-                                : 'text-slate-400 hover:text-white hover:bg-white/5',
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          onClick={onLinkClick}
+                          className={cn(
+                            'flex items-center justify-between py-2.5 px-3 text-[11px] font-bold tracking-widest rounded-md transition-colors whitespace-nowrap relative',
+                            isActive
+                              ? 'bg-white/10 text-white'
+                              : 'text-slate-400 hover:text-white hover:bg-white/5',
+                          )}
+                        >
+                          <span className="flex items-center overflow-hidden pr-2">
+                            {'icon' in item && item.icon ? (
+                              <item.icon
+                                className={cn(
+                                  'w-3.5 h-3.5 mr-2 shrink-0 transition-colors',
+                                  isActive ? 'text-[#D4AF37]' : 'text-slate-400',
+                                )}
+                              />
+                            ) : (
+                              <span
+                                className={cn(
+                                  'w-1.5 h-1.5 rounded-full mr-2 shrink-0 transition-colors',
+                                  isActive ? 'bg-[#D4AF37]' : 'bg-transparent',
+                                )}
+                              />
                             )}
-                          >
-                            <span className="flex items-center overflow-hidden pr-2">
-                              {'icon' in item && item.icon ? (
-                                <item.icon
-                                  className={cn(
-                                    'w-3.5 h-3.5 mr-2 shrink-0 transition-colors',
-                                    isActive ? 'text-[#D4AF37]' : 'text-slate-400',
-                                  )}
-                                />
-                              ) : (
-                                <span
-                                  className={cn(
-                                    'w-1.5 h-1.5 rounded-full mr-2 shrink-0 transition-colors',
-                                    isActive ? 'bg-[#D4AF37]' : 'bg-transparent',
-                                  )}
-                                />
-                              )}
-                              <span className="truncate">{item.name}</span>
+                            <span className="truncate">{item.name}</span>
+                          </span>
+                          {'badge' in item && item.badge !== undefined && item.badge > 0 && (
+                            <span className="bg-red-600 animate-pulse text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm shrink-0 ml-auto">
+                              {item.badge > 99 ? '99+' : item.badge}
                             </span>
-                            {'badge' in item && item.badge !== undefined && item.badge > 0 && (
-                              <span className="bg-red-600 animate-pulse text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm shrink-0 ml-auto">
-                                {item.badge > 99 ? '99+' : item.badge}
-                              </span>
-                            )}
-                          </Link>
-                        )
-                      })}
-                    </CollapsibleContent>
-                  )}
-                </Collapsible>
-              </div>
-            )
-          })
-        )}
+                          )}
+                        </Link>
+                      )
+                    })}
+                  </CollapsibleContent>
+                )}
+              </Collapsible>
+            </div>
+          )
+        })}
       </div>
 
       <div
@@ -351,9 +276,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           {(!isCollapsed || isMobile) && (
             <div className="ml-3 overflow-hidden">
               <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-              <p className="text-xs text-slate-400 truncate uppercase">
-                {isAdmin ? 'Administrador' : 'Colaborador'}
-              </p>
+              <p className="text-xs text-slate-400 truncate uppercase">Administrador</p>
             </div>
           )}
         </div>

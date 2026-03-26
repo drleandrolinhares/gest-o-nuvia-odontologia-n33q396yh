@@ -2,18 +2,11 @@ import { useState, useMemo } from 'react'
 import useAppStore, { AgendaItem } from '@/stores/main'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Calendar } from '@/components/ui/calendar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, UserMinus, Filter, Check } from 'lucide-react'
-import { isSameWeek, isSameMonth, startOfDay, endOfDay, eachDayOfInterval, format } from 'date-fns'
+import { Plus, Filter, Check } from 'lucide-react'
+import { isSameWeek, isSameMonth, startOfDay, endOfDay, eachDayOfInterval } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
@@ -21,7 +14,6 @@ import { cn } from '@/lib/utils'
 import { AgendaCard } from '@/components/agenda/AgendaCard'
 import { AgendaAddDialog } from '@/components/agenda/AgendaAddDialog'
 import { AgendaDetailsDialog } from '@/components/agenda/AgendaDetailsDialog'
-import { DentistAbsenceDialog } from '@/components/agenda/DentistAbsenceDialog'
 import { ABSENCE_TYPES } from '@/lib/constants'
 
 const getLocalDate = (dStr: string) => {
@@ -36,14 +28,11 @@ export default function Agenda() {
     removeAgendaItem,
     updateAgendaItem,
     currentUserId,
-    employees,
-    departments,
     agendaTypes,
     isAdmin,
   } = useAppStore()
 
   const [openAdd, setOpenAdd] = useState(false)
-  const [openDentistAdd, setOpenDentistAdd] = useState(false)
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null)
 
   const [filterView, setFilterView] = useState<'DIA' | 'SEMANA' | 'MES'>('DIA')
@@ -58,16 +47,9 @@ export default function Agenda() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
 
-  const [agendaFilterType, setAgendaFilterType] = useState<'TODOS' | 'COLABORADOR' | 'SETOR'>(
-    'TODOS',
-  )
-  const [agendaFilterValue, setAgendaFilterValue] = useState<string>('all')
-
   const [showOpen, setShowOpen] = useState(true)
   const [showCompleted, setShowCompleted] = useState(false)
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set())
-
-  const activeEmployees = employees.filter((e) => e.status !== 'Desligado' && !e.noSystemAccess)
 
   const toggleTypeFilter = (type: string) => {
     setHiddenTypes((prev) => {
@@ -110,15 +92,6 @@ export default function Agenda() {
       return true
     })
     .filter((item) => {
-      if (agendaFilterType === 'TODOS' || agendaFilterValue === 'all') return true
-      if (agendaFilterType === 'COLABORADOR') return item.assignedTo === agendaFilterValue
-      if (agendaFilterType === 'SETOR') {
-        const emp = employees.find((e) => e.id === item.assignedTo)
-        return emp?.department === agendaFilterValue
-      }
-      return true
-    })
-    .filter((item) => {
       if (taskView === 'VISÃO GERAL (ADMIN)') return true
       if (taskView === 'DELEGADOS POR MIM') return item.requester_id === currentUserId
 
@@ -141,13 +114,7 @@ export default function Agenda() {
       }
 
       // PARA MIM
-      if (isAlert && item.assignedTo !== currentUserId) return false
-      if (
-        (item.type === 'manual_absence' || ABSENCE_TYPES.includes(item.type.toLowerCase())) &&
-        item.assignedTo !== currentUserId
-      )
-        return false
-      return item.assignedTo === currentUserId || !item.assignedTo || item.assignedTo === 'none'
+      return true
     })
     .sort(
       (a, b) =>
@@ -197,17 +164,10 @@ export default function Agenda() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[#0A192F]">AGENDA E PEDIDOS</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            GERENCIE COMPROMISSOS E ACOMPANHE PEDIDOS DELEGADOS.
+            GERENCIE COMPROMISSOS E ACOMPANHE PEDIDOS.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setOpenDentistAdd(true)}
-            className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 shadow-sm"
-          >
-            <UserMinus className="h-4 w-4 mr-2" /> NOVA AUSÊNCIA
-          </Button>
           <Button
             onClick={() => setOpenAdd(true)}
             className="bg-[#0A192F] text-[#D4AF37] hover:bg-[#112240] font-bold shadow-md"
@@ -331,55 +291,6 @@ export default function Agenda() {
                   </div>
                 </PopoverContent>
               </Popover>
-
-              <Select
-                value={agendaFilterType}
-                onValueChange={(v: any) => {
-                  setAgendaFilterType(v)
-                  setAgendaFilterValue('all')
-                }}
-              >
-                <SelectTrigger className="w-full sm:w-[180px] bg-white">
-                  <SelectValue placeholder="FILTRAR POR" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TODOS">GERAL</SelectItem>
-                  <SelectItem value="COLABORADOR">POR COLABORADOR</SelectItem>
-                  <SelectItem value="SETOR">POR SETOR</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {agendaFilterType === 'COLABORADOR' && (
-                <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
-                  <SelectTrigger className="w-full sm:w-[180px] bg-white">
-                    <SelectValue placeholder="SELECIONE..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">TODOS</SelectItem>
-                    {activeEmployees.map((e) => (
-                      <SelectItem key={e.id} value={e.id}>
-                        {e.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {agendaFilterType === 'SETOR' && (
-                <Select value={agendaFilterValue} onValueChange={setAgendaFilterValue}>
-                  <SelectTrigger className="w-full sm:w-[180px] bg-white">
-                    <SelectValue placeholder="SELECIONE..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">TODOS</SelectItem>
-                    {departments.map((d) => (
-                      <SelectItem key={d} value={d}>
-                        {d}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
             </div>
           </div>
 
@@ -390,13 +301,7 @@ export default function Agenda() {
               className="w-full sm:w-auto min-w-max"
             >
               <TabsList className="bg-transparent rounded-none w-full sm:w-auto justify-start h-12 p-0 gap-6">
-                {[
-                  'PARA MIM',
-                  'AUSÊNCIAS',
-                  'COMPROMISSOS',
-                  'ALERTAS DO SISTEMA',
-                  'DELEGADOS POR MIM',
-                ].map((tab) => (
+                {['PARA MIM', 'COMPROMISSOS', 'ALERTAS DO SISTEMA'].map((tab) => (
                   <TabsTrigger
                     key={tab}
                     value={tab}
@@ -428,7 +333,7 @@ export default function Agenda() {
                   key={item.id}
                   item={item}
                   currentUserId={currentUserId}
-                  employees={employees}
+                  employees={[]}
                   onSelect={setSelectedItem}
                   onUpdate={handleUpdateItem}
                   onRemove={removeAgendaItem}
@@ -443,22 +348,15 @@ export default function Agenda() {
         open={openAdd}
         onOpenChange={setOpenAdd}
         onAdd={addAgendaItem}
-        employees={employees}
+        employees={[]}
         agendaTypes={agendaTypes}
-        currentUserId={currentUserId}
-      />
-      <DentistAbsenceDialog
-        open={openDentistAdd}
-        onOpenChange={setOpenDentistAdd}
-        onAdd={addAgendaItem}
-        employees={employees}
         currentUserId={currentUserId}
       />
       <AgendaDetailsDialog
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
         onUpdate={handleUpdateItem}
-        employees={employees}
+        employees={[]}
         currentUserId={currentUserId}
       />
     </div>

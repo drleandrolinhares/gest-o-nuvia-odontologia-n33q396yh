@@ -16,7 +16,6 @@ import {
   Grid,
   Plus,
   Stethoscope,
-  User,
   MapPin,
   Activity,
   CheckSquare,
@@ -52,7 +51,6 @@ function Cell({
   shift,
   data,
   specialties,
-  dentists,
   onChange,
   onClear,
 }: {
@@ -61,7 +59,6 @@ function Cell({
   shift: 'MANHÃ' | 'TARDE'
   data: any[]
   specialties: any[]
-  dentists: any[]
   onChange: (cId: string, dId: number, s: 'MANHÃ' | 'TARDE', field: string, val: string) => void
   onClear: (cId: string, dId: number, s: 'MANHÃ' | 'TARDE') => void
 }) {
@@ -70,9 +67,8 @@ function Cell({
     (s) => s.consultorio_id === consultorioId && s.day_of_week === day && s.shift === shift,
   )
 
-  const hasData = !!(current?.specialty_id || current?.dentist_id)
+  const hasData = !!current?.specialty_id
   const spec = specialties.find((s) => s.id === current?.specialty_id)
-  const dentist = dentists.find((d) => d.id === current?.dentist_id)
 
   const baseColor = spec?.color_hex || '#94a3b8'
   const bgColor = hexToRgba(baseColor, 0.15)
@@ -94,12 +90,6 @@ function Cell({
               >
                 {spec?.name || 'S/ ESPECIALIDADE'}
               </span>
-              {dentist && (
-                <span className="font-bold text-[9px] uppercase mt-1 text-slate-800 truncate w-full flex items-center gap-1 opacity-90">
-                  <User className="w-3 h-3" />
-                  {dentist.name.split(' ')[0]}
-                </span>
-              )}
             </div>
           ) : (
             <div className="w-full h-full rounded-lg border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-100 flex flex-col items-center justify-center text-slate-400 group-hover:text-slate-600 group-hover:border-slate-300 transition-colors">
@@ -141,29 +131,6 @@ function Cell({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-            Dentista
-          </label>
-          <Select
-            value={current?.dentist_id || 'none'}
-            onValueChange={(v) => onChange(consultorioId, day, shift, 'dentist_id', v)}
-          >
-            <SelectTrigger className="uppercase font-bold text-xs h-9">
-              <SelectValue placeholder="SELECIONE..." />
-            </SelectTrigger>
-            <SelectContent className="uppercase">
-              <SelectItem value="none" className="text-xs font-bold text-slate-500">
-                SEM DENTISTA
-              </SelectItem>
-              {dentists.map((d) => (
-                <SelectItem key={d.id} value={d.id} className="text-xs font-bold">
-                  {d.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
         {hasData && (
           <Button
             variant="ghost"
@@ -187,7 +154,6 @@ export default function AgendaSegmentation() {
     consultorios,
     agendaSegmentation,
     specialtyConfigs,
-    employees,
     upsertAgendaSegmentation,
     syncConsultorios,
     appSettings,
@@ -195,12 +161,6 @@ export default function AgendaSegmentation() {
 
   const [openAdd, setOpenAdd] = useState(false)
   const [newRoomName, setNewRoomName] = useState('')
-
-  const activeDentists = useMemo(() => {
-    return employees
-      .filter((e) => e.status !== 'Desligado' && e.teamCategory?.includes('DENTISTA'))
-      .sort((a, b) => a.name.localeCompare(b.name))
-  }, [employees])
 
   const sortedConsultorios = useMemo(() => {
     return [...consultorios].sort((a, b) => a.name.localeCompare(b.name))
@@ -214,26 +174,20 @@ export default function AgendaSegmentation() {
   const metrics = useMemo(() => {
     const totalCapacity = sortedConsultorios.length * 6 * 2 // 6 days, 2 shifts
 
-    const allocated = agendaSegmentation.filter((s) => s.specialty_id || s.dentist_id)
+    const allocated = agendaSegmentation.filter((s) => s.specialty_id)
     const totalAllocated = allocated.length
     const turnosDisponiveis = totalCapacity - totalAllocated
 
     const specCounts: Record<string, number> = {}
-    const dentistCounts: Record<string, number> = {}
     const roomCounts: Record<string, number> = {}
 
     allocated.forEach((s) => {
       if (s.specialty_id) specCounts[s.specialty_id] = (specCounts[s.specialty_id] || 0) + 1
-      if (s.dentist_id) dentistCounts[s.dentist_id] = (dentistCounts[s.dentist_id] || 0) + 1
       roomCounts[s.consultorio_id] = (roomCounts[s.consultorio_id] || 0) + 1
     })
 
     const topSpecId = Object.entries(specCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
     const topSpecName = specialtyConfigs.find((s) => s.id === topSpecId)?.name || 'N/A'
-
-    const topDentistId = Object.entries(dentistCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
-    const topDentistName =
-      activeDentists.find((d) => d.id === topDentistId)?.name.split(' ')[0] || 'N/A'
 
     const topRoomId = Object.entries(roomCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
     const topRoomCount = roomCounts[topRoomId] || 0
@@ -248,7 +202,7 @@ export default function AgendaSegmentation() {
               s.consultorio_id === c.id &&
               s.day_of_week === d.id &&
               s.shift === shift &&
-              (s.specialty_id || s.dentist_id),
+              s.specialty_id,
           )
           if (!isFilled) {
             freeSlots.push({ room: c.id, day: d.id })
@@ -264,14 +218,13 @@ export default function AgendaSegmentation() {
       totalCapacity,
       turnosDisponiveis,
       topSpecName,
-      topDentistName,
       topRoomPercent,
       topRoomName: sortedConsultorios.find((c) => c.id === topRoomId)?.name || 'N/A',
       daysWithFree,
       roomsWithFree,
       totalRooms: sortedConsultorios.length,
     }
-  }, [agendaSegmentation, sortedConsultorios, specialtyConfigs, activeDentists])
+  }, [agendaSegmentation, sortedConsultorios, specialtyConfigs])
 
   const handleCellChange = (
     consultorioId: string,
@@ -289,7 +242,6 @@ export default function AgendaSegmentation() {
       day_of_week: dayId,
       shift,
       specialty_id: current?.specialty_id,
-      dentist_id: current?.dentist_id,
       [field]: value === 'none' ? null : value,
     }
 
@@ -302,7 +254,6 @@ export default function AgendaSegmentation() {
       day_of_week: dayId,
       shift,
       specialty_id: undefined,
-      dentist_id: undefined,
     })
   }
 
@@ -334,12 +285,12 @@ export default function AgendaSegmentation() {
             <Grid className="h-7 w-7 text-white" /> SEGMENTAÇÃO DA AGENDA
           </h1>
           <p className="text-slate-300 mt-1.5 text-xs font-bold tracking-widest uppercase">
-            MATRIZ DE DISTRIBUIÇÃO DE SALAS, ESPECIALIDADES E DENTISTAS
+            MATRIZ DE DISTRIBUIÇÃO DE SALAS E ESPECIALIDADES
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-2">
             <ListPlus className="h-6 w-6 text-blue-600" />
@@ -363,17 +314,6 @@ export default function AgendaSegmentation() {
               title={metrics.topSpecName}
             >
               {metrics.topSpecName}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full gap-2">
-            <User className="h-6 w-6 text-indigo-500" />
-            <p className="text-[10px] font-black text-slate-500 tracking-widest leading-tight">
-              TOP DENTISTA
-            </p>
-            <p className="text-sm font-black text-slate-800 truncate w-full px-2">
-              {metrics.topDentistName}
             </p>
           </CardContent>
         </Card>
@@ -480,7 +420,6 @@ export default function AgendaSegmentation() {
                           shift="MANHÃ"
                           data={agendaSegmentation}
                           specialties={sortedSpecialties}
-                          dentists={activeDentists}
                           onChange={handleCellChange}
                           onClear={handleCellClear}
                         />
@@ -503,7 +442,6 @@ export default function AgendaSegmentation() {
                           shift="TARDE"
                           data={agendaSegmentation}
                           specialties={sortedSpecialties}
-                          dentists={activeDentists}
                           onChange={handleCellChange}
                           onClear={handleCellClear}
                         />

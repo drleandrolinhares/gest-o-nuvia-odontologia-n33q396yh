@@ -2,14 +2,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import RH from '@/pages/RH'
-import EmployeeProfile from '@/pages/EmployeeProfile'
-import WorkSchedule from '@/pages/WorkSchedule'
 import Inventory from '@/pages/Inventory'
 import Pricing from '@/pages/Pricing'
 import Negotiation from '@/pages/Negotiation'
 import AgendaSegmentation from '@/pages/AgendaSegmentation'
 import Settings from '@/pages/Settings'
-import Permissions from '@/pages/Permissions'
 import NotFound from '@/pages/NotFound'
 import Agenda from '@/pages/Agenda'
 import Acessos from '@/pages/Acessos'
@@ -27,7 +24,6 @@ import Mural from '@/pages/hub/Mural'
 import Feedback from '@/pages/hub/Feedback'
 import Ranking from '@/pages/hub/Ranking'
 import Performance from '@/pages/hub/Performance'
-import TestRoutes from '@/pages/TestRoutes'
 import DebugAccess from '@/pages/DebugAccess'
 import AccessDenied from '@/pages/AccessDenied'
 import { AppProvider } from '@/stores/main'
@@ -36,7 +32,6 @@ import { ChatProvider } from '@/stores/chat'
 import { HubProvider } from '@/stores/hub'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { AdminPermissionRestorer } from '@/components/AdminPermissionRestorer'
 
 export default function App() {
   return (
@@ -51,7 +46,6 @@ export default function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <AdminPermissionRestorer />
                     <HubProvider>
                       <ChatProvider>
                         <Layout />
@@ -166,22 +160,6 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="rh/colaborador/:id"
-                  element={
-                    <PermissionRoute module="RH">
-                      <EmployeeProfile />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="rh/escala"
-                  element={
-                    <PermissionRoute module="ESCALA DE TRABALHO">
-                      <WorkSchedule />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
                   path="precificacao"
                   element={
                     <PermissionRoute module="PRECIFICAÇÃO">
@@ -208,26 +186,10 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="permissoes"
-                  element={
-                    <PermissionRoute module="CONFIGURAÇÕES" adminOnly>
-                      <Permissions />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
                   path="logs"
                   element={
                     <PermissionRoute module="LOGS">
                       <AuditLog />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="auditoria-rotas"
-                  element={
-                    <PermissionRoute module="LOGS" adminOnly>
-                      <TestRoutes />
                     </PermissionRoute>
                   }
                 />

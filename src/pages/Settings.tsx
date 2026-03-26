@@ -1,15 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GeneralSettings } from '@/components/settings/GeneralSettings'
 import { SuppliersManagement } from '@/components/settings/SuppliersManagement'
-import { UsersList } from '@/components/settings/UsersList'
-import { BonusSettings } from '@/components/settings/BonusSettings'
 import { InventorySettings } from '@/components/settings/InventorySettings'
 import { NegotiationSettingsPanel } from '@/components/settings/NegotiationSettingsPanel'
-import useAppStore from '@/stores/main'
 
 export default function Settings() {
-  const { isMaster, isAdmin } = useAppStore()
-
   return (
     <div className="space-y-6 animate-fade-in-up pb-10 uppercase">
       <div>
@@ -27,22 +22,12 @@ export default function Settings() {
           <TabsTrigger value="fornecedores" className="py-2 px-4 flex-1 font-bold tracking-widest">
             FORNECEDORES
           </TabsTrigger>
-          <TabsTrigger value="usuarios" className="py-2 px-4 flex-1 font-bold tracking-widest">
-            USUÁRIOS
+          <TabsTrigger value="estoque" className="py-2 px-4 flex-1 font-bold tracking-widest">
+            ESTOQUE
           </TabsTrigger>
-          <TabsTrigger value="bonificacoes" className="py-2 px-4 flex-1 font-bold tracking-widest">
-            BONIFICAÇÕES
+          <TabsTrigger value="negociacao" className="py-2 px-4 flex-1 font-bold tracking-widest">
+            SIMULADOR
           </TabsTrigger>
-          {isMaster && (
-            <TabsTrigger value="estoque" className="py-2 px-4 flex-1 font-bold tracking-widest">
-              ESTOQUE
-            </TabsTrigger>
-          )}
-          {isMaster && (
-            <TabsTrigger value="negociacao" className="py-2 px-4 flex-1 font-bold tracking-widest">
-              SIMULADOR
-            </TabsTrigger>
-          )}
         </TabsList>
 
         <TabsContent value="geral">
@@ -53,25 +38,13 @@ export default function Settings() {
           <SuppliersManagement />
         </TabsContent>
 
-        <TabsContent value="usuarios">
-          <UsersList />
+        <TabsContent value="estoque">
+          <InventorySettings />
         </TabsContent>
 
-        <TabsContent value="bonificacoes">
-          <BonusSettings />
+        <TabsContent value="negociacao">
+          <NegotiationSettingsPanel />
         </TabsContent>
-
-        {isMaster && (
-          <TabsContent value="estoque">
-            <InventorySettings />
-          </TabsContent>
-        )}
-
-        {isMaster && (
-          <TabsContent value="negociacao">
-            <NegotiationSettingsPanel />
-          </TabsContent>
-        )}
       </Tabs>
     </div>
   )

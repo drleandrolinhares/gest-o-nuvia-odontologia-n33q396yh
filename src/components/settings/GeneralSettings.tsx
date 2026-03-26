@@ -2,23 +2,11 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Trash2,
-  Building2,
-  Plus,
-  Package,
-  Stethoscope,
-  CalendarDays,
-  Loader2,
-  Palette,
-} from 'lucide-react'
+import { Trash2, Plus, Package, Stethoscope, CalendarDays, Loader2, Palette } from 'lucide-react'
 import useAppStore from '@/stores/main'
 
 export function GeneralSettings() {
   const {
-    departments,
-    addDepartment,
-    removeDepartment,
     packageTypes,
     addPackageType,
     removePackageType,
@@ -33,7 +21,6 @@ export function GeneralSettings() {
     deleteSpecialtyConfig,
   } = useAppStore()
 
-  const [newDept, setNewDept] = useState('')
   const [newPkg, setNewPkg] = useState('')
   const [newSpec, setNewSpec] = useState('')
   const [newAgendaType, setNewAgendaType] = useState('')
@@ -43,14 +30,6 @@ export function GeneralSettings() {
   const [newAgendaSpec, setNewAgendaSpec] = useState('')
   const [newAgendaSpecColor, setNewAgendaSpecColor] = useState('#D4AF37')
   const [isAgendaSpecLoading, setIsAgendaSpecLoading] = useState(false)
-
-  const handleAddDept = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newDept.trim() && !departments.includes(newDept.trim().toUpperCase())) {
-      addDepartment(newDept.trim())
-      setNewDept('')
-    }
-  }
 
   const handleAddPkg = (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,45 +76,6 @@ export function GeneralSettings() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
-            <Building2 className="h-5 w-5 text-nuvia-gold" /> DEPARTAMENTOS
-          </CardTitle>
-          <CardDescription>GERENCIE OS DEPARTAMENTOS DO SISTEMA.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleAddDept} className="flex gap-2">
-            <Input
-              placeholder="NOVO DEPARTAMENTO..."
-              value={newDept}
-              onChange={(e) => setNewDept(e.target.value)}
-            />
-            <Button type="submit" disabled={!newDept.trim()}>
-              <Plus className="h-4 w-4 mr-2" /> ADD
-            </Button>
-          </form>
-          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-            {[...departments].sort().map((dept) => (
-              <div
-                key={dept}
-                className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
-              >
-                <span className="font-medium text-sm text-nuvia-navy uppercase">{dept}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive h-8 w-8"
-                  onClick={() => removeDepartment(dept)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-nuvia-navy">
