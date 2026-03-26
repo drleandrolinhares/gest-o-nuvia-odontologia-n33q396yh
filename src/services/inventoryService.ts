@@ -12,7 +12,7 @@ export const inventoryService = {
   fetchPendingOutflows: () =>
     supabase
       .from('inventory_temporary_outflows' as any)
-      .select('*, employees(name)')
+      .select('*')
       .eq('status', 'PENDING'),
 
   create: (item: Omit<InventoryItem, 'id'> & { initialPackages?: number }) => {

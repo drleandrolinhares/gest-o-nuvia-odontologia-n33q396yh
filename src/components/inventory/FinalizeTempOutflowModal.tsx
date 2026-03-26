@@ -96,7 +96,7 @@ export function FinalizeTempOutflowModal({
         <div className="bg-slate-50 border p-4 rounded-xl mb-2">
           <div className="font-black text-sm text-slate-900 uppercase mb-1">{item.name}</div>
           <div className="flex justify-between items-center text-xs font-bold text-slate-500 uppercase mt-3 pt-3 border-t">
-            <span>COLAB: {outflow.employees?.name}</span>
+            <span>COLAB: {outflow.employees?.name || 'SISTEMA'}</span>
             <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded font-black">
               TOTAL RETIRADO: {total} UNIDADES
             </span>
