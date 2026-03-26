@@ -29,6 +29,7 @@ import Ranking from '@/pages/hub/Ranking'
 import Performance from '@/pages/hub/Performance'
 import TestRoutes from '@/pages/TestRoutes'
 import DebugAccess from '@/pages/DebugAccess'
+import AccessDenied from '@/pages/AccessDenied'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
@@ -238,6 +239,8 @@ export default function App() {
                     </PermissionRoute>
                   }
                 />
+
+                <Route path="acesso-negado" element={<AccessDenied />} />
 
                 {/* Hub */}
                 <Route path="hub/mural" element={<Mural />} />

@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import useAppStore from '@/stores/main'
 
 type Props = {
@@ -9,14 +9,20 @@ type Props = {
 
 export default function PermissionRoute({ children, module, adminOnly }: Props) {
   const { can, isAdmin, isMaster } = useAppStore()
+  const location = useLocation()
 
-  if ((adminOnly || module) && !isAdmin && !isMaster) {
+  let hasAccess = true
+
+  if (!isAdmin && !isMaster) {
     if (adminOnly) {
-      return <Navigate to="/hub/mural" replace />
+      hasAccess = false
+    } else if (module && !can(module, 'view')) {
+      hasAccess = false
     }
-    if (module && !can(module, 'view')) {
-      return <Navigate to="/hub/mural" replace />
-    }
+  }
+
+  if (!hasAccess) {
+    return <Navigate to="/acesso-negado" state={{ module, from: location.pathname }} replace />
   }
 
   return <>{children}</>
