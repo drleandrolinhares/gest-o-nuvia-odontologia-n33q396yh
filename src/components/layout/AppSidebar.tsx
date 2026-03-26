@@ -19,7 +19,6 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/component
 import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
 import { NuviaLogo } from './NuviaLogo'
-import { supabase } from '@/lib/supabase/client'
 
 interface AppSidebarProps {
   isCollapsed: boolean
@@ -45,54 +44,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
 
   const [dbPermissions, setDbPermissions] = useState<any[] | null>(null)
   const [isCheckingPermissions, setIsCheckingPermissions] = useState(true)
-
-  // Busca dinamicamente as permissões do banco para o usuário logado
-  useEffect(() => {
-    async function fetchUserPermissions() {
-      if (!user) {
-        setIsCheckingPermissions(false)
-        return
-      }
-
-      try {
-        setIsCheckingPermissions(true)
-
-        // 1. Busque as permissões específicas do usuário logado
-        const { data: userPerms, error: upError } = await supabase
-          .from('user_permissions')
-          .select('*')
-          .eq('user_id', user.id)
-
-        if (!upError && userPerms && userPerms.length > 0) {
-          setDbPermissions(userPerms)
-        } else {
-          // Se não tiver user_permissions, usa a tabela de role_permissions baseada no cargo
-          const { data: empData } = await supabase
-            .from('employees')
-            .select('role')
-            .eq('user_id', user.id)
-            .maybeSingle()
-
-          if (empData?.role) {
-            const { data: rolePerms } = await supabase
-              .from('role_permissions')
-              .select('*')
-              .eq('role', empData.role)
-            setDbPermissions(rolePerms || [])
-          } else {
-            setDbPermissions([])
-          }
-        }
-      } catch (err) {
-        console.error('Falha ao carregar permissões:', err)
-        setDbPermissions([])
-      } finally {
-        setIsCheckingPermissions(false)
-      }
-    }
-
-    fetchUserPermissions()
-  }, [user])
 
   const pendingSacsCount = useMemo(
     () =>
@@ -177,29 +128,43 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     [totalUnread, pendingSacsCount],
   )
 
+  useEffect(() => {
+    if (!user) {
+      setIsCheckingPermissions(false)
+      return
+    }
+
+    // Como as tabelas de permissões foram removidas, vamos permitir acesso a tudo
+    // para usuários master e admin, evitando o bloqueio total do sistema.
+    if (isAdmin || isMaster) {
+      setDbPermissions(
+        navigationSections.flatMap((s) =>
+          s.items.map((i) => ({ module: i.module, can_view: true })),
+        ),
+      )
+    } else {
+      setDbPermissions([])
+    }
+
+    setIsCheckingPermissions(false)
+  }, [user, isAdmin, isMaster, navigationSections])
+
   const filteredSections = useMemo(() => {
-    // Retorna vazio enquanto não carrega as permissões da base para evitar flickering
     if (isCheckingPermissions || dbPermissions === null) return []
 
     return navigationSections
       .map((section) => ({
         ...section,
         items: section.items.filter((item) => {
-          // Bloqueio explícito para telas exclusivas de Administrador
           if ('adminOnly' in item && item.adminOnly && !isAdmin && !isMaster) {
             return false
           }
 
-          // Checagem estrita no banco de dados para a permissão de visualização do módulo
           if ('module' in item && item.module) {
             const hasPermission = dbPermissions.some(
               (p) => p.module.toLowerCase() === item.module.toLowerCase() && p.can_view === true,
             )
-
-            // Se a permissão não constar ou can_view for falso, bloqueia completamente o item
-            if (!hasPermission) {
-              return false
-            }
+            if (!hasPermission) return false
           }
 
           return true
@@ -235,7 +200,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       }
       return prev
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, filteredSections, isCheckingPermissions])
 
   return (

@@ -58,7 +58,6 @@ type DbInventoryOption = Database['public']['Tables']['inventory_settings']['Row
 type DbAppSettings = Database['public']['Tables']['app_settings']['Row']
 
 // Domain types are in src/types/ — re-exported here for backwards compatibility.
-// In new code, import directly from '@/types'.
 export type {
   Employee,
   OnboardingTask,
@@ -374,7 +373,7 @@ const mSup = (d: any): Supplier => ({
   email: d.email,
   cnpj: d.cnpj,
   website: d.website,
-  hasSpecialNegotiation: d.has_special_negotiation,
+  hasSpecialNegotiation: d.hasSpecialNegotiation,
   negotiationNotes: d.negotiation_notes,
 })
 const mOnb = (d: any): OnboardingCandidate => ({
@@ -593,7 +592,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         settingsService.fetchDocuments().then((r) => setDocuments(handleResponse(r, mDoc))),
         settingsService.fetchBonusTypes().then((r) => setBonusTypes(handleResponse(r))),
         employeeService.fetchDocuments().then((r) => setEmployeeDocuments(handleResponse(r))),
-        settingsService.fetchRoles().then((r) => setRoles(handleResponse(r))),
         clinicService.fetchConsultorios().then((r) => {
           if (!r.error) setConsultorios((r.data || []) as any)
         }),
@@ -608,9 +606,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }),
         financeService.fetchPriceList().then((r) => {
           if (r.data) setPriceList(r.data.map(mPrice))
-        }),
-        settingsService.fetchRolePermissions().then((r) => {
-          if (!r.error) setRolePermissions((r.data || []) as any)
         }),
         clinicService
           .fetchSpecialtyConfigs()
@@ -683,19 +678,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [employees, user])
 
   const can = useCallback(
-    (module: string, action: string) => {
+    (_module: string, _action: string) => {
       const me = storeRef.current.employees.find((e) => e.user_id === storeRef.current.user?.id)
       if (!me || me.noSystemAccess) return false
       if (isMaster) return true
       if (isAdmin) return true
-      const perm = storeRef.current.rolePermissions.find(
-        (p) => p.role === me.role && p.module.toUpperCase() === module.toUpperCase(),
-      )
-      if (!perm) return false
-      if (action === 'view') return perm.can_view
-      if (action === 'create') return perm.can_create
-      if (action === 'edit') return perm.can_edit
-      if (action === 'delete') return perm.can_delete
       return false
     },
     [isMaster, isAdmin],
@@ -726,71 +713,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     runLog()
   }, [])
 
-  const addRole = useCallback(
-    async (name: string) => {
-      try {
-        const { data, error } = await settingsService.addRole(name)
-        if (error) throw error
-        if (data) {
-          setRoles((prev) => [...prev, data as any].sort((a, b) => a.name.localeCompare(b.name)))
-          logAction(`CRIOU CARGO: ${name}`)
-          return { success: true }
-        }
-        return { success: false }
-      } catch (error) {
-        checkAuthError(error)
-        return { success: false, error }
-      }
-    },
-    [logAction],
-  )
+  const addRole = useCallback(async (_name: string) => {
+    return { success: false, error: new Error('Gestão de cargos desativada.') }
+  }, [])
 
-  const updateRole = useCallback(
-    async (id: string, name: string) => {
-      const oldRole = storeRef.current.roles.find((r) => r.id === id)?.name
-      try {
-        const { error } = await settingsService.updateRole(id, name)
-        if (error) throw error
+  const updateRole = useCallback(async (_id: string, _name: string) => {
+    return { success: false, error: new Error('Gestão de cargos desativada.') }
+  }, [])
 
-        setRoles((p) =>
-          p
-            .map((r) => (r.id === id ? { ...r, name } : r))
-            .sort((a, b) => a.name.localeCompare(b.name)),
-        )
-        logAction(`ATUALIZOU CARGO: ${oldRole} PARA ${name}`)
-
-        if (oldRole) {
-          setRolePermissions((p) =>
-            p.map((rp) => (rp.role === oldRole ? { ...rp, role: name } : rp)),
-          )
-          setEmployees((p) => p.map((emp) => (emp.role === oldRole ? { ...emp, role: name } : emp)))
-        }
-
-        return { success: true }
-      } catch (error: any) {
-        checkAuthError(error)
-        return { success: false, error }
-      }
-    },
-    [logAction],
-  )
-
-  const deleteRole = useCallback(
-    async (id: string) => {
-      const roleName = storeRef.current.roles.find((r) => r.id === id)?.name
-      try {
-        const { error } = await settingsService.deleteRole(id)
-        if (error) throw error
-        setRoles((p) => p.filter((r) => r.id !== id))
-        logAction(`REMOVEU CARGO: ${roleName || id}`)
-        return { success: true }
-      } catch (error: any) {
-        checkAuthError(error)
-        return { success: false, error }
-      }
-    },
-    [logAction],
-  )
+  const deleteRole = useCallback(async (_id: string) => {
+    return { success: false, error: new Error('Gestão de cargos desativada.') }
+  }, [])
 
   const addDepartment = useCallback(
     (n: string) => {
@@ -1370,7 +1303,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (empError) {
         checkAuthError(empError)
-        // Rollback created auth user if employee insertion fails
         if (userId) {
           try {
             await employeeService.deleteAuthUser(userId)
@@ -1431,7 +1363,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (updateError) {
         checkAuthError(updateError)
-        // Rollback created auth user if employee update fails
         try {
           await employeeService.deleteAuthUser(userId)
         } catch (rollbackErr) {
@@ -1522,10 +1453,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const { error: fnError } = await employeeService.updatePassword(userId, '123456')
         if (fnError) throw fnError
-
-        const { error: dbError } = await employeeService.requirePasswordChange(userId)
-
-        if (dbError) throw dbError
 
         logAction(`FORÇOU RESET DE SENHA PARA O USUÁRIO ID: ${userId}`)
         return { success: true }
@@ -2040,30 +1967,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [logAction],
   )
 
-  const updateRolePermissions = useCallback(
-    async (permissions: RolePermission[]) => {
-      try {
-        const { error } = await settingsService.upsertRolePermissions(permissions)
-        if (error) throw error
-        setRolePermissions((prev) => {
-          const newState = [...prev]
-          permissions.forEach((p) => {
-            const idx = newState.findIndex((x) => x.role === p.role && x.module === p.module)
-            if (idx >= 0) newState[idx] = { ...newState[idx], ...p }
-            else newState.push(p)
-          })
-          return newState
-        })
-        logAction(`ATUALIZOU PERMISSÕES DO CARGO: ${permissions[0]?.role || ''}`)
-        return { success: true }
-      } catch (error: any) {
-        checkAuthError(error)
-        console.warn('Erro ao atualizar permissões', error)
-        return { success: false, error }
-      }
-    },
-    [logAction],
-  )
+  const updateRolePermissions = useCallback(async (_permissions: RolePermission[]) => {
+    return { success: false, error: new Error('Gestão de permissões desativada.') }
+  }, [])
 
   const syncConsultorios = useCallback(
     async (items: Consultorio[], newMonthlyHours: number) => {
@@ -2183,7 +2089,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 user2: respEmp.user_id,
               })
               if (roomId) {
-                // Keep chat insert as inline for now unless there's chatService
                 await supabase.from('chat_messages').insert({
                   room_id: roomId,
                   sender_id: currentUser.id,

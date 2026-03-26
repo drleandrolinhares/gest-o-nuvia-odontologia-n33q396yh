@@ -1,8 +1,8 @@
 {
   "_versions": {
     "update-user-password": 5,
-    "admin-create-user": 5,
+    "admin-create-user": 6,
     "admin-delete-user": 1,
-    "restore-admin-permissions": 1
+    "restore-admin-permissions": 2
   }
 }
