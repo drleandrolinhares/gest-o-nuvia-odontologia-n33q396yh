@@ -81,7 +81,7 @@ export default function Acessos() {
           <Card
             key={item.id}
             className="cursor-pointer hover:shadow-lg hover:border-primary/40 transition-all group overflow-hidden bg-white"
-            onClick={() => navigate(`/admin/acessos/${item.id}`)}
+            onClick={() => navigate(`/admin/financeiro/central-acessos/${item.id}`)}
           >
             <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full relative">
               <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center overflow-hidden border shadow-sm group-hover:scale-105 transition-transform duration-300">

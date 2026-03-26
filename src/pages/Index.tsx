@@ -52,7 +52,7 @@ export default function Index() {
   })
 
   return (
-    <div className="space-y-8 animate-fade-in uppercase">
+    <div className="space-y-8 animate-fade-in uppercase pb-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy">DASHBOARD NUVIA</h1>
         <p className="text-muted-foreground mt-1">VISÃO GERAL DA GESTÃO DE RH E ESTOQUE.</p>
@@ -61,7 +61,7 @@ export default function Index() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
-          onClick={() => navigate('/admin/rh')}
+          onClick={() => navigate('/admin/administrativo/usuarios-rh')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">SÓCIOS</CardTitle>
@@ -75,7 +75,7 @@ export default function Index() {
 
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
-          onClick={() => navigate('/admin/rh')}
+          onClick={() => navigate('/admin/administrativo/usuarios-rh')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">DENTISTAS</CardTitle>
@@ -89,7 +89,7 @@ export default function Index() {
 
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-stone-50"
-          onClick={() => navigate('/admin/rh')}
+          onClick={() => navigate('/admin/administrativo/usuarios-rh')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">COLABORADORES</CardTitle>
@@ -103,7 +103,7 @@ export default function Index() {
 
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md bg-primary/5 border-primary/20"
-          onClick={() => navigate('/admin/rh')}
+          onClick={() => navigate('/admin/administrativo/usuarios-rh')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">TIME TOTAL</CardTitle>
@@ -119,7 +119,7 @@ export default function Index() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
-          onClick={() => navigate('/admin/rh')}
+          onClick={() => navigate('/admin/administrativo/usuarios-rh')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ONBOARDING PENDENTE</CardTitle>
@@ -136,7 +136,7 @@ export default function Index() {
             'cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md',
             lowStockItems > 0 ? 'border-destructive/30 bg-destructive/5' : '',
           )}
-          onClick={() => navigate('/admin/estoque')}
+          onClick={() => navigate('/admin/financeiro/estoque')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">AVISOS DE ESTOQUE</CardTitle>
@@ -154,7 +154,7 @@ export default function Index() {
 
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
-          onClick={() => navigate('/admin/estoque')}
+          onClick={() => navigate('/admin/financeiro/estoque')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CAPITAL INVESTIDO</CardTitle>
@@ -168,7 +168,7 @@ export default function Index() {
 
         <Card
           className="cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
-          onClick={() => navigate('/admin/estoque')}
+          onClick={() => navigate('/admin/financeiro/estoque')}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ITENS EM ESTOQUE</CardTitle>
@@ -192,7 +192,7 @@ export default function Index() {
             {alerts.map((alert, idx) => (
               <div
                 key={idx}
-                onClick={() => navigate('/admin/rh')}
+                onClick={() => navigate('/admin/administrativo/usuarios-rh')}
                 className="cursor-pointer transition-transform hover:scale-[1.01]"
               >
                 <Alert
@@ -208,7 +208,7 @@ export default function Index() {
 
             {expiredItems.length > 0 && (
               <div
-                onClick={() => navigate('/admin/estoque')}
+                onClick={() => navigate('/admin/financeiro/estoque')}
                 className="cursor-pointer transition-transform hover:scale-[1.01]"
               >
                 <Alert variant="destructive">
@@ -224,7 +224,7 @@ export default function Index() {
 
             {expiringItems.length > 0 && (
               <div
-                onClick={() => navigate('/admin/estoque')}
+                onClick={() => navigate('/admin/financeiro/estoque')}
                 className="cursor-pointer transition-transform hover:scale-[1.01]"
               >
                 <Alert
@@ -242,7 +242,7 @@ export default function Index() {
 
             {lowStockItems > 0 && (
               <div
-                onClick={() => navigate('/admin/estoque')}
+                onClick={() => navigate('/admin/financeiro/estoque')}
                 className="cursor-pointer transition-transform hover:scale-[1.01]"
               >
                 <Alert variant="destructive">
@@ -277,12 +277,12 @@ export default function Index() {
                 <CalendarDays className="mr-2 h-4 w-4" /> COMPROMISSOS DE HOJE
               </Button>
             </Link>
-            <Link to="/admin/rh" className="w-full block">
+            <Link to="/admin/administrativo/usuarios-rh" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <Users className="mr-2 h-4 w-4" /> GESTÃO DE EQUIPE (RH)
               </Button>
             </Link>
-            <Link to="/admin/estoque" className="w-full block">
+            <Link to="/admin/financeiro/estoque" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <Package className="mr-2 h-4 w-4" /> ATUALIZAR ESTOQUE
               </Button>

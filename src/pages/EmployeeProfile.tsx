@@ -67,7 +67,7 @@ export default function EmployeeProfile() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 uppercase">
         <h2 className="text-2xl font-bold text-nuvia-navy">COLABORADOR NÃO ENCONTRADO</h2>
-        <Link to="/admin/rh">
+        <Link to="/admin/administrativo/usuarios-rh">
           <Button variant="outline">VOLTAR PARA O RH</Button>
         </Link>
       </div>
@@ -79,7 +79,7 @@ export default function EmployeeProfile() {
       window.confirm(`TEM CERTEZA QUE DESEJA REMOVER O COLABORADOR ${employee.name.toUpperCase()}?`)
     ) {
       deleteEmployee(employee.id)
-      navigate('/admin/rh')
+      navigate('/admin/administrativo/usuarios-rh')
     }
   }
 
@@ -147,7 +147,7 @@ export default function EmployeeProfile() {
     <div className="space-y-6 animate-fade-in-up uppercase">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link to="/admin/rh">
+          <Link to="/admin/administrativo/usuarios-rh">
             <Button variant="outline" size="icon" className="shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>

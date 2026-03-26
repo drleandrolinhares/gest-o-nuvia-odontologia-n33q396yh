@@ -31,7 +31,7 @@ export default function ForceChangePassword() {
         .single()
         .then(({ data }) => {
           if (isMounted && data && !data.must_change_password) {
-            navigate('/admin/dashboard', { replace: true })
+            navigate('/admin/administrativo/dashboards', { replace: true })
           }
         })
     }
@@ -69,7 +69,7 @@ export default function ForceChangePassword() {
       }
 
       toast({ title: 'Sucesso', description: 'Senha atualizada com sucesso. Bem-vindo!' })
-      window.location.href = '/admin/dashboard'
+      window.location.href = '/admin/administrativo/dashboards'
     } catch (err: any) {
       toast({
         title: 'Erro',
