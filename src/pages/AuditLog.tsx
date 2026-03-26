@@ -25,7 +25,7 @@ export default function AuditLog() {
   useEffect(() => {
     supabase
       .from('audit_logs')
-      .select('*, profiles(name)')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(50)
       .then(({ data, error }) => {
@@ -33,7 +33,7 @@ export default function AuditLog() {
           setLogs(
             data.map((d) => ({
               id: d.id,
-              userName: d.profiles?.name || 'SISTEMA',
+              userName: d.user_id ? 'USUÁRIO AUTENTICADO' : 'SISTEMA',
               action: d.action,
               timestamp: d.created_at,
             })),
