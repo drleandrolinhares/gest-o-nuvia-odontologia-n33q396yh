@@ -36,6 +36,7 @@ import { ChatProvider } from '@/stores/chat'
 import { HubProvider } from '@/stores/hub'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { AdminPermissionRestorer } from '@/components/AdminPermissionRestorer'
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
+                    <AdminPermissionRestorer />
                     <HubProvider>
                       <ChatProvider>
                         <Layout />

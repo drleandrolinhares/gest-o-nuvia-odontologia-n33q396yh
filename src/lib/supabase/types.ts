@@ -1,17 +1,11 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: '14.4'
   }
   public: {
     Tables: {
@@ -138,18 +132,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "agenda_requester_id_fkey"
-            columns: ["requester_id"]
+            foreignKeyName: 'agenda_requester_id_fkey'
+            columns: ['requester_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "agenda_sac_record_id_fkey"
-            columns: ["sac_record_id"]
+            foreignKeyName: 'agenda_sac_record_id_fkey'
+            columns: ['sac_record_id']
             isOneToOne: false
-            referencedRelation: "sac_records"
-            referencedColumns: ["id"]
+            referencedRelation: 'sac_records'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -183,25 +177,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "agenda_segmentation_consultorio_id_fkey"
-            columns: ["consultorio_id"]
+            foreignKeyName: 'agenda_segmentation_consultorio_id_fkey'
+            columns: ['consultorio_id']
             isOneToOne: false
-            referencedRelation: "clinica_consultorios"
-            referencedColumns: ["id"]
+            referencedRelation: 'clinica_consultorios'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "agenda_segmentation_dentist_id_fkey"
-            columns: ["dentist_id"]
+            foreignKeyName: 'agenda_segmentation_dentist_id_fkey'
+            columns: ['dentist_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "agenda_segmentation_specialty_id_fkey"
-            columns: ["specialty_id"]
+            foreignKeyName: 'agenda_segmentation_specialty_id_fkey'
+            columns: ['specialty_id']
             isOneToOne: false
-            referencedRelation: "specialty_configs"
-            referencedColumns: ["id"]
+            referencedRelation: 'specialty_configs'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -268,11 +262,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "audit_logs_user_id_profiles_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'audit_logs_user_id_profiles_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -324,18 +318,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "cash_box_closings_closed_by_id_fkey"
-            columns: ["closed_by_id"]
+            foreignKeyName: 'cash_box_closings_closed_by_id_fkey'
+            columns: ['closed_by_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "cash_box_closings_received_by_id_fkey"
-            columns: ["received_by_id"]
+            foreignKeyName: 'cash_box_closings_received_by_id_fkey'
+            columns: ['received_by_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -363,11 +357,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "chat_messages_room_id_fkey"
-            columns: ["room_id"]
+            foreignKeyName: 'chat_messages_room_id_fkey'
+            columns: ['room_id']
             isOneToOne: false
-            referencedRelation: "chat_rooms"
-            referencedColumns: ["id"]
+            referencedRelation: 'chat_rooms'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -395,11 +389,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "chat_participants_room_id_fkey"
-            columns: ["room_id"]
+            foreignKeyName: 'chat_participants_room_id_fkey'
+            columns: ['room_id']
             isOneToOne: false
-            referencedRelation: "chat_rooms"
-            referencedColumns: ["id"]
+            referencedRelation: 'chat_rooms'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -457,18 +451,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "checklist_diario_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'checklist_diario_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "checklist_diario_modelo_id_fkey"
-            columns: ["modelo_id"]
+            foreignKeyName: 'checklist_diario_modelo_id_fkey'
+            columns: ['modelo_id']
             isOneToOne: false
-            referencedRelation: "checklist_modelos"
-            referencedColumns: ["id"]
+            referencedRelation: 'checklist_modelos'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -496,11 +490,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "checklist_modelos_sector_id_fkey"
-            columns: ["sector_id"]
+            foreignKeyName: 'checklist_modelos_sector_id_fkey'
+            columns: ['sector_id']
             isOneToOne: false
-            referencedRelation: "sectors"
-            referencedColumns: ["id"]
+            referencedRelation: 'sectors'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -570,11 +564,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "consultorio_weekly_schedules_consultorio_id_fkey"
-            columns: ["consultorio_id"]
+            foreignKeyName: 'consultorio_weekly_schedules_consultorio_id_fkey'
+            columns: ['consultorio_id']
             isOneToOne: false
-            referencedRelation: "clinica_consultorios"
-            referencedColumns: ["id"]
+            referencedRelation: 'clinica_consultorios'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -599,18 +593,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "daily_routine_executions_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'daily_routine_executions_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "daily_routine_executions_routine_id_fkey"
-            columns: ["routine_id"]
+            foreignKeyName: 'daily_routine_executions_routine_id_fkey'
+            columns: ['routine_id']
             isOneToOne: false
-            referencedRelation: "daily_routines"
-            referencedColumns: ["id"]
+            referencedRelation: 'daily_routines'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -644,11 +638,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "daily_routines_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'daily_routines_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -715,11 +709,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "employee_documents_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'employee_documents_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -843,25 +837,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "employees_perfil_id_fkey"
-            columns: ["perfil_id"]
+            foreignKeyName: 'employees_perfil_id_fkey'
+            columns: ['perfil_id']
             isOneToOne: false
-            referencedRelation: "sys_profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_profiles'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "employees_sector_id_fkey"
-            columns: ["sector_id"]
+            foreignKeyName: 'employees_sector_id_fkey'
+            columns: ['sector_id']
             isOneToOne: false
-            referencedRelation: "sectors"
-            referencedColumns: ["id"]
+            referencedRelation: 'sectors'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "fk_employees_role"
-            columns: ["role"]
+            foreignKeyName: 'fk_employees_role'
+            columns: ['role']
             isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["name"]
+            referencedRelation: 'roles'
+            referencedColumns: ['name']
           },
         ]
       }
@@ -895,11 +889,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fiscal_boleto_entries_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: 'fiscal_boleto_entries_company_id_fkey'
+            columns: ['company_id']
             isOneToOne: false
-            referencedRelation: "fiscal_companies"
-            referencedColumns: ["id"]
+            referencedRelation: 'fiscal_companies'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -957,11 +951,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fiscal_limit_configs_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: 'fiscal_limit_configs_company_id_fkey'
+            columns: ['company_id']
             isOneToOne: false
-            referencedRelation: "fiscal_companies"
-            referencedColumns: ["id"]
+            referencedRelation: 'fiscal_companies'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -998,11 +992,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fiscal_sales_entries_company_id_fkey"
-            columns: ["company_id"]
+            foreignKeyName: 'fiscal_sales_entries_company_id_fkey'
+            columns: ['company_id']
             isOneToOne: false
-            referencedRelation: "fiscal_companies"
-            referencedColumns: ["id"]
+            referencedRelation: 'fiscal_companies'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1030,11 +1024,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "hub_announcement_reads_announcement_id_fkey"
-            columns: ["announcement_id"]
+            foreignKeyName: 'hub_announcement_reads_announcement_id_fkey'
+            columns: ['announcement_id']
             isOneToOne: false
-            referencedRelation: "hub_announcements"
-            referencedColumns: ["id"]
+            referencedRelation: 'hub_announcements'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1245,18 +1239,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "inventory_movements_inventory_id_fkey"
-            columns: ["inventory_id"]
+            foreignKeyName: 'inventory_movements_inventory_id_fkey'
+            columns: ['inventory_id']
             isOneToOne: false
-            referencedRelation: "inventory"
-            referencedColumns: ["id"]
+            referencedRelation: 'inventory'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "inventory_movements_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'inventory_movements_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1311,18 +1305,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "inventory_temporary_outflows_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'inventory_temporary_outflows_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "inventory_temporary_outflows_inventory_id_fkey"
-            columns: ["inventory_id"]
+            foreignKeyName: 'inventory_temporary_outflows_inventory_id_fkey'
+            columns: ['inventory_id']
             isOneToOne: false
-            referencedRelation: "inventory"
-            referencedColumns: ["id"]
+            referencedRelation: 'inventory'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1356,11 +1350,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "kpi_commercial_entries_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: 'kpi_commercial_entries_created_by_fkey'
+            columns: ['created_by']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1511,11 +1505,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "performance_diaria_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'performance_diaria_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1585,11 +1579,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "price_stages_price_list_id_fkey"
-            columns: ["price_list_id"]
+            foreignKeyName: 'price_stages_price_list_id_fkey'
+            columns: ['price_list_id']
             isOneToOne: false
-            referencedRelation: "price_list"
-            referencedColumns: ["id"]
+            referencedRelation: 'price_list'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1650,11 +1644,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_role_permissions_role"
-            columns: ["role"]
+            foreignKeyName: 'fk_role_permissions_role'
+            columns: ['role']
             isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["name"]
+            referencedRelation: 'roles'
+            referencedColumns: ['name']
           },
         ]
       }
@@ -1727,18 +1721,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "sac_records_receiving_employee_id_fkey"
-            columns: ["receiving_employee_id"]
+            foreignKeyName: 'sac_records_receiving_employee_id_fkey'
+            columns: ['receiving_employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "sac_records_responsible_employee_id_fkey"
-            columns: ["responsible_employee_id"]
+            foreignKeyName: 'sac_records_responsible_employee_id_fkey'
+            columns: ['responsible_employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1937,11 +1931,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "sys_pages_module_id_fkey"
-            columns: ["module_id"]
+            foreignKeyName: 'sys_pages_module_id_fkey'
+            columns: ['module_id']
             isOneToOne: false
-            referencedRelation: "sys_modules"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_modules'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -1978,39 +1972,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "sys_permissions_action_id_fkey"
-            columns: ["action_id"]
+            foreignKeyName: 'sys_permissions_action_id_fkey'
+            columns: ['action_id']
             isOneToOne: false
-            referencedRelation: "sys_actions"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_actions'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "sys_permissions_module_id_fkey"
-            columns: ["module_id"]
+            foreignKeyName: 'sys_permissions_module_id_fkey'
+            columns: ['module_id']
             isOneToOne: false
-            referencedRelation: "sys_modules"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_modules'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "sys_permissions_page_id_fkey"
-            columns: ["page_id"]
+            foreignKeyName: 'sys_permissions_page_id_fkey'
+            columns: ['page_id']
             isOneToOne: false
-            referencedRelation: "sys_pages"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_pages'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "sys_permissions_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: 'sys_permissions_profile_id_fkey'
+            columns: ['profile_id']
             isOneToOne: false
-            referencedRelation: "sys_profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_profiles'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "sys_permissions_tab_id_fkey"
-            columns: ["tab_id"]
+            foreignKeyName: 'sys_permissions_tab_id_fkey'
+            columns: ['tab_id']
             isOneToOne: false
-            referencedRelation: "sys_tabs"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_tabs'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2065,11 +2059,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "sys_tabs_page_id_fkey"
-            columns: ["page_id"]
+            foreignKeyName: 'sys_tabs_page_id_fkey'
+            columns: ['page_id']
             isOneToOne: false
-            referencedRelation: "sys_pages"
-            referencedColumns: ["id"]
+            referencedRelation: 'sys_pages'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2154,11 +2148,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "work_schedules_employee_id_fkey"
-            columns: ["employee_id"]
+            foreignKeyName: 'work_schedules_employee_id_fkey'
+            columns: ['employee_id']
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
+            referencedRelation: 'employees'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -2238,33 +2232,31 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -2273,23 +2265,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -2298,23 +2290,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -2323,36 +2315,36 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
@@ -2360,7 +2352,6 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -3379,7 +3370,7 @@ export const Constants = {
 //       RETURN OLD;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION audit_fiscal_sales_deletions()
 //   CREATE OR REPLACE FUNCTION public.audit_fiscal_sales_deletions()
 //    RETURNS trigger
@@ -3392,7 +3383,7 @@ export const Constants = {
 //       RETURN OLD;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION calcular_aderencia_diaria(uuid, date)
 //   CREATE OR REPLACE FUNCTION public.calcular_aderencia_diaria(p_employee_id uuid, p_date date)
 //    RETURNS void
@@ -3405,36 +3396,36 @@ export const Constants = {
 //       v_department TEXT;
 //       v_team_category TEXT[];
 //       v_day_of_week INT;
-//       
+//
 //       v_total_routines INT := 0;
 //       v_executed_routines INT := 0;
-//       
+//
 //       v_total_checklist INT := 0;
 //       v_executed_checklist INT := 0;
-//       
+//
 //       v_total_tarefas INT := 0;
 //       v_tarefas_executadas INT := 0;
 //       v_percentual NUMERIC := 0;
 //   BEGIN
 //       -- 1. Obter o setor e cargo do colaborador
-//       SELECT sector_id, role, department, COALESCE(team_category, ARRAY[]::text[]) 
-//       INTO v_sector_id, v_role, v_department, v_team_category 
+//       SELECT sector_id, role, department, COALESCE(team_category, ARRAY[]::text[])
+//       INTO v_sector_id, v_role, v_department, v_team_category
 //       FROM public.employees WHERE id = p_employee_id;
-//   
+//
 //       -- Se for Dentista ou Sócio, não faz nada
 //       IF v_role ILIKE '%dentista%' OR v_role ILIKE '%sócio%' OR v_role ILIKE '%socio%' OR v_department ILIKE '%dentista%' OR 'DENTISTA' = ANY(v_team_category) OR 'SÓCIO' = ANY(v_team_category) THEN
 //           RETURN;
 //       END IF;
-//   
+//
 //       -- Obter o dia da semana da data fornecida (0=Domingo, 6=Sábado) para PostgreSQL
 //       SELECT extract(dow from p_date::timestamp) INTO v_day_of_week;
-//   
+//
 //       -- Contar o total de rotinas diárias ativas para o colaborador naquele dia da semana
 //       SELECT COUNT(*) INTO v_total_routines
 //       FROM public.daily_routines
 //       WHERE employee_id = p_employee_id
 //         AND (days_of_week IS NULL OR v_day_of_week = ANY(days_of_week));
-//   
+//
 //       -- Contar quantas foram concluídas (registradas em daily_routine_executions) na data específica
 //       SELECT COUNT(DISTINCT r.id) INTO v_executed_routines
 //       FROM public.daily_routines r
@@ -3442,37 +3433,37 @@ export const Constants = {
 //       WHERE r.employee_id = p_employee_id
 //         AND e.employee_id = p_employee_id
 //         AND DATE(e.completed_at AT TIME ZONE 'UTC') = p_date;
-//   
+//
 //       -- Contar Total de Tarefas Ativas no modelo de checklist dele (do setor dele ou global)
 //       SELECT COUNT(*) INTO v_total_checklist
 //       FROM public.checklist_modelos
 //       WHERE (sector_id = v_sector_id OR sector_id IS NULL) AND is_active = true;
-//   
+//
 //       -- Contar quantas foram marcadas como 'Executado = True' na tabela 'checklist_diario'
 //       SELECT COUNT(*) INTO v_executed_checklist
 //       FROM public.checklist_diario
-//       WHERE employee_id = p_employee_id 
-//         AND date = p_date 
+//       WHERE employee_id = p_employee_id
+//         AND date = p_date
 //         AND is_executed = true;
-//   
+//
 //       v_total_tarefas := v_total_routines + v_total_checklist;
 //       v_tarefas_executadas := v_executed_routines + v_executed_checklist;
-//   
+//
 //       -- 4. Cálculo: (Executadas / Total) * 100
 //       IF v_total_tarefas > 0 THEN
 //           v_percentual := (v_tarefas_executadas::NUMERIC / v_total_tarefas::NUMERIC) * 100;
 //       ELSE
 //           v_percentual := 0;
 //       END IF;
-//   
+//
 //       -- 5. Salve esse resultado em 'Performance_Diaria'
 //       INSERT INTO public.performance_diaria (employee_id, date, percentage)
 //       VALUES (p_employee_id, p_date, v_percentual)
-//       ON CONFLICT (employee_id, date) 
+//       ON CONFLICT (employee_id, date)
 //       DO UPDATE SET percentage = EXCLUDED.percentage;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION checkUserPermission(uuid, uuid, uuid, uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public."checkUserPermission"(usuario_id uuid, modulo_id uuid, pagina_id uuid DEFAULT NULL::uuid, aba_id uuid DEFAULT NULL::uuid, acao_id uuid DEFAULT NULL::uuid)
 //    RETURNS boolean
@@ -3485,22 +3476,22 @@ export const Constants = {
 //     v_is_allowed BOOLEAN;
 //   BEGIN
 //     -- 1. Busque o perfil_id do usuário.
-//     SELECT e.perfil_id, p.name 
+//     SELECT e.perfil_id, p.name
 //     INTO v_profile_id, v_profile_name
 //     FROM public.employees e
 //     LEFT JOIN public.sys_profiles p ON e.perfil_id = p.id
 //     WHERE e.user_id = usuario_id
 //     LIMIT 1;
-//   
+//
 //     IF v_profile_id IS NULL THEN
 //       RETURN FALSE;
 //     END IF;
-//   
+//
 //     -- 2. Se o perfil for 'Administrador', retorne permitido = true imediatamente.
 //     IF v_profile_name = 'Administrador' THEN
 //       RETURN TRUE;
 //     END IF;
-//   
+//
 //     -- 3. Caso contrário, busque na tabela 'sys_permissions' se existe um registro onde permitido = true para a combinação dos IDs enviados.
 //     SELECT is_allowed INTO v_is_allowed
 //     FROM public.sys_permissions
@@ -3510,7 +3501,7 @@ export const Constants = {
 //       AND (tab_id IS NOT DISTINCT FROM aba_id)
 //       AND (action_id IS NOT DISTINCT FROM acao_id)
 //     LIMIT 1;
-//   
+//
 //     -- 4. Se não encontrar nada ou for falso, retorne permitido = false.
 //     IF v_is_allowed IS TRUE THEN
 //       RETURN TRUE;
@@ -3519,7 +3510,7 @@ export const Constants = {
 //     END IF;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION check_user_permission(uuid, uuid, uuid, uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public.check_user_permission(usuario_id uuid, modulo_id uuid, pagina_id uuid DEFAULT NULL::uuid, aba_id uuid DEFAULT NULL::uuid, acao_id uuid DEFAULT NULL::uuid)
 //    RETURNS boolean
@@ -3530,7 +3521,7 @@ export const Constants = {
 //     RETURN public."checkUserPermission"(usuario_id, modulo_id, pagina_id, aba_id, acao_id);
 //   END;
 //   $function$
-//   
+//
 // FUNCTION fix_auth_user_tokens(uuid)
 //   CREATE OR REPLACE FUNCTION public.fix_auth_user_tokens(user_id uuid)
 //    RETURNS void
@@ -3550,7 +3541,7 @@ export const Constants = {
 //       phone = NULLIF(phone, '')
 //     WHERE id = user_id;
 //   $function$
-//   
+//
 // FUNCTION get_auth_user_rooms()
 //   CREATE OR REPLACE FUNCTION public.get_auth_user_rooms()
 //    RETURNS SETOF uuid
@@ -3560,54 +3551,54 @@ export const Constants = {
 //   AS $function$
 //     SELECT room_id FROM public.chat_participants WHERE user_id = auth.uid();
 //   $function$
-//   
+//
 // FUNCTION get_monthly_ranking(integer, integer)
 //   CREATE OR REPLACE FUNCTION public.get_monthly_ranking(year_val integer, month_val integer)
 //    RETURNS TABLE(user_id uuid, employee_id uuid, employee_name text, total_points bigint)
 //    LANGUAGE sql
 //    SECURITY DEFINER
 //   AS $function$
-//     SELECT 
+//     SELECT
 //       e.user_id,
 //       e.id as employee_id,
 //       e.name as employee_name,
 //       COALESCE(SUM(points.pts), 0) as total_points
 //     FROM public.employees e
 //     LEFT JOIN (
-//       SELECT user_id, points_earned as pts 
-//       FROM public.hub_announcement_reads 
+//       SELECT user_id, points_earned as pts
+//       FROM public.hub_announcement_reads
 //       WHERE extract(year from read_at) = year_val AND extract(month from read_at) = month_val
-//       
+//
 //       UNION ALL
-//       
-//       SELECT user_id, points_earned as pts 
-//       FROM public.hub_feedbacks 
+//
+//       SELECT user_id, points_earned as pts
+//       FROM public.hub_feedbacks
 //       WHERE extract(year from created_at) = year_val AND extract(month from created_at) = month_val
-//       
+//
 //       UNION ALL
-//       
+//
 //       SELECT user_id, points_earned as pts
 //       FROM public.ser_5s_submissions
 //       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
-//   
+//
 //       UNION ALL
-//   
+//
 //       SELECT user_id, points_earned as pts
 //       FROM public.monthly_readings
 //       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
-//   
+//
 //       UNION ALL
-//   
+//
 //       SELECT user_id, points_earned as pts
 //       FROM public.innovation_records
 //       WHERE extract(year from created_at) = year_val AND extract(month from created_at) = month_val
-//   
+//
 //     ) points ON points.user_id = e.user_id
 //     WHERE e.status != 'Desligado' AND e.user_id IS NOT NULL
 //     GROUP BY e.user_id, e.id, e.name
 //     ORDER BY total_points DESC, e.name ASC;
 //   $function$
-//   
+//
 // FUNCTION get_or_create_group_room(text, uuid)
 //   CREATE OR REPLACE FUNCTION public.get_or_create_group_room(dept_name text, creator_id uuid)
 //    RETURNS uuid
@@ -3629,7 +3620,7 @@ export const Constants = {
 //     RETURN v_room_id;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION get_or_create_individual_room(uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public.get_or_create_individual_room(user1 uuid, user2 uuid)
 //    RETURNS uuid
@@ -3645,7 +3636,7 @@ export const Constants = {
 //     JOIN public.chat_participants p2 ON p2.room_id = r.id AND p2.user_id = user2
 //     WHERE r.type = 'individual'
 //     LIMIT 1;
-//   
+//
 //     IF v_room_id IS NULL THEN
 //       INSERT INTO public.chat_rooms (type) VALUES ('individual') RETURNING id INTO v_room_id;
 //       INSERT INTO public.chat_participants (room_id, user_id) VALUES (v_room_id, user1), (v_room_id, user2);
@@ -3653,7 +3644,7 @@ export const Constants = {
 //     RETURN v_room_id;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION get_unread_counts(uuid)
 //   CREATE OR REPLACE FUNCTION public.get_unread_counts(user_id_param uuid)
 //    RETURNS TABLE(room_id uuid, unread_count bigint)
@@ -3670,7 +3661,7 @@ export const Constants = {
 //       AND m.created_at > COALESCE(cp.last_read_at, '1970-01-01'::timestamptz)
 //     GROUP BY cp.room_id;
 //   $function$
-//   
+//
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -3686,7 +3677,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION is_admin_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_admin_user(user_uuid uuid)
 //    RETURNS boolean
@@ -3705,7 +3696,7 @@ export const Constants = {
 //       )
 //     );
 //   $function$
-//   
+//
 // FUNCTION is_master_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_master_user(user_uuid uuid)
 //    RETURNS boolean
@@ -3718,7 +3709,7 @@ export const Constants = {
 //       WHERE user_id = user_uuid AND 'MASTER' = ANY(team_category)
 //     );
 //   $function$
-//   
+//
 // FUNCTION mark_room_read(uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public.mark_room_read(p_room_id uuid, p_user_id uuid)
 //    RETURNS void
@@ -3729,7 +3720,7 @@ export const Constants = {
 //     SET last_read_at = NOW()
 //     WHERE room_id = p_room_id AND user_id = p_user_id;
 //   $function$
-//   
+//
 // FUNCTION reset_financial_data(text)
 //   CREATE OR REPLACE FUNCTION public.reset_financial_data(acting_user_name text)
 //    RETURNS void
@@ -3741,31 +3732,31 @@ export const Constants = {
 //     current_user_id uuid;
 //   BEGIN
 //       current_user_id := auth.uid();
-//       
+//
 //       IF current_user_id IS NULL THEN
 //           RAISE EXCEPTION 'Não autenticado';
 //       END IF;
-//   
+//
 //       -- Verify if the user is an admin or master
 //       IF NOT (public.is_admin_user(current_user_id) OR public.is_master_user(current_user_id)) THEN
 //           RAISE EXCEPTION 'Acesso negado. Apenas administradores podem realizar esta ação.';
 //       END IF;
-//   
+//
 //       -- Delete all records from the target financial tables
 //       -- Safe update extension requires a WHERE clause for DELETE operations
 //       DELETE FROM public.cash_box_closings WHERE id IS NOT NULL;
 //       DELETE FROM public.fiscal_sales_entries WHERE id IS NOT NULL;
 //       DELETE FROM public.fiscal_boleto_entries WHERE id IS NOT NULL;
-//   
+//
 //       -- Create the explicit audit log entry required
 //       INSERT INTO public.audit_logs (user_id, action)
 //       VALUES (
-//           current_user_id, 
+//           current_user_id,
 //           'RESET TOTAL: Todo o histórico de caixa e financeiro foi apagado por ' || COALESCE(acting_user_name, 'SISTEMA')
 //       );
 //   END;
 //   $function$
-//   
+//
 // FUNCTION sync_agenda_to_sac()
 //   CREATE OR REPLACE FUNCTION public.sync_agenda_to_sac()
 //    RETURNS trigger
@@ -3774,14 +3765,14 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //       IF NEW.is_completed = true AND OLD.is_completed = false AND NEW.type = 'SAC' AND NEW.sac_record_id IS NOT NULL THEN
-//           UPDATE public.sac_records 
-//           SET status = 'RESOLVIDO', solved_at = NOW() 
+//           UPDATE public.sac_records
+//           SET status = 'RESOLVIDO', solved_at = NOW()
 //           WHERE id = NEW.sac_record_id AND status != 'RESOLVIDO';
 //       END IF;
 //       RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION sync_employee_dates_to_agenda()
 //   CREATE OR REPLACE FUNCTION public.sync_employee_dates_to_agenda()
 //    RETURNS trigger
@@ -3797,7 +3788,7 @@ export const Constants = {
 //           DELETE FROM public.agenda WHERE assigned_to = OLD.id::text AND is_completed = false AND (type = 'BÔNUS' OR type = 'FÉRIAS');
 //           RETURN OLD;
 //       END IF;
-//   
+//
 //       -- Handle Bonus Due Date
 //       IF NEW.bonus_due_date IS NOT NULL AND NEW.bonus_due_date <> '' THEN
 //           IF TG_OP = 'INSERT' OR OLD.bonus_due_date IS DISTINCT FROM NEW.bonus_due_date OR OLD.name IS DISTINCT FROM NEW.name THEN
@@ -3810,7 +3801,7 @@ export const Constants = {
 //       ELSIF TG_OP = 'UPDATE' AND (OLD.bonus_due_date IS NOT NULL AND OLD.bonus_due_date <> '') THEN
 //           DELETE FROM public.agenda WHERE assigned_to = NEW.id::text AND type = 'BÔNUS' AND is_completed = false;
 //       END IF;
-//   
+//
 //       -- Handle Vacation Due Date
 //       IF NEW.vacation_due_date IS NOT NULL THEN
 //           IF TG_OP = 'INSERT' OR OLD.vacation_due_date IS DISTINCT FROM NEW.vacation_due_date OR OLD.name IS DISTINCT FROM NEW.name THEN
@@ -3824,11 +3815,11 @@ export const Constants = {
 //       ELSIF TG_OP = 'UPDATE' AND OLD.vacation_due_date IS NOT NULL THEN
 //           DELETE FROM public.agenda WHERE assigned_to = NEW.id::text AND type = 'FÉRIAS' AND is_completed = false;
 //       END IF;
-//   
+//
 //       RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION sync_my_employee_record()
 //   CREATE OR REPLACE FUNCTION public.sync_my_employee_record()
 //    RETURNS void
@@ -3841,25 +3832,25 @@ export const Constants = {
 //   BEGIN
 //     v_user_id := auth.uid();
 //     IF v_user_id IS NULL THEN RETURN; END IF;
-//     
+//
 //     SELECT email INTO v_email FROM auth.users WHERE id = v_user_id;
-//     
+//
 //     IF v_email IS NOT NULL AND v_email != '' THEN
 //       -- Attempt to link an existing employee record that matches the email
 //       -- but currently has no user_id or a different user_id
-//       UPDATE public.employees 
+//       UPDATE public.employees
 //       SET user_id = v_user_id
 //       WHERE lower(email) = lower(v_email) AND (user_id IS NULL OR user_id != v_user_id);
-//   
+//
 //       -- Also ensure the profile exists and is updated
 //       INSERT INTO public.profiles (id, email, name)
 //       SELECT v_user_id, v_email, COALESCE((SELECT name FROM public.employees WHERE user_id = v_user_id LIMIT 1), 'Usuário')
-//       ON CONFLICT (id) DO UPDATE SET 
+//       ON CONFLICT (id) DO UPDATE SET
 //         email = EXCLUDED.email;
 //     END IF;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION sync_sac_to_agenda()
 //   CREATE OR REPLACE FUNCTION public.sync_sac_to_agenda()
 //    RETURNS trigger
@@ -3868,14 +3859,14 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //       IF NEW.status = 'RESOLVIDO' AND OLD.status != 'RESOLVIDO' THEN
-//           UPDATE public.agenda 
-//           SET is_completed = true, completed_at = NOW() 
+//           UPDATE public.agenda
+//           SET is_completed = true, completed_at = NOW()
 //           WHERE sac_record_id = NEW.id AND is_completed = false;
 //       END IF;
 //       RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION trg_audit_employee_sensitive_data()
 //   CREATE OR REPLACE FUNCTION public.trg_audit_employee_sensitive_data()
 //    RETURNS trigger
@@ -3889,7 +3880,7 @@ export const Constants = {
 //   BEGIN
 //       current_user_id := auth.uid();
 //       IF current_user_id IS NULL THEN RETURN NEW; END IF;
-//   
+//
 //       IF NEW.salary IS DISTINCT FROM OLD.salary THEN
 //           changes := changes || 'Salário, ';
 //       END IF;
@@ -3902,17 +3893,17 @@ export const Constants = {
 //       IF NEW.role IS DISTINCT FROM OLD.role THEN
 //           changes := changes || 'Cargo, ';
 //       END IF;
-//       
+//
 //       IF changes != '' THEN
 //           changes := rtrim(changes, ', ');
 //           action_desc := 'DADOS SENSÍVEIS ALTERADOS: Colaborador ' || NEW.name || ' - Campos alterados: ' || changes;
 //           INSERT INTO public.audit_logs (user_id, action) VALUES (current_user_id, action_desc);
 //       END IF;
-//       
+//
 //       RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION trg_audit_role_permissions()
 //   CREATE OR REPLACE FUNCTION public.trg_audit_role_permissions()
 //    RETURNS trigger
@@ -3925,15 +3916,15 @@ export const Constants = {
 //   BEGIN
 //       current_user_id := auth.uid();
 //       IF current_user_id IS NULL THEN RETURN COALESCE(NEW, OLD); END IF;
-//   
+//
 //       IF TG_OP = 'INSERT' THEN
 //           action_desc := 'PERMISSÕES ADICIONADAS: Cargo ' || NEW.role || ' - Módulo ' || NEW.module;
 //           INSERT INTO public.audit_logs (user_id, action) VALUES (current_user_id, action_desc);
 //           RETURN NEW;
 //       ELSIF TG_OP = 'UPDATE' THEN
 //           IF NEW.can_view != OLD.can_view OR NEW.can_create != OLD.can_create OR NEW.can_edit != OLD.can_edit OR NEW.can_delete != OLD.can_delete THEN
-//               action_desc := 'PERMISSÕES ALTERADAS: Cargo ' || NEW.role || ' - Módulo ' || NEW.module || 
-//                              ' (View: ' || NEW.can_view::text || ', Create: ' || NEW.can_create::text || 
+//               action_desc := 'PERMISSÕES ALTERADAS: Cargo ' || NEW.role || ' - Módulo ' || NEW.module ||
+//                              ' (View: ' || NEW.can_view::text || ', Create: ' || NEW.can_create::text ||
 //                              ', Edit: ' || NEW.can_edit::text || ', Delete: ' || NEW.can_delete::text || ')';
 //               INSERT INTO public.audit_logs (user_id, action) VALUES (current_user_id, action_desc);
 //           END IF;
@@ -3946,7 +3937,7 @@ export const Constants = {
 //       RETURN NULL;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION trg_auto_init_role_permissions()
 //   CREATE OR REPLACE FUNCTION public.trg_auto_init_role_permissions()
 //    RETURNS trigger
@@ -3966,7 +3957,7 @@ export const Constants = {
 //       RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 // FUNCTION update_room_last_message_at()
 //   CREATE OR REPLACE FUNCTION public.update_room_last_message_at()
 //    RETURNS trigger
@@ -3980,7 +3971,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//   
+//
 
 // --- TRIGGERS ---
 // Table: agenda
@@ -4035,4 +4026,3 @@ export const Constants = {
 //   CREATE UNIQUE INDEX user_permissions_user_id_module_key ON public.user_permissions USING btree (user_id, module)
 // Table: work_schedules
 //   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)
-
