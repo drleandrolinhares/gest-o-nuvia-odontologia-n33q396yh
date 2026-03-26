@@ -30,7 +30,7 @@ export function MobileNav() {
 
   return (
     <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-[#D4AF37]/20">
-      <Link to="/admin/dashboard" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
+      <Link to="/dashboard" className="hover:opacity-80 transition-opacity text-[#D4AF37]">
         <NuviaLogo className="h-12 w-auto" />
       </Link>
       <div className="flex items-center gap-1">

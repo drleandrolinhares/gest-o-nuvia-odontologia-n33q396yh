@@ -21,7 +21,7 @@ export default function AcessoManual() {
     return (
       <div className="flex flex-col items-center justify-center py-20 uppercase space-y-4">
         <h2 className="text-2xl font-bold text-nuvia-navy">SISTEMA NÃO ENCONTRADO</h2>
-        <Button variant="outline" onClick={() => navigate('/admin/financeiro/central-acessos')}>
+        <Button variant="outline" onClick={() => navigate('/acessos')}>
           <Home className="mr-2 h-4 w-4" /> VOLTAR
         </Button>
       </div>
@@ -31,7 +31,7 @@ export default function AcessoManual() {
   const handleDelete = () => {
     if (confirm('TEM CERTEZA QUE DESEJA REMOVER ESTE SISTEMA E SEU MANUAL?')) {
       removeAccess(item.id)
-      navigate('/admin/financeiro/central-acessos')
+      navigate('/acessos')
     }
   }
 
@@ -42,7 +42,7 @@ export default function AcessoManual() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => navigate('/admin/financeiro/central-acessos')}
+            onClick={() => navigate('/acessos')}
             className="shrink-0 bg-slate-50"
           >
             <ArrowLeft className="h-4 w-4" />

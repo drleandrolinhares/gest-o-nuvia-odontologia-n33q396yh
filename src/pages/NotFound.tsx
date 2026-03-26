@@ -10,7 +10,7 @@ export default function NotFound() {
         A SEÇÃO QUE VOCÊ TENTOU ACESSAR NÃO EXISTE OU FOI MOVIDA. VERIFIQUE O LINK OU RETORNE AO
         PAINEL INICIAL.
       </p>
-      <Link to="/admin/agenda">
+      <Link to="/dashboard">
         <Button size="lg">VOLTAR PARA O INÍCIO</Button>
       </Link>
     </div>

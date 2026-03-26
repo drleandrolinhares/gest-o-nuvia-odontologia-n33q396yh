@@ -33,7 +33,7 @@ export default function Login() {
   const from =
     typeof locationFrom === 'string' && locationFrom !== '/' && locationFrom !== '/login'
       ? locationFrom
-      : '/admin/administrativo/dashboards'
+      : '/dashboard'
 
   useEffect(() => {
     if (!loading && user) {

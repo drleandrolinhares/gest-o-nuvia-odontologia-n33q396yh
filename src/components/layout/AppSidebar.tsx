@@ -67,62 +67,46 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         title: 'VISÃO DIÁRIA',
         icon: Calendar,
         items: [
-          { name: 'AGENDA', href: '/admin/agenda', module: 'AGENDA' },
-          { name: 'MENSAGENS', href: '/admin/chat', module: 'MENSAGENS', badge: totalUnread },
-          { name: 'SAC', href: '/admin/sac', module: 'SAC', badge: pendingSacsCount },
+          { name: 'AGENDA', href: '/agenda', module: 'AGENDA' },
+          { name: 'MENSAGENS', href: '/chat', module: 'MENSAGENS', badge: totalUnread },
+          { name: 'SAC', href: '/sac', module: 'SAC', badge: pendingSacsCount },
         ],
       },
       {
         title: 'COMERCIAL',
         icon: Handshake,
         items: [
-          { name: 'NEGOCIAÇÃO', href: '/admin/comercial/negociacao', module: 'NEGOCIAÇÃO' },
-          {
-            name: 'GESTÃO FISCAL',
-            href: '/admin/comercial/gestao-fiscal',
-            module: 'GESTÃO FISCAL',
-          },
+          { name: 'NEGOCIAÇÃO', href: '/negociacao', module: 'NEGOCIAÇÃO' },
+          { name: 'GESTÃO FISCAL', href: '/gestao-fiscal', module: 'GESTÃO FISCAL' },
         ],
       },
       {
         title: 'FINANCEIRO',
         icon: DollarSign,
         items: [
-          {
-            name: 'CENTRAL DE ACESSOS',
-            href: '/admin/financeiro/central-acessos',
-            module: 'ACESSOS',
-          },
-          { name: 'ESTOQUE', href: '/admin/financeiro/estoque', module: 'ESTOQUE' },
+          { name: 'CENTRAL DE ACESSOS', href: '/acessos', module: 'ACESSOS' },
+          { name: 'ESTOQUE', href: '/estoque', module: 'ESTOQUE' },
         ],
       },
       {
         title: 'ADMINISTRATIVO',
         icon: Briefcase,
         items: [
-          { name: 'DASHBOARDS', href: '/admin/administrativo/dashboards', module: 'DASHBOARD' },
-          { name: 'KPIS', href: '/admin/administrativo/kpis', module: 'KPIS' },
-          { name: 'USUÁRIOS / RH', href: '/admin/administrativo/usuarios-rh', module: 'RH' },
-          {
-            name: 'ESCALA DE TRABALHO',
-            href: '/admin/administrativo/escala-trabalho',
-            module: 'ESCALA DE TRABALHO',
-          },
-          { name: 'PRECIFICAÇÃO', href: '/admin/administrativo/precificacao', adminOnly: true },
-          {
-            name: 'SEGMENTAÇÃO DA AGENDA',
-            href: '/admin/administrativo/segmentacao-agenda',
-            module: 'SEGMENTAÇÃO',
-          },
+          { name: 'DASHBOARDS', href: '/dashboard', module: 'DASHBOARD' },
+          { name: 'KPIS', href: '/kpis', module: 'KPIS' },
+          { name: 'USUÁRIOS / RH', href: '/rh', module: 'RH' },
+          { name: 'ESCALA DE TRABALHO', href: '/rh/escala', module: 'ESCALA DE TRABALHO' },
+          { name: 'PRECIFICAÇÃO', href: '/precificacao', adminOnly: true },
+          { name: 'SEGMENTAÇÃO DA AGENDA', href: '/segmentacao-agenda', module: 'SEGMENTAÇÃO' },
         ],
       },
       {
         title: 'SISTEMA',
         icon: Settings,
         items: [
-          { name: 'PERMISSÕES', href: '/admin/sistema/permissoes', adminOnly: true },
-          { name: 'CONFIGURAÇÕES', href: '/admin/sistema/configuracoes', module: 'CONFIGURAÇÕES' },
-          { name: 'LOGS', href: '/admin/sistema/logs', module: 'LOGS' },
+          { name: 'PERMISSÕES', href: '/permissoes', adminOnly: true },
+          { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
+          { name: 'LOGS', href: '/logs', module: 'LOGS' },
         ],
       },
     ],
@@ -183,7 +167,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300 border-r border-white/5">
       <div className="pt-8 pb-6 flex items-center justify-center bg-[#0A192F] shrink-0 border-b border-white/5">
         <Link
-          to="/admin/administrativo/dashboards"
+          to="/dashboard"
           className="block w-full text-center hover:opacity-80 transition-opacity text-[#D4AF37]"
         >
           {isCollapsed && !isMobile ? (
@@ -243,9 +227,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                   <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
                     {section.items.map((item) => {
                       const isActive =
-                        item.href === '/admin/agenda'
-                          ? location.pathname === '/admin/agenda' ||
-                            location.pathname === '/admin/agenda/'
+                        item.href === '/agenda'
+                          ? location.pathname === '/agenda' || location.pathname === '/agenda/'
                           : location.pathname.startsWith(item.href)
 
                       return (

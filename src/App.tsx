@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import RH from '@/pages/RH'
@@ -34,16 +34,6 @@ import { HubProvider } from '@/stores/hub'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
-function RedirectToColaborador() {
-  const { id } = useParams()
-  return <Navigate to={`/admin/administrativo/usuarios-rh/colaborador/${id}`} replace />
-}
-
-function RedirectToAcesso() {
-  const { id } = useParams()
-  return <Navigate to={`/admin/financeiro/central-acessos/${id}`} replace />
-}
-
 export default function App() {
   return (
     <ErrorBoundary>
@@ -74,57 +64,18 @@ export default function App() {
                   }
                 />
 
-                {/* Legacy Redirects - Mantendo a compatibilidade de favoritos */}
                 <Route
-                  path="admin/dashboard"
-                  element={<Navigate to="/admin/administrativo/dashboards" replace />}
-                />
-                <Route
-                  path="admin/acessos"
-                  element={<Navigate to="/admin/financeiro/central-acessos" replace />}
-                />
-                <Route path="admin/acessos/:id" element={<RedirectToAcesso />} />
-                <Route
-                  path="admin/estoque"
-                  element={<Navigate to="/admin/financeiro/estoque" replace />}
-                />
-                <Route
-                  path="admin/operacao/negociacao"
-                  element={<Navigate to="/admin/comercial/negociacao" replace />}
-                />
-                <Route
-                  path="admin/rh"
-                  element={<Navigate to="/admin/administrativo/usuarios-rh" replace />}
-                />
-                <Route path="admin/rh/colaborador/:id" element={<RedirectToColaborador />} />
-                <Route
-                  path="admin/rh/escala"
-                  element={<Navigate to="/admin/administrativo/escala-trabalho" replace />}
-                />
-                <Route
-                  path="admin/precificacao"
-                  element={<Navigate to="/admin/administrativo/precificacao" replace />}
-                />
-                <Route
-                  path="admin/operacao/segmentacao"
-                  element={<Navigate to="/admin/administrativo/segmentacao-agenda" replace />}
-                />
-                <Route
-                  path="admin/configuracoes"
-                  element={<Navigate to="/admin/sistema/configuracoes" replace />}
-                />
-                <Route
-                  path="admin/permissoes"
-                  element={<Navigate to="/admin/sistema/permissoes" replace />}
-                />
-                <Route
-                  path="admin/auditoria"
-                  element={<Navigate to="/admin/sistema/logs" replace />}
+                  path="dashboard"
+                  element={
+                    <PermissionRoute module="DASHBOARD">
+                      <Index />
+                    </PermissionRoute>
+                  }
                 />
 
                 {/* Visão Diária */}
                 <Route
-                  path="admin/agenda"
+                  path="agenda"
                   element={
                     <PermissionRoute module="AGENDA">
                       <Agenda />
@@ -132,7 +83,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/chat"
+                  path="chat"
                   element={
                     <PermissionRoute module="MENSAGENS">
                       <Chat />
@@ -140,7 +91,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/sac"
+                  path="sac"
                   element={
                     <PermissionRoute module="SAC">
                       <SAC />
@@ -150,7 +101,7 @@ export default function App() {
 
                 {/* Comercial */}
                 <Route
-                  path="admin/comercial/negociacao"
+                  path="negociacao"
                   element={
                     <PermissionRoute module="NEGOCIAÇÃO">
                       <Negotiation />
@@ -158,7 +109,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/comercial/gestao-fiscal"
+                  path="gestao-fiscal"
                   element={
                     <PermissionRoute module="GESTÃO FISCAL">
                       <GestaoFiscal />
@@ -168,7 +119,7 @@ export default function App() {
 
                 {/* Financeiro */}
                 <Route
-                  path="admin/financeiro/central-acessos"
+                  path="acessos"
                   element={
                     <PermissionRoute module="ACESSOS">
                       <Acessos />
@@ -176,7 +127,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/financeiro/central-acessos/:id"
+                  path="acessos/:id"
                   element={
                     <PermissionRoute module="ACESSOS">
                       <AcessoManual />
@@ -184,7 +135,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/financeiro/estoque"
+                  path="estoque"
                   element={
                     <PermissionRoute module="ESTOQUE">
                       <Inventory />
@@ -194,15 +145,7 @@ export default function App() {
 
                 {/* Administrativo */}
                 <Route
-                  path="admin/administrativo/dashboards"
-                  element={
-                    <PermissionRoute module="DASHBOARD">
-                      <Index />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="admin/administrativo/kpis"
+                  path="kpis"
                   element={
                     <PermissionRoute module="KPIS">
                       <KPIs />
@@ -210,7 +153,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/administrativo/usuarios-rh"
+                  path="rh"
                   element={
                     <PermissionRoute module="RH">
                       <RH />
@@ -218,7 +161,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/administrativo/usuarios-rh/colaborador/:id"
+                  path="rh/colaborador/:id"
                   element={
                     <PermissionRoute module="RH">
                       <EmployeeProfile />
@@ -226,7 +169,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/administrativo/escala-trabalho"
+                  path="rh/escala"
                   element={
                     <PermissionRoute module="ESCALA DE TRABALHO">
                       <WorkSchedule />
@@ -234,7 +177,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/administrativo/precificacao"
+                  path="precificacao"
                   element={
                     <PermissionRoute adminOnly>
                       <Pricing />
@@ -242,7 +185,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/administrativo/segmentacao-agenda"
+                  path="segmentacao-agenda"
                   element={
                     <PermissionRoute module="SEGMENTAÇÃO">
                       <AgendaSegmentation />
@@ -252,7 +195,7 @@ export default function App() {
 
                 {/* Sistema */}
                 <Route
-                  path="admin/sistema/configuracoes"
+                  path="configuracoes"
                   element={
                     <PermissionRoute module="CONFIGURAÇÕES">
                       <Settings />
@@ -260,7 +203,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/sistema/permissoes"
+                  path="permissoes"
                   element={
                     <PermissionRoute adminOnly>
                       <Permissions />
@@ -268,7 +211,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="admin/sistema/logs"
+                  path="logs"
                   element={
                     <PermissionRoute module="LOGS">
                       <AuditLog />
