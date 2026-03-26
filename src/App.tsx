@@ -230,7 +230,14 @@ export default function App() {
                 />
 
                 {/* Debug / Diagnóstico de Acesso */}
-                <Route path="debug" element={<DebugAccess />} />
+                <Route
+                  path="debug"
+                  element={
+                    <PermissionRoute adminOnly>
+                      <DebugAccess />
+                    </PermissionRoute>
+                  }
+                />
 
                 {/* Hub */}
                 <Route path="hub/mural" element={<Mural />} />

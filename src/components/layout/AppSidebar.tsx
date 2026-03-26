@@ -8,6 +8,7 @@ import {
   Megaphone,
   Briefcase,
   DollarSign,
+  Bug,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -108,6 +109,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
           { name: 'LOGS', href: '/logs', module: 'LOGS' },
           { name: 'AUDITORIA DE ROTAS', href: '/auditoria-rotas', adminOnly: true },
+          { name: 'DEBUG', href: '/debug', adminOnly: true, icon: Bug },
         ],
       },
     ],
@@ -245,12 +247,21 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                           )}
                         >
                           <span className="flex items-center overflow-hidden pr-2">
-                            <span
-                              className={cn(
-                                'w-1.5 h-1.5 rounded-full mr-2 shrink-0 transition-colors',
-                                isActive ? 'bg-[#D4AF37]' : 'bg-transparent',
-                              )}
-                            />
+                            {'icon' in item && item.icon ? (
+                              <item.icon
+                                className={cn(
+                                  'w-3.5 h-3.5 mr-2 shrink-0 transition-colors',
+                                  isActive ? 'text-[#D4AF37]' : 'text-slate-400',
+                                )}
+                              />
+                            ) : (
+                              <span
+                                className={cn(
+                                  'w-1.5 h-1.5 rounded-full mr-2 shrink-0 transition-colors',
+                                  isActive ? 'bg-[#D4AF37]' : 'bg-transparent',
+                                )}
+                              />
+                            )}
                             <span className="truncate">{item.name}</span>
                           </span>
                           {'badge' in item && item.badge !== undefined && item.badge > 0 && (
