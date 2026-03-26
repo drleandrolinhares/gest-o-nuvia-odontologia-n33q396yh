@@ -69,7 +69,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string, keepSignedIn: boolean = false) => {
     try {
       localStorage.setItem('keepSignedIn', keepSignedIn ? 'true' : 'false')
-      return await supabase.auth.signInWithPassword({ email, password })
+      const res = await supabase.auth.signInWithPassword({ email, password })
+
+      if (res.error) {
+        // Intercepta e traduz o erro de credenciais inválidas para evitar runtime unhandled errors
+        if (
+          res.error.message.includes('Invalid login credentials') ||
+          res.error.message.includes('invalid_credentials')
+        ) {
+          return {
+            error: new Error(
+              'E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.',
+            ),
+          }
+        }
+        return { error: res.error }
+      }
+
+      return res
     } catch (error) {
       return { error }
     }

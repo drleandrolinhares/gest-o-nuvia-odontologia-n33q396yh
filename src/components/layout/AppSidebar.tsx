@@ -9,6 +9,7 @@ import {
   Briefcase,
   DollarSign,
   Bug,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -18,6 +19,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/component
 import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
 import { NuviaLogo } from './NuviaLogo'
+import { supabase } from '@/lib/supabase/client'
 
 interface AppSidebarProps {
   isCollapsed: boolean
@@ -39,7 +41,58 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   })
 
   const { unreadCounts } = useChatStore()
-  const { isAdmin, isMaster, can, sacRecords, currentUserId } = useAppStore()
+  const { isAdmin, isMaster, sacRecords, currentUserId } = useAppStore()
+
+  const [dbPermissions, setDbPermissions] = useState<any[] | null>(null)
+  const [isCheckingPermissions, setIsCheckingPermissions] = useState(true)
+
+  // Busca dinamicamente as permissões do banco para o usuário logado
+  useEffect(() => {
+    async function fetchUserPermissions() {
+      if (!user) {
+        setIsCheckingPermissions(false)
+        return
+      }
+
+      try {
+        setIsCheckingPermissions(true)
+
+        // 1. Busque as permissões específicas do usuário logado
+        const { data: userPerms, error: upError } = await supabase
+          .from('user_permissions')
+          .select('*')
+          .eq('user_id', user.id)
+
+        if (!upError && userPerms && userPerms.length > 0) {
+          setDbPermissions(userPerms)
+        } else {
+          // Se não tiver user_permissions, usa a tabela de role_permissions baseada no cargo
+          const { data: empData } = await supabase
+            .from('employees')
+            .select('role')
+            .eq('user_id', user.id)
+            .maybeSingle()
+
+          if (empData?.role) {
+            const { data: rolePerms } = await supabase
+              .from('role_permissions')
+              .select('*')
+              .eq('role', empData.role)
+            setDbPermissions(rolePerms || [])
+          } else {
+            setDbPermissions([])
+          }
+        }
+      } catch (err) {
+        console.error('Falha ao carregar permissões:', err)
+        setDbPermissions([])
+      } finally {
+        setIsCheckingPermissions(false)
+      }
+    }
+
+    fetchUserPermissions()
+  }, [user])
 
   const pendingSacsCount = useMemo(
     () =>
@@ -58,85 +111,102 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         title: 'NUVIA HUB',
         icon: Megaphone,
         items: [
-          { name: 'MURAL DE AVISOS', href: '/hub/mural' },
-          { name: 'PP & PDM', href: '/hub/feedback' },
-          { name: 'DESENVOLVIMENTO E PERFORMANCE', href: '/hub/performance' },
-          { name: 'RANKING PERFORMANCE', href: '/hub/ranking' },
+          { name: 'MURAL DE AVISOS', href: '/hub/mural', module: 'comunicados' },
+          { name: 'PP & PDM', href: '/hub/feedback', module: 'performance' },
+          {
+            name: 'DESENVOLVIMENTO E PERFORMANCE',
+            href: '/hub/performance',
+            module: 'performance',
+          },
+          { name: 'RANKING PERFORMANCE', href: '/hub/ranking', module: 'performance' },
         ],
       },
       {
         title: 'VISÃO DIÁRIA',
         icon: Calendar,
         items: [
-          { name: 'AGENDA', href: '/agenda', module: 'AGENDA' },
-          { name: 'MENSAGENS', href: '/chat', module: 'MENSAGENS', badge: totalUnread },
-          { name: 'SAC', href: '/sac', module: 'SAC', badge: pendingSacsCount },
+          { name: 'AGENDA', href: '/agenda', module: 'agenda' },
+          { name: 'MENSAGENS', href: '/chat', module: 'mensagens', badge: totalUnread },
+          { name: 'SAC', href: '/sac', module: 'sac', badge: pendingSacsCount },
         ],
       },
       {
         title: 'COMERCIAL',
         icon: Handshake,
         items: [
-          { name: 'NEGOCIAÇÃO', href: '/negociacao', module: 'NEGOCIAÇÃO' },
-          { name: 'GESTÃO FISCAL', href: '/gestao-fiscal', module: 'GESTÃO FISCAL' },
+          { name: 'NEGOCIAÇÃO', href: '/negociacao', module: 'negociacao' },
+          { name: 'GESTÃO FISCAL', href: '/gestao-fiscal', module: 'gestao-fiscal' },
         ],
       },
       {
         title: 'FINANCEIRO',
         icon: DollarSign,
         items: [
-          { name: 'CENTRAL DE ACESSOS', href: '/acessos', module: 'ACESSOS' },
-          { name: 'ESTOQUE', href: '/estoque', module: 'ESTOQUE' },
+          { name: 'CENTRAL DE ACESSOS', href: '/acessos', module: 'central-acessos' },
+          { name: 'ESTOQUE', href: '/estoque', module: 'estoque' },
         ],
       },
       {
         title: 'ADMINISTRATIVO',
         icon: Briefcase,
         items: [
-          { name: 'DASHBOARDS', href: '/dashboard', module: 'DASHBOARD' },
-          { name: 'KPIS', href: '/kpis', module: 'KPIS' },
-          { name: 'USUÁRIOS / RH', href: '/rh', module: 'RH' },
-          { name: 'ESCALA DE TRABALHO', href: '/rh/escala', module: 'ESCALA DE TRABALHO' },
-          { name: 'PRECIFICAÇÃO', href: '/precificacao', adminOnly: true },
-          { name: 'SEGMENTAÇÃO DA AGENDA', href: '/segmentacao-agenda', module: 'SEGMENTAÇÃO' },
+          { name: 'DASHBOARDS', href: '/dashboard', module: 'dashboards' },
+          { name: 'KPIS', href: '/kpis', module: 'kpis' },
+          { name: 'USUÁRIOS / RH', href: '/rh', module: 'usuarios-rh' },
+          { name: 'ESCALA DE TRABALHO', href: '/rh/escala', module: 'escala-trabalho' },
+          { name: 'PRECIFICAÇÃO', href: '/precificacao', module: 'precificacao' },
+          {
+            name: 'SEGMENTAÇÃO DA AGENDA',
+            href: '/segmentacao-agenda',
+            module: 'segmentacao-agenda',
+          },
         ],
       },
       {
         title: 'SISTEMA',
         icon: Settings,
         items: [
-          { name: 'PERMISSÕES', href: '/permissoes', adminOnly: true },
-          { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
-          { name: 'LOGS', href: '/logs', module: 'LOGS' },
-          { name: 'AUDITORIA DE ROTAS', href: '/auditoria-rotas', adminOnly: true },
-          { name: 'DEBUG', href: '/debug', adminOnly: true, icon: Bug },
+          { name: 'PERMISSÕES', href: '/permissoes', module: 'configuracoes' },
+          { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'configuracoes' },
+          { name: 'LOGS', href: '/logs', module: 'logs' },
+          { name: 'AUDITORIA DE ROTAS', href: '/auditoria-rotas', module: 'logs', adminOnly: true },
+          { name: 'DEBUG', href: '/debug', module: 'logs', adminOnly: true, icon: Bug },
         ],
       },
     ],
     [totalUnread, pendingSacsCount],
   )
 
-  const filteredSections = useMemo(
-    () =>
-      navigationSections
-        .map((section) => ({
-          ...section,
-          items: section.items.filter((item) => {
-            if ('adminOnly' in item && item.adminOnly && !isAdmin && !isMaster) return false
-            if (
-              'module' in item &&
-              item.module &&
-              !isAdmin &&
-              !isMaster &&
-              !can(item.module, 'view')
+  const filteredSections = useMemo(() => {
+    // Retorna vazio enquanto não carrega as permissões da base para evitar flickering
+    if (isCheckingPermissions || dbPermissions === null) return []
+
+    return navigationSections
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => {
+          // Bloqueio explícito para telas exclusivas de Administrador
+          if ('adminOnly' in item && item.adminOnly && !isAdmin && !isMaster) {
+            return false
+          }
+
+          // Checagem estrita no banco de dados para a permissão de visualização do módulo
+          if ('module' in item && item.module) {
+            const hasPermission = dbPermissions.some(
+              (p) => p.module.toLowerCase() === item.module.toLowerCase() && p.can_view === true,
             )
+
+            // Se a permissão não constar ou can_view for falso, bloqueia completamente o item
+            if (!hasPermission) {
               return false
-            return true
-          }),
-        }))
-        .filter((section) => section.items.length > 0),
-    [navigationSections, isAdmin, isMaster, can],
-  )
+            }
+          }
+
+          return true
+        }),
+      }))
+      .filter((section) => section.items.length > 0)
+  }, [navigationSections, isAdmin, isMaster, dbPermissions, isCheckingPermissions])
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => {
@@ -147,6 +217,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   }
 
   useEffect(() => {
+    if (isCheckingPermissions) return
+
     setOpenSections((prev) => {
       let hasChanges = false
       const next = { ...prev }
@@ -164,7 +236,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       return prev
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname])
+  }, [location.pathname, filteredSections, isCheckingPermissions])
 
   return (
     <div className="flex h-full flex-col bg-[#0A192F] text-slate-300 border-r border-white/5">
@@ -182,102 +254,119 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-3 overflow-x-hidden [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
-        {filteredSections.map((section) => {
-          const isActiveSection = section.items.some((item) =>
-            location.pathname.startsWith(item.href),
-          )
+        {isCheckingPermissions ? (
+          <div className="flex justify-center items-center h-20">
+            <Loader2 className="w-6 h-6 text-[#D4AF37] animate-spin" />
+          </div>
+        ) : filteredSections.length === 0 ? (
+          <div className="text-center py-6 px-4">
+            <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">
+              Sem permissões
+            </p>
+            <p className="text-[10px] text-slate-600 mt-2">
+              Nenhum menu liberado para visualização.
+            </p>
+          </div>
+        ) : (
+          filteredSections.map((section) => {
+            const isActiveSection = section.items.some((item) =>
+              location.pathname.startsWith(item.href),
+            )
 
-          return (
-            <div key={section.title} className="mb-2">
-              <Collapsible
-                open={(openSections[section.title] || false) && (!isCollapsed || isMobile)}
-                onOpenChange={() => toggleSection(section.title)}
-              >
-                <CollapsibleTrigger asChild>
-                  <button
-                    className={cn(
-                      'w-full flex items-center py-3 px-3 text-xs font-bold uppercase tracking-wider rounded-md transition-all outline-none group',
-                      isCollapsed && !isMobile ? 'justify-center px-2' : '',
-                      isActiveSection
-                        ? 'text-white'
-                        : 'text-slate-400 hover:bg-white/5 hover:text-white',
-                    )}
-                    title={isCollapsed && !isMobile ? section.title : undefined}
-                  >
-                    <section.icon
+            return (
+              <div key={section.title} className="mb-2">
+                <Collapsible
+                  open={(openSections[section.title] || false) && (!isCollapsed || isMobile)}
+                  onOpenChange={() => toggleSection(section.title)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <button
                       className={cn(
-                        'h-5 w-5 shrink-0 transition-colors',
-                        isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
+                        'w-full flex items-center py-3 px-3 text-xs font-bold uppercase tracking-wider rounded-md transition-all outline-none group',
+                        isCollapsed && !isMobile ? 'justify-center px-2' : '',
                         isActiveSection
-                          ? 'text-[#D4AF37]'
-                          : 'text-slate-500 group-hover:text-white',
+                          ? 'text-white'
+                          : 'text-slate-400 hover:bg-white/5 hover:text-white',
                       )}
-                    />
-                    {(!isCollapsed || isMobile) && (
-                      <>
-                        <span className="flex-1 text-left whitespace-nowrap">{section.title}</span>
-                        <ChevronDown
-                          className={cn(
-                            'h-4 w-4 shrink-0 transition-transform opacity-50 group-hover:opacity-100',
-                            openSections[section.title] ? 'rotate-180' : '',
-                          )}
-                        />
-                      </>
-                    )}
-                  </button>
-                </CollapsibleTrigger>
-                {(!isCollapsed || isMobile) && (
-                  <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
-                    {section.items.map((item) => {
-                      const isActive =
-                        item.href === '/agenda'
-                          ? location.pathname === '/agenda' || location.pathname === '/agenda/'
-                          : location.pathname.startsWith(item.href)
-
-                      return (
-                        <Link
-                          key={item.name}
-                          to={item.href}
-                          onClick={onLinkClick}
-                          className={cn(
-                            'flex items-center justify-between py-2.5 px-3 text-[11px] font-bold tracking-widest rounded-md transition-colors whitespace-nowrap relative',
-                            isActive
-                              ? 'bg-white/10 text-white'
-                              : 'text-slate-400 hover:text-white hover:bg-white/5',
-                          )}
-                        >
-                          <span className="flex items-center overflow-hidden pr-2">
-                            {'icon' in item && item.icon ? (
-                              <item.icon
-                                className={cn(
-                                  'w-3.5 h-3.5 mr-2 shrink-0 transition-colors',
-                                  isActive ? 'text-[#D4AF37]' : 'text-slate-400',
-                                )}
-                              />
-                            ) : (
-                              <span
-                                className={cn(
-                                  'w-1.5 h-1.5 rounded-full mr-2 shrink-0 transition-colors',
-                                  isActive ? 'bg-[#D4AF37]' : 'bg-transparent',
-                                )}
-                              />
-                            )}
-                            <span className="truncate">{item.name}</span>
+                      title={isCollapsed && !isMobile ? section.title : undefined}
+                    >
+                      <section.icon
+                        className={cn(
+                          'h-5 w-5 shrink-0 transition-colors',
+                          isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
+                          isActiveSection
+                            ? 'text-[#D4AF37]'
+                            : 'text-slate-500 group-hover:text-white',
+                        )}
+                      />
+                      {(!isCollapsed || isMobile) && (
+                        <>
+                          <span className="flex-1 text-left whitespace-nowrap">
+                            {section.title}
                           </span>
-                          {'badge' in item && item.badge !== undefined && item.badge > 0 && (
-                            <span className="bg-red-600 animate-pulse text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm shrink-0 ml-auto">
-                              {item.badge > 99 ? '99+' : item.badge}
+                          <ChevronDown
+                            className={cn(
+                              'h-4 w-4 shrink-0 transition-transform opacity-50 group-hover:opacity-100',
+                              openSections[section.title] ? 'rotate-180' : '',
+                            )}
+                          />
+                        </>
+                      )}
+                    </button>
+                  </CollapsibleTrigger>
+                  {(!isCollapsed || isMobile) && (
+                    <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
+                      {section.items.map((item) => {
+                        const isActive =
+                          item.href === '/agenda'
+                            ? location.pathname === '/agenda' || location.pathname === '/agenda/'
+                            : location.pathname.startsWith(item.href)
+
+                        return (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={onLinkClick}
+                            className={cn(
+                              'flex items-center justify-between py-2.5 px-3 text-[11px] font-bold tracking-widest rounded-md transition-colors whitespace-nowrap relative',
+                              isActive
+                                ? 'bg-white/10 text-white'
+                                : 'text-slate-400 hover:text-white hover:bg-white/5',
+                            )}
+                          >
+                            <span className="flex items-center overflow-hidden pr-2">
+                              {'icon' in item && item.icon ? (
+                                <item.icon
+                                  className={cn(
+                                    'w-3.5 h-3.5 mr-2 shrink-0 transition-colors',
+                                    isActive ? 'text-[#D4AF37]' : 'text-slate-400',
+                                  )}
+                                />
+                              ) : (
+                                <span
+                                  className={cn(
+                                    'w-1.5 h-1.5 rounded-full mr-2 shrink-0 transition-colors',
+                                    isActive ? 'bg-[#D4AF37]' : 'bg-transparent',
+                                  )}
+                                />
+                              )}
+                              <span className="truncate">{item.name}</span>
                             </span>
-                          )}
-                        </Link>
-                      )
-                    })}
-                  </CollapsibleContent>
-                )}
-              </Collapsible>
-            </div>
-          )
-        })}
+                            {'badge' in item && item.badge !== undefined && item.badge > 0 && (
+                              <span className="bg-red-600 animate-pulse text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm shrink-0 ml-auto">
+                                {item.badge > 99 ? '99+' : item.badge}
+                              </span>
+                            )}
+                          </Link>
+                        )
+                      })}
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+              </div>
+            )
+          })
+        )}
       </div>
 
       <div
