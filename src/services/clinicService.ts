@@ -5,7 +5,7 @@ export const clinicService = {
   fetchConsultorios: () =>
     supabase
       .from('clinica_consultorios' as any)
-      .select('*, schedules:consultorio_weekly_schedules(*)')
+      .select('*')
       .order('created_at', { ascending: true }),
 
   upsertConsultorio: (consultorio: Partial<Consultorio>) =>
@@ -26,11 +26,6 @@ export const clinicService = {
       .from('clinica_consultorios' as any)
       .delete()
       .in('id', ids),
-
-  upsertConsultorioSchedules: (schedules: any[]) =>
-    supabase
-      .from('consultorio_weekly_schedules' as any)
-      .upsert(schedules, { onConflict: 'consultorio_id, day_of_week' }),
 
   fetchSpecialtyConfigs: () => supabase.from('specialty_configs' as any).select('*'),
 
