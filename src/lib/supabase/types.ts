@@ -1,11 +1,17 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.4'
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -132,18 +138,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'agenda_requester_id_fkey'
-            columns: ['requester_id']
+            foreignKeyName: "agenda_sac_record_id_fkey"
+            columns: ["sac_record_id"]
             isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'agenda_sac_record_id_fkey'
-            columns: ['sac_record_id']
-            isOneToOne: false
-            referencedRelation: 'sac_records'
-            referencedColumns: ['id']
+            referencedRelation: "sac_records"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -177,25 +176,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'agenda_segmentation_consultorio_id_fkey'
-            columns: ['consultorio_id']
+            foreignKeyName: "agenda_segmentation_consultorio_id_fkey"
+            columns: ["consultorio_id"]
             isOneToOne: false
-            referencedRelation: 'clinica_consultorios'
-            referencedColumns: ['id']
+            referencedRelation: "clinica_consultorios"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'agenda_segmentation_dentist_id_fkey'
-            columns: ['dentist_id']
+            foreignKeyName: "agenda_segmentation_specialty_id_fkey"
+            columns: ["specialty_id"]
             isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'agenda_segmentation_specialty_id_fkey'
-            columns: ['specialty_id']
-            isOneToOne: false
-            referencedRelation: 'specialty_configs'
-            referencedColumns: ['id']
+            referencedRelation: "specialty_configs"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -308,22 +300,7 @@ export type Database = {
           received_by_id?: string
           status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: 'cash_box_closings_closed_by_id_fkey'
-            columns: ['closed_by_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'cash_box_closings_received_by_id_fkey'
-            columns: ['received_by_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-        ]
+        Relationships: []
       }
       chat_messages: {
         Row: {
@@ -349,11 +326,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'chat_messages_room_id_fkey'
-            columns: ['room_id']
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
             isOneToOne: false
-            referencedRelation: 'chat_rooms'
-            referencedColumns: ['id']
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -381,11 +358,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'chat_participants_room_id_fkey'
-            columns: ['room_id']
+            foreignKeyName: "chat_participants_room_id_fkey"
+            columns: ["room_id"]
             isOneToOne: false
-            referencedRelation: 'chat_rooms'
-            referencedColumns: ['id']
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -416,48 +393,6 @@ export type Database = {
         }
         Relationships: []
       }
-      checklist_diario: {
-        Row: {
-          created_at: string
-          date: string
-          employee_id: string
-          id: string
-          is_executed: boolean
-          modelo_id: string
-        }
-        Insert: {
-          created_at?: string
-          date: string
-          employee_id: string
-          id?: string
-          is_executed?: boolean
-          modelo_id: string
-        }
-        Update: {
-          created_at?: string
-          date?: string
-          employee_id?: string
-          id?: string
-          is_executed?: boolean
-          modelo_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'checklist_diario_employee_id_fkey'
-            columns: ['employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'checklist_diario_modelo_id_fkey'
-            columns: ['modelo_id']
-            isOneToOne: false
-            referencedRelation: 'checklist_modelos'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       checklist_modelos: {
         Row: {
           created_at: string
@@ -482,11 +417,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'checklist_modelos_sector_id_fkey'
-            columns: ['sector_id']
+            foreignKeyName: "checklist_modelos_sector_id_fkey"
+            columns: ["sector_id"]
             isOneToOne: false
-            referencedRelation: 'sectors'
-            referencedColumns: ['id']
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -519,124 +454,6 @@ export type Database = {
           name?: string
         }
         Relationships: []
-      }
-      consultorio_weekly_schedules: {
-        Row: {
-          afternoon_end: string | null
-          afternoon_start: string | null
-          consultorio_id: string
-          created_at: string
-          day_of_week: number
-          id: string
-          is_closed: boolean
-          morning_end: string | null
-          morning_start: string | null
-        }
-        Insert: {
-          afternoon_end?: string | null
-          afternoon_start?: string | null
-          consultorio_id: string
-          created_at?: string
-          day_of_week: number
-          id?: string
-          is_closed?: boolean
-          morning_end?: string | null
-          morning_start?: string | null
-        }
-        Update: {
-          afternoon_end?: string | null
-          afternoon_start?: string | null
-          consultorio_id?: string
-          created_at?: string
-          day_of_week?: number
-          id?: string
-          is_closed?: boolean
-          morning_end?: string | null
-          morning_start?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'consultorio_weekly_schedules_consultorio_id_fkey'
-            columns: ['consultorio_id']
-            isOneToOne: false
-            referencedRelation: 'clinica_consultorios'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      daily_routine_executions: {
-        Row: {
-          completed_at: string
-          employee_id: string
-          id: string
-          routine_id: string
-        }
-        Insert: {
-          completed_at?: string
-          employee_id: string
-          id?: string
-          routine_id: string
-        }
-        Update: {
-          completed_at?: string
-          employee_id?: string
-          id?: string
-          routine_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'daily_routine_executions_employee_id_fkey'
-            columns: ['employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'daily_routine_executions_routine_id_fkey'
-            columns: ['routine_id']
-            isOneToOne: false
-            referencedRelation: 'daily_routines'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      daily_routines: {
-        Row: {
-          created_at: string
-          days_of_week: number[] | null
-          employee_id: string
-          id: string
-          role: string
-          scheduled_time: string
-          task_description: string
-        }
-        Insert: {
-          created_at?: string
-          days_of_week?: number[] | null
-          employee_id: string
-          id?: string
-          role: string
-          scheduled_time: string
-          task_description: string
-        }
-        Update: {
-          created_at?: string
-          days_of_week?: number[] | null
-          employee_id?: string
-          id?: string
-          role?: string
-          scheduled_time?: string
-          task_description?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'daily_routines_employee_id_fkey'
-            columns: ['employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-        ]
       }
       departments: {
         Row: {
@@ -677,166 +494,6 @@ export type Database = {
         }
         Relationships: []
       }
-      employee_documents: {
-        Row: {
-          created_at: string
-          employee_id: string
-          file_name: string
-          file_path: string
-          id: string
-        }
-        Insert: {
-          created_at?: string
-          employee_id: string
-          file_name: string
-          file_path: string
-          id?: string
-        }
-        Update: {
-          created_at?: string
-          employee_id?: string
-          file_name?: string
-          file_path?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'employee_documents_employee_id_fkey'
-            columns: ['employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      employees: {
-        Row: {
-          address: string | null
-          address_complement: string | null
-          address_number: string | null
-          bank_name: string | null
-          birth_date: string | null
-          bonus_due_date: string | null
-          bonus_rules: string | null
-          bonus_type: string | null
-          cep: string | null
-          city: string | null
-          contract_details: string | null
-          cpf: string | null
-          created_at: string
-          department: string
-          email: string | null
-          hire_date: string | null
-          id: string
-          last_access: string | null
-          name: string
-          no_system_access: boolean | null
-          perfil_id: string | null
-          phone: string | null
-          pix_key: string | null
-          pix_number: string | null
-          pix_type: string | null
-          rg: string | null
-          role: string
-          salary: string | null
-          sector_id: string | null
-          state: string | null
-          status: string | null
-          team_category: string[] | null
-          user_id: string | null
-          username: string | null
-          vacation_days_taken: number | null
-          vacation_days_total: number | null
-          vacation_due_date: string | null
-        }
-        Insert: {
-          address?: string | null
-          address_complement?: string | null
-          address_number?: string | null
-          bank_name?: string | null
-          birth_date?: string | null
-          bonus_due_date?: string | null
-          bonus_rules?: string | null
-          bonus_type?: string | null
-          cep?: string | null
-          city?: string | null
-          contract_details?: string | null
-          cpf?: string | null
-          created_at?: string
-          department: string
-          email?: string | null
-          hire_date?: string | null
-          id?: string
-          last_access?: string | null
-          name: string
-          no_system_access?: boolean | null
-          perfil_id?: string | null
-          phone?: string | null
-          pix_key?: string | null
-          pix_number?: string | null
-          pix_type?: string | null
-          rg?: string | null
-          role: string
-          salary?: string | null
-          sector_id?: string | null
-          state?: string | null
-          status?: string | null
-          team_category?: string[] | null
-          user_id?: string | null
-          username?: string | null
-          vacation_days_taken?: number | null
-          vacation_days_total?: number | null
-          vacation_due_date?: string | null
-        }
-        Update: {
-          address?: string | null
-          address_complement?: string | null
-          address_number?: string | null
-          bank_name?: string | null
-          birth_date?: string | null
-          bonus_due_date?: string | null
-          bonus_rules?: string | null
-          bonus_type?: string | null
-          cep?: string | null
-          city?: string | null
-          contract_details?: string | null
-          cpf?: string | null
-          created_at?: string
-          department?: string
-          email?: string | null
-          hire_date?: string | null
-          id?: string
-          last_access?: string | null
-          name?: string
-          no_system_access?: boolean | null
-          perfil_id?: string | null
-          phone?: string | null
-          pix_key?: string | null
-          pix_number?: string | null
-          pix_type?: string | null
-          rg?: string | null
-          role?: string
-          salary?: string | null
-          sector_id?: string | null
-          state?: string | null
-          status?: string | null
-          team_category?: string[] | null
-          user_id?: string | null
-          username?: string | null
-          vacation_days_taken?: number | null
-          vacation_days_total?: number | null
-          vacation_due_date?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'employees_sector_id_fkey'
-            columns: ['sector_id']
-            isOneToOne: false
-            referencedRelation: 'sectors'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       fiscal_boleto_entries: {
         Row: {
           company_id: string
@@ -867,11 +524,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fiscal_boleto_entries_company_id_fkey'
-            columns: ['company_id']
+            foreignKeyName: "fiscal_boleto_entries_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: 'fiscal_companies'
-            referencedColumns: ['id']
+            referencedRelation: "fiscal_companies"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -929,11 +586,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fiscal_limit_configs_company_id_fkey'
-            columns: ['company_id']
+            foreignKeyName: "fiscal_limit_configs_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: 'fiscal_companies'
-            referencedColumns: ['id']
+            referencedRelation: "fiscal_companies"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -970,11 +627,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fiscal_sales_entries_company_id_fkey'
-            columns: ['company_id']
+            foreignKeyName: "fiscal_sales_entries_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: 'fiscal_companies'
-            referencedColumns: ['id']
+            referencedRelation: "fiscal_companies"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1002,11 +659,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'hub_announcement_reads_announcement_id_fkey'
-            columns: ['announcement_id']
+            foreignKeyName: "hub_announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
             isOneToOne: false
-            referencedRelation: 'hub_announcements'
-            referencedColumns: ['id']
+            referencedRelation: "hub_announcements"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1217,11 +874,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'inventory_movements_inventory_id_fkey'
-            columns: ['inventory_id']
+            foreignKeyName: "inventory_movements_inventory_id_fkey"
+            columns: ["inventory_id"]
             isOneToOne: false
-            referencedRelation: 'inventory'
-            referencedColumns: ['id']
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1276,18 +933,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'inventory_temporary_outflows_employee_id_fkey'
-            columns: ['employee_id']
+            foreignKeyName: "inventory_temporary_outflows_inventory_id_fkey"
+            columns: ["inventory_id"]
             isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'inventory_temporary_outflows_inventory_id_fkey'
-            columns: ['inventory_id']
-            isOneToOne: false
-            referencedRelation: 'inventory'
-            referencedColumns: ['id']
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1319,15 +969,7 @@ export type Database = {
           type?: string
           value?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: 'kpi_commercial_entries_created_by_fkey'
-            columns: ['created_by']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-        ]
+        Relationships: []
       }
       kpis: {
         Row: {
@@ -1452,38 +1094,6 @@ export type Database = {
         }
         Relationships: []
       }
-      performance_diaria: {
-        Row: {
-          created_at: string
-          date: string
-          employee_id: string
-          id: string
-          percentage: number
-        }
-        Insert: {
-          created_at?: string
-          date: string
-          employee_id: string
-          id?: string
-          percentage?: number
-        }
-        Update: {
-          created_at?: string
-          date?: string
-          employee_id?: string
-          id?: string
-          percentage?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'performance_diaria_employee_id_fkey'
-            columns: ['employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       price_list: {
         Row: {
           cadista_cost: number | null
@@ -1550,11 +1160,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'price_stages_price_list_id_fkey'
-            columns: ['price_list_id']
+            foreignKeyName: "price_stages_price_list_id_fkey"
+            columns: ["price_list_id"]
             isOneToOne: false
-            referencedRelation: 'price_list'
-            referencedColumns: ['id']
+            referencedRelation: "price_list"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1579,18 +1189,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'role_permissions_action_id_fkey'
-            columns: ['action_id']
+            foreignKeyName: "role_permissions_action_id_fkey"
+            columns: ["action_id"]
             isOneToOne: false
-            referencedRelation: 'sys_actions'
-            referencedColumns: ['id']
+            referencedRelation: "sys_actions"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'role_permissions_role_id_fkey'
-            columns: ['role_id']
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
             isOneToOne: false
-            referencedRelation: 'roles'
-            referencedColumns: ['id']
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1664,22 +1274,7 @@ export type Database = {
           status?: string
           type?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: 'sac_records_receiving_employee_id_fkey'
-            columns: ['receiving_employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'sac_records_responsible_employee_id_fkey'
-            columns: ['responsible_employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-        ]
+        Relationships: []
       }
       sectors: {
         Row: {
@@ -1837,11 +1432,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'user_roles_role_id_fkey'
-            columns: ['role_id']
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
             isOneToOne: false
-            referencedRelation: 'roles'
-            referencedColumns: ['id']
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1891,15 +1486,7 @@ export type Database = {
           total_daily_hours?: number | null
           work_date?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: 'work_schedules_employee_id_fkey'
-            columns: ['employee_id']
-            isOneToOne: false
-            referencedRelation: 'employees'
-            referencedColumns: ['id']
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -1957,31 +1544,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1990,23 +1579,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -2015,23 +1604,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -2040,36 +1629,36 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
@@ -2077,6 +1666,7 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -2181,13 +1771,6 @@ export const Constants = {
 //   department: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   last_message_at: timestamp with time zone (nullable)
-// Table: checklist_diario
-//   id: uuid (not null, default: gen_random_uuid())
-//   employee_id: uuid (not null)
-//   date: date (not null)
-//   modelo_id: uuid (not null)
-//   is_executed: boolean (not null, default: false)
-//   created_at: timestamp with time zone (not null, default: now())
 // Table: checklist_modelos
 //   id: uuid (not null, default: gen_random_uuid())
 //   task_name: text (not null)
@@ -2202,29 +1785,6 @@ export const Constants = {
 //   afternoon_start: time without time zone (nullable)
 //   afternoon_end: time without time zone (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
-// Table: consultorio_weekly_schedules
-//   id: uuid (not null, default: gen_random_uuid())
-//   consultorio_id: uuid (not null)
-//   day_of_week: integer (not null)
-//   morning_start: time without time zone (nullable)
-//   morning_end: time without time zone (nullable)
-//   afternoon_start: time without time zone (nullable)
-//   afternoon_end: time without time zone (nullable)
-//   is_closed: boolean (not null, default: false)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: daily_routine_executions
-//   id: uuid (not null, default: gen_random_uuid())
-//   routine_id: uuid (not null)
-//   employee_id: uuid (not null)
-//   completed_at: timestamp with time zone (not null, default: now())
-// Table: daily_routines
-//   id: uuid (not null, default: gen_random_uuid())
-//   employee_id: uuid (not null)
-//   role: text (not null)
-//   task_description: text (not null)
-//   scheduled_time: time without time zone (not null)
-//   created_at: timestamp with time zone (not null, default: now())
-//   days_of_week: _int4 (nullable, default: '{0,1,2,3,4,5,6}'::integer[])
 // Table: departments
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
@@ -2234,50 +1794,6 @@ export const Constants = {
 //   name: text (not null)
 //   date: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
-// Table: employee_documents
-//   id: uuid (not null, default: gen_random_uuid())
-//   employee_id: uuid (not null)
-//   file_name: text (not null)
-//   file_path: text (not null)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: employees
-//   id: uuid (not null, default: gen_random_uuid())
-//   user_id: uuid (nullable)
-//   name: text (not null)
-//   role: text (not null)
-//   department: text (not null)
-//   status: text (nullable, default: 'Ativo'::text)
-//   hire_date: timestamp with time zone (nullable)
-//   salary: text (nullable)
-//   vacation_days_taken: integer (nullable, default: 0)
-//   vacation_days_total: integer (nullable, default: 30)
-//   vacation_due_date: timestamp with time zone (nullable)
-//   email: text (nullable)
-//   phone: text (nullable)
-//   created_at: timestamp with time zone (not null, default: now())
-//   username: text (nullable)
-//   rg: text (nullable)
-//   cpf: text (nullable)
-//   birth_date: text (nullable)
-//   cep: text (nullable)
-//   address: text (nullable)
-//   address_number: text (nullable)
-//   address_complement: text (nullable)
-//   city: text (nullable)
-//   state: text (nullable)
-//   last_access: timestamp with time zone (nullable)
-//   team_category: _text (nullable, default: ARRAY[]::text[])
-//   contract_details: text (nullable, default: ''::text)
-//   bonus_type: text (nullable)
-//   bonus_rules: text (nullable)
-//   bonus_due_date: text (nullable)
-//   pix_key: text (nullable)
-//   pix_type: text (nullable)
-//   bank_name: text (nullable)
-//   pix_number: text (nullable)
-//   no_system_access: boolean (nullable, default: false)
-//   sector_id: uuid (nullable)
-//   perfil_id: uuid (nullable)
 // Table: fiscal_boleto_entries
 //   id: uuid (not null, default: gen_random_uuid())
 //   company_id: uuid (not null)
@@ -2428,12 +1944,6 @@ export const Constants = {
 //   department: text (not null)
 //   tasks: jsonb (nullable, default: '[]'::jsonb)
 //   created_at: timestamp with time zone (not null, default: now())
-// Table: performance_diaria
-//   id: uuid (not null, default: gen_random_uuid())
-//   employee_id: uuid (not null)
-//   date: date (not null)
-//   percentage: numeric (not null, default: 0)
-//   created_at: timestamp with time zone (not null, default: now())
 // Table: price_list
 //   id: uuid (not null, default: gen_random_uuid())
 //   work_type: text (not null)
@@ -2537,13 +2047,11 @@ export const Constants = {
 //   PRIMARY KEY acessos_pkey: PRIMARY KEY (id)
 // Table: agenda
 //   PRIMARY KEY agenda_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY agenda_requester_id_fkey: FOREIGN KEY (requester_id) REFERENCES employees(id) ON DELETE SET NULL
 //   FOREIGN KEY agenda_sac_record_id_fkey: FOREIGN KEY (sac_record_id) REFERENCES sac_records(id) ON DELETE CASCADE
 // Table: agenda_segmentation
 //   UNIQUE agenda_segmentation_consultorio_id_day_of_week_shift_key: UNIQUE (consultorio_id, day_of_week, shift)
 //   FOREIGN KEY agenda_segmentation_consultorio_id_fkey: FOREIGN KEY (consultorio_id) REFERENCES clinica_consultorios(id) ON DELETE CASCADE
 //   CHECK agenda_segmentation_day_of_week_check: CHECK (((day_of_week >= 1) AND (day_of_week <= 6)))
-//   FOREIGN KEY agenda_segmentation_dentist_id_fkey: FOREIGN KEY (dentist_id) REFERENCES employees(id) ON DELETE SET NULL
 //   PRIMARY KEY agenda_segmentation_pkey: PRIMARY KEY (id)
 //   CHECK agenda_segmentation_shift_check: CHECK ((shift = ANY (ARRAY['MANHÃ'::text, 'TARDE'::text])))
 //   FOREIGN KEY agenda_segmentation_specialty_id_fkey: FOREIGN KEY (specialty_id) REFERENCES specialty_configs(id) ON DELETE SET NULL
@@ -2555,9 +2063,7 @@ export const Constants = {
 // Table: bonus_settings
 //   PRIMARY KEY bonus_settings_pkey: PRIMARY KEY (id)
 // Table: cash_box_closings
-//   FOREIGN KEY cash_box_closings_closed_by_id_fkey: FOREIGN KEY (closed_by_id) REFERENCES employees(id)
 //   PRIMARY KEY cash_box_closings_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY cash_box_closings_received_by_id_fkey: FOREIGN KEY (received_by_id) REFERENCES employees(id)
 //   CHECK cash_box_closings_status_check: CHECK ((status = ANY (ARRAY['PENDENTE'::text, 'CONFERIDO'::text])))
 // Table: chat_messages
 //   PRIMARY KEY chat_messages_pkey: PRIMARY KEY (id)
@@ -2571,40 +2077,16 @@ export const Constants = {
 // Table: chat_rooms
 //   PRIMARY KEY chat_rooms_pkey: PRIMARY KEY (id)
 //   CHECK chat_rooms_type_check: CHECK ((type = ANY (ARRAY['individual'::text, 'group'::text])))
-// Table: checklist_diario
-//   FOREIGN KEY checklist_diario_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
-//   FOREIGN KEY checklist_diario_modelo_id_fkey: FOREIGN KEY (modelo_id) REFERENCES checklist_modelos(id) ON DELETE CASCADE
-//   PRIMARY KEY checklist_diario_pkey: PRIMARY KEY (id)
-//   UNIQUE checklist_diario_unique_entry: UNIQUE (employee_id, date, modelo_id)
 // Table: checklist_modelos
 //   PRIMARY KEY checklist_modelos_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY checklist_modelos_sector_id_fkey: FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL
 // Table: clinica_consultorios
 //   PRIMARY KEY clinica_consultorios_pkey: PRIMARY KEY (id)
-// Table: consultorio_weekly_schedules
-//   UNIQUE consultorio_weekly_schedules_consultorio_id_day_of_week_key: UNIQUE (consultorio_id, day_of_week)
-//   FOREIGN KEY consultorio_weekly_schedules_consultorio_id_fkey: FOREIGN KEY (consultorio_id) REFERENCES clinica_consultorios(id) ON DELETE CASCADE
-//   CHECK consultorio_weekly_schedules_day_of_week_check: CHECK (((day_of_week >= 1) AND (day_of_week <= 6)))
-//   PRIMARY KEY consultorio_weekly_schedules_pkey: PRIMARY KEY (id)
-// Table: daily_routine_executions
-//   FOREIGN KEY daily_routine_executions_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
-//   PRIMARY KEY daily_routine_executions_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY daily_routine_executions_routine_id_fkey: FOREIGN KEY (routine_id) REFERENCES daily_routines(id) ON DELETE CASCADE
-// Table: daily_routines
-//   FOREIGN KEY daily_routines_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
-//   PRIMARY KEY daily_routines_pkey: PRIMARY KEY (id)
 // Table: departments
 //   UNIQUE departments_name_key: UNIQUE (name)
 //   PRIMARY KEY departments_pkey: PRIMARY KEY (id)
 // Table: documents
 //   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
-// Table: employee_documents
-//   FOREIGN KEY employee_documents_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
-//   PRIMARY KEY employee_documents_pkey: PRIMARY KEY (id)
-// Table: employees
-//   PRIMARY KEY employees_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY employees_sector_id_fkey: FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL
-//   FOREIGN KEY employees_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 // Table: fiscal_boleto_entries
 //   FOREIGN KEY fiscal_boleto_entries_company_id_fkey: FOREIGN KEY (company_id) REFERENCES fiscal_companies(id) ON DELETE CASCADE
 //   PRIMARY KEY fiscal_boleto_entries_pkey: PRIMARY KEY (id)
@@ -2640,13 +2122,11 @@ export const Constants = {
 // Table: inventory_settings
 //   PRIMARY KEY inventory_settings_pkey: PRIMARY KEY (id)
 // Table: inventory_temporary_outflows
-//   FOREIGN KEY inventory_temporary_outflows_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 //   FOREIGN KEY inventory_temporary_outflows_inventory_id_fkey: FOREIGN KEY (inventory_id) REFERENCES inventory(id) ON DELETE CASCADE
 //   PRIMARY KEY inventory_temporary_outflows_pkey: PRIMARY KEY (id)
 //   CHECK inventory_temporary_outflows_quantity_check: CHECK ((quantity > 0))
 //   CHECK inventory_temporary_outflows_status_check: CHECK ((status = ANY (ARRAY['PENDING'::text, 'FINALIZED'::text, 'RETURNED'::text])))
 // Table: kpi_commercial_entries
-//   FOREIGN KEY kpi_commercial_entries_created_by_fkey: FOREIGN KEY (created_by) REFERENCES employees(id) ON DELETE SET NULL
 //   PRIMARY KEY kpi_commercial_entries_pkey: PRIMARY KEY (id)
 //   CHECK kpi_commercial_entries_type_check: CHECK ((type = ANY (ARRAY['VENDA'::text, 'AVALIACAO'::text])))
 // Table: kpis
@@ -2659,10 +2139,6 @@ export const Constants = {
 //   UNIQUE monthly_readings_user_month_key: UNIQUE (user_id, reference_month)
 // Table: onboarding
 //   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
-// Table: performance_diaria
-//   FOREIGN KEY performance_diaria_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
-//   PRIMARY KEY performance_diaria_pkey: PRIMARY KEY (id)
-//   UNIQUE performance_diaria_unique_entry: UNIQUE (employee_id, date)
 // Table: price_list
 //   PRIMARY KEY price_list_pkey: PRIMARY KEY (id)
 // Table: price_stages
@@ -2678,8 +2154,6 @@ export const Constants = {
 //   PRIMARY KEY roles_pkey: PRIMARY KEY (id)
 // Table: sac_records
 //   PRIMARY KEY sac_records_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY sac_records_receiving_employee_id_fkey: FOREIGN KEY (receiving_employee_id) REFERENCES employees(id) ON DELETE SET NULL
-//   FOREIGN KEY sac_records_responsible_employee_id_fkey: FOREIGN KEY (responsible_employee_id) REFERENCES employees(id) ON DELETE SET NULL
 //   CHECK sac_records_status_check: CHECK ((status = ANY (ARRAY['OPORTUNIDADE DE SOLUÇÃO'::text, 'RECEBIDO'::text, 'SENDO TRATADO'::text, 'RESOLVIDO'::text])))
 //   CHECK sac_records_type_check: CHECK ((type = ANY (ARRAY['RECLAMAÇÃO'::text, 'SUGESTÃO'::text])))
 // Table: sectors
@@ -2701,7 +2175,6 @@ export const Constants = {
 //   FOREIGN KEY user_roles_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE user_roles_user_role_key: UNIQUE (user_id, role_id)
 // Table: work_schedules
-//   FOREIGN KEY work_schedules_employee_id_fkey: FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
 //   UNIQUE work_schedules_employee_id_work_date_key: UNIQUE (employee_id, work_date)
 //   PRIMARY KEY work_schedules_pkey: PRIMARY KEY (id)
 
@@ -2710,15 +2183,6 @@ export const Constants = {
 //   Policy "acessos_admin_only" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
 //     WITH CHECK: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
-// Table: agenda
-//   Policy "Agenda delete" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: (is_master_user(auth.uid()) OR is_admin_user(auth.uid()) OR (requester_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)))
-//   Policy "Agenda insert" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: (is_master_user(auth.uid()) OR is_admin_user(auth.uid()) OR (requester_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (assigned_to = ( SELECT (employees.id)::text AS id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)))
-//   Policy "Agenda update" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (is_master_user(auth.uid()) OR is_admin_user(auth.uid()) OR (requester_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (assigned_to = ( SELECT (employees.id)::text AS id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)))
-//   Policy "Agenda visibility" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: ((assigned_to = ( SELECT (employees.id)::text AS id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (assigned_to = 'none'::text) OR (assigned_to IS NULL) OR (requester_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR is_master_user(auth.uid()) OR (EXISTS ( SELECT 1    FROM employees e   WHERE ((e.user_id = auth.uid()) AND (('ADMIN'::text = ANY (e.team_category)) OR ('DIRETORIA'::text = ANY (e.team_category)))))))
 // Table: agenda_segmentation
 //   Policy "Allow all authenticated users on agenda_segmentation" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2763,10 +2227,6 @@ export const Constants = {
 //     WITH CHECK: ((auth.role() = 'authenticated'::text) AND ((type = 'individual'::text) OR ((type = 'group'::text) AND is_master_user(auth.uid()))))
 //   Policy "Users can view rooms they are in" (SELECT, PERMISSIVE) roles={public}
 //     USING: (EXISTS ( SELECT 1    FROM chat_participants cp   WHERE ((cp.room_id = cp.id) AND (cp.user_id = auth.uid()))))
-// Table: checklist_diario
-//   Policy "Allow all authenticated users on checklist_diario" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
 // Table: checklist_modelos
 //   Policy "Allow all authenticated users on checklist_modelos" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2780,18 +2240,6 @@ export const Constants = {
 //     USING: true
 //   Policy "clinica_consultorios_update" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
-// Table: consultorio_weekly_schedules
-//   Policy "Allow all authenticated users on consultorio_weekly_schedules" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: daily_routine_executions
-//   Policy "Allow all authenticated users on daily_routine_executions" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: daily_routines
-//   Policy "Allow all authenticated users on daily_routines" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
 // Table: departments
 //   Policy "Allow all authenticated users on departments" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2800,16 +2248,6 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
-// Table: employee_documents
-//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: employees
-//   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-//   Policy "authenticated_select_employees" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
 // Table: fiscal_boleto_entries
 //   Policy "Allow all authenticated users on fiscal_boleto_entries" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2904,10 +2342,6 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
-// Table: performance_diaria
-//   Policy "Allow all authenticated users on performance_diaria" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
 // Table: price_list
 //   Policy "price_list_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
@@ -2939,10 +2373,6 @@ export const Constants = {
 //     USING: (is_master_user(auth.uid()) OR is_admin_user(auth.uid()))
 //   Policy "Sac insert" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
-//   Policy "Sac update" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (is_master_user(auth.uid()) OR is_admin_user(auth.uid()) OR (responsible_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (receiving_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)))
-//   Policy "Sac visibility" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: ((responsible_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR (receiving_employee_id = ( SELECT employees.id    FROM employees   WHERE (employees.user_id = auth.uid())  LIMIT 1)) OR is_master_user(auth.uid()) OR (EXISTS ( SELECT 1    FROM employees e   WHERE ((e.user_id = auth.uid()) AND (('ADMIN'::text = ANY (e.team_category)) OR ('DIRETORIA'::text = ANY (e.team_category)))))))
 // Table: sectors
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2973,6 +2403,13 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 
+// --- WARNING: TABLES WITH RLS ENABLED BUT NO POLICIES ---
+// These tables have Row Level Security enabled but NO policies defined.
+// This means ALL queries (SELECT, INSERT, UPDATE, DELETE) will return ZERO rows
+// for non-superuser roles (including the anon and authenticated roles used by the app).
+// You MUST create RLS policies for these tables to allow data access.
+//   - agenda
+
 // --- DATABASE FUNCTIONS ---
 // FUNCTION audit_fiscal_boleto_deletions()
 //   CREATE OR REPLACE FUNCTION public.audit_fiscal_boleto_deletions()
@@ -2986,7 +2423,7 @@ export const Constants = {
 //       RETURN OLD;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION audit_fiscal_sales_deletions()
 //   CREATE OR REPLACE FUNCTION public.audit_fiscal_sales_deletions()
 //    RETURNS trigger
@@ -2999,7 +2436,7 @@ export const Constants = {
 //       RETURN OLD;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION calcular_aderencia_diaria(uuid, date)
 //   CREATE OR REPLACE FUNCTION public.calcular_aderencia_diaria(p_employee_id uuid, p_date date)
 //    RETURNS void
@@ -3012,36 +2449,36 @@ export const Constants = {
 //       v_department TEXT;
 //       v_team_category TEXT[];
 //       v_day_of_week INT;
-//
+//       
 //       v_total_routines INT := 0;
 //       v_executed_routines INT := 0;
-//
+//       
 //       v_total_checklist INT := 0;
 //       v_executed_checklist INT := 0;
-//
+//       
 //       v_total_tarefas INT := 0;
 //       v_tarefas_executadas INT := 0;
 //       v_percentual NUMERIC := 0;
 //   BEGIN
 //       -- 1. Obter o setor e cargo do colaborador
-//       SELECT sector_id, role, department, COALESCE(team_category, ARRAY[]::text[])
-//       INTO v_sector_id, v_role, v_department, v_team_category
+//       SELECT sector_id, role, department, COALESCE(team_category, ARRAY[]::text[]) 
+//       INTO v_sector_id, v_role, v_department, v_team_category 
 //       FROM public.employees WHERE id = p_employee_id;
-//
+//   
 //       -- Se for Dentista ou Sócio, não faz nada
 //       IF v_role ILIKE '%dentista%' OR v_role ILIKE '%sócio%' OR v_role ILIKE '%socio%' OR v_department ILIKE '%dentista%' OR 'DENTISTA' = ANY(v_team_category) OR 'SÓCIO' = ANY(v_team_category) THEN
 //           RETURN;
 //       END IF;
-//
+//   
 //       -- Obter o dia da semana da data fornecida (0=Domingo, 6=Sábado) para PostgreSQL
 //       SELECT extract(dow from p_date::timestamp) INTO v_day_of_week;
-//
+//   
 //       -- Contar o total de rotinas diárias ativas para o colaborador naquele dia da semana
 //       SELECT COUNT(*) INTO v_total_routines
 //       FROM public.daily_routines
 //       WHERE employee_id = p_employee_id
 //         AND (days_of_week IS NULL OR v_day_of_week = ANY(days_of_week));
-//
+//   
 //       -- Contar quantas foram concluídas (registradas em daily_routine_executions) na data específica
 //       SELECT COUNT(DISTINCT r.id) INTO v_executed_routines
 //       FROM public.daily_routines r
@@ -3049,37 +2486,37 @@ export const Constants = {
 //       WHERE r.employee_id = p_employee_id
 //         AND e.employee_id = p_employee_id
 //         AND DATE(e.completed_at AT TIME ZONE 'UTC') = p_date;
-//
+//   
 //       -- Contar Total de Tarefas Ativas no modelo de checklist dele (do setor dele ou global)
 //       SELECT COUNT(*) INTO v_total_checklist
 //       FROM public.checklist_modelos
 //       WHERE (sector_id = v_sector_id OR sector_id IS NULL) AND is_active = true;
-//
+//   
 //       -- Contar quantas foram marcadas como 'Executado = True' na tabela 'checklist_diario'
 //       SELECT COUNT(*) INTO v_executed_checklist
 //       FROM public.checklist_diario
-//       WHERE employee_id = p_employee_id
-//         AND date = p_date
+//       WHERE employee_id = p_employee_id 
+//         AND date = p_date 
 //         AND is_executed = true;
-//
+//   
 //       v_total_tarefas := v_total_routines + v_total_checklist;
 //       v_tarefas_executadas := v_executed_routines + v_executed_checklist;
-//
+//   
 //       -- 4. Cálculo: (Executadas / Total) * 100
 //       IF v_total_tarefas > 0 THEN
 //           v_percentual := (v_tarefas_executadas::NUMERIC / v_total_tarefas::NUMERIC) * 100;
 //       ELSE
 //           v_percentual := 0;
 //       END IF;
-//
+//   
 //       -- 5. Salve esse resultado em 'Performance_Diaria'
 //       INSERT INTO public.performance_diaria (employee_id, date, percentage)
 //       VALUES (p_employee_id, p_date, v_percentual)
-//       ON CONFLICT (employee_id, date)
+//       ON CONFLICT (employee_id, date) 
 //       DO UPDATE SET percentage = EXCLUDED.percentage;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION fix_auth_user_tokens(uuid)
 //   CREATE OR REPLACE FUNCTION public.fix_auth_user_tokens(user_id uuid)
 //    RETURNS void
@@ -3099,7 +2536,7 @@ export const Constants = {
 //       phone = NULLIF(phone, '')
 //     WHERE id = user_id;
 //   $function$
-//
+//   
 // FUNCTION get_auth_user_rooms()
 //   CREATE OR REPLACE FUNCTION public.get_auth_user_rooms()
 //    RETURNS SETOF uuid
@@ -3109,54 +2546,54 @@ export const Constants = {
 //   AS $function$
 //     SELECT room_id FROM public.chat_participants WHERE user_id = auth.uid();
 //   $function$
-//
+//   
 // FUNCTION get_monthly_ranking(integer, integer)
 //   CREATE OR REPLACE FUNCTION public.get_monthly_ranking(year_val integer, month_val integer)
 //    RETURNS TABLE(user_id uuid, employee_id uuid, employee_name text, total_points bigint)
 //    LANGUAGE sql
 //    SECURITY DEFINER
 //   AS $function$
-//     SELECT
+//     SELECT 
 //       e.user_id,
 //       e.id as employee_id,
 //       e.name as employee_name,
 //       COALESCE(SUM(points.pts), 0) as total_points
 //     FROM public.employees e
 //     LEFT JOIN (
-//       SELECT user_id, points_earned as pts
-//       FROM public.hub_announcement_reads
+//       SELECT user_id, points_earned as pts 
+//       FROM public.hub_announcement_reads 
 //       WHERE extract(year from read_at) = year_val AND extract(month from read_at) = month_val
-//
+//       
 //       UNION ALL
-//
-//       SELECT user_id, points_earned as pts
-//       FROM public.hub_feedbacks
+//       
+//       SELECT user_id, points_earned as pts 
+//       FROM public.hub_feedbacks 
 //       WHERE extract(year from created_at) = year_val AND extract(month from created_at) = month_val
-//
+//       
 //       UNION ALL
-//
+//       
 //       SELECT user_id, points_earned as pts
 //       FROM public.ser_5s_submissions
 //       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
-//
+//   
 //       UNION ALL
-//
+//   
 //       SELECT user_id, points_earned as pts
 //       FROM public.monthly_readings
 //       WHERE extract(year from submission_date) = year_val AND extract(month from submission_date) = month_val
-//
+//   
 //       UNION ALL
-//
+//   
 //       SELECT user_id, points_earned as pts
 //       FROM public.innovation_records
 //       WHERE extract(year from created_at) = year_val AND extract(month from created_at) = month_val
-//
+//   
 //     ) points ON points.user_id = e.user_id
 //     WHERE e.status != 'Desligado' AND e.user_id IS NOT NULL
 //     GROUP BY e.user_id, e.id, e.name
 //     ORDER BY total_points DESC, e.name ASC;
 //   $function$
-//
+//   
 // FUNCTION get_or_create_group_room(text, uuid)
 //   CREATE OR REPLACE FUNCTION public.get_or_create_group_room(dept_name text, creator_id uuid)
 //    RETURNS uuid
@@ -3178,7 +2615,7 @@ export const Constants = {
 //     RETURN v_room_id;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION get_or_create_individual_room(uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public.get_or_create_individual_room(user1 uuid, user2 uuid)
 //    RETURNS uuid
@@ -3194,7 +2631,7 @@ export const Constants = {
 //     JOIN public.chat_participants p2 ON p2.room_id = r.id AND p2.user_id = user2
 //     WHERE r.type = 'individual'
 //     LIMIT 1;
-//
+//   
 //     IF v_room_id IS NULL THEN
 //       INSERT INTO public.chat_rooms (type) VALUES ('individual') RETURNING id INTO v_room_id;
 //       INSERT INTO public.chat_participants (room_id, user_id) VALUES (v_room_id, user1), (v_room_id, user2);
@@ -3202,7 +2639,7 @@ export const Constants = {
 //     RETURN v_room_id;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION get_unread_counts(uuid)
 //   CREATE OR REPLACE FUNCTION public.get_unread_counts(user_id_param uuid)
 //    RETURNS TABLE(room_id uuid, unread_count bigint)
@@ -3219,7 +2656,7 @@ export const Constants = {
 //       AND m.created_at > COALESCE(cp.last_read_at, '1970-01-01'::timestamptz)
 //     GROUP BY cp.room_id;
 //   $function$
-//
+//   
 // FUNCTION is_admin_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_admin_user(user_uuid uuid)
 //    RETURNS boolean
@@ -3238,7 +2675,7 @@ export const Constants = {
 //       )
 //     );
 //   $function$
-//
+//   
 // FUNCTION is_master_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_master_user(user_uuid uuid)
 //    RETURNS boolean
@@ -3251,7 +2688,7 @@ export const Constants = {
 //       WHERE user_id = user_uuid AND 'MASTER' = ANY(team_category)
 //     );
 //   $function$
-//
+//   
 // FUNCTION mark_room_read(uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public.mark_room_read(p_room_id uuid, p_user_id uuid)
 //    RETURNS void
@@ -3262,7 +2699,7 @@ export const Constants = {
 //     SET last_read_at = NOW()
 //     WHERE room_id = p_room_id AND user_id = p_user_id;
 //   $function$
-//
+//   
 // FUNCTION reset_financial_data(text)
 //   CREATE OR REPLACE FUNCTION public.reset_financial_data(acting_user_name text)
 //    RETURNS void
@@ -3274,31 +2711,31 @@ export const Constants = {
 //     current_user_id uuid;
 //   BEGIN
 //       current_user_id := auth.uid();
-//
+//       
 //       IF current_user_id IS NULL THEN
 //           RAISE EXCEPTION 'Não autenticado';
 //       END IF;
-//
+//   
 //       -- Verify if the user is an admin or master
 //       IF NOT (public.is_admin_user(current_user_id) OR public.is_master_user(current_user_id)) THEN
 //           RAISE EXCEPTION 'Acesso negado. Apenas administradores podem realizar esta ação.';
 //       END IF;
-//
+//   
 //       -- Delete all records from the target financial tables
 //       -- Safe update extension requires a WHERE clause for DELETE operations
 //       DELETE FROM public.cash_box_closings WHERE id IS NOT NULL;
 //       DELETE FROM public.fiscal_sales_entries WHERE id IS NOT NULL;
 //       DELETE FROM public.fiscal_boleto_entries WHERE id IS NOT NULL;
-//
+//   
 //       -- Create the explicit audit log entry required
 //       INSERT INTO public.audit_logs (user_id, action)
 //       VALUES (
-//           current_user_id,
+//           current_user_id, 
 //           'RESET TOTAL: Todo o histórico de caixa e financeiro foi apagado por ' || COALESCE(acting_user_name, 'SISTEMA')
 //       );
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_agenda_to_sac()
 //   CREATE OR REPLACE FUNCTION public.sync_agenda_to_sac()
 //    RETURNS trigger
@@ -3307,14 +2744,14 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //       IF NEW.is_completed = true AND OLD.is_completed = false AND NEW.type = 'SAC' AND NEW.sac_record_id IS NOT NULL THEN
-//           UPDATE public.sac_records
-//           SET status = 'RESOLVIDO', solved_at = NOW()
+//           UPDATE public.sac_records 
+//           SET status = 'RESOLVIDO', solved_at = NOW() 
 //           WHERE id = NEW.sac_record_id AND status != 'RESOLVIDO';
 //       END IF;
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_employee_dates_to_agenda()
 //   CREATE OR REPLACE FUNCTION public.sync_employee_dates_to_agenda()
 //    RETURNS trigger
@@ -3330,7 +2767,7 @@ export const Constants = {
 //           DELETE FROM public.agenda WHERE assigned_to = OLD.id::text AND is_completed = false AND (type = 'BÔNUS' OR type = 'FÉRIAS');
 //           RETURN OLD;
 //       END IF;
-//
+//   
 //       -- Handle Bonus Due Date
 //       IF NEW.bonus_due_date IS NOT NULL AND NEW.bonus_due_date <> '' THEN
 //           IF TG_OP = 'INSERT' OR OLD.bonus_due_date IS DISTINCT FROM NEW.bonus_due_date OR OLD.name IS DISTINCT FROM NEW.name THEN
@@ -3343,7 +2780,7 @@ export const Constants = {
 //       ELSIF TG_OP = 'UPDATE' AND (OLD.bonus_due_date IS NOT NULL AND OLD.bonus_due_date <> '') THEN
 //           DELETE FROM public.agenda WHERE assigned_to = NEW.id::text AND type = 'BÔNUS' AND is_completed = false;
 //       END IF;
-//
+//   
 //       -- Handle Vacation Due Date
 //       IF NEW.vacation_due_date IS NOT NULL THEN
 //           IF TG_OP = 'INSERT' OR OLD.vacation_due_date IS DISTINCT FROM NEW.vacation_due_date OR OLD.name IS DISTINCT FROM NEW.name THEN
@@ -3357,11 +2794,11 @@ export const Constants = {
 //       ELSIF TG_OP = 'UPDATE' AND OLD.vacation_due_date IS NOT NULL THEN
 //           DELETE FROM public.agenda WHERE assigned_to = NEW.id::text AND type = 'FÉRIAS' AND is_completed = false;
 //       END IF;
-//
+//   
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_my_employee_record()
 //   CREATE OR REPLACE FUNCTION public.sync_my_employee_record()
 //    RETURNS void
@@ -3374,17 +2811,17 @@ export const Constants = {
 //   BEGIN
 //     v_user_id := auth.uid();
 //     IF v_user_id IS NULL THEN RETURN; END IF;
-//
+//     
 //     SELECT email INTO v_email FROM auth.users WHERE id = v_user_id;
-//
+//     
 //     IF v_email IS NOT NULL AND v_email != '' THEN
-//       UPDATE public.employees
+//       UPDATE public.employees 
 //       SET user_id = v_user_id
 //       WHERE lower(email) = lower(v_email) AND (user_id IS NULL OR user_id != v_user_id);
 //     END IF;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_sac_to_agenda()
 //   CREATE OR REPLACE FUNCTION public.sync_sac_to_agenda()
 //    RETURNS trigger
@@ -3393,14 +2830,14 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //       IF NEW.status = 'RESOLVIDO' AND OLD.status != 'RESOLVIDO' THEN
-//           UPDATE public.agenda
-//           SET is_completed = true, completed_at = NOW()
+//           UPDATE public.agenda 
+//           SET is_completed = true, completed_at = NOW() 
 //           WHERE sac_record_id = NEW.id AND is_completed = false;
 //       END IF;
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION trg_audit_employee_sensitive_data()
 //   CREATE OR REPLACE FUNCTION public.trg_audit_employee_sensitive_data()
 //    RETURNS trigger
@@ -3414,7 +2851,7 @@ export const Constants = {
 //   BEGIN
 //       current_user_id := auth.uid();
 //       IF current_user_id IS NULL THEN RETURN NEW; END IF;
-//
+//   
 //       IF NEW.salary IS DISTINCT FROM OLD.salary THEN
 //           changes := changes || 'Salário, ';
 //       END IF;
@@ -3427,17 +2864,17 @@ export const Constants = {
 //       IF NEW.role IS DISTINCT FROM OLD.role THEN
 //           changes := changes || 'Cargo, ';
 //       END IF;
-//
+//       
 //       IF changes != '' THEN
 //           changes := rtrim(changes, ', ');
 //           action_desc := 'DADOS SENSÍVEIS ALTERADOS: Colaborador ' || NEW.name || ' - Campos alterados: ' || changes;
 //           INSERT INTO public.audit_logs (user_id, action) VALUES (current_user_id, action_desc);
 //       END IF;
-//
+//       
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION update_room_last_message_at()
 //   CREATE OR REPLACE FUNCTION public.update_room_last_message_at()
 //    RETURNS trigger
@@ -3451,16 +2888,13 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 
 // --- TRIGGERS ---
 // Table: agenda
 //   trg_sync_agenda_to_sac: CREATE TRIGGER trg_sync_agenda_to_sac AFTER UPDATE ON public.agenda FOR EACH ROW EXECUTE FUNCTION sync_agenda_to_sac()
 // Table: chat_messages
 //   on_chat_message_created: CREATE TRIGGER on_chat_message_created AFTER INSERT ON public.chat_messages FOR EACH ROW EXECUTE FUNCTION update_room_last_message_at()
-// Table: employees
-//   audit_employee_sensitive_data: CREATE TRIGGER audit_employee_sensitive_data AFTER UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION trg_audit_employee_sensitive_data()
-//   trg_sync_employee_dates_to_agenda: CREATE TRIGGER trg_sync_employee_dates_to_agenda AFTER INSERT OR DELETE OR UPDATE ON public.employees FOR EACH ROW EXECUTE FUNCTION sync_employee_dates_to_agenda()
 // Table: fiscal_boleto_entries
 //   trg_audit_fiscal_boleto_deletions: CREATE TRIGGER trg_audit_fiscal_boleto_deletions AFTER DELETE ON public.fiscal_boleto_entries FOR EACH ROW EXECUTE FUNCTION audit_fiscal_boleto_deletions()
 // Table: fiscal_sales_entries
@@ -3473,10 +2907,6 @@ export const Constants = {
 //   CREATE UNIQUE INDEX agenda_segmentation_consultorio_id_day_of_week_shift_key ON public.agenda_segmentation USING btree (consultorio_id, day_of_week, shift)
 // Table: chat_participants
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
-// Table: checklist_diario
-//   CREATE UNIQUE INDEX checklist_diario_unique_entry ON public.checklist_diario USING btree (employee_id, date, modelo_id)
-// Table: consultorio_weekly_schedules
-//   CREATE UNIQUE INDEX consultorio_weekly_schedules_consultorio_id_day_of_week_key ON public.consultorio_weekly_schedules USING btree (consultorio_id, day_of_week)
 // Table: departments
 //   CREATE UNIQUE INDEX departments_name_key ON public.departments USING btree (name)
 // Table: fiscal_limit_configs
@@ -3485,8 +2915,6 @@ export const Constants = {
 //   CREATE UNIQUE INDEX hub_announcement_reads_user_id_announcement_id_key ON public.hub_announcement_reads USING btree (user_id, announcement_id)
 // Table: monthly_readings
 //   CREATE UNIQUE INDEX monthly_readings_user_month_key ON public.monthly_readings USING btree (user_id, reference_month)
-// Table: performance_diaria
-//   CREATE UNIQUE INDEX performance_diaria_unique_entry ON public.performance_diaria USING btree (employee_id, date)
 // Table: role_permissions
 //   CREATE INDEX idx_role_permissions_action_id ON public.role_permissions USING btree (action_id)
 //   CREATE INDEX idx_role_permissions_role_id ON public.role_permissions USING btree (role_id)
@@ -3507,3 +2935,4 @@ export const Constants = {
 //   CREATE UNIQUE INDEX user_roles_user_role_key ON public.user_roles USING btree (user_id, role_id)
 // Table: work_schedules
 //   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)
+
