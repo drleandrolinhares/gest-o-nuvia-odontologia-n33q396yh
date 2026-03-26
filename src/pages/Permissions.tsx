@@ -36,6 +36,13 @@ import {
   Settings,
   Copy,
   ShieldAlert,
+  Megaphone,
+  Target,
+  HeadphonesIcon,
+  Handshake,
+  FileText,
+  Activity,
+  Grid,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
@@ -50,6 +57,13 @@ const MODULES = [
   { id: 'ACESSOS', name: 'Acessos', icon: Key },
   { id: 'LOGS', name: 'Logs', icon: ScrollText },
   { id: 'CONFIGURAÇÕES', name: 'Configurações', icon: Settings },
+  { id: 'COMUNICADOS', name: 'Comunicados', icon: Megaphone },
+  { id: 'PERFORMANCE', name: 'Performance', icon: Target },
+  { id: 'SAC', name: 'SAC', icon: HeadphonesIcon },
+  { id: 'NEGOCIAÇÃO', name: 'Negociação', icon: Handshake },
+  { id: 'GESTÃO FISCAL', name: 'Gestão Fiscal', icon: FileText },
+  { id: 'KPIS', name: 'KPIs', icon: Activity },
+  { id: 'SEGMENTAÇÃO', name: 'Segmentação', icon: Grid },
 ]
 
 export default function Permissions() {

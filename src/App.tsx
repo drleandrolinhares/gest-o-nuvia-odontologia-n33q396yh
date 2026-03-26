@@ -184,7 +184,7 @@ export default function App() {
                 <Route
                   path="precificacao"
                   element={
-                    <PermissionRoute adminOnly>
+                    <PermissionRoute module="PRECIFICAÇÃO">
                       <Pricing />
                     </PermissionRoute>
                   }
@@ -210,7 +210,7 @@ export default function App() {
                 <Route
                   path="permissoes"
                   element={
-                    <PermissionRoute adminOnly>
+                    <PermissionRoute module="CONFIGURAÇÕES" adminOnly>
                       <Permissions />
                     </PermissionRoute>
                   }
@@ -226,7 +226,7 @@ export default function App() {
                 <Route
                   path="auditoria-rotas"
                   element={
-                    <PermissionRoute adminOnly>
+                    <PermissionRoute module="LOGS" adminOnly>
                       <TestRoutes />
                     </PermissionRoute>
                   }
@@ -236,7 +236,7 @@ export default function App() {
                 <Route
                   path="debug"
                   element={
-                    <PermissionRoute adminOnly>
+                    <PermissionRoute module="LOGS" adminOnly>
                       <DebugAccess />
                     </PermissionRoute>
                   }
@@ -245,10 +245,38 @@ export default function App() {
                 <Route path="acesso-negado" element={<AccessDenied />} />
 
                 {/* Hub */}
-                <Route path="hub/mural" element={<Mural />} />
-                <Route path="hub/feedback" element={<Feedback />} />
-                <Route path="hub/performance" element={<Performance />} />
-                <Route path="hub/ranking" element={<Ranking />} />
+                <Route
+                  path="hub/mural"
+                  element={
+                    <PermissionRoute module="COMUNICADOS">
+                      <Mural />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="hub/feedback"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <Feedback />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="hub/performance"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <Performance />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="hub/ranking"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <Ranking />
+                    </PermissionRoute>
+                  }
+                />
 
                 <Route path="*" element={<NotFound />} />
               </Route>

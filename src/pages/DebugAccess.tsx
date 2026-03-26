@@ -28,10 +28,14 @@ export default function DebugAccess() {
     {
       title: 'NUVIA HUB',
       items: [
-        { name: 'MURAL DE AVISOS', href: '/hub/mural', free: true },
-        { name: 'PP & PDM', href: '/hub/feedback', free: true },
-        { name: 'DESENVOLVIMENTO E PERFORMANCE', href: '/hub/performance', free: true },
-        { name: 'RANKING PERFORMANCE', href: '/hub/ranking', free: true },
+        { name: 'MURAL DE AVISOS', href: '/hub/mural', module: 'COMUNICADOS' },
+        { name: 'PP & PDM', href: '/hub/feedback', module: 'PERFORMANCE' },
+        {
+          name: 'DESENVOLVIMENTO E PERFORMANCE',
+          href: '/hub/performance',
+          module: 'PERFORMANCE',
+        },
+        { name: 'RANKING PERFORMANCE', href: '/hub/ranking', module: 'PERFORMANCE' },
       ],
     },
     {
@@ -63,17 +67,22 @@ export default function DebugAccess() {
         { name: 'KPIS', href: '/kpis', module: 'KPIS' },
         { name: 'USUÁRIOS / RH', href: '/rh', module: 'RH' },
         { name: 'ESCALA DE TRABALHO', href: '/rh/escala', module: 'ESCALA DE TRABALHO' },
-        { name: 'PRECIFICAÇÃO', href: '/precificacao', adminOnly: true },
+        { name: 'PRECIFICAÇÃO', href: '/precificacao', module: 'PRECIFICAÇÃO' },
         { name: 'SEGMENTAÇÃO DA AGENDA', href: '/segmentacao-agenda', module: 'SEGMENTAÇÃO' },
       ],
     },
     {
       title: 'SISTEMA',
       items: [
-        { name: 'PERMISSÕES', href: '/permissoes', adminOnly: true },
+        { name: 'PERMISSÕES', href: '/permissoes', module: 'CONFIGURAÇÕES', adminOnly: true },
         { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
         { name: 'LOGS', href: '/logs', module: 'LOGS' },
-        { name: 'AUDITORIA DE ROTAS', href: '/auditoria-rotas', adminOnly: true },
+        {
+          name: 'AUDITORIA DE ROTAS',
+          href: '/auditoria-rotas',
+          module: 'LOGS',
+          adminOnly: true,
+        },
       ],
     },
   ]
@@ -250,18 +259,18 @@ export default function DebugAccess() {
             <TableBody>
               {allItems.map((item, idx) => {
                 let shouldAppear = false
-                if ('free' in item && item.free) shouldAppear = true
-                else if ('adminOnly' in item && item.adminOnly) shouldAppear = isGod
+                if ('adminOnly' in item && item.adminOnly) shouldAppear = isGod
                 else if ('module' in item && item.module) {
                   if (isGod) shouldAppear = true
                   else {
-                    shouldAppear = !!myPermissions.find((p) => p.module === item.module)?.can_view
+                    shouldAppear = !!myPermissions.find(
+                      (p) => p.module.toUpperCase() === item.module.toUpperCase(),
+                    )?.can_view
                   }
                 }
 
                 let isAppearing = false
-                if ('free' in item && item.free) isAppearing = true
-                else if ('adminOnly' in item && item.adminOnly) isAppearing = isAdmin || isMaster
+                if ('adminOnly' in item && item.adminOnly) isAppearing = isAdmin || isMaster
                 else if ('module' in item && item.module) {
                   isAppearing = isAdmin || isMaster || can(item.module, 'view')
                 }
@@ -277,11 +286,9 @@ export default function DebugAccess() {
                       {item.name}
                     </TableCell>
                     <TableCell className="text-center text-[10px] font-semibold">
-                      {'free' in item && item.free
-                        ? 'ACESSO LIVRE'
-                        : 'adminOnly' in item && item.adminOnly
-                          ? 'SOMENTE ADMIN/MASTER'
-                          : `MÓDULO: ${item.module} (VIEW)`}
+                      {'adminOnly' in item && item.adminOnly
+                        ? 'SOMENTE ADMIN/MASTER'
+                        : `MÓDULO: ${item.module} (VIEW)`}
                     </TableCell>
                     <TableCell className="text-center border-l bg-blue-50/10">
                       {shouldAppear ? (

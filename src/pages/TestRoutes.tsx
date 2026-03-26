@@ -14,15 +14,15 @@ const NEW_ROUTES = [
   { path: '/kpis', module: 'KPIS' },
   { path: '/rh', module: 'RH' },
   { path: '/rh/escala', module: 'ESCALA DE TRABALHO' },
-  { path: '/precificacao', adminOnly: true },
+  { path: '/precificacao', module: 'PRECIFICAÇÃO' },
   { path: '/segmentacao-agenda', module: 'SEGMENTAÇÃO' },
   { path: '/configuracoes', module: 'CONFIGURAÇÕES' },
-  { path: '/permissoes', adminOnly: true },
+  { path: '/permissoes', module: 'CONFIGURAÇÕES', adminOnly: true },
   { path: '/logs', module: 'LOGS' },
-  { path: '/hub/mural', free: true },
-  { path: '/hub/feedback', free: true },
-  { path: '/hub/performance', free: true },
-  { path: '/hub/ranking', free: true },
+  { path: '/hub/mural', module: 'COMUNICADOS' },
+  { path: '/hub/feedback', module: 'PERFORMANCE' },
+  { path: '/hub/performance', module: 'PERFORMANCE' },
+  { path: '/hub/ranking', module: 'PERFORMANCE' },
 ]
 
 export default function TestRoutes() {
@@ -32,13 +32,14 @@ export default function TestRoutes() {
 
   const evaluateAccess = (route: any, roleName: string) => {
     if (roleName === 'MASTER' || roleName === 'SÓCIO') return true
-    if (route.free) return true
     if (route.adminOnly) {
       return false
     }
     if (route.module) {
       const perm = rolePermissions.find(
-        (p) => p.role.toUpperCase() === roleName && p.module === route.module,
+        (p) =>
+          p.role.toUpperCase() === roleName &&
+          p.module.toUpperCase() === route.module.toUpperCase(),
       )
       return perm ? perm.can_view : false
     }
@@ -109,7 +110,7 @@ export default function TestRoutes() {
                       ? `MÓDULO: ${route.module}`
                       : route.adminOnly
                         ? 'ADMINISTRADOR'
-                        : 'ACESSO LIVRE'}
+                        : 'ACESSO RESTRITO'}
                   </span>
                 </div>
               </CardHeader>
