@@ -28,6 +28,7 @@ import Feedback from '@/pages/hub/Feedback'
 import Ranking from '@/pages/hub/Ranking'
 import Performance from '@/pages/hub/Performance'
 import TestRoutes from '@/pages/TestRoutes'
+import DebugAccess from '@/pages/DebugAccess'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
@@ -227,6 +228,9 @@ export default function App() {
                     </PermissionRoute>
                   }
                 />
+
+                {/* Debug / Diagnóstico de Acesso */}
+                <Route path="debug" element={<DebugAccess />} />
 
                 {/* Hub */}
                 <Route path="hub/mural" element={<Mural />} />
