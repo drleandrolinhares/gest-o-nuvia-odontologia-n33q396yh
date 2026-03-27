@@ -36,6 +36,7 @@ export const permissionsService = {
       cargo_id: cargoId,
       menu_id: p.menu_id,
       pode_ver: p.pode_ver,
+      pode_criar: p.pode_criar || false,
       pode_editar: p.pode_editar,
       pode_deletar: p.pode_deletar,
     }))
@@ -62,6 +63,7 @@ export const permissionsService = {
       user_id: userId,
       menu_id: p.menu_id,
       pode_ver: p.pode_ver,
+      pode_criar: p.pode_criar || false,
       pode_editar: p.pode_editar,
       pode_deletar: p.pode_deletar,
     }))
@@ -84,7 +86,6 @@ export const permissionsService = {
     const targetUserId = userId || session.user.id
 
     try {
-      // Tenta consumir a Edge Function primeiro para garantir os dados mais centralizados
       const { data, error } = await supabase.functions.invoke('get_user_permissions', {
         body: { userId: targetUserId },
       })
@@ -129,7 +130,10 @@ export const permissionsService = {
         menu_id: menu.id,
         nome: menu.nome,
         rota: menu.rota,
+        menu_pai: menu.menu_pai,
+        menu_filho: menu.menu_filho,
         pode_ver: userP ? userP.pode_ver : cargoP ? cargoP.pode_ver : false,
+        pode_criar: userP ? userP.pode_criar : cargoP ? cargoP.pode_criar : false,
         pode_editar: userP ? userP.pode_editar : cargoP ? cargoP.pode_editar : false,
         pode_deletar: userP ? userP.pode_deletar : cargoP ? cargoP.pode_deletar : false,
       }

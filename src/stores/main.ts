@@ -609,13 +609,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!perm) return false
 
     if (action === 'view' || action === 'pode_ver') return perm.pode_ver
-    if (
-      action === 'edit' ||
-      action === 'pode_editar' ||
-      action === 'create' ||
-      action === 'pode_criar'
-    )
-      return perm.pode_editar
+    if (action === 'create' || action === 'pode_criar') return perm.pode_criar
+    if (action === 'edit' || action === 'pode_editar') return perm.pode_editar
     if (action === 'delete' || action === 'pode_deletar') return perm.pode_deletar
 
     return false

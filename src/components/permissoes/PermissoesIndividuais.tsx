@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Save, UserCog, Loader2 } from 'lucide-react'
+import { Save, UserCog, Loader2, ChevronRight } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { permissionsService } from '@/services/permissionsService'
 import useAppStore from '@/stores/main'
@@ -28,7 +28,7 @@ export function PermissoesIndividuais() {
   const [menus, setMenus] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<string>('')
   const [perms, setPerms] = useState<
-    Record<string, { ver: boolean; editar: boolean; deletar: boolean }>
+    Record<string, { ver: boolean; criar: boolean; editar: boolean; deletar: boolean }>
   >({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -73,6 +73,7 @@ export function PermissoesIndividuais() {
 
         newPerms[m.id] = {
           ver: uP ? uP.pode_ver : cP ? cP.pode_ver : false,
+          criar: uP ? uP.pode_criar : cP ? cP.pode_criar : false,
           editar: uP ? uP.pode_editar : cP ? cP.pode_editar : false,
           deletar: uP ? uP.pode_deletar : cP ? cP.pode_deletar : false,
         }
@@ -84,14 +85,27 @@ export function PermissoesIndividuais() {
     }
   }
 
-  const handleToggle = (menuId: string, field: 'ver' | 'editar' | 'deletar') => {
-    setPerms((prev) => ({
-      ...prev,
-      [menuId]: {
-        ...prev[menuId],
-        [field]: !prev[menuId]?.[field],
-      },
-    }))
+  const handleToggle = (
+    menuId: string,
+    field: 'ver' | 'criar' | 'editar' | 'deletar',
+    isParent: boolean,
+    parentName: string,
+  ) => {
+    setPerms((prev) => {
+      const next = { ...prev }
+      const newValue = !next[menuId]?.[field]
+      next[menuId] = { ...next[menuId], [field]: newValue }
+
+      if (isParent) {
+        // Herança: se alterar o pai, propaga para os filhos do mesmo grupo
+        menus
+          .filter((m) => m.menu_pai === parentName && m.id !== menuId)
+          .forEach((child) => {
+            next[child.id] = { ...next[child.id], [field]: newValue }
+          })
+      }
+      return next
+    })
   }
 
   const handleSave = async () => {
@@ -101,6 +115,7 @@ export function PermissoesIndividuais() {
       const payload = menus.map((m) => ({
         menu_id: m.id,
         pode_ver: perms[m.id]?.ver || false,
+        pode_criar: perms[m.id]?.criar || false,
         pode_editar: perms[m.id]?.editar || false,
         pode_deletar: perms[m.id]?.deletar || false,
       }))
@@ -118,6 +133,24 @@ export function PermissoesIndividuais() {
     }
   }
 
+  const menusByPai = menus.reduce(
+    (acc, m) => {
+      if (!m.menu_pai) return acc // Ignora módulos sem pai na nova estrutura
+      if (!acc[m.menu_pai]) acc[m.menu_pai] = []
+      acc[m.menu_pai].push(m)
+      return acc
+    },
+    {} as Record<string, any[]>,
+  )
+
+  const parentOrder = ['OPERACIONAL', 'COMERCIAL', 'FINANCEIRO', 'ADMINISTRATIVO', 'SISTEMA']
+  const sortedPais = Object.keys(menusByPai).sort((a, b) => {
+    const ia = parentOrder.indexOf(a)
+    const ib = parentOrder.indexOf(b)
+    if (ia !== -1 && ib !== -1) return ia - ib
+    return a.localeCompare(b)
+  })
+
   return (
     <Card className="shadow-sm border-muted rounded-xl overflow-hidden">
       <CardHeader className="bg-white border-b pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -126,7 +159,7 @@ export function PermissoesIndividuais() {
             <UserCog className="h-5 w-5 text-blue-600" /> PERMISSÕES INDIVIDUAIS
           </CardTitle>
           <p className="text-xs text-muted-foreground font-bold tracking-wider">
-            SELECIONE UM USUÁRIO PARA SOBREPOR OU DEFINIR ACESSOS ESPECÍFICOS.
+            SELECIONE UM COLABORADOR PARA SOBREPOR OU DEFINIR ACESSOS ESPECÍFICOS.
           </p>
         </div>
         <div className="w-full md:w-80">
@@ -158,48 +191,88 @@ export function PermissoesIndividuais() {
                   <TableHead className="font-black text-slate-500 tracking-widest text-xs py-4 pl-6">
                     MENU / MÓDULO
                   </TableHead>
-                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[120px]">
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[110px]">
                     VISUALIZAR
                   </TableHead>
-                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[120px]">
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[110px]">
+                    CRIAR
+                  </TableHead>
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[110px]">
                     EDITAR
                   </TableHead>
-                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[120px]">
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[110px]">
                     DELETAR
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {menus.map((m) => {
-                  const p = perms[m.id] || { ver: false, editar: false, deletar: false }
-                  return (
-                    <TableRow key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-black text-slate-700 text-xs pl-6 uppercase">
-                        {m.nome}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Checkbox
-                          checked={p.ver}
-                          onCheckedChange={() => handleToggle(m.id, 'ver')}
-                          className="data-[state=checked]:bg-[#0A192F] data-[state=checked]:border-[#0A192F]"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Checkbox
-                          checked={p.editar}
-                          onCheckedChange={() => handleToggle(m.id, 'editar')}
-                          className="data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]"
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Checkbox
-                          checked={p.deletar}
-                          onCheckedChange={() => handleToggle(m.id, 'deletar')}
-                          className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  )
+                {sortedPais.map((pai) => {
+                  const items = menusByPai[pai].sort((a, b) => {
+                    if (!a.menu_filho) return -1
+                    if (!b.menu_filho) return 1
+                    return a.nome.localeCompare(b.nome)
+                  })
+
+                  return items.map((m) => {
+                    const isParent = !m.menu_filho
+                    const p = perms[m.id] || {
+                      ver: false,
+                      criar: false,
+                      editar: false,
+                      deletar: false,
+                    }
+                    return (
+                      <TableRow
+                        key={m.id}
+                        className={`hover:bg-slate-50/50 transition-colors ${isParent ? 'bg-slate-100/60 border-t-2 border-t-slate-200' : ''}`}
+                      >
+                        <TableCell className="font-black text-slate-700 text-[11px] tracking-wider uppercase">
+                          <div
+                            className={`flex items-center ${isParent ? 'pl-2' : 'pl-8 text-slate-500'}`}
+                          >
+                            {!isParent && (
+                              <ChevronRight className="w-3 h-3 mr-1 opacity-40 shrink-0" />
+                            )}
+                            {m.nome}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={p.ver}
+                            onCheckedChange={() => handleToggle(m.id, 'ver', isParent, m.menu_pai)}
+                            className="data-[state=checked]:bg-[#0A192F] data-[state=checked]:border-[#0A192F]"
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={p.criar}
+                            onCheckedChange={() =>
+                              handleToggle(m.id, 'criar', isParent, m.menu_pai)
+                            }
+                            className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={p.editar}
+                            onCheckedChange={() =>
+                              handleToggle(m.id, 'editar', isParent, m.menu_pai)
+                            }
+                            className="data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]"
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={p.deletar}
+                            onCheckedChange={() =>
+                              handleToggle(m.id, 'deletar', isParent, m.menu_pai)
+                            }
+                            className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
                 })}
               </TableBody>
             </Table>

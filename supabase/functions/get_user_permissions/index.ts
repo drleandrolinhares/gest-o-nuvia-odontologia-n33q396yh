@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -20,9 +20,12 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('Missing Authorization header')
-    
+
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       throw new Error('Unauthorized')
@@ -44,10 +47,10 @@ Deno.serve(async (req: Request) => {
 
     const cargoId = profile?.cargo_id
 
-    // Fetch menus
+    // Fetch menus with hierarchy columns
     const { data: menus, error: menusError } = await supabaseAdmin
       .from('menus_sistema')
-      .select('id, nome, rota')
+      .select('id, nome, rota, menu_pai, menu_filho')
 
     if (menusError) throw menusError
 
@@ -56,7 +59,7 @@ Deno.serve(async (req: Request) => {
     if (cargoId) {
       const { data, error } = await supabaseAdmin
         .from('permissoes_cargo')
-        .select('menu_id, pode_ver, pode_editar, pode_deletar')
+        .select('menu_id, pode_ver, pode_criar, pode_editar, pode_deletar')
         .eq('cargo_id', cargoId)
       if (error) throw error
       cargoPerms = data || []
@@ -65,7 +68,7 @@ Deno.serve(async (req: Request) => {
     // Fetch user permissions overrides
     const { data: userPerms, error: userPermsError } = await supabaseAdmin
       .from('permissoes_usuario')
-      .select('menu_id, pode_ver, pode_editar, pode_deletar')
+      .select('menu_id, pode_ver, pode_criar, pode_editar, pode_deletar')
       .eq('user_id', targetUserId)
 
     if (userPermsError) throw userPermsError
@@ -79,9 +82,12 @@ Deno.serve(async (req: Request) => {
         menu_id: menu.id,
         nome: menu.nome,
         rota: menu.rota,
-        pode_ver: userP ? userP.pode_ver : (cargoP ? cargoP.pode_ver : false),
-        pode_editar: userP ? userP.pode_editar : (cargoP ? cargoP.pode_editar : false),
-        pode_deletar: userP ? userP.pode_deletar : (cargoP ? cargoP.pode_deletar : false),
+        menu_pai: menu.menu_pai,
+        menu_filho: menu.menu_filho,
+        pode_ver: userP ? userP.pode_ver : cargoP ? cargoP.pode_ver : false,
+        pode_criar: userP ? userP.pode_criar : cargoP ? cargoP.pode_criar : false,
+        pode_editar: userP ? userP.pode_editar : cargoP ? cargoP.pode_editar : false,
+        pode_deletar: userP ? userP.pode_deletar : cargoP ? cargoP.pode_deletar : false,
       }
     })
 
