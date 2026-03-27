@@ -141,4 +141,31 @@ export const userService = {
     }
     return true
   },
+  resetPassword: async (email: string) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-reset-password`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ email }),
+      },
+    )
+    const text = await res.text()
+    let result
+    try {
+      result = JSON.parse(text)
+    } catch {
+      throw new Error('Erro ao solicitar redefinição de senha')
+    }
+    if (!res.ok || result.error) {
+      throw new Error(result.error || 'Erro ao solicitar redefinição de senha')
+    }
+    return true
+  },
 }

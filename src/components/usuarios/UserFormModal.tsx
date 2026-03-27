@@ -18,10 +18,11 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { userService } from '@/services/userService'
-import { Loader2, UserPlus, Pencil } from 'lucide-react'
+import { Loader2, UserPlus, Pencil, KeyRound } from 'lucide-react'
 
 export function UserFormModal({ open, onOpenChange, user, cargos, departamentos, onSuccess }: any) {
   const [loading, setLoading] = useState(false)
+  const [resettingPassword, setResettingPassword] = useState(false)
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
@@ -74,6 +75,26 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
       }
     }
   }, [open, user])
+
+  const handleResetPassword = async () => {
+    if (!formData.email) return
+    setResettingPassword(true)
+    try {
+      await userService.resetPassword(formData.email)
+      toast({
+        title: 'Sucesso',
+        description: 'Email de reset enviado com sucesso.',
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao enviar email de reset.',
+        variant: 'destructive',
+      })
+    } finally {
+      setResettingPassword(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -176,6 +197,23 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
                 className="font-bold lowercase"
                 disableUppercase
               />
+              {user && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetPassword}
+                  disabled={resettingPassword}
+                  className="w-full mt-2 text-xs font-bold tracking-widest"
+                >
+                  {resettingPassword ? (
+                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                  ) : (
+                    <KeyRound className="w-3 h-3 mr-2" />
+                  )}
+                  REDEFINIR SENHA
+                </Button>
+              )}
             </div>
             {!user && (
               <div className="space-y-2">
