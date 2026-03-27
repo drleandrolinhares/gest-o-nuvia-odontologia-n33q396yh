@@ -77,6 +77,17 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (formData.email && !emailRegex.test(formData.email.trim())) {
+      toast({
+        title: 'Erro de Validação',
+        description: 'Por favor, insira um e-mail válido.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -86,7 +97,11 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
         if (!formData.email || !formData.password || !formData.nome) {
           throw new Error('Nome, E-mail e Senha são obrigatórios para novos usuários.')
         }
-        profileId = await userService.createUser(formData.email, formData.password, formData.nome)
+        profileId = await userService.createUser(
+          formData.email.trim(),
+          formData.password,
+          formData.nome,
+        )
       }
 
       if (profileId) {
@@ -108,7 +123,7 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
         title: 'Sucesso',
         description: `Usuário ${user ? 'atualizado' : 'criado'} com sucesso.`,
       })
-      onSuccess()
+      if (onSuccess) onSuccess()
       onOpenChange(false)
     } catch (error: any) {
       toast({

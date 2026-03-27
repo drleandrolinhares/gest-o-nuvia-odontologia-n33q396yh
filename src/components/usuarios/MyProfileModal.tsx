@@ -27,7 +27,7 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
   })
 
   useEffect(() => {
-    if (open && profile && profile.email) {
+    if (open && profile?.email) {
       setFormData({
         nome: profile.nome || profile.user_metadata?.name || '',
         email: profile.email || '',
@@ -41,27 +41,47 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!profile || !profile.email) return
+    if (!profile?.email) return
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const newEmail = formData.email?.trim() || ''
+
+    if (newEmail && !emailRegex.test(newEmail)) {
+      toast({
+        title: 'Erro de Validação',
+        description: 'Por favor, insira um endereço de e-mail válido.',
+        variant: 'destructive',
+      })
+      return
+    }
 
     setLoading(true)
 
     try {
-      if (formData.email && formData.email !== profile.email) {
+      const currentEmail = profile.email?.trim() || ''
+
+      if (newEmail && newEmail !== currentEmail) {
         try {
-          await userService.updateMyEmail(formData.email)
+          await userService.updateMyEmail(newEmail)
         } catch (emailErr: any) {
+          console.error('Erro ao atualizar e-mail no Auth:', emailErr)
           if (emailErr.status === 429 || emailErr.message?.includes('Rate Limit')) {
             throw new Error(
-              'Limite de tentativas excedido pelo Supabase. Aguarde alguns instantes antes de alterar o e-mail.',
+              'Limite de tentativas excedido. Aguarde alguns instantes antes de alterar o e-mail.',
             )
           }
-          throw emailErr
+          if (emailErr.status === 400 || emailErr.message?.toLowerCase().includes('invalid')) {
+            throw new Error(
+              'O e-mail informado é considerado inválido pelo sistema. Verifique o formato e tente novamente.',
+            )
+          }
+          throw new Error(emailErr.message || 'Erro desconhecido ao atualizar e-mail de acesso.')
         }
       }
 
       await userService.updateProfile(profile.id, {
         nome: formData.nome,
-        email: formData.email,
+        email: newEmail || currentEmail,
         telefone: formData.telefone,
         pix_tipo: formData.pix_tipo,
         pix_numero: formData.pix_numero,
@@ -69,11 +89,11 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
       })
 
       toast({ title: 'Sucesso', description: 'Seu perfil foi atualizado com sucesso.' })
-      onSuccess()
+      if (onSuccess) onSuccess()
       onOpenChange(false)
     } catch (error: any) {
       toast({
-        title: 'Erro',
+        title: 'Erro ao Salvar',
         description: error.message || 'Ocorreu um erro ao atualizar o perfil.',
         variant: 'destructive',
       })
