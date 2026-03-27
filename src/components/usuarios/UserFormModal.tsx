@@ -43,18 +43,18 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
     if (open) {
       if (user) {
         setFormData({
-          nome: user.nome || '',
-          email: user.email || '',
+          nome: user?.nome || '',
+          email: user?.email || '',
           password: '',
-          cpf: user.cpf || '',
-          telefone: user.telefone || '',
-          data_nascimento: user.data_nascimento || '',
-          data_admissao: user.data_admissao || '',
-          cargo_id: user.cargo_id || 'none',
-          departamento_id: user.departamento_id || 'none',
-          pix_tipo: user.pix_tipo || '',
-          pix_numero: user.pix_numero || '',
-          pix_banco: user.pix_banco || '',
+          cpf: user?.cpf || '',
+          telefone: user?.telefone || '',
+          data_nascimento: user?.data_nascimento || '',
+          data_admissao: user?.data_admissao || '',
+          cargo_id: user?.cargo_id || 'none',
+          departamento_id: user?.departamento_id || 'none',
+          pix_tipo: user?.pix_tipo || '',
+          pix_numero: user?.pix_numero || '',
+          pix_banco: user?.pix_banco || '',
         })
       } else {
         setFormData({

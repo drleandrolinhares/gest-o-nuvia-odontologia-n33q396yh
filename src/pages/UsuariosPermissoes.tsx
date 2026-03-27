@@ -57,7 +57,10 @@ export default function UsuariosPermissoes() {
         userService.fetchDepartamentos(),
       ])
 
-      setProfiles(pData || [])
+      // Garante que não tenhamos perfis nulos no array para evitar erros de leitura (Cannot read property)
+      const validProfiles = (pData || []).filter((p) => p != null)
+
+      setProfiles(validProfiles)
       setCargos(cData || [])
       setDepartamentos(dData || [])
     } catch (error) {
@@ -79,8 +82,8 @@ export default function UsuariosPermissoes() {
   const filteredProfiles = useMemo(() => {
     return profiles.filter(
       (p) =>
-        p.nome?.toLowerCase().includes(search.toLowerCase()) ||
-        p.email?.toLowerCase().includes(search.toLowerCase()),
+        p?.nome?.toLowerCase().includes(search.toLowerCase()) ||
+        p?.email?.toLowerCase().includes(search.toLowerCase()),
     )
   }, [profiles, search])
 
@@ -101,10 +104,19 @@ export default function UsuariosPermissoes() {
     }
   }
 
-  const myProfile =
-    profiles.find((p) => p.id === user?.id) ||
-    profiles.find((p) => p.email === user?.email) ||
-    profiles[0]
+  const myProfile = useMemo(() => {
+    if (!profiles || profiles.length === 0) {
+      // Retorna fallback do Auth se os perfis ainda não carregaram, para o modal não quebrar
+      return user ? { id: user.id, email: user.email, nome: user.user_metadata?.name || '' } : null
+    }
+
+    return (
+      profiles.find((p) => p?.id === user?.id) ||
+      profiles.find((p) => p?.email === user?.email) ||
+      profiles[0] ||
+      null
+    )
+  }, [profiles, user])
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase pb-10">
@@ -122,6 +134,7 @@ export default function UsuariosPermissoes() {
             variant="outline"
             className="border-primary/50 text-primary hover:bg-primary/10 shadow-sm font-bold tracking-widest"
             onClick={() => setProfileOpen(true)}
+            disabled={!myProfile}
           >
             <UserCircle className="h-4 w-4 mr-2" /> MEU PERFIL
           </Button>
@@ -200,14 +213,16 @@ export default function UsuariosPermissoes() {
                   <TableCell className="py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black shadow-sm border border-primary/20 shrink-0">
-                        {p.nome?.charAt(0).toUpperCase() || p.email.charAt(0).toUpperCase()}
+                        {p?.nome?.charAt(0).toUpperCase() ||
+                          p?.email?.charAt(0).toUpperCase() ||
+                          'U'}
                       </div>
                       <div className="flex flex-col">
                         <span className="font-black text-sm text-slate-800 tracking-wide uppercase">
-                          {p.nome || 'SEM NOME'}
+                          {p?.nome || 'SEM NOME'}
                         </span>
                         <span className="text-[10px] font-bold text-slate-500 lowercase tracking-wider">
-                          {p.email}
+                          {p?.email || 'sem e-mail'}
                         </span>
                       </div>
                     </div>
@@ -218,24 +233,24 @@ export default function UsuariosPermissoes() {
                         variant="outline"
                         className="bg-slate-50 text-slate-700 border-slate-200 text-[10px] font-black tracking-widest"
                       >
-                        {p.cargos?.nome || 'SEM CARGO'}
+                        {p?.cargos?.nome || 'SEM CARGO'}
                       </Badge>
                       <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                        {p.departamentos?.nome || 'SEM DEPTO'}
+                        {p?.departamentos?.nome || 'SEM DEPTO'}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-4 align-middle">
                     <span className="text-xs font-bold text-slate-600">
-                      {p.data_admissao
+                      {p?.data_admissao
                         ? format(new Date(p.data_admissao), 'dd/MM/yyyy', { locale: ptBR })
                         : 'N/I'}
                     </span>
                   </TableCell>
                   <TableCell className="py-4 align-middle">
                     <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none font-black text-[10px] tracking-widest shadow-none">
-                      {p.status || 'ATIVO'}
+                      {p?.status || 'ATIVO'}
                     </Badge>
                   </TableCell>
                   {isAdmin && (
@@ -257,7 +272,7 @@ export default function UsuariosPermissoes() {
                           size="icon"
                           className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50"
                           onClick={() => setDeleteId(p.id)}
-                          disabled={p.id === user?.id || p.email === 'master@nuvia.com.br'}
+                          disabled={p?.id === user?.id || p?.email === 'master@nuvia.com.br'}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -280,12 +295,14 @@ export default function UsuariosPermissoes() {
         onSuccess={fetchData}
       />
 
-      <MyProfileModal
-        open={profileOpen}
-        onOpenChange={setProfileOpen}
-        profile={myProfile}
-        onSuccess={fetchData}
-      />
+      {myProfile && (
+        <MyProfileModal
+          open={profileOpen}
+          onOpenChange={setProfileOpen}
+          profile={myProfile}
+          onSuccess={fetchData}
+        />
+      )}
 
       <AlertDialog open={!!deleteId} onOpenChange={(val) => !val && setDeleteId(null)}>
         <AlertDialogContent className="max-w-sm uppercase">

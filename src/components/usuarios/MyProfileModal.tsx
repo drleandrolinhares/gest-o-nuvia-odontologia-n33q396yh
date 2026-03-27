@@ -27,24 +27,27 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
   })
 
   useEffect(() => {
+    // Adicionado optional chaining (profile?.) para evitar quebras se o profile não estiver totalmente carregado
     if (open && profile) {
       setFormData({
-        nome: profile.nome || '',
-        email: profile.email || '',
-        telefone: profile.telefone || '',
-        pix_tipo: profile.pix_tipo || '',
-        pix_numero: profile.pix_numero || '',
-        pix_banco: profile.pix_banco || '',
+        nome: profile?.nome || profile?.user_metadata?.name || '',
+        email: profile?.email || '',
+        telefone: profile?.telefone || '',
+        pix_tipo: profile?.pix_tipo || '',
+        pix_numero: profile?.pix_numero || '',
+        pix_banco: profile?.pix_banco || '',
       })
     }
   }, [open, profile])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!profile) return
+
     setLoading(true)
 
     try {
-      if (formData.email !== profile.email) {
+      if (formData.email !== profile?.email) {
         await userService.updateMyEmail(formData.email)
       }
 
