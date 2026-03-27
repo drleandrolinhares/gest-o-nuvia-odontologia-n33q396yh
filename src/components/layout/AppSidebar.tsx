@@ -9,6 +9,7 @@ import {
   Briefcase,
   DollarSign,
   Bug,
+  Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -41,7 +42,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const { unreadCounts } = useChatStore()
   const { sacRecords } = useAppStore()
 
-  // Removed currentUserId dependency for SAC counts since user tables are dropped
   const pendingSacsCount = useMemo(
     () => sacRecords.filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
     [sacRecords],
@@ -109,6 +109,12 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         icon: Settings,
         items: [
           { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
+          {
+            name: 'USUÁRIOS E PERMISSÕES',
+            href: '/usuarios',
+            module: 'USUÁRIOS E PERMISSÕES',
+            icon: Users,
+          },
           { name: 'LOGS', href: '/logs', module: 'LOGS' },
           { name: 'DEBUG', href: '/debug', module: 'LOGS', adminOnly: true, icon: Bug },
         ],
