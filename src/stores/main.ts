@@ -77,6 +77,7 @@ interface AppStore {
   isAdmin: boolean
   isMaster: boolean
   userPermissions: any[]
+  fetchPermissions: () => Promise<void>
   can: (module: string, action?: string) => boolean
   packageTypes: string[]
   specialties: string[]
@@ -483,7 +484,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     agendaSegmentation,
   ])
 
+  const fetchPermissions = useCallback(async () => {
+    if (!user) return
+    try {
+      const perms = await permissionsService.getUserPermissions(user.id)
+      setUserPermissions(perms)
+    } catch (err) {
+      console.warn('Erro ao atualizar permissoes', err)
+    }
+  }, [user])
+
   useEffect(() => {
+    let permsChannel: any = null
+
     if (user) {
       setIsAuthenticated(true)
       setIsDataLoading(true)
@@ -499,10 +512,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       Promise.all([
-        permissionsService
-          .getUserPermissions(user.id)
-          .then((r) => setUserPermissions(r))
-          .catch(() => setUserPermissions([])),
+        fetchPermissions(),
         inventoryService.fetchAll().then((r) => setInventory(handleResponse(r, mInv))),
         inventoryService.fetchOptions().then((r) => setInventoryOptions(handleResponse(r, mOpt))),
         inventoryService.fetchPendingOutflows().then((r) => {
@@ -545,6 +555,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .finally(() => {
           setIsDataLoading(false)
         })
+
+      permsChannel = supabase
+        .channel('permissions_updates')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'permissoes_cargo' }, () =>
+          fetchPermissions(),
+        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'permissoes_usuario' }, () =>
+          fetchPermissions(),
+        )
+        .subscribe()
     } else {
       setIsAuthenticated(false)
       setUserPermissions([])
@@ -563,7 +583,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setFetchError(null)
       setIsDataLoading(false)
     }
-  }, [user])
+
+    return () => {
+      if (permsChannel) {
+        supabase.removeChannel(permsChannel)
+      }
+    }
+  }, [user, fetchPermissions])
 
   const isAdmin = useMemo(() => !!user, [user])
   const isMaster = useMemo(() => !!user, [user])
@@ -1729,6 +1755,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isAdmin,
       isMaster,
       userPermissions,
+      fetchPermissions,
       can,
       packageTypes,
       specialties,
@@ -1829,6 +1856,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       isAdmin,
       isMaster,
       userPermissions,
+      fetchPermissions,
       can,
       packageTypes,
       specialties,

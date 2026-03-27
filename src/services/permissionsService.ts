@@ -16,7 +16,7 @@ export const permissionsService = {
   fetchUsers: async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, nome, email, cargos(nome)')
+      .select('id, nome, email, cargo_id, cargos(nome)')
       .order('nome')
     if (error) throw error
     return data || []
@@ -32,9 +32,6 @@ export const permissionsService = {
   },
 
   savePermissoesCargo: async (cargoId: string, permissoes: any[]) => {
-    // Abordagem mais segura: limpa as permissões antigas e insere as novas para evitar conflitos de restrição
-    await supabase.from('permissoes_cargo').delete().eq('cargo_id', cargoId)
-
     const payloads = permissoes.map((p) => ({
       cargo_id: cargoId,
       menu_id: p.menu_id,
@@ -44,7 +41,9 @@ export const permissionsService = {
     }))
 
     if (payloads.length > 0) {
-      const { error } = await supabase.from('permissoes_cargo').insert(payloads)
+      const { error } = await supabase.from('permissoes_cargo').upsert(payloads, {
+        onConflict: 'cargo_id,menu_id',
+      })
       if (error) throw error
     }
   },
@@ -59,9 +58,6 @@ export const permissionsService = {
   },
 
   savePermissoesUsuario: async (userId: string, permissoes: any[]) => {
-    // Abordagem mais segura: limpa as permissões antigas e insere as novas para evitar conflitos de restrição
-    await supabase.from('permissoes_usuario').delete().eq('user_id', userId)
-
     const payloads = permissoes.map((p) => ({
       user_id: userId,
       menu_id: p.menu_id,
@@ -71,7 +67,9 @@ export const permissionsService = {
     }))
 
     if (payloads.length > 0) {
-      const { error } = await supabase.from('permissoes_usuario').insert(payloads)
+      const { error } = await supabase.from('permissoes_usuario').upsert(payloads, {
+        onConflict: 'user_id,menu_id',
+      })
       if (error) throw error
     }
   },

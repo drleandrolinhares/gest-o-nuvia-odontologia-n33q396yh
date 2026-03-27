@@ -20,8 +20,10 @@ import { Button } from '@/components/ui/button'
 import { Save, UserCog, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { permissionsService } from '@/services/permissionsService'
+import useAppStore from '@/stores/main'
 
 export function PermissoesIndividuais() {
+  const { fetchPermissions } = useAppStore()
   const [users, setUsers] = useState<any[]>([])
   const [menus, setMenus] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<string>('')
@@ -55,20 +57,24 @@ export function PermissoesIndividuais() {
     if (!userId) return
 
     try {
-      const userPerms = await permissionsService.fetchPermissoesUsuario(userId)
+      const userObj = users.find((u) => u.id === userId)
+      const cargoId = userObj?.cargo_id
+
+      const [userPerms, cargoPerms] = await Promise.all([
+        permissionsService.fetchPermissoesUsuario(userId),
+        cargoId ? permissionsService.fetchPermissoesCargo(cargoId) : Promise.resolve([]),
+      ])
+
       const newPerms: any = {}
 
       menus.forEach((m) => {
-        newPerms[m.id] = { ver: false, editar: false, deletar: false }
-      })
+        const uP = userPerms.find((p: any) => p.menu_id === m.id)
+        const cP = cargoPerms.find((p: any) => p.menu_id === m.id)
 
-      userPerms.forEach((p: any) => {
-        if (newPerms[p.menu_id]) {
-          newPerms[p.menu_id] = {
-            ver: p.pode_ver,
-            editar: p.pode_editar,
-            deletar: p.pode_deletar,
-          }
+        newPerms[m.id] = {
+          ver: uP ? uP.pode_ver : cP ? cP.pode_ver : false,
+          editar: uP ? uP.pode_editar : cP ? cP.pode_editar : false,
+          deletar: uP ? uP.pode_deletar : cP ? cP.pode_deletar : false,
         }
       })
 
@@ -99,6 +105,7 @@ export function PermissoesIndividuais() {
         pode_deletar: perms[m.id]?.deletar || false,
       }))
       await permissionsService.savePermissoesUsuario(selectedUser, payload)
+      await fetchPermissions() // ATUALIZA O SIDEBAR INSTANTANEAMENTE
       toast({ title: 'Sucesso', description: 'Permissões individuais salvas com sucesso.' })
     } catch (error: any) {
       toast({

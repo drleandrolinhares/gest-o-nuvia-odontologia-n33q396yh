@@ -38,7 +38,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     }
   })
 
-  const { sacRecords, can } = useAppStore()
+  // Destructure can to force reactivity when permissions change
+  const { sacRecords, can, userPermissions } = useAppStore()
 
   const pendingSacsCount = useMemo(
     () => sacRecords.filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
@@ -120,8 +121,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         })
         return { ...section, items: visibleItems }
       })
-      .filter((section) => section.items.length > 0 && can(section.title, 'view'))
-  }, [pendingSacsCount, can, user?.email])
+      .filter((section) => section.items.length > 0)
+  }, [pendingSacsCount, can, user?.email, userPermissions])
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => {
@@ -167,10 +168,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
 
       <div className="flex-1 overflow-y-auto py-4 px-3 overflow-x-hidden custom-scrollbar">
         {navigationSections.map((section) => {
-          const isActiveSection = section.items.some((item) =>
-            location.pathname.startsWith(item.href),
-          )
-
           return (
             <div key={section.title} className="mb-2">
               <Collapsible

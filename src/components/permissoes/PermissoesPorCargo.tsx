@@ -20,8 +20,10 @@ import { Button } from '@/components/ui/button'
 import { Save, ShieldAlert, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { permissionsService } from '@/services/permissionsService'
+import useAppStore from '@/stores/main'
 
 export function PermissoesPorCargo() {
+  const { fetchPermissions } = useAppStore()
   const [cargos, setCargos] = useState<any[]>([])
   const [menus, setMenus] = useState<any[]>([])
   const [selectedCargo, setSelectedCargo] = useState<string>('')
@@ -99,6 +101,7 @@ export function PermissoesPorCargo() {
         pode_deletar: perms[m.id]?.deletar || false,
       }))
       await permissionsService.savePermissoesCargo(selectedCargo, payload)
+      await fetchPermissions() // ATUALIZA O SIDEBAR INSTANTANEAMENTE
       toast({ title: 'Sucesso', description: 'Permissões do cargo salvas com sucesso.' })
     } catch (error: any) {
       toast({
