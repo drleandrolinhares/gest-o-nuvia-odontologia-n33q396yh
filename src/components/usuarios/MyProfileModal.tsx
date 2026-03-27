@@ -59,36 +59,48 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
 
     try {
       const currentEmail = profile.email?.trim() || ''
+      let emailError = null
+      let finalEmail = currentEmail
 
       if (newEmail && newEmail !== currentEmail) {
         try {
           await userService.updateMyEmail(newEmail)
+          finalEmail = newEmail
         } catch (emailErr: any) {
           console.error('Erro ao atualizar e-mail no Auth:', emailErr)
           if (emailErr.status === 429 || emailErr.message?.includes('Rate Limit')) {
-            throw new Error(
-              'Limite de tentativas excedido. Aguarde alguns instantes antes de alterar o e-mail.',
-            )
+            emailError =
+              'Limite de tentativas excedido. Aguarde alguns instantes antes de alterar o e-mail novamente.'
+          } else if (
+            emailErr.status === 400 ||
+            emailErr.message?.toLowerCase().includes('invalid')
+          ) {
+            emailError = 'O e-mail informado é considerado inválido pelo sistema.'
+          } else {
+            emailError = emailErr.message || 'Erro desconhecido ao atualizar e-mail de acesso.'
           }
-          if (emailErr.status === 400 || emailErr.message?.toLowerCase().includes('invalid')) {
-            throw new Error(
-              'O e-mail informado é considerado inválido pelo sistema. Verifique o formato e tente novamente.',
-            )
-          }
-          throw new Error(emailErr.message || 'Erro desconhecido ao atualizar e-mail de acesso.')
         }
       }
 
       await userService.updateProfile(profile.id, {
         nome: formData.nome,
-        email: newEmail || currentEmail,
+        email: finalEmail,
         telefone: formData.telefone,
         pix_tipo: formData.pix_tipo,
         pix_numero: formData.pix_numero,
         pix_banco: formData.pix_banco,
       })
 
-      toast({ title: 'Sucesso', description: 'Seu perfil foi atualizado com sucesso.' })
+      if (emailError) {
+        toast({
+          title: 'Perfil salvo parcialmente',
+          description: `Seus dados foram atualizados, mas o e-mail não pôde ser alterado: ${emailError}`,
+          variant: 'destructive',
+        })
+      } else {
+        toast({ title: 'Sucesso', description: 'Seu perfil foi atualizado com sucesso.' })
+      }
+
       if (onSuccess) onSuccess()
       onOpenChange(false)
     } catch (error: any) {

@@ -9,6 +9,16 @@ export const userService = {
     }
     return data || []
   },
+  createCargo: async (nome: string) => {
+    const { data, error } = await supabase.from('cargos').insert([{ nome }]).select().single()
+    if (error) throw error
+    return data
+  },
+  deleteCargo: async (id: string) => {
+    const { error } = await supabase.from('cargos').delete().eq('id', id)
+    if (error) throw error
+    return true
+  },
   fetchDepartamentos: async () => {
     const { data, error } = await supabase.from('departamentos').select('*').order('nome')
     if (error) {
@@ -16,6 +26,20 @@ export const userService = {
       return []
     }
     return data || []
+  },
+  createDepartamento: async (nome: string) => {
+    const { data, error } = await supabase
+      .from('departamentos')
+      .insert([{ nome }])
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  },
+  deleteDepartamento: async (id: string) => {
+    const { error } = await supabase.from('departamentos').delete().eq('id', id)
+    if (error) throw error
+    return true
   },
   fetchProfiles: async () => {
     const { data, error } = await supabase

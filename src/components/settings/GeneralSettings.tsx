@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Trash2, Plus, Package, Stethoscope, CalendarDays, Loader2, Palette } from 'lucide-react'
+import {
+  Trash2,
+  Plus,
+  Package,
+  Stethoscope,
+  CalendarDays,
+  Loader2,
+  Palette,
+  Briefcase,
+  Building2,
+} from 'lucide-react'
 import useAppStore from '@/stores/main'
+import { userService } from '@/services/userService'
 
 export function GeneralSettings() {
   const {
@@ -30,6 +41,32 @@ export function GeneralSettings() {
   const [newAgendaSpec, setNewAgendaSpec] = useState('')
   const [newAgendaSpecColor, setNewAgendaSpecColor] = useState('#D4AF37')
   const [isAgendaSpecLoading, setIsAgendaSpecLoading] = useState(false)
+
+  // New state for Cargos & Departamentos
+  const [cargos, setCargos] = useState<any[]>([])
+  const [departamentos, setDepartamentos] = useState<any[]>([])
+  const [newCargo, setNewCargo] = useState('')
+  const [newDept, setNewDept] = useState('')
+  const [isCargoLoading, setIsCargoLoading] = useState(false)
+  const [isDeptLoading, setIsDeptLoading] = useState(false)
+  const [removingCargo, setRemovingCargo] = useState<string | null>(null)
+  const [removingDept, setRemovingDept] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [c, d] = await Promise.all([
+          userService.fetchCargos(),
+          userService.fetchDepartamentos(),
+        ])
+        setCargos(c)
+        setDepartamentos(d)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadData()
+  }, [])
 
   const handleAddPkg = (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +108,61 @@ export function GeneralSettings() {
       setIsAgendaSpecLoading(false)
       setNewAgendaSpec('')
       setNewAgendaSpecColor('#D4AF37')
+    }
+  }
+
+  // Handlers for Cargos & Departamentos
+  const handleAddCargo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newCargo.trim()) return
+    setIsCargoLoading(true)
+    try {
+      const data = await userService.createCargo(newCargo.trim().toUpperCase())
+      setCargos((prev) => [...prev, data].sort((a, b) => a.nome.localeCompare(b.nome)))
+      setNewCargo('')
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsCargoLoading(false)
+    }
+  }
+
+  const handleRemoveCargo = async (id: string) => {
+    setRemovingCargo(id)
+    try {
+      await userService.deleteCargo(id)
+      setCargos((prev) => prev.filter((c) => c.id !== id))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setRemovingCargo(null)
+    }
+  }
+
+  const handleAddDept = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newDept.trim()) return
+    setIsDeptLoading(true)
+    try {
+      const data = await userService.createDepartamento(newDept.trim().toUpperCase())
+      setDepartamentos((prev) => [...prev, data].sort((a, b) => a.nome.localeCompare(b.nome)))
+      setNewDept('')
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsDeptLoading(false)
+    }
+  }
+
+  const handleRemoveDept = async (id: string) => {
+    setRemovingDept(id)
+    try {
+      await userService.deleteDepartamento(id)
+      setDepartamentos((prev) => prev.filter((d) => d.id !== id))
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setRemovingDept(null)
     }
   }
 
@@ -271,6 +363,118 @@ export function GeneralSettings() {
                   onClick={() => removeAgendaType(type)}
                 >
                   <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
+            <Briefcase className="h-5 w-5 text-amber-600" /> CARGOS (RH)
+          </CardTitle>
+          <CardDescription>GERENCIE OS CARGOS DA CLÍNICA.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleAddCargo} className="flex gap-2">
+            <Input
+              placeholder="NOVO CARGO..."
+              value={newCargo}
+              onChange={(e) => setNewCargo(e.target.value)}
+              disabled={isCargoLoading}
+            />
+            <Button
+              type="submit"
+              disabled={!newCargo.trim() || isCargoLoading}
+              className="w-24 bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {isCargoLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" /> ADD
+                </>
+              )}
+            </Button>
+          </form>
+          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+            {cargos.map((cargo) => (
+              <div
+                key={cargo.id}
+                className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+              >
+                <span className="font-medium text-sm text-nuvia-navy uppercase">{cargo.nome}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={removingCargo === cargo.id}
+                  className="text-muted-foreground hover:text-destructive h-8 w-8"
+                  onClick={() => handleRemoveCargo(cargo.id)}
+                >
+                  {removingCargo === cargo.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
+            <Building2 className="h-5 w-5 text-blue-600" /> DEPARTAMENTOS
+          </CardTitle>
+          <CardDescription>GERENCIE OS DEPARTAMENTOS / SETORES.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleAddDept} className="flex gap-2">
+            <Input
+              placeholder="NOVO DEPARTAMENTO..."
+              value={newDept}
+              onChange={(e) => setNewDept(e.target.value)}
+              disabled={isDeptLoading}
+            />
+            <Button
+              type="submit"
+              disabled={!newDept.trim() || isDeptLoading}
+              className="w-24 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isDeptLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" /> ADD
+                </>
+              )}
+            </Button>
+          </form>
+          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+            {departamentos.map((dept) => (
+              <div
+                key={dept.id}
+                className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+              >
+                <span className="font-medium text-sm text-nuvia-navy uppercase">{dept.nome}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={removingDept === dept.id}
+                  className="text-muted-foreground hover:text-destructive h-8 w-8"
+                  onClick={() => handleRemoveDept(dept.id)}
+                >
+                  {removingDept === dept.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             ))}
