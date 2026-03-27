@@ -47,33 +47,31 @@ CREATE TABLE IF NOT EXISTS public.permissoes_usuario (
   CONSTRAINT permissoes_usuario_user_menu_key UNIQUE(user_id, menu_id)
 );
 
--- 6. Alter auth.users
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS cargo_id UUID REFERENCES public.cargos(id) ON DELETE SET NULL;
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS departamento_id UUID REFERENCES public.departamentos(id) ON DELETE SET NULL;
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS cpf TEXT;
-
--- Adiciona constraint UNIQUE ao CPF caso não exista
-DO $$ 
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'auth_users_cpf_key') THEN
-    ALTER TABLE auth.users ADD CONSTRAINT auth_users_cpf_key UNIQUE (cpf);
-  END IF;
-END $$;
-
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS telefone TEXT;
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS data_nascimento DATE;
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS pix_tipo TEXT;
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS pix_numero TEXT;
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS pix_banco TEXT;
-ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS data_admissao DATE;
+-- 6. Create profiles instead of altering auth.users
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  nome TEXT,
+  cargo_id UUID REFERENCES public.cargos(id) ON DELETE SET NULL,
+  departamento_id UUID REFERENCES public.departamentos(id) ON DELETE SET NULL,
+  cpf TEXT UNIQUE,
+  telefone TEXT,
+  data_nascimento DATE,
+  pix_tipo TEXT,
+  pix_numero TEXT,
+  pix_banco TEXT,
+  data_admissao DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_permissoes_cargo_cargo_id ON public.permissoes_cargo(cargo_id);
 CREATE INDEX IF NOT EXISTS idx_permissoes_cargo_menu_id ON public.permissoes_cargo(menu_id);
 CREATE INDEX IF NOT EXISTS idx_permissoes_usuario_user_id ON public.permissoes_usuario(user_id);
 CREATE INDEX IF NOT EXISTS idx_permissoes_usuario_menu_id ON public.permissoes_usuario(menu_id);
-CREATE INDEX IF NOT EXISTS idx_auth_users_cargo_id ON auth.users(cargo_id);
-CREATE INDEX IF NOT EXISTS idx_auth_users_departamento_id ON auth.users(departamento_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_cargo_id ON public.profiles(cargo_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_departamento_id ON public.profiles(departamento_id);
 
 -- Enable RLS
 ALTER TABLE public.cargos ENABLE ROW LEVEL SECURITY;
@@ -81,6 +79,7 @@ ALTER TABLE public.departamentos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.menus_sistema ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.permissoes_cargo ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.permissoes_usuario ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Basic RLS Policies
 DROP POLICY IF EXISTS "Allow all authenticated users on cargos" ON public.cargos;
@@ -97,3 +96,23 @@ CREATE POLICY "Allow all authenticated users on permissoes_cargo" ON public.perm
 
 DROP POLICY IF EXISTS "Allow all authenticated users on permissoes_usuario" ON public.permissoes_usuario;
 CREATE POLICY "Allow all authenticated users on permissoes_usuario" ON public.permissoes_usuario FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all authenticated users on profiles" ON public.profiles;
+CREATE POLICY "Allow all authenticated users on profiles" ON public.profiles FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Create profile trigger
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email)
+  VALUES (NEW.id, NEW.email)
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
