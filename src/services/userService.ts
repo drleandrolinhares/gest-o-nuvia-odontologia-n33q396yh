@@ -81,7 +81,7 @@ export const userService = {
     }
     return true
   },
-  createUser: async (email: string, password: string, name: string) => {
+  createUser: async (email: string, password: string, name: string, cargo_id?: string) => {
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -91,7 +91,7 @@ export const userService = {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({ email, password, name, cargo_id }),
     })
     const text = await res.text()
     let result

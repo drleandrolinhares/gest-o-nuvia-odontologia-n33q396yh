@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -20,19 +20,22 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('Missing Authorization header')
-    
+
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       throw new Error('Unauthorized')
     }
 
-    let targetUserId = user.id;
+    let targetUserId = user.id
     try {
-      const body = await req.json();
+      const body = await req.json()
       if (body && body.userId) {
-        targetUserId = body.userId;
+        targetUserId = body.userId
       }
     } catch (e) {
       // Ignorar caso o body esteja vazio
@@ -79,28 +82,34 @@ Deno.serve(async (req: Request) => {
 
     // Combinar regras de permissão garantindo o formato correto de visualização
     const permissions = (menus || []).map((menu: any) => {
-      const parentMenu = menu.menu_filho ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho) : null;
+      const parentMenu = menu.menu_filho
+        ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho)
+        : null
 
-      const cargoP = (cargoPerms || []).find((p: any) => p.menu_id === menu.id);
-      const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id);
+      const cargoP = (cargoPerms || []).find((p: any) => p.menu_id === menu.id)
+      const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
 
-      const parentCargoP = parentMenu ? (cargoPerms || []).find((p: any) => p.menu_id === parentMenu.id) : null;
-      const parentUserP = parentMenu ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id) : null;
+      const parentCargoP = parentMenu
+        ? (cargoPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+        : null
+      const parentUserP = parentMenu
+        ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+        : null
 
       const resolvePerm = (field: string) => {
         // 1. Prioridade: Sobrescrita de usuário (Filho)
-        if (userP && userP[field] !== undefined) return userP[field];
+        if (userP && userP[field] !== undefined) return userP[field]
         // 2. Prioridade: Sobrescrita de usuário (Pai) - herda true
-        if (parentUserP && parentUserP[field] === true) return true;
+        if (parentUserP && parentUserP[field] === true) return true
         // 3. Prioridade: Permissão do Cargo (Filho)
-        if (cargoP && cargoP[field] !== undefined) return cargoP[field];
+        if (cargoP && cargoP[field] !== undefined) return cargoP[field]
         // 4. Prioridade: Permissão do Cargo (Pai) - herda true
-        if (parentCargoP && parentCargoP[field] === true) return true;
-        
-        return false;
+        if (parentCargoP && parentCargoP[field] === true) return true
+
+        return false
       }
 
-      const podeVer = resolvePerm('pode_ver');
+      const podeVer = resolvePerm('pode_ver')
 
       return {
         menu_id: menu.id,

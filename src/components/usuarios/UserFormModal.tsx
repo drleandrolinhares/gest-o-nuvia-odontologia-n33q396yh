@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { userService } from '@/services/userService'
+import { permissionsService } from '@/services/permissionsService'
 import { Loader2, UserPlus, Pencil } from 'lucide-react'
 
 export function UserFormModal({ open, onOpenChange, user, cargos, departamentos, onSuccess }: any) {
@@ -126,7 +127,12 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
         if (formData.password.length < 8) {
           throw new Error('A senha deve ter pelo menos 8 caracteres.')
         }
-        profileId = await userService.createUser(finalEmail, formData.password, formData.nome)
+        profileId = await userService.createUser(
+          finalEmail,
+          formData.password,
+          formData.nome,
+          formData.cargo_id !== 'none' ? formData.cargo_id : undefined,
+        )
       } else {
         if (finalEmail !== user.email) {
           await userService.updateUserAuth(user.id, finalEmail)
@@ -150,6 +156,17 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
           pix_numero: formData.pix_numero || null,
           pix_banco: formData.pix_banco || null,
         })
+
+        if (!user && formData.cargo_id !== 'none') {
+          try {
+            const cargoPerms = await permissionsService.fetchPermissoesCargo(formData.cargo_id)
+            if (cargoPerms && cargoPerms.length > 0) {
+              await permissionsService.savePermissoesUsuario(profileId, cargoPerms)
+            }
+          } catch (err) {
+            console.error('Erro ao copiar permissões do cargo', err)
+          }
+        }
       }
 
       toast({
