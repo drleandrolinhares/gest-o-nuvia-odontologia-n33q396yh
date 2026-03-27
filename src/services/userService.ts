@@ -141,7 +141,7 @@ export const userService = {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({ userId, password }),
+        body: JSON.stringify({ user_id: userId, nova_senha: password }),
       },
     )
     const text = await res.text()

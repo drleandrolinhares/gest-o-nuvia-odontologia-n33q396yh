@@ -103,10 +103,10 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
         })
         return
       }
-      if (formData.newPassword.length < 6) {
+      if (formData.newPassword.length < 8) {
         toast({
           title: 'Erro de Validação',
-          description: 'A senha deve ter pelo menos 6 caracteres.',
+          description: 'A senha deve ter pelo menos 8 caracteres.',
           variant: 'destructive',
         })
         return
@@ -122,6 +122,9 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
       if (!user) {
         if (!finalEmail || !formData.password || !formData.nome) {
           throw new Error('Nome, E-mail e Senha são obrigatórios para novos usuários.')
+        }
+        if (formData.password.length < 8) {
+          throw new Error('A senha deve ter pelo menos 8 caracteres.')
         }
         profileId = await userService.createUser(finalEmail, formData.password, formData.nome)
       } else {

@@ -34,14 +34,22 @@ Deno.serve(async (req: Request) => {
       throw new Error('Unauthorized')
     }
 
-    const { userId, password } = await req.json()
-    if (!userId || !password) {
-      throw new Error('Missing userId or password')
+    const body = await req.json()
+    const targetUserId = body.user_id || body.userId
+    const newPassword = body.nova_senha || body.password
+
+    if (!targetUserId || !newPassword) {
+      throw new Error('Missing user_id or nova_senha')
+    }
+
+    if (newPassword.length < 8) {
+      throw new Error('A senha deve ter no mínimo 8 caracteres.')
     }
 
     // Update the password for the specified user
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      password: password,
+    // This method updates the password internally without sending a reset email
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(targetUserId, {
+      password: newPassword,
     })
 
     if (updateError) {
@@ -59,4 +67,3 @@ Deno.serve(async (req: Request) => {
     })
   }
 })
-
