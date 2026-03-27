@@ -77,7 +77,7 @@ interface AppStore {
   isAdmin: boolean
   isMaster: boolean
   userPermissions: any[]
-  fetchPermissions: () => Promise<void>
+  fetchPermissions: (forceRefresh?: boolean) => Promise<void>
   can: (module: string, action?: string) => boolean
   packageTypes: string[]
   specialties: string[]
@@ -484,25 +484,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     agendaSegmentation,
   ])
 
-  const fetchPermissions = useCallback(() => {
-    return new Promise<void>((resolve) => {
-      setTimeout(async () => {
-        if (!user) {
-          resolve()
-          return
-        }
-        try {
-          const perms = await permissionsService.getUserPermissions(user.id)
-          setUserPermissions(perms || [])
-        } catch (err) {
-          console.warn('Erro ao atualizar permissoes', err)
-          setUserPermissions([])
-        } finally {
-          resolve()
-        }
-      }, 0)
-    })
-  }, [user])
+  const fetchPermissions = useCallback(
+    (forceRefresh: boolean = false) => {
+      return new Promise<void>((resolve) => {
+        setTimeout(async () => {
+          if (!user) {
+            resolve()
+            return
+          }
+          try {
+            const perms = await permissionsService.getUserPermissions(user.id, forceRefresh)
+            setUserPermissions(perms || [])
+          } catch (err) {
+            console.warn('Erro ao atualizar permissoes', err)
+            setUserPermissions([])
+          } finally {
+            resolve()
+          }
+        }, 0)
+      })
+    },
+    [user],
+  )
 
   useEffect(() => {
     let isMounted = true
@@ -630,14 +633,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .channel('permissions_updates')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'permissoes_cargo' }, () => {
           permissionsService.clearCache()
-          fetchPermissions()
+          fetchPermissions(true)
         })
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'permissoes_usuario' },
           () => {
             permissionsService.clearCache(user.id)
-            fetchPermissions()
+            fetchPermissions(true)
           },
         )
         .subscribe()
@@ -684,7 +687,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (!perm) return false
 
-    // Atualizado para considerar a normalização de nomenclatura entre frontend e edge function
     if (action === 'view' || action === 'pode_ver' || action === 'pode_visualizar') {
       return perm.pode_visualizar ?? perm.pode_ver
     }

@@ -89,7 +89,7 @@ export const permissionsService = {
     permissionsService.clearCache(userId)
   },
 
-  getUserPermissions: async (userId?: string) => {
+  getUserPermissions: async (userId?: string, forceRefresh: boolean = false) => {
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -98,14 +98,16 @@ export const permissionsService = {
 
     const targetUserId = userId || session.user.id
 
-    const cached = permissionsCache[targetUserId]
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return cached.data
+    if (!forceRefresh) {
+      const cached = permissionsCache[targetUserId]
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.data
+      }
     }
 
     try {
       const { data, error } = await supabase.functions.invoke('get_user_permissions', {
-        body: { userId: targetUserId },
+        body: { userId: targetUserId, bustCache: forceRefresh },
       })
 
       if (!error && data && data.permissions) {
@@ -136,10 +138,14 @@ export const permissionsService = {
         cargoPerms = data || []
       }
 
-      const { data: userPerms } = await supabase
-        .from('permissoes_usuario')
-        .select('*')
-        .eq('user_id', targetUserId)
+      let userPerms: any[] = []
+      if (cargoPerms.length === 0) {
+        const { data } = await supabase
+          .from('permissoes_usuario')
+          .select('*')
+          .eq('user_id', targetUserId)
+        userPerms = data || []
+      }
 
       const permissions = (menus || []).map((menu: any) => {
         const parentMenu = menu.menu_filho
@@ -147,20 +153,28 @@ export const permissionsService = {
           : null
 
         const cargoP = cargoPerms.find((p: any) => p.menu_id === menu.id)
-        const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
+        const userP = userPerms.find((p: any) => p.menu_id === menu.id)
 
         const parentCargoP = parentMenu
           ? cargoPerms.find((p: any) => p.menu_id === parentMenu.id)
           : null
         const parentUserP = parentMenu
-          ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+          ? userPerms.find((p: any) => p.menu_id === parentMenu.id)
           : null
 
         const resolvePerm = (field: string) => {
-          if (userP && userP[field] !== undefined) return userP[field]
-          if (parentUserP && parentUserP[field] === true) return true
-          if (cargoP && cargoP[field] !== undefined) return cargoP[field]
-          if (parentCargoP && parentCargoP[field] === true) return true
+          if (cargoPerms.length > 0) {
+            if (cargoP && cargoP[field] !== undefined) return cargoP[field]
+            if (parentCargoP && parentCargoP[field] === true) return true
+            return false
+          }
+
+          if (userPerms.length > 0) {
+            if (userP && userP[field] !== undefined) return userP[field]
+            if (parentUserP && parentUserP[field] === true) return true
+            return false
+          }
+
           return false
         }
 
