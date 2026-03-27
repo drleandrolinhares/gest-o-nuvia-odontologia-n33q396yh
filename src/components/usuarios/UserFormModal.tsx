@@ -92,21 +92,23 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
 
     try {
       let profileId = user?.id
+      const finalEmail = formData.email.trim()
 
       if (!user) {
-        if (!formData.email || !formData.password || !formData.nome) {
+        if (!finalEmail || !formData.password || !formData.nome) {
           throw new Error('Nome, E-mail e Senha são obrigatórios para novos usuários.')
         }
-        profileId = await userService.createUser(
-          formData.email.trim(),
-          formData.password,
-          formData.nome,
-        )
+        profileId = await userService.createUser(finalEmail, formData.password, formData.nome)
+      } else {
+        if (finalEmail !== user.email) {
+          await userService.updateUserAuth(user.id, finalEmail)
+        }
       }
 
       if (profileId) {
         await userService.updateProfile(profileId, {
           nome: formData.nome,
+          email: finalEmail,
           cpf: formData.cpf || null,
           telefone: formData.telefone || null,
           data_nascimento: formData.data_nascimento || null,
@@ -170,7 +172,6 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={!!user}
                 required
                 className="font-bold lowercase"
                 disableUppercase

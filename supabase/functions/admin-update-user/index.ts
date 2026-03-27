@@ -1,7 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-const corsHeaders = {
+export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers':
@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
       },
     })
 
-    const authHeader = req.headers.get('Authorization')
+    const authHeader = req.headers.get('Authorization')!
     if (!authHeader) throw new Error('Missing Authorization header')
 
     const token = authHeader.replace('Bearer ', '')
@@ -37,21 +37,38 @@ Deno.serve(async (req: Request) => {
       throw new Error('Unauthorized')
     }
 
-    // Since the permission tables have been completely removed from the database,
-    // this function no longer needs to reconstruct permissions.
-    // Master and Admin validation is sufficient.
+    const { userId, email } = await req.json()
+    if (!userId || !email) {
+      throw new Error('Missing required fields (userId, email)')
+    }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        restored: true,
-        message: 'Função desativada devido à limpeza de tabelas.',
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
-    )
+    const { data, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      email,
+      email_confirm: true,
+    })
+
+    if (updateError) {
+      const isAlreadyRegistered =
+        updateError.message.includes('already been registered') ||
+        updateError.message.includes('already exists')
+
+      if (isAlreadyRegistered) {
+        return new Response(JSON.stringify({ error: 'E-mail já está em uso por outro usuário.' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      } else {
+        return new Response(JSON.stringify({ error: updateError.message }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
