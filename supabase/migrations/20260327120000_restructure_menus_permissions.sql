@@ -1,4 +1,4 @@
-DO $
+DO $$
 BEGIN
   -- 1. Add columns for hierarchy
   ALTER TABLE public.menus_sistema ADD COLUMN IF NOT EXISTS menu_pai TEXT;
@@ -42,5 +42,4 @@ BEGIN
   -- 4. Clean up any unused or orphaned menus that don't belong to our standard hierarchy
   DELETE FROM public.menus_sistema WHERE menu_pai IS NULL;
 
-END $;
-
+END $$;
