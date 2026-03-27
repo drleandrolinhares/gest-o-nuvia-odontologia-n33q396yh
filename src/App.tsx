@@ -27,6 +27,10 @@ import Permissoes from '@/pages/Permissoes'
 // Novos Módulos
 import Comunicados from '@/pages/Comunicados'
 import Performance from '@/pages/Performance'
+import PerformancePPPdm from '@/pages/PerformancePPPdm'
+import PerformanceSer5s from '@/pages/PerformanceSer5s'
+import PerformanceInovacao from '@/pages/PerformanceInovacao'
+import PerformanceLeitura from '@/pages/PerformanceLeitura'
 import AvisosRecados from '@/pages/AvisosRecados'
 import EscalaTrabalho from '@/pages/EscalaTrabalho'
 
@@ -108,6 +112,38 @@ export default function App() {
                   element={
                     <PermissionRoute module="PERFORMANCE">
                       <Performance />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="performance/pp-pdm"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <PerformancePPPdm />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="performance/ser-5s"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <PerformanceSer5s />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="performance/inovacao-implementada"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <PerformanceInovacao />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="performance/leitura-do-mes"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <PerformanceLeitura />
                     </PermissionRoute>
                   }
                 />
