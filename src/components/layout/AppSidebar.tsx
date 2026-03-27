@@ -10,6 +10,7 @@ import {
   DollarSign,
   Bug,
   Users,
+  ShieldKeyhole,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -110,10 +111,16 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         items: [
           { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
           {
-            name: 'USUÁRIOS E PERMISSÕES',
+            name: 'USUÁRIOS',
             href: '/usuarios',
             module: 'USUÁRIOS E PERMISSÕES',
             icon: Users,
+          },
+          {
+            name: 'PERMISSÕES',
+            href: '/permissoes',
+            module: 'USUÁRIOS E PERMISSÕES',
+            icon: ShieldKeyhole,
           },
           { name: 'LOGS', href: '/logs', module: 'LOGS' },
           { name: 'DEBUG', href: '/debug', module: 'LOGS', adminOnly: true, icon: Bug },

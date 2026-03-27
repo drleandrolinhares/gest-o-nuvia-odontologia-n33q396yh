@@ -1,0 +1,187 @@
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
+import { Save, UserCog } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
+
+const MOCK_USERS = [
+  { id: 'u1', nome: 'DR. LEANDRO LINHARES', cargo: 'ADMINISTRADOR' },
+  { id: 'u2', nome: 'ANA SOUZA', cargo: 'RECEPCIONISTA' },
+  { id: 'u3', nome: 'CARLOS SILVA', cargo: 'DENTISTA' },
+  { id: 'u4', nome: 'MARIA OLIVEIRA', cargo: 'GERENTE' },
+]
+
+const MOCK_MENUS = [
+  { id: 'm1', nome: 'DASHBOARD' },
+  { id: 'm2', nome: 'AGENDA' },
+  { id: 'm3', nome: 'MENSAGENS' },
+  { id: 'm4', nome: 'SAC' },
+  { id: 'm5', nome: 'NEGOCIAÇÃO' },
+  { id: 'm6', nome: 'GESTÃO FISCAL' },
+  { id: 'm7', nome: 'CENTRAL DE ACESSOS' },
+  { id: 'm8', nome: 'ESTOQUE' },
+  { id: 'm9', nome: 'KPIS' },
+  { id: 'm10', nome: 'RH' },
+  { id: 'm11', nome: 'PRECIFICAÇÃO' },
+  { id: 'm12', nome: 'SEGMENTAÇÃO' },
+  { id: 'm13', nome: 'CONFIGURAÇÕES' },
+  { id: 'm14', nome: 'USUÁRIOS E PERMISSÕES' },
+  { id: 'm15', nome: 'LOGS' },
+]
+
+export function PermissoesIndividuais() {
+  const [selectedUser, setSelectedUser] = useState<string>('')
+  const [perms, setPerms] = useState<
+    Record<string, { ver: boolean; editar: boolean; deletar: boolean }>
+  >({})
+  const { toast } = useToast()
+
+  const handleUserChange = (userId: string) => {
+    setSelectedUser(userId)
+    // Mock loading permissions for this user
+    const loadedPerms: any = {}
+    MOCK_MENUS.forEach((m) => {
+      loadedPerms[m.id] = {
+        ver: userId === 'u1' || Math.random() > 0.4,
+        editar: userId === 'u1' || Math.random() > 0.7,
+        deletar: userId === 'u1' || Math.random() > 0.9,
+      }
+    })
+    setPerms(loadedPerms)
+  }
+
+  const handleToggle = (menuId: string, field: 'ver' | 'editar' | 'deletar') => {
+    setPerms((prev) => ({
+      ...prev,
+      [menuId]: {
+        ...prev[menuId],
+        [field]: !prev[menuId]?.[field],
+      },
+    }))
+  }
+
+  const handleSave = () => {
+    if (!selectedUser) return
+    toast({
+      title: 'Permissões salvas',
+      description: 'As permissões individuais foram atualizadas com sucesso (Mock).',
+    })
+  }
+
+  return (
+    <Card className="shadow-sm border-muted rounded-xl overflow-hidden">
+      <CardHeader className="bg-white border-b pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <CardTitle className="text-sm font-black flex items-center gap-2 tracking-widest text-slate-800">
+            <UserCog className="h-5 w-5 text-blue-600" /> PERMISSÕES INDIVIDUAIS
+          </CardTitle>
+          <p className="text-xs text-muted-foreground font-bold tracking-wider">
+            SELECIONE UM USUÁRIO PARA SOBREPOR OU DEFINIR ACESSOS ESPECÍFICOS.
+          </p>
+        </div>
+        <div className="w-full md:w-80">
+          <Select value={selectedUser} onValueChange={handleUserChange}>
+            <SelectTrigger className="font-bold bg-slate-50 border-slate-200">
+              <SelectValue placeholder="SELECIONE O COLABORADOR..." />
+            </SelectTrigger>
+            <SelectContent>
+              {MOCK_USERS.map((u) => (
+                <SelectItem key={u.id} value={u.id}>
+                  {u.nome} ({u.cargo})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0 bg-white">
+        {selectedUser ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs py-4 pl-6">
+                    MENU / MÓDULO
+                  </TableHead>
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[120px]">
+                    VISUALIZAR
+                  </TableHead>
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[120px]">
+                    EDITAR
+                  </TableHead>
+                  <TableHead className="font-black text-slate-500 tracking-widest text-xs text-center w-[120px]">
+                    DELETAR
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_MENUS.map((m) => {
+                  const p = perms[m.id] || { ver: false, editar: false, deletar: false }
+                  return (
+                    <TableRow key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="font-black text-slate-700 text-xs pl-6">
+                        {m.nome}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={p.ver}
+                          onCheckedChange={() => handleToggle(m.id, 'ver')}
+                          className="data-[state=checked]:bg-[#0A192F] data-[state=checked]:border-[#0A192F]"
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={p.editar}
+                          onCheckedChange={() => handleToggle(m.id, 'editar')}
+                          className="data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]"
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={p.deletar}
+                          onCheckedChange={() => handleToggle(m.id, 'deletar')}
+                          className="data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+            <div className="p-4 border-t bg-slate-50 flex justify-end">
+              <Button
+                onClick={handleSave}
+                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md uppercase"
+              >
+                <Save className="w-4 h-4 mr-2" /> SALVAR PERMISSÕES INDIVIDUAIS
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-16 text-center text-muted-foreground bg-slate-50/50">
+            <UserCog className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+            <p className="font-black tracking-widest text-sm text-slate-400">
+              SELECIONE UM COLABORADOR ACIMA PARA CONFIGURAR AS REGRAS DE ACESSO.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}

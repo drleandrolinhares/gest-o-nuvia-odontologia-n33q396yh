@@ -27,6 +27,7 @@ import Performance from '@/pages/hub/Performance'
 import DebugAccess from '@/pages/DebugAccess'
 import AccessDenied from '@/pages/AccessDenied'
 import UsuariosPermissoes from '@/pages/UsuariosPermissoes'
+import Permissoes from '@/pages/Permissoes'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
@@ -191,6 +192,14 @@ export default function App() {
                   element={
                     <PermissionRoute module="USUÁRIOS E PERMISSÕES">
                       <UsuariosPermissoes />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="permissoes"
+                  element={
+                    <PermissionRoute module="USUÁRIOS E PERMISSÕES">
+                      <Permissoes />
                     </PermissionRoute>
                   }
                 />
