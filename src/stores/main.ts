@@ -484,15 +484,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     agendaSegmentation,
   ])
 
-  const fetchPermissions = useCallback(async () => {
-    if (!user) return
-    try {
-      const perms = await permissionsService.getUserPermissions(user.id)
-      setUserPermissions(perms || [])
-    } catch (err) {
-      console.warn('Erro ao atualizar permissoes', err)
-      setUserPermissions([])
-    }
+  const fetchPermissions = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      // Move a validação de permissões para APÓS o carregamento da página com delay 0 (non-blocking)
+      setTimeout(async () => {
+        if (!user) {
+          resolve()
+          return
+        }
+        try {
+          const perms = await permissionsService.getUserPermissions(user.id)
+          setUserPermissions(perms || [])
+        } catch (err) {
+          console.warn('Erro ao atualizar permissoes', err)
+          setUserPermissions([])
+        } finally {
+          resolve()
+        }
+      }, 0)
+    })
   }, [user])
 
   useEffect(() => {
@@ -619,11 +629,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       permsChannel = supabase
         .channel('permissions_updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'permissoes_cargo' }, () =>
-          fetchPermissions(),
-        )
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'permissoes_usuario' }, () =>
-          fetchPermissions(),
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'permissoes_cargo' }, () => {
+          permissionsService.clearCache()
+          fetchPermissions()
+        })
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'permissoes_usuario' },
+          () => {
+            permissionsService.clearCache(user.id)
+            fetchPermissions()
+          },
         )
         .subscribe()
     } else {

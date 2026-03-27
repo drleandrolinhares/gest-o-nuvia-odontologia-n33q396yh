@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }, 5000)
 
+    // Otimização: callback 100% síncrono para evitar deadlocks e atrasos de renderização
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {

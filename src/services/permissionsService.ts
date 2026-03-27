@@ -1,6 +1,17 @@
 import { supabase } from '@/lib/supabase/client'
 
+let permissionsCache: Record<string, { data: any[]; timestamp: number }> = {}
+const CACHE_TTL = 1000 * 60 * 5 // 5 minutos
+
 export const permissionsService = {
+  clearCache: (userId?: string) => {
+    if (userId) {
+      delete permissionsCache[userId]
+    } else {
+      permissionsCache = {}
+    }
+  },
+
   fetchMenus: async () => {
     const { data, error } = await supabase.from('menus_sistema').select('*').order('ordem')
     if (error) throw error
@@ -47,6 +58,7 @@ export const permissionsService = {
       })
       if (error) throw error
     }
+    permissionsService.clearCache()
   },
 
   fetchPermissoesUsuario: async (userId: string) => {
@@ -74,6 +86,7 @@ export const permissionsService = {
       })
       if (error) throw error
     }
+    permissionsService.clearCache(userId)
   },
 
   getUserPermissions: async (userId?: string) => {
@@ -85,12 +98,19 @@ export const permissionsService = {
 
     const targetUserId = userId || session.user.id
 
+    // Cache local imediato para evitar chamadas múltiplas
+    const cached = permissionsCache[targetUserId]
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('get_user_permissions', {
         body: { userId: targetUserId },
       })
 
       if (!error && data && data.permissions) {
+        permissionsCache[targetUserId] = { data: data.permissions, timestamp: Date.now() }
         return data.permissions
       }
     } catch (err) {
@@ -159,6 +179,7 @@ export const permissionsService = {
         }
       })
 
+      permissionsCache[targetUserId] = { data: permissions, timestamp: Date.now() }
       return permissions
     } catch (fallbackErr) {
       console.error('Erro crítico no fallback de permissões local:', fallbackErr)
