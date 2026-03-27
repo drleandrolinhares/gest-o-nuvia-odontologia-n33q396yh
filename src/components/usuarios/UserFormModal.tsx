@@ -77,18 +77,21 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
   }, [open, user])
 
   const handleResetPassword = async () => {
-    if (!formData.email) return
+    // Garante que usa o email atual do usuário (já salvo) e não o digitado que ainda não foi salvo
+    const emailToReset = user?.email || formData.email
+    if (!emailToReset) return
+
     setResettingPassword(true)
     try {
-      await userService.resetPassword(formData.email)
+      await userService.resetPassword(emailToReset)
       toast({
         title: 'Sucesso',
-        description: 'Email de reset enviado com sucesso.',
+        description: `E-mail de reset enviado com sucesso para ${emailToReset}.`,
       })
     } catch (error: any) {
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao enviar email de reset.',
+        description: error.message || 'Erro ao enviar e-mail de reset.',
         variant: 'destructive',
       })
     } finally {
