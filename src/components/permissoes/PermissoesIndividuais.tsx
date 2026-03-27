@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
@@ -17,53 +17,65 @@ import {
 } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Save, UserCog } from 'lucide-react'
+import { Save, UserCog, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-
-const MOCK_USERS = [
-  { id: 'u1', nome: 'DR. LEANDRO LINHARES', cargo: 'ADMINISTRADOR' },
-  { id: 'u2', nome: 'ANA SOUZA', cargo: 'RECEPCIONISTA' },
-  { id: 'u3', nome: 'CARLOS SILVA', cargo: 'DENTISTA' },
-  { id: 'u4', nome: 'MARIA OLIVEIRA', cargo: 'GERENTE' },
-]
-
-const MOCK_MENUS = [
-  { id: 'm1', nome: 'DASHBOARD' },
-  { id: 'm2', nome: 'AGENDA' },
-  { id: 'm3', nome: 'MENSAGENS' },
-  { id: 'm4', nome: 'SAC' },
-  { id: 'm5', nome: 'NEGOCIAÇÃO' },
-  { id: 'm6', nome: 'GESTÃO FISCAL' },
-  { id: 'm7', nome: 'CENTRAL DE ACESSOS' },
-  { id: 'm8', nome: 'ESTOQUE' },
-  { id: 'm9', nome: 'KPIS' },
-  { id: 'm10', nome: 'RH' },
-  { id: 'm11', nome: 'PRECIFICAÇÃO' },
-  { id: 'm12', nome: 'SEGMENTAÇÃO' },
-  { id: 'm13', nome: 'CONFIGURAÇÕES' },
-  { id: 'm14', nome: 'USUÁRIOS E PERMISSÕES' },
-  { id: 'm15', nome: 'LOGS' },
-]
+import { permissionsService } from '@/services/permissionsService'
 
 export function PermissoesIndividuais() {
+  const [users, setUsers] = useState<any[]>([])
+  const [menus, setMenus] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<string>('')
   const [perms, setPerms] = useState<
     Record<string, { ver: boolean; editar: boolean; deletar: boolean }>
   >({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
 
-  const handleUserChange = (userId: string) => {
-    setSelectedUser(userId)
-    // Mock loading permissions for this user
-    const loadedPerms: any = {}
-    MOCK_MENUS.forEach((m) => {
-      loadedPerms[m.id] = {
-        ver: userId === 'u1' || Math.random() > 0.4,
-        editar: userId === 'u1' || Math.random() > 0.7,
-        deletar: userId === 'u1' || Math.random() > 0.9,
+  useEffect(() => {
+    const loadInitial = async () => {
+      try {
+        const [uData, mData] = await Promise.all([
+          permissionsService.fetchUsers(),
+          permissionsService.fetchMenus(),
+        ])
+        setUsers(uData)
+        setMenus(mData)
+      } catch (error) {
+        toast({ title: 'Erro', description: 'Falha ao carregar dados', variant: 'destructive' })
+      } finally {
+        setLoading(false)
       }
-    })
-    setPerms(loadedPerms)
+    }
+    loadInitial()
+  }, [toast])
+
+  const handleUserChange = async (userId: string) => {
+    setSelectedUser(userId)
+    if (!userId) return
+
+    try {
+      const userPerms = await permissionsService.fetchPermissoesUsuario(userId)
+      const newPerms: any = {}
+
+      menus.forEach((m) => {
+        newPerms[m.id] = { ver: false, editar: false, deletar: false }
+      })
+
+      userPerms.forEach((p: any) => {
+        if (newPerms[p.menu_id]) {
+          newPerms[p.menu_id] = {
+            ver: p.pode_ver,
+            editar: p.pode_editar,
+            deletar: p.pode_deletar,
+          }
+        }
+      })
+
+      setPerms(newPerms)
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Erro ao carregar permissões', variant: 'destructive' })
+    }
   }
 
   const handleToggle = (menuId: string, field: 'ver' | 'editar' | 'deletar') => {
@@ -76,12 +88,27 @@ export function PermissoesIndividuais() {
     }))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedUser) return
-    toast({
-      title: 'Permissões salvas',
-      description: 'As permissões individuais foram atualizadas com sucesso (Mock).',
-    })
+    setSaving(true)
+    try {
+      const payload = menus.map((m) => ({
+        menu_id: m.id,
+        pode_ver: perms[m.id]?.ver || false,
+        pode_editar: perms[m.id]?.editar || false,
+        pode_deletar: perms[m.id]?.deletar || false,
+      }))
+      await permissionsService.savePermissoesUsuario(selectedUser, payload)
+      toast({ title: 'Sucesso', description: 'Permissões individuais salvas com sucesso.' })
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao salvar',
+        variant: 'destructive',
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -96,14 +123,14 @@ export function PermissoesIndividuais() {
           </p>
         </div>
         <div className="w-full md:w-80">
-          <Select value={selectedUser} onValueChange={handleUserChange}>
+          <Select value={selectedUser} onValueChange={handleUserChange} disabled={loading}>
             <SelectTrigger className="font-bold bg-slate-50 border-slate-200">
               <SelectValue placeholder="SELECIONE O COLABORADOR..." />
             </SelectTrigger>
             <SelectContent>
-              {MOCK_USERS.map((u) => (
+              {users.map((u) => (
                 <SelectItem key={u.id} value={u.id}>
-                  {u.nome} ({u.cargo})
+                  {u.nome || u.email} {u.cargos?.nome ? `(${u.cargos.nome})` : ''}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -111,7 +138,12 @@ export function PermissoesIndividuais() {
         </div>
       </CardHeader>
       <CardContent className="p-0 bg-white">
-        {selectedUser ? (
+        {loading ? (
+          <div className="p-16 text-center text-muted-foreground bg-slate-50/50">
+            <Loader2 className="h-10 w-10 mx-auto text-slate-300 mb-4 animate-spin" />
+            <p className="font-black tracking-widest text-sm text-slate-400">CARREGANDO DADOS...</p>
+          </div>
+        ) : selectedUser ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -131,11 +163,11 @@ export function PermissoesIndividuais() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {MOCK_MENUS.map((m) => {
+                {menus.map((m) => {
                   const p = perms[m.id] || { ver: false, editar: false, deletar: false }
                   return (
                     <TableRow key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-black text-slate-700 text-xs pl-6">
+                      <TableCell className="font-black text-slate-700 text-xs pl-6 uppercase">
                         {m.nome}
                       </TableCell>
                       <TableCell className="text-center">
@@ -167,9 +199,15 @@ export function PermissoesIndividuais() {
             <div className="p-4 border-t bg-slate-50 flex justify-end">
               <Button
                 onClick={handleSave}
+                disabled={saving}
                 className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md uppercase"
               >
-                <Save className="w-4 h-4 mr-2" /> SALVAR PERMISSÕES INDIVIDUAIS
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                SALVAR PERMISSÕES INDIVIDUAIS
               </Button>
             </div>
           </div>

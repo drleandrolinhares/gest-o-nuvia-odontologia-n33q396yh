@@ -57,31 +57,9 @@ export default function UsuariosPermissoes() {
         userService.fetchDepartamentos(),
       ])
 
-      // Se o banco estiver vazio, carrega dados mockados apenas para visualização
-      if (pData.length === 0 && cData.length === 0) {
-        setProfiles([
-          {
-            id: 'm1',
-            nome: 'Dr. Leandro Linhares',
-            email: 'drleandrolinhares@gmail.com',
-            cargos: { nome: 'ADMINISTRADOR' },
-            departamentos: { nome: 'DIRETORIA' },
-            data_admissao: '2023-01-10',
-          },
-          {
-            id: 'm2',
-            nome: 'Ana Souza',
-            email: 'ana@nuvia.com.br',
-            cargos: { nome: 'RECEPCIONISTA' },
-            departamentos: { nome: 'ATENDIMENTO' },
-            data_admissao: '2023-06-15',
-          },
-        ])
-      } else {
-        setProfiles(pData)
-        setCargos(cData)
-        setDepartamentos(dData)
-      }
+      setProfiles(pData || [])
+      setCargos(cData || [])
+      setDepartamentos(dData || [])
     } catch (error) {
       console.error(error)
       toast({
@@ -222,7 +200,7 @@ export default function UsuariosPermissoes() {
                   <TableCell className="py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black shadow-sm border border-primary/20 shrink-0">
-                        {p.nome?.charAt(0).toUpperCase() || 'U'}
+                        {p.nome?.charAt(0).toUpperCase() || p.email.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex flex-col">
                         <span className="font-black text-sm text-slate-800 tracking-wide uppercase">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
@@ -17,54 +17,65 @@ import {
 } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-import { Save, ShieldAlert } from 'lucide-react'
+import { Save, ShieldAlert, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-
-const MOCK_CARGOS = [
-  { id: 'c1', nome: 'ADMINISTRADOR' },
-  { id: 'c2', nome: 'DENTISTA' },
-  { id: 'c3', nome: 'RECEPCIONISTA' },
-  { id: 'c4', nome: 'GERENTE' },
-  { id: 'c5', nome: 'AUXILIAR' },
-]
-
-const MOCK_MENUS = [
-  { id: 'm1', nome: 'DASHBOARD' },
-  { id: 'm2', nome: 'AGENDA' },
-  { id: 'm3', nome: 'MENSAGENS' },
-  { id: 'm4', nome: 'SAC' },
-  { id: 'm5', nome: 'NEGOCIAÇÃO' },
-  { id: 'm6', nome: 'GESTÃO FISCAL' },
-  { id: 'm7', nome: 'CENTRAL DE ACESSOS' },
-  { id: 'm8', nome: 'ESTOQUE' },
-  { id: 'm9', nome: 'KPIS' },
-  { id: 'm10', nome: 'RH' },
-  { id: 'm11', nome: 'PRECIFICAÇÃO' },
-  { id: 'm12', nome: 'SEGMENTAÇÃO' },
-  { id: 'm13', nome: 'CONFIGURAÇÕES' },
-  { id: 'm14', nome: 'USUÁRIOS E PERMISSÕES' },
-  { id: 'm15', nome: 'LOGS' },
-]
+import { permissionsService } from '@/services/permissionsService'
 
 export function PermissoesPorCargo() {
+  const [cargos, setCargos] = useState<any[]>([])
+  const [menus, setMenus] = useState<any[]>([])
   const [selectedCargo, setSelectedCargo] = useState<string>('')
   const [perms, setPerms] = useState<
     Record<string, { ver: boolean; editar: boolean; deletar: boolean }>
   >({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
 
-  const handleCargoChange = (cargoId: string) => {
-    setSelectedCargo(cargoId)
-    // Mock loading permissions for this cargo
-    const loadedPerms: any = {}
-    MOCK_MENUS.forEach((m) => {
-      loadedPerms[m.id] = {
-        ver: cargoId === 'c1' || Math.random() > 0.3,
-        editar: cargoId === 'c1' || Math.random() > 0.6,
-        deletar: cargoId === 'c1' || Math.random() > 0.8,
+  useEffect(() => {
+    const loadInitial = async () => {
+      try {
+        const [cData, mData] = await Promise.all([
+          permissionsService.fetchCargos(),
+          permissionsService.fetchMenus(),
+        ])
+        setCargos(cData)
+        setMenus(mData)
+      } catch (error) {
+        toast({ title: 'Erro', description: 'Falha ao carregar dados', variant: 'destructive' })
+      } finally {
+        setLoading(false)
       }
-    })
-    setPerms(loadedPerms)
+    }
+    loadInitial()
+  }, [toast])
+
+  const handleCargoChange = async (cargoId: string) => {
+    setSelectedCargo(cargoId)
+    if (!cargoId) return
+
+    try {
+      const cargoPerms = await permissionsService.fetchPermissoesCargo(cargoId)
+      const newPerms: any = {}
+
+      menus.forEach((m) => {
+        newPerms[m.id] = { ver: false, editar: false, deletar: false }
+      })
+
+      cargoPerms.forEach((p: any) => {
+        if (newPerms[p.menu_id]) {
+          newPerms[p.menu_id] = {
+            ver: p.pode_ver,
+            editar: p.pode_editar,
+            deletar: p.pode_deletar,
+          }
+        }
+      })
+
+      setPerms(newPerms)
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Erro ao carregar permissões', variant: 'destructive' })
+    }
   }
 
   const handleToggle = (menuId: string, field: 'ver' | 'editar' | 'deletar') => {
@@ -77,12 +88,27 @@ export function PermissoesPorCargo() {
     }))
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedCargo) return
-    toast({
-      title: 'Permissões salvas',
-      description: 'As permissões do cargo foram atualizadas com sucesso (Mock).',
-    })
+    setSaving(true)
+    try {
+      const payload = menus.map((m) => ({
+        menu_id: m.id,
+        pode_ver: perms[m.id]?.ver || false,
+        pode_editar: perms[m.id]?.editar || false,
+        pode_deletar: perms[m.id]?.deletar || false,
+      }))
+      await permissionsService.savePermissoesCargo(selectedCargo, payload)
+      toast({ title: 'Sucesso', description: 'Permissões do cargo salvas com sucesso.' })
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao salvar',
+        variant: 'destructive',
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -97,12 +123,12 @@ export function PermissoesPorCargo() {
           </p>
         </div>
         <div className="w-full md:w-72">
-          <Select value={selectedCargo} onValueChange={handleCargoChange}>
+          <Select value={selectedCargo} onValueChange={handleCargoChange} disabled={loading}>
             <SelectTrigger className="font-bold bg-slate-50 border-slate-200">
               <SelectValue placeholder="SELECIONE O CARGO..." />
             </SelectTrigger>
             <SelectContent>
-              {MOCK_CARGOS.map((c) => (
+              {cargos.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.nome}
                 </SelectItem>
@@ -112,7 +138,12 @@ export function PermissoesPorCargo() {
         </div>
       </CardHeader>
       <CardContent className="p-0 bg-white">
-        {selectedCargo ? (
+        {loading ? (
+          <div className="p-16 text-center text-muted-foreground bg-slate-50/50">
+            <Loader2 className="h-10 w-10 mx-auto text-slate-300 mb-4 animate-spin" />
+            <p className="font-black tracking-widest text-sm text-slate-400">CARREGANDO DADOS...</p>
+          </div>
+        ) : selectedCargo ? (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -132,11 +163,11 @@ export function PermissoesPorCargo() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {MOCK_MENUS.map((m) => {
+                {menus.map((m) => {
                   const p = perms[m.id] || { ver: false, editar: false, deletar: false }
                   return (
                     <TableRow key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-black text-slate-700 text-xs pl-6">
+                      <TableCell className="font-black text-slate-700 text-xs pl-6 uppercase">
                         {m.nome}
                       </TableCell>
                       <TableCell className="text-center">
@@ -168,9 +199,15 @@ export function PermissoesPorCargo() {
             <div className="p-4 border-t bg-slate-50 flex justify-end">
               <Button
                 onClick={handleSave}
+                disabled={saving}
                 className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md uppercase"
               >
-                <Save className="w-4 h-4 mr-2" /> SALVAR PERMISSÕES DO CARGO
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                SALVAR PERMISSÕES DO CARGO
               </Button>
             </div>
           </div>
