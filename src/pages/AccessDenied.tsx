@@ -22,7 +22,7 @@ export default function AccessDenied() {
         .<br />
         Por favor, contate o administrador caso precise de acesso.
       </p>
-      <Link to="/hub/mural">
+      <Link to="/dashboard">
         <Button
           size="lg"
           className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest uppercase shadow-md transition-transform hover:scale-105"

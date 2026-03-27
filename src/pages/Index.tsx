@@ -178,7 +178,7 @@ export default function Index() {
             <CardTitle>AÇÕES RÁPIDAS</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link to="/agenda" className="w-full block">
+            <Link to="/rotina-diaria" className="w-full block">
               <Button className="w-full justify-start" variant="outline">
                 <CalendarDays className="mr-2 h-4 w-4" /> COMPROMISSOS DE HOJE
               </Button>

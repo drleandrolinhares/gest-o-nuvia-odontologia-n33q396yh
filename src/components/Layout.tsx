@@ -92,7 +92,7 @@ export function Layout() {
       </main>
 
       <Button
-        onClick={() => navigate('/chat')}
+        onClick={() => navigate('/mensagens')}
         title="Mensagens e Comunicação"
         className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#D4AF37] hover:bg-[#B3932D] text-[#0A192F] shadow-[0_8px_30px_rgb(212,175,55,0.4)] z-50 p-0 flex items-center justify-center transition-transform hover:scale-110"
       >

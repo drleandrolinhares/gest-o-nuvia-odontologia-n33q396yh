@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
-import RH from '@/pages/RH'
 import Inventory from '@/pages/Inventory'
 import Pricing from '@/pages/Pricing'
 import Negotiation from '@/pages/Negotiation'
@@ -20,14 +19,17 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import PermissionRoute from '@/components/PermissionRoute'
 import AuditLog from '@/pages/AuditLog'
 import ForceChangePassword from '@/pages/ForceChangePassword'
-import Mural from '@/pages/hub/Mural'
-import Feedback from '@/pages/hub/Feedback'
-import Ranking from '@/pages/hub/Ranking'
-import Performance from '@/pages/hub/Performance'
 import DebugAccess from '@/pages/DebugAccess'
 import AccessDenied from '@/pages/AccessDenied'
 import UsuariosPermissoes from '@/pages/UsuariosPermissoes'
 import Permissoes from '@/pages/Permissoes'
+
+// Novos Módulos
+import Comunicados from '@/pages/Comunicados'
+import Performance from '@/pages/Performance'
+import AvisosRecados from '@/pages/AvisosRecados'
+import EscalaTrabalho from '@/pages/EscalaTrabalho'
+
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { ChatProvider } from '@/stores/chat'
@@ -65,32 +67,7 @@ export default function App() {
                   }
                 />
 
-                <Route
-                  path="dashboard"
-                  element={
-                    <PermissionRoute module="DASHBOARD">
-                      <Index />
-                    </PermissionRoute>
-                  }
-                />
-
-                {/* Visão Diária */}
-                <Route
-                  path="agenda"
-                  element={
-                    <PermissionRoute module="AGENDA">
-                      <Agenda />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="chat"
-                  element={
-                    <PermissionRoute module="MENSAGENS">
-                      <Chat />
-                    </PermissionRoute>
-                  }
-                />
+                {/* OPERACIONAL */}
                 <Route
                   path="sac"
                   element={
@@ -99,8 +76,48 @@ export default function App() {
                     </PermissionRoute>
                   }
                 />
+                <Route
+                  path="rotina-diaria"
+                  element={
+                    <PermissionRoute module="AGENDA">
+                      <Agenda />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="mensagens"
+                  element={
+                    <PermissionRoute module="MENSAGENS">
+                      <Chat />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="performance"
+                  element={
+                    <PermissionRoute module="PERFORMANCE">
+                      <Performance />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="comunicados"
+                  element={
+                    <PermissionRoute module="COMUNICADOS">
+                      <Comunicados />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="avisos-e-recados"
+                  element={
+                    <PermissionRoute module="AVISOS">
+                      <AvisosRecados />
+                    </PermissionRoute>
+                  }
+                />
 
-                {/* Comercial */}
+                {/* COMERCIAL */}
                 <Route
                   path="negociacao"
                   element={
@@ -118,9 +135,9 @@ export default function App() {
                   }
                 />
 
-                {/* Financeiro */}
+                {/* FINANCEIRO */}
                 <Route
-                  path="acessos"
+                  path="central-de-acessos"
                   element={
                     <PermissionRoute module="ACESSOS">
                       <Acessos />
@@ -128,7 +145,7 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="acessos/:id"
+                  path="central-de-acessos/:id"
                   element={
                     <PermissionRoute module="ACESSOS">
                       <AcessoManual />
@@ -144,7 +161,15 @@ export default function App() {
                   }
                 />
 
-                {/* Administrativo */}
+                {/* ADMINISTRATIVO */}
+                <Route
+                  path="dashboard"
+                  element={
+                    <PermissionRoute module="DASHBOARD">
+                      <Index />
+                    </PermissionRoute>
+                  }
+                />
                 <Route
                   path="kpis"
                   element={
@@ -154,10 +179,18 @@ export default function App() {
                   }
                 />
                 <Route
-                  path="rh"
+                  path="usuarios"
+                  element={
+                    <PermissionRoute module="USUÁRIOS E PERMISSÕES">
+                      <UsuariosPermissoes />
+                    </PermissionRoute>
+                  }
+                />
+                <Route
+                  path="escala-de-trabalho"
                   element={
                     <PermissionRoute module="RH">
-                      <RH />
+                      <EscalaTrabalho />
                     </PermissionRoute>
                   }
                 />
@@ -178,20 +211,12 @@ export default function App() {
                   }
                 />
 
-                {/* Sistema */}
+                {/* SISTEMA */}
                 <Route
                   path="configuracoes"
                   element={
                     <PermissionRoute module="CONFIGURAÇÕES">
                       <Settings />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="usuarios"
-                  element={
-                    <PermissionRoute module="USUÁRIOS E PERMISSÕES">
-                      <UsuariosPermissoes />
                     </PermissionRoute>
                   }
                 />
@@ -211,8 +236,6 @@ export default function App() {
                     </PermissionRoute>
                   }
                 />
-
-                {/* Debug / Diagnóstico de Acesso */}
                 <Route
                   path="debug"
                   element={
@@ -223,41 +246,6 @@ export default function App() {
                 />
 
                 <Route path="acesso-negado" element={<AccessDenied />} />
-
-                {/* Hub */}
-                <Route
-                  path="hub/mural"
-                  element={
-                    <PermissionRoute module="COMUNICADOS">
-                      <Mural />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="hub/feedback"
-                  element={
-                    <PermissionRoute module="PERFORMANCE">
-                      <Feedback />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="hub/performance"
-                  element={
-                    <PermissionRoute module="PERFORMANCE">
-                      <Performance />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="hub/ranking"
-                  element={
-                    <PermissionRoute module="PERFORMANCE">
-                      <Ranking />
-                    </PermissionRoute>
-                  }
-                />
-
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

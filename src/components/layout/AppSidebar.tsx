@@ -1,16 +1,15 @@
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Calendar,
   LogOut,
   Settings,
   ChevronDown,
   Handshake,
-  Megaphone,
   Briefcase,
   DollarSign,
   Bug,
   Users,
   Shield,
+  Activity,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -53,25 +52,15 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const navigationSections = useMemo(
     () => [
       {
-        title: 'NUVIA HUB',
-        icon: Megaphone,
+        title: 'OPERACIONAL',
+        icon: Activity,
         items: [
-          { name: 'MURAL DE AVISOS', href: '/hub/mural', module: 'COMUNICADOS' },
-          { name: 'PP & PDM', href: '/hub/feedback', module: 'PERFORMANCE' },
-          {
-            name: 'DESENVOLVIMENTO E PERFORMANCE',
-            href: '/hub/performance',
-            module: 'PERFORMANCE',
-          },
-        ],
-      },
-      {
-        title: 'VISÃO DIÁRIA',
-        icon: Calendar,
-        items: [
-          { name: 'AGENDA', href: '/agenda', module: 'AGENDA' },
-          { name: 'MENSAGENS', href: '/chat', module: 'MENSAGENS', badge: totalUnread },
           { name: 'SAC', href: '/sac', module: 'SAC', badge: pendingSacsCount },
+          { name: 'ROTINA DIÁRIA', href: '/rotina-diaria', module: 'AGENDA' },
+          { name: 'MENSAGENS', href: '/mensagens', module: 'MENSAGENS', badge: totalUnread },
+          { name: 'PERFORMANCE', href: '/performance', module: 'PERFORMANCE' },
+          { name: 'COMUNICADOS', href: '/comunicados', module: 'COMUNICADOS' },
+          { name: 'AVISOS E RECADOS', href: '/avisos-e-recados', module: 'AVISOS' },
         ],
       },
       {
@@ -86,7 +75,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         title: 'FINANCEIRO',
         icon: DollarSign,
         items: [
-          { name: 'CENTRAL DE ACESSOS', href: '/acessos', module: 'ACESSOS' },
+          { name: 'CENTRAL DE ACESSOS', href: '/central-de-acessos', module: 'ACESSOS' },
           { name: 'ESTOQUE', href: '/estoque', module: 'ESTOQUE' },
         ],
       },
@@ -94,15 +83,12 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         title: 'ADMINISTRATIVO',
         icon: Briefcase,
         items: [
-          { name: 'DASHBOARDS', href: '/dashboard', module: 'DASHBOARD' },
+          { name: 'DASHBOARD', href: '/dashboard', module: 'DASHBOARD' },
           { name: 'KPIS', href: '/kpis', module: 'KPIS' },
-          { name: 'DOCUMENTOS', href: '/rh', module: 'RH' },
+          { name: 'USUÁRIOS', href: '/usuarios', module: 'USUÁRIOS E PERMISSÕES', icon: Users },
+          { name: 'ESCALA DE TRABALHO', href: '/escala-de-trabalho', module: 'RH' },
           { name: 'PRECIFICAÇÃO', href: '/precificacao', module: 'PRECIFICAÇÃO' },
-          {
-            name: 'SEGMENTAÇÃO DA AGENDA',
-            href: '/segmentacao-agenda',
-            module: 'SEGMENTAÇÃO',
-          },
+          { name: 'SEGMENTAÇÃO DA AGENDA', href: '/segmentacao-agenda', module: 'SEGMENTAÇÃO' },
         ],
       },
       {
@@ -110,12 +96,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         icon: Settings,
         items: [
           { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
-          {
-            name: 'USUÁRIOS',
-            href: '/usuarios',
-            module: 'USUÁRIOS E PERMISSÕES',
-            icon: Users,
-          },
           {
             name: 'PERMISSÕES',
             href: '/permissoes',
@@ -172,7 +152,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4 px-3 overflow-x-hidden [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
+      <div className="flex-1 overflow-y-auto py-4 px-3 overflow-x-hidden custom-scrollbar">
         {navigationSections.map((section) => {
           const isActiveSection = section.items.some((item) =>
             location.pathname.startsWith(item.href),
@@ -187,11 +167,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                 <CollapsibleTrigger asChild>
                   <button
                     className={cn(
-                      'w-full flex items-center py-3 px-3 text-xs font-bold uppercase tracking-wider rounded-md transition-all outline-none group',
+                      'w-full flex items-center py-3 px-3 text-xs font-black uppercase tracking-widest rounded-md transition-all outline-none group text-[#D4AF37] hover:bg-white/5',
                       isCollapsed && !isMobile ? 'justify-center px-2' : '',
-                      isActiveSection
-                        ? 'text-white'
-                        : 'text-slate-400 hover:bg-white/5 hover:text-white',
                     )}
                     title={isCollapsed && !isMobile ? section.title : undefined}
                   >
@@ -199,9 +176,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                       className={cn(
                         'h-5 w-5 shrink-0 transition-colors',
                         isCollapsed && !isMobile ? 'mr-0' : 'mr-3',
-                        isActiveSection
-                          ? 'text-[#D4AF37]'
-                          : 'text-slate-500 group-hover:text-white',
                       )}
                     />
                     {(!isCollapsed || isMobile) && (
@@ -209,7 +183,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                         <span className="flex-1 text-left whitespace-nowrap">{section.title}</span>
                         <ChevronDown
                           className={cn(
-                            'h-4 w-4 shrink-0 transition-transform opacity-50 group-hover:opacity-100',
+                            'h-4 w-4 shrink-0 transition-transform opacity-70 group-hover:opacity-100',
                             openSections[section.title] ? 'rotate-180' : '',
                           )}
                         />
@@ -221,8 +195,9 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                   <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
                     {section.items.map((item) => {
                       const isActive =
-                        item.href === '/agenda'
-                          ? location.pathname === '/agenda' || location.pathname === '/agenda/'
+                        item.href === '/rotina-diaria'
+                          ? location.pathname === '/rotina-diaria' ||
+                            location.pathname === '/rotina-diaria/'
                           : location.pathname.startsWith(item.href)
 
                       return (
