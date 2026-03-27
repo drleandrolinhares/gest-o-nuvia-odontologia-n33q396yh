@@ -4,6 +4,6 @@
     "admin-create-user": 6,
     "admin-delete-user": 1,
     "restore-admin-permissions": 2,
-    "get_user_permissions": 6
+    "get_user_permissions": 7
   }
 }

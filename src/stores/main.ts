@@ -488,13 +488,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!user) return
     try {
       const perms = await permissionsService.getUserPermissions(user.id)
-      setUserPermissions(perms)
+      setUserPermissions(perms || [])
     } catch (err) {
       console.warn('Erro ao atualizar permissoes', err)
+      setUserPermissions([])
     }
   }, [user])
 
   useEffect(() => {
+    let isMounted = true
     let permsChannel: any = null
 
     if (user) {
@@ -502,58 +504,117 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setIsDataLoading(true)
       setFetchError(null)
 
+      const timeoutId = setTimeout(() => {
+        if (isMounted && isDataLoading) {
+          console.warn('Timeout na carga de dados principal. Forçando liberação da UI.')
+          setIsDataLoading(false)
+        }
+      }, 10000)
+
       const handleResponse = <T = any>(r: any, mapper?: (d: any) => T): T[] => {
-        if (r.error) {
+        if (r?.error) {
           console.warn('Silent fallback for missing relation or data error', r.error)
           return []
         }
-        const data = Array.isArray(r.data) ? r.data : []
+        const data = Array.isArray(r?.data) ? r.data : []
         return mapper ? data.map(mapper) : (data as unknown as T[])
       }
 
+      const safeFetch = async (promise: Promise<any>) => {
+        try {
+          return await promise
+        } catch (err) {
+          console.warn('SafeFetch swallowed error:', err)
+          return null
+        }
+      }
+
       Promise.all([
-        fetchPermissions(),
-        inventoryService.fetchAll().then((r) => setInventory(handleResponse(r, mInv))),
-        inventoryService.fetchOptions().then((r) => setInventoryOptions(handleResponse(r, mOpt))),
-        inventoryService.fetchPendingOutflows().then((r) => {
-          if (!r.error) setTemporaryOutflows((r.data || []) as any)
-        }),
-        agendaService.fetchAll().then((r) => setAgenda(handleResponse(r, mAg))),
-        accessService.fetchAll().then((r) => setAcessos(handleResponse(r, mAcc))),
-        settingsService.fetchSuppliers().then((r) => setSuppliers(handleResponse(r, mSup))),
-        settingsService.fetchDocuments().then((r) => setDocuments(handleResponse(r, mDoc))),
-        clinicService.fetchConsultorios().then((r) => {
-          if (!r.error) setConsultorios((r.data || []) as any)
-        }),
-        sacService.fetchAll().then((r) => setSacRecords(handleResponse(r, mSac))),
-        financeService.fetchSettings().then(async (r) => {
-          if (r.data) {
-            setAppSettings(mAppSet(r.data as any))
-          } else if (!r.error) {
-            const { data: newData } = await financeService.createSettings({})
-            if (newData) setAppSettings(mAppSet(newData as any))
-          }
-        }),
-        financeService.fetchPriceList().then((r) => {
-          if (r.data) setPriceList(r.data.map(mPrice))
-        }),
-        clinicService
-          .fetchSpecialtyConfigs()
-          .then((r) => setSpecialtyConfigs(handleResponse(r, mSpecConfig))),
-        agendaService
-          .fetchSegmentation()
-          .then((r) => setAgendaSegmentation(handleResponse(r, mSeg))),
+        safeFetch(fetchPermissions()),
+        safeFetch(
+          inventoryService.fetchAll().then((r) => {
+            if (isMounted) setInventory(handleResponse(r, mInv))
+          }),
+        ),
+        safeFetch(
+          inventoryService.fetchOptions().then((r) => {
+            if (isMounted) setInventoryOptions(handleResponse(r, mOpt))
+          }),
+        ),
+        safeFetch(
+          inventoryService.fetchPendingOutflows().then((r) => {
+            if (isMounted && !r?.error) setTemporaryOutflows((r?.data || []) as any)
+          }),
+        ),
+        safeFetch(
+          agendaService.fetchAll().then((r) => {
+            if (isMounted) setAgenda(handleResponse(r, mAg))
+          }),
+        ),
+        safeFetch(
+          accessService.fetchAll().then((r) => {
+            if (isMounted) setAcessos(handleResponse(r, mAcc))
+          }),
+        ),
+        safeFetch(
+          settingsService.fetchSuppliers().then((r) => {
+            if (isMounted) setSuppliers(handleResponse(r, mSup))
+          }),
+        ),
+        safeFetch(
+          settingsService.fetchDocuments().then((r) => {
+            if (isMounted) setDocuments(handleResponse(r, mDoc))
+          }),
+        ),
+        safeFetch(
+          clinicService.fetchConsultorios().then((r) => {
+            if (isMounted && !r?.error) setConsultorios((r?.data || []) as any)
+          }),
+        ),
+        safeFetch(
+          sacService.fetchAll().then((r) => {
+            if (isMounted) setSacRecords(handleResponse(r, mSac))
+          }),
+        ),
+        safeFetch(
+          financeService.fetchSettings().then(async (r) => {
+            if (!isMounted) return
+            if (r?.data) {
+              setAppSettings(mAppSet(r.data as any))
+            } else if (!r?.error) {
+              const { data: newData } = await financeService.createSettings({})
+              if (isMounted && newData) setAppSettings(mAppSet(newData as any))
+            }
+          }),
+        ),
+        safeFetch(
+          financeService.fetchPriceList().then((r) => {
+            if (isMounted && r?.data) setPriceList(r.data.map(mPrice))
+          }),
+        ),
+        safeFetch(
+          clinicService.fetchSpecialtyConfigs().then((r) => {
+            if (isMounted) setSpecialtyConfigs(handleResponse(r, mSpecConfig))
+          }),
+        ),
+        safeFetch(
+          agendaService.fetchSegmentation().then((r) => {
+            if (isMounted) setAgendaSegmentation(handleResponse(r, mSeg))
+          }),
+        ),
       ])
         .catch((err) => {
           if (!checkAuthError(err)) {
             console.error('Initial data fetch error:', err)
-            setFetchError(
-              'Falha ao sincronizar dados do sistema. Verifique sua conexão e tente novamente.',
-            )
+            if (isMounted)
+              setFetchError(
+                'Falha ao sincronizar dados do sistema. Verifique sua conexão e tente novamente.',
+              )
           }
         })
         .finally(() => {
-          setIsDataLoading(false)
+          clearTimeout(timeoutId)
+          if (isMounted) setIsDataLoading(false)
         })
 
       permsChannel = supabase
@@ -585,6 +646,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     return () => {
+      isMounted = false
       if (permsChannel) {
         supabase.removeChannel(permsChannel)
       }
@@ -599,7 +661,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!moduleName) return true
 
     const email = storeRef.current.user?.email
-    // Override for master admins
     if (email === 'master@nuvia.com.br' || email === 'drleandrolinhares@gmail.com') return true
 
     const perm = storeRef.current.userPermissions?.find(

@@ -15,10 +15,13 @@ export default function PermissionRoute({ children, module, adminOnly }: Props) 
 
   let hasAccess = true
 
-  if (adminOnly) {
-    if (user?.email !== 'drleandrolinhares@gmail.com' && user?.email !== 'master@nuvia.com.br') {
-      hasAccess = false
-    }
+  const isMaster =
+    user?.email === 'drleandrolinhares@gmail.com' || user?.email === 'master@nuvia.com.br'
+
+  if (isMaster) {
+    hasAccess = true
+  } else if (adminOnly) {
+    hasAccess = false
   } else if (module && !can(module, 'view')) {
     hasAccess = false
   }

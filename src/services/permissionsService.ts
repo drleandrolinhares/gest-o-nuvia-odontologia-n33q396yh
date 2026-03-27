@@ -100,64 +100,69 @@ export const permissionsService = {
       )
     }
 
-    // Fallback Local
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('cargo_id')
-      .eq('id', targetUserId)
-      .single()
+    // Fallback Local Seguro
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('cargo_id')
+        .eq('id', targetUserId)
+        .maybeSingle()
 
-    const cargoId = profile?.cargo_id
+      const cargoId = profile?.cargo_id
 
-    const { data: menus } = await supabase.from('menus_sistema').select('*')
+      const { data: menus } = await supabase.from('menus_sistema').select('*')
 
-    let cargoPerms: any[] = []
-    if (cargoId) {
-      const { data } = await supabase.from('permissoes_cargo').select('*').eq('cargo_id', cargoId)
-      cargoPerms = data || []
+      let cargoPerms: any[] = []
+      if (cargoId) {
+        const { data } = await supabase.from('permissoes_cargo').select('*').eq('cargo_id', cargoId)
+        cargoPerms = data || []
+      }
+
+      const { data: userPerms } = await supabase
+        .from('permissoes_usuario')
+        .select('*')
+        .eq('user_id', targetUserId)
+
+      const permissions = (menus || []).map((menu: any) => {
+        const parentMenu = menu.menu_filho
+          ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho)
+          : null
+
+        const cargoP = cargoPerms.find((p: any) => p.menu_id === menu.id)
+        const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
+
+        const parentCargoP = parentMenu
+          ? cargoPerms.find((p: any) => p.menu_id === parentMenu.id)
+          : null
+        const parentUserP = parentMenu
+          ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+          : null
+
+        const resolvePerm = (field: string) => {
+          if (userP && userP[field] !== undefined) return userP[field]
+          if (parentUserP && parentUserP[field] === true) return true
+          if (cargoP && cargoP[field] !== undefined) return cargoP[field]
+          if (parentCargoP && parentCargoP[field] === true) return true
+          return false
+        }
+
+        return {
+          menu_id: menu.id,
+          nome: menu.nome,
+          rota: menu.rota,
+          menu_pai: menu.menu_pai,
+          menu_filho: menu.menu_filho,
+          pode_ver: resolvePerm('pode_ver'),
+          pode_criar: resolvePerm('pode_criar'),
+          pode_editar: resolvePerm('pode_editar'),
+          pode_deletar: resolvePerm('pode_deletar'),
+        }
+      })
+
+      return permissions
+    } catch (fallbackErr) {
+      console.error('Erro crítico no fallback de permissões local:', fallbackErr)
+      return []
     }
-
-    const { data: userPerms } = await supabase
-      .from('permissoes_usuario')
-      .select('*')
-      .eq('user_id', targetUserId)
-
-    const permissions = (menus || []).map((menu: any) => {
-      const parentMenu = menu.menu_filho
-        ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho)
-        : null
-
-      const cargoP = cargoPerms.find((p: any) => p.menu_id === menu.id)
-      const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
-
-      const parentCargoP = parentMenu
-        ? cargoPerms.find((p: any) => p.menu_id === parentMenu.id)
-        : null
-      const parentUserP = parentMenu
-        ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id)
-        : null
-
-      const resolvePerm = (field: string) => {
-        if (userP && userP[field] !== undefined) return userP[field]
-        if (parentUserP && parentUserP[field] === true) return true
-        if (cargoP && cargoP[field] !== undefined) return cargoP[field]
-        if (parentCargoP && parentCargoP[field] === true) return true
-        return false
-      }
-
-      return {
-        menu_id: menu.id,
-        nome: menu.nome,
-        rota: menu.rota,
-        menu_pai: menu.menu_pai,
-        menu_filho: menu.menu_filho,
-        pode_ver: resolvePerm('pode_ver'),
-        pode_criar: resolvePerm('pode_criar'),
-        pode_editar: resolvePerm('pode_editar'),
-        pode_deletar: resolvePerm('pode_deletar'),
-      }
-    })
-
-    return permissions
   },
 }

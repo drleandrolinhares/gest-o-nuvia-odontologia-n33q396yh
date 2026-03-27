@@ -28,11 +28,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true
 
+    // Fallback de segurança para evitar loading infinito caso a API não responda
+    const timeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Timeout na verificação de sessão. Forçando carregamento para concluir.')
+        setLoading(false)
+      }
+    }, 5000)
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (isMounted) {
-        // Optimization: Ignore redundant system events that do not change actual session
         setSession((prevSession) => {
           if (prevSession?.access_token === newSession?.access_token) return prevSession
           return newSession
@@ -44,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         })
 
         setLoading(false)
+        clearTimeout(timeout)
       }
     })
 
@@ -57,11 +65,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setUser(session?.user ?? null)
         }
         setLoading(false)
+        clearTimeout(timeout)
       }
     })
 
     return () => {
       isMounted = false
+      clearTimeout(timeout)
       subscription.unsubscribe()
     }
   }, [])
@@ -72,7 +82,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const res = await supabase.auth.signInWithPassword({ email, password })
 
       if (res.error) {
-        // Intercepta e traduz o erro de credenciais inválidas para evitar runtime unhandled errors
         if (
           res.error.message.includes('Invalid login credentials') ||
           res.error.message.includes('invalid_credentials')

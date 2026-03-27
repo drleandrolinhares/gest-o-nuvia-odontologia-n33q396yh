@@ -102,6 +102,14 @@ export function HubProvider({ children }: { children: ReactNode }) {
   const fetchAnnouncements = useCallback(async () => {
     if (!user) return
     setIsLoading(true)
+    let isDone = false
+    const timeout = setTimeout(() => {
+      if (!isDone) {
+        console.warn('Timeout na carga do Hub.')
+        setIsLoading(false)
+      }
+    }, 8000)
+
     try {
       const [{ data: annData }, { data: readsData }, { data: fbData }, { data: readingData }] =
         await Promise.all([
@@ -125,6 +133,8 @@ export function HubProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error('Error fetching hub data:', err)
     } finally {
+      isDone = true
+      clearTimeout(timeout)
       setIsLoading(false)
     }
   }, [user])
