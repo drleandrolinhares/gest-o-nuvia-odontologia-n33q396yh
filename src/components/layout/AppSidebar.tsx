@@ -16,7 +16,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { useState, useMemo, useEffect } from 'react'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
-import { useChatStore } from '@/stores/chat'
 import useAppStore from '@/stores/main'
 import { NuviaLogo } from './NuviaLogo'
 
@@ -39,15 +38,12 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     }
   })
 
-  const { unreadCounts } = useChatStore()
   const { sacRecords, can } = useAppStore()
 
   const pendingSacsCount = useMemo(
     () => sacRecords.filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
     [sacRecords],
   )
-
-  const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
   const navigationSections = useMemo(() => {
     const sections = [
@@ -57,7 +53,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         items: [
           { name: 'SAC', href: '/sac', module: 'SAC', badge: pendingSacsCount },
           { name: 'ROTINA DIÁRIA', href: '/rotina-diaria', module: 'ROTINA DIÁRIA' },
-          { name: 'MENSAGENS', href: '/mensagens', module: 'MENSAGENS', badge: totalUnread },
           { name: 'PERFORMANCE', href: '/performance', module: 'PERFORMANCE' },
           { name: 'COMUNICADOS', href: '/comunicados', module: 'COMUNICADOS' },
           { name: 'AVISOS E RECADOS', href: '/avisos-e-recados', module: 'AVISOS E RECADOS' },
@@ -126,7 +121,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         return { ...section, items: visibleItems }
       })
       .filter((section) => section.items.length > 0 && can(section.title, 'view'))
-  }, [totalUnread, pendingSacsCount, can, user?.email])
+  }, [pendingSacsCount, can, user?.email])
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => {

@@ -11,7 +11,6 @@ import RotinaDiaria from '@/pages/RotinaDiaria'
 import Acessos from '@/pages/Acessos'
 import AcessoManual from '@/pages/AcessoManual'
 import Login from '@/pages/Login'
-import Chat from '@/pages/Chat'
 import SAC from '@/pages/SAC'
 import GestaoFiscal from '@/pages/GestaoFiscal'
 import KPIs from '@/pages/KPIs'
@@ -36,7 +35,6 @@ import EscalaTrabalho from '@/pages/EscalaTrabalho'
 
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
-import { ChatProvider } from '@/stores/chat'
 import { HubProvider } from '@/stores/hub'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -55,9 +53,7 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <HubProvider>
-                      <ChatProvider>
-                        <Layout />
-                      </ChatProvider>
+                      <Layout />
                     </HubProvider>
                   </ProtectedRoute>
                 }
@@ -96,14 +92,6 @@ export default function App() {
                   element={
                     <PermissionRoute module="ROTINA DIÁRIA">
                       <RotinaDiaria />
-                    </PermissionRoute>
-                  }
-                />
-                <Route
-                  path="mensagens"
-                  element={
-                    <PermissionRoute module="MENSAGENS">
-                      <Chat />
                     </PermissionRoute>
                   }
                 />

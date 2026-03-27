@@ -32,6 +32,9 @@ export const permissionsService = {
   },
 
   savePermissoesCargo: async (cargoId: string, permissoes: any[]) => {
+    // Abordagem mais segura: limpa as permissões antigas e insere as novas para evitar conflitos de restrição
+    await supabase.from('permissoes_cargo').delete().eq('cargo_id', cargoId)
+
     const payloads = permissoes.map((p) => ({
       cargo_id: cargoId,
       menu_id: p.menu_id,
@@ -40,11 +43,10 @@ export const permissionsService = {
       pode_deletar: p.pode_deletar,
     }))
 
-    const { error } = await supabase
-      .from('permissoes_cargo')
-      .upsert(payloads, { onConflict: 'cargo_id,menu_id' })
-
-    if (error) throw error
+    if (payloads.length > 0) {
+      const { error } = await supabase.from('permissoes_cargo').insert(payloads)
+      if (error) throw error
+    }
   },
 
   fetchPermissoesUsuario: async (userId: string) => {
@@ -57,6 +59,9 @@ export const permissionsService = {
   },
 
   savePermissoesUsuario: async (userId: string, permissoes: any[]) => {
+    // Abordagem mais segura: limpa as permissões antigas e insere as novas para evitar conflitos de restrição
+    await supabase.from('permissoes_usuario').delete().eq('user_id', userId)
+
     const payloads = permissoes.map((p) => ({
       user_id: userId,
       menu_id: p.menu_id,
@@ -65,11 +70,10 @@ export const permissionsService = {
       pode_deletar: p.pode_deletar,
     }))
 
-    const { error } = await supabase
-      .from('permissoes_usuario')
-      .upsert(payloads, { onConflict: 'user_id,menu_id' })
-
-    if (error) throw error
+    if (payloads.length > 0) {
+      const { error } = await supabase.from('permissoes_usuario').insert(payloads)
+      if (error) throw error
+    }
   },
 
   getUserPermissions: async (userId?: string) => {
@@ -81,7 +85,23 @@ export const permissionsService = {
 
     const targetUserId = userId || session.user.id
 
-    // Fetch profile to get cargo_id
+    try {
+      // Tenta consumir a Edge Function primeiro para garantir os dados mais centralizados
+      const { data, error } = await supabase.functions.invoke('get_user_permissions', {
+        body: { userId: targetUserId },
+      })
+
+      if (!error && data && data.permissions) {
+        return data.permissions
+      }
+    } catch (err) {
+      console.warn(
+        'Falha na chamada da Edge Function get_user_permissions. Utilizando fallback local.',
+        err,
+      )
+    }
+
+    // Fallback Local
     const { data: profile } = await supabase
       .from('profiles')
       .select('cargo_id')
@@ -90,23 +110,19 @@ export const permissionsService = {
 
     const cargoId = profile?.cargo_id
 
-    // Fetch menus
     const { data: menus } = await supabase.from('menus_sistema').select('*')
 
-    // Fetch cargo permissions
     let cargoPerms: any[] = []
     if (cargoId) {
       const { data } = await supabase.from('permissoes_cargo').select('*').eq('cargo_id', cargoId)
       cargoPerms = data || []
     }
 
-    // Fetch user permissions overrides
     const { data: userPerms } = await supabase
       .from('permissoes_usuario')
       .select('*')
       .eq('user_id', targetUserId)
 
-    // Combine them (user permissions override cargo permissions)
     const permissions = (menus || []).map((menu: any) => {
       const cargoP = cargoPerms.find((p: any) => p.menu_id === menu.id)
       const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
