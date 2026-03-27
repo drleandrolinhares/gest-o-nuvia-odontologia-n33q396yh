@@ -121,6 +121,9 @@ export default function UsuariosPermissoes() {
       pix_tipo: '',
       pix_numero: '',
       pix_banco: '',
+      data_admissao: '',
+      cargo_id: 'none',
+      departamento_id: 'none',
     }
   }, [profiles, user])
 
@@ -306,6 +309,8 @@ export default function UsuariosPermissoes() {
           open={profileOpen}
           onOpenChange={setProfileOpen}
           profile={myProfile}
+          cargos={cargos}
+          departamentos={departamentos}
           onSuccess={fetchData}
         />
       )}

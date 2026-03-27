@@ -9,11 +9,25 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { userService } from '@/services/userService'
 import { Loader2, UserCircle } from 'lucide-react'
 
-export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) {
+export function MyProfileModal({
+  open,
+  onOpenChange,
+  profile,
+  cargos = [],
+  departamentos = [],
+  onSuccess,
+}: any) {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
@@ -24,24 +38,30 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
     pix_tipo: '',
     pix_numero: '',
     pix_banco: '',
+    data_admissao: '',
+    cargo_id: 'none',
+    departamento_id: 'none',
   })
 
   useEffect(() => {
-    if (open && profile?.email) {
+    if (open && profile) {
       setFormData({
-        nome: profile.nome || profile.user_metadata?.name || '',
-        email: profile.email || '',
-        telefone: profile.telefone || '',
-        pix_tipo: profile.pix_tipo || '',
-        pix_numero: profile.pix_numero || '',
-        pix_banco: profile.pix_banco || '',
+        nome: profile?.nome || profile?.user_metadata?.name || '',
+        email: profile?.email || '',
+        telefone: profile?.telefone || '',
+        pix_tipo: profile?.pix_tipo || '',
+        pix_numero: profile?.pix_numero || '',
+        pix_banco: profile?.pix_banco || '',
+        data_admissao: profile?.data_admissao || '',
+        cargo_id: profile?.cargo_id || 'none',
+        departamento_id: profile?.departamento_id || 'none',
       })
     }
   }, [open, profile])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!profile?.email) return
+    if (!profile?.id) return
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     const newEmail = formData.email?.trim() || ''
@@ -58,7 +78,7 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
     setLoading(true)
 
     try {
-      const currentEmail = profile.email?.trim() || ''
+      const currentEmail = profile?.email?.trim() || ''
       let emailError = null
       let finalEmail = currentEmail
 
@@ -68,16 +88,16 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
           finalEmail = newEmail
         } catch (emailErr: any) {
           console.error('Erro ao atualizar e-mail no Auth:', emailErr)
-          if (emailErr.status === 429 || emailErr.message?.includes('Rate Limit')) {
+          if (emailErr?.status === 429 || emailErr?.message?.includes('Rate Limit')) {
             emailError =
               'Limite de tentativas excedido. Aguarde alguns instantes antes de alterar o e-mail novamente.'
           } else if (
-            emailErr.status === 400 ||
-            emailErr.message?.toLowerCase().includes('invalid')
+            emailErr?.status === 400 ||
+            emailErr?.message?.toLowerCase().includes('invalid')
           ) {
             emailError = 'O e-mail informado é considerado inválido pelo sistema.'
           } else {
-            emailError = emailErr.message || 'Erro desconhecido ao atualizar e-mail de acesso.'
+            emailError = emailErr?.message || 'Erro desconhecido ao atualizar e-mail de acesso.'
           }
         }
       }
@@ -85,10 +105,13 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
       await userService.updateProfile(profile.id, {
         nome: formData.nome,
         email: finalEmail,
-        telefone: formData.telefone,
-        pix_tipo: formData.pix_tipo,
-        pix_numero: formData.pix_numero,
-        pix_banco: formData.pix_banco,
+        telefone: formData.telefone || null,
+        pix_tipo: formData.pix_tipo || null,
+        pix_numero: formData.pix_numero || null,
+        pix_banco: formData.pix_banco || null,
+        data_admissao: formData.data_admissao || null,
+        cargo_id: formData.cargo_id !== 'none' ? formData.cargo_id : null,
+        departamento_id: formData.departamento_id !== 'none' ? formData.departamento_id : null,
       })
 
       if (emailError) {
@@ -106,7 +129,7 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
     } catch (error: any) {
       toast({
         title: 'Erro ao Salvar',
-        description: error.message || 'Ocorreu um erro ao atualizar o perfil.',
+        description: error?.message || 'Ocorreu um erro ao atualizar o perfil.',
         variant: 'destructive',
       })
     } finally {
@@ -116,7 +139,7 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md uppercase">
+      <DialogContent className="max-w-2xl uppercase">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-nuvia-navy font-black tracking-widest">
             <UserCircle className="w-5 h-5 text-primary" />
@@ -124,8 +147,8 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <div className="space-y-3">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2 md:col-span-2">
               <Label className="text-xs font-bold tracking-widest text-muted-foreground">
                 NOME DE EXIBIÇÃO
               </Label>
@@ -159,8 +182,61 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
                 className="font-bold"
               />
             </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold tracking-widest text-muted-foreground">
+                DATA DE ADMISSÃO
+              </Label>
+              <Input
+                type="date"
+                value={formData.data_admissao}
+                onChange={(e) => setFormData({ ...formData, data_admissao: e.target.value })}
+                className="font-bold uppercase"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold tracking-widest text-muted-foreground">
+                CARGO
+              </Label>
+              <Select
+                value={formData.cargo_id}
+                onValueChange={(v) => setFormData({ ...formData, cargo_id: v })}
+              >
+                <SelectTrigger className="font-bold">
+                  <SelectValue placeholder="SELECIONE..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">NENHUM</SelectItem>
+                  {(cargos || []).map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold tracking-widest text-muted-foreground">
+                DEPARTAMENTO
+              </Label>
+              <Select
+                value={formData.departamento_id}
+                onValueChange={(v) => setFormData({ ...formData, departamento_id: v })}
+              >
+                <SelectTrigger className="font-bold">
+                  <SelectValue placeholder="SELECIONE..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">NENHUM</SelectItem>
+                  {(departamentos || []).map((d: any) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <div className="space-y-3 mt-4">
+            <div className="space-y-3 md:col-span-2 mt-4">
               <h4 className="font-black text-xs tracking-widest border-b pb-1 text-slate-500">
                 DADOS BANCÁRIOS (PIX)
               </h4>
