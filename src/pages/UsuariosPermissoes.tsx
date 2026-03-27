@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, UserCircle, Edit, Trash2, Search, Users, ShieldAlert } from 'lucide-react'
+import { Plus, UserCircle, Edit, Trash2, Search, Users, ShieldAlert, FileText } from 'lucide-react'
 import { userService } from '@/services/userService'
 import { useAuth } from '@/hooks/use-auth'
 import {
@@ -17,6 +17,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { UserFormModal } from '@/components/usuarios/UserFormModal'
 import { MyProfileModal } from '@/components/usuarios/MyProfileModal'
+import { ValidationReportModal } from '@/components/usuarios/ValidationReportModal'
 import { useToast } from '@/components/ui/use-toast'
 import useAppStore from '@/stores/main'
 import { Input } from '@/components/ui/input'
@@ -44,6 +45,7 @@ export default function UsuariosPermissoes() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<any>(null)
 
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -129,7 +131,7 @@ export default function UsuariosPermissoes() {
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy flex items-center gap-3">
             <Users className="h-8 w-8 text-primary" /> USUÁRIOS E PERMISSÕES
@@ -138,7 +140,7 @@ export default function UsuariosPermissoes() {
             GERENCIE OS COLABORADORES, CARGOS E NÍVEIS DE ACESSO AO SISTEMA.
           </p>
         </div>
-        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-3 w-full xl:w-auto">
           <Button
             variant="outline"
             className="border-primary/50 text-primary hover:bg-primary/10 shadow-sm font-bold tracking-widest"
@@ -148,15 +150,24 @@ export default function UsuariosPermissoes() {
             <UserCircle className="h-4 w-4 mr-2" /> MEU PERFIL
           </Button>
           {isAdmin && (
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md font-bold tracking-widest"
-              onClick={() => {
-                setSelectedUser(null)
-                setFormOpen(true)
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" /> ADICIONAR USUÁRIO
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                className="border-emerald-500/50 text-emerald-600 hover:bg-emerald-50 shadow-sm font-bold tracking-widest"
+                onClick={() => setReportOpen(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" /> RELATÓRIO VALIDAÇÃO
+              </Button>
+              <Button
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md font-bold tracking-widest"
+                onClick={() => {
+                  setSelectedUser(null)
+                  setFormOpen(true)
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" /> ADICIONAR USUÁRIO
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -303,6 +314,8 @@ export default function UsuariosPermissoes() {
         departamentos={departamentos}
         onSuccess={fetchData}
       />
+
+      <ValidationReportModal open={reportOpen} onOpenChange={setReportOpen} />
 
       {myProfile && (
         <MyProfileModal

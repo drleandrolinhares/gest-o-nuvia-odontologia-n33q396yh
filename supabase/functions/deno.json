@@ -4,7 +4,7 @@
     "admin-create-user": 7,
     "admin-delete-user": 1,
     "restore-admin-permissions": 2,
-    "get_user_permissions": 12,
+    "get_user_permissions": 13,
     "admin-update-user": 1,
     "admin-reset-password": 2
   }
