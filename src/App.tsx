@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/components/Layout'
 import Index from '@/pages/Index'
 import Inventory from '@/pages/Inventory'
@@ -7,7 +7,7 @@ import Negotiation from '@/pages/Negotiation'
 import AgendaSegmentation from '@/pages/AgendaSegmentation'
 import Settings from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
-import Agenda from '@/pages/Agenda'
+import RotinaDiaria from '@/pages/RotinaDiaria'
 import Acessos from '@/pages/Acessos'
 import AcessoManual from '@/pages/AcessoManual'
 import Login from '@/pages/Login'
@@ -67,6 +67,17 @@ export default function App() {
                   }
                 />
 
+                {/* REDIRECTS DE ROTAS ANTIGAS */}
+                <Route path="agenda" element={<Navigate to="/avisos-e-recados" replace />} />
+                <Route path="mural-de-avisos" element={<Navigate to="/comunicados" replace />} />
+                <Route
+                  path="desenvolvimento-e-performance"
+                  element={<Navigate to="/performance" replace />}
+                />
+                <Route path="ranking-performan" element={<Navigate to="/performance" replace />} />
+                <Route path="auditoria-de-rotas" element={<Navigate to="/logs" replace />} />
+                <Route path="pp-pdm" element={<Navigate to="/performance" replace />} />
+
                 {/* OPERACIONAL */}
                 <Route
                   path="sac"
@@ -80,7 +91,7 @@ export default function App() {
                   path="rotina-diaria"
                   element={
                     <PermissionRoute module="AGENDA">
-                      <Agenda />
+                      <RotinaDiaria />
                     </PermissionRoute>
                   }
                 />
