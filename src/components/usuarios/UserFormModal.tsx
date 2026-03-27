@@ -18,17 +18,18 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { userService } from '@/services/userService'
-import { Loader2, UserPlus, Pencil, KeyRound } from 'lucide-react'
+import { Loader2, UserPlus, Pencil } from 'lucide-react'
 
 export function UserFormModal({ open, onOpenChange, user, cargos, departamentos, onSuccess }: any) {
   const [loading, setLoading] = useState(false)
-  const [resettingPassword, setResettingPassword] = useState(false)
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
     password: '',
+    newPassword: '',
+    confirmPassword: '',
     cpf: '',
     telefone: '',
     data_nascimento: '',
@@ -47,6 +48,8 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
           nome: user?.nome || '',
           email: user?.email || '',
           password: '',
+          newPassword: '',
+          confirmPassword: '',
           cpf: user?.cpf || '',
           telefone: user?.telefone || '',
           data_nascimento: user?.data_nascimento || '',
@@ -62,6 +65,8 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
           nome: '',
           email: '',
           password: '',
+          newPassword: '',
+          confirmPassword: '',
           cpf: '',
           telefone: '',
           data_nascimento: '',
@@ -76,29 +81,6 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
     }
   }, [open, user])
 
-  const handleResetPassword = async () => {
-    // Garante que usa o email atual do usuário (já salvo) e não o digitado que ainda não foi salvo
-    const emailToReset = user?.email || formData.email
-    if (!emailToReset) return
-
-    setResettingPassword(true)
-    try {
-      await userService.resetPassword(emailToReset)
-      toast({
-        title: 'Sucesso',
-        description: `E-mail de reset enviado com sucesso para ${emailToReset}.`,
-      })
-    } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao enviar e-mail de reset.',
-        variant: 'destructive',
-      })
-    } finally {
-      setResettingPassword(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -110,6 +92,25 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
         variant: 'destructive',
       })
       return
+    }
+
+    if (user && formData.newPassword) {
+      if (formData.newPassword !== formData.confirmPassword) {
+        toast({
+          title: 'Erro de Validação',
+          description: 'As senhas não coincidem.',
+          variant: 'destructive',
+        })
+        return
+      }
+      if (formData.newPassword.length < 6) {
+        toast({
+          title: 'Erro de Validação',
+          description: 'A senha deve ter pelo menos 6 caracteres.',
+          variant: 'destructive',
+        })
+        return
+      }
     }
 
     setLoading(true)
@@ -126,6 +127,9 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
       } else {
         if (finalEmail !== user.email) {
           await userService.updateUserAuth(user.id, finalEmail)
+        }
+        if (formData.newPassword) {
+          await userService.updateUserPassword(user.id, formData.newPassword)
         }
       }
 
@@ -200,23 +204,6 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
                 className="font-bold lowercase"
                 disableUppercase
               />
-              {user && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResetPassword}
-                  disabled={resettingPassword}
-                  className="w-full mt-2 text-xs font-bold tracking-widest"
-                >
-                  {resettingPassword ? (
-                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                  ) : (
-                    <KeyRound className="w-3 h-3 mr-2" />
-                  )}
-                  REDEFINIR SENHA
-                </Button>
-              )}
             </div>
             {!user && (
               <div className="space-y-2">
@@ -232,6 +219,34 @@ export function UserFormModal({ open, onOpenChange, user, cargos, departamentos,
                   disableUppercase
                 />
               </div>
+            )}
+            {user && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold tracking-widest text-muted-foreground">
+                    NOVA SENHA
+                  </Label>
+                  <Input
+                    type="password"
+                    value={formData.newPassword}
+                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                    className="font-bold normal-case"
+                    disableUppercase
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold tracking-widest text-muted-foreground">
+                    CONFIRMAR SENHA
+                  </Label>
+                  <Input
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className="font-bold normal-case"
+                    disableUppercase
+                  />
+                </div>
+              </>
             )}
             <div className="space-y-2">
               <Label className="text-xs font-bold tracking-widest text-muted-foreground">CPF</Label>

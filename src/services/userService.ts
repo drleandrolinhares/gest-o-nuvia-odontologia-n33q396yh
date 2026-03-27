@@ -129,6 +129,33 @@ export const userService = {
     }
     return true
   },
+  updateUserPassword: async (userId: string, password: string) => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-user-password`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ userId, password }),
+      },
+    )
+    const text = await res.text()
+    let result
+    try {
+      result = JSON.parse(text)
+    } catch {
+      throw new Error('Erro ao atualizar a senha do usuário')
+    }
+    if (!res.ok || result.error) {
+      throw new Error(result.error || 'Erro ao atualizar a senha do usuário')
+    }
+    return true
+  },
   updateMyEmail: async (email: string) => {
     const { error } = await supabase.auth.updateUser({ email })
     if (error) {
