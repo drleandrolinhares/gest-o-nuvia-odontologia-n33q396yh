@@ -9,7 +9,7 @@ type Props = {
 }
 
 export default function PermissionRoute({ children, module, adminOnly }: Props) {
-  const { can } = useAppStore()
+  const { can, isDataLoading, userPermissions } = useAppStore()
   const { user } = useAuth()
   const location = useLocation()
 
@@ -17,6 +17,18 @@ export default function PermissionRoute({ children, module, adminOnly }: Props) 
 
   const isMaster =
     user?.email === 'drleandrolinhares@gmail.com' || user?.email === 'master@nuvia.com.br'
+
+  // Aguardar resposta de permissões antes de avaliar e liberar a tela
+  if (isDataLoading && !isMaster && userPermissions.length === 0) {
+    return (
+      <div className="flex h-full min-h-[50vh] w-full flex-col items-center justify-center gap-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <p className="text-sm font-medium text-slate-500 animate-pulse">
+          Validando acessos seguros...
+        </p>
+      </div>
+    )
+  }
 
   if (isMaster) {
     hasAccess = true

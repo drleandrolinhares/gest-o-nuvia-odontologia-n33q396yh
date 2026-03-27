@@ -46,7 +46,7 @@ export const permissionsService = {
     const payloads = permissoes.map((p) => ({
       cargo_id: cargoId,
       menu_id: p.menu_id,
-      pode_ver: p.pode_ver,
+      pode_ver: p.pode_ver !== undefined ? p.pode_ver : p.pode_visualizar,
       pode_criar: p.pode_criar || false,
       pode_editar: p.pode_editar,
       pode_deletar: p.pode_deletar,
@@ -74,7 +74,7 @@ export const permissionsService = {
     const payloads = permissoes.map((p) => ({
       user_id: userId,
       menu_id: p.menu_id,
-      pode_ver: p.pode_ver,
+      pode_ver: p.pode_ver !== undefined ? p.pode_ver : p.pode_visualizar,
       pode_criar: p.pode_criar || false,
       pode_editar: p.pode_editar,
       pode_deletar: p.pode_deletar,
@@ -98,7 +98,6 @@ export const permissionsService = {
 
     const targetUserId = userId || session.user.id
 
-    // Cache local imediato para evitar chamadas múltiplas
     const cached = permissionsCache[targetUserId]
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       return cached.data
@@ -120,7 +119,6 @@ export const permissionsService = {
       )
     }
 
-    // Fallback Local Seguro
     try {
       const { data: profile } = await supabase
         .from('profiles')
@@ -166,13 +164,16 @@ export const permissionsService = {
           return false
         }
 
+        const podeVer = resolvePerm('pode_ver')
+
         return {
           menu_id: menu.id,
           nome: menu.nome,
           rota: menu.rota,
           menu_pai: menu.menu_pai,
           menu_filho: menu.menu_filho,
-          pode_ver: resolvePerm('pode_ver'),
+          pode_ver: podeVer,
+          pode_visualizar: podeVer, // Mantendo a padronização do formato com a Edge Function
           pode_criar: resolvePerm('pode_criar'),
           pode_editar: resolvePerm('pode_editar'),
           pode_deletar: resolvePerm('pode_deletar'),

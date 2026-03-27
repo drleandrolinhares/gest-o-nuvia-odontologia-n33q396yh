@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -20,18 +20,28 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('Missing Authorization header')
-    
+
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       throw new Error('Unauthorized')
     }
 
-    const { userId } = await req.json()
-    const targetUserId = userId || user.id
+    let targetUserId = user.id
+    try {
+      const body = await req.json()
+      if (body && body.userId) {
+        targetUserId = body.userId
+      }
+    } catch (e) {
+      // Ignorar caso o body esteja vazio
+    }
 
-    // Fetch profile to get cargo_id
+    // Buscar perfil para obter cargo_id garantindo que consultamos a tabela vinculada ao auth.users
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('cargo_id')
@@ -44,14 +54,14 @@ Deno.serve(async (req: Request) => {
 
     const cargoId = profile?.cargo_id
 
-    // Fetch menus with hierarchy columns
+    // Buscar menus do sistema com suporte a hierarquia
     const { data: menus, error: menusError } = await supabaseAdmin
       .from('menus_sistema')
       .select('id, nome, rota, menu_pai, menu_filho')
 
     if (menusError) throw menusError
 
-    // Fetch cargo permissions
+    // Buscar permissões atreladas ao cargo do usuário
     let cargoPerms: any[] = []
     if (cargoId) {
       const { data, error } = await supabaseAdmin
@@ -62,7 +72,7 @@ Deno.serve(async (req: Request) => {
       cargoPerms = data || []
     }
 
-    // Fetch user permissions overrides
+    // Buscar permissões específicas sobrescritas para o usuário
     const { data: userPerms, error: userPermsError } = await supabaseAdmin
       .from('permissoes_usuario')
       .select('menu_id, pode_ver, pode_criar, pode_editar, pode_deletar')
@@ -70,28 +80,36 @@ Deno.serve(async (req: Request) => {
 
     if (userPermsError) throw userPermsError
 
-    // Combine them with hierarchy resolution
+    // Combinar regras de permissão garantindo o formato correto de visualização
     const permissions = (menus || []).map((menu: any) => {
-      const parentMenu = menu.menu_filho ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho) : null;
+      const parentMenu = menu.menu_filho
+        ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho)
+        : null
 
-      const cargoP = (cargoPerms || []).find((p: any) => p.menu_id === menu.id);
-      const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id);
+      const cargoP = (cargoPerms || []).find((p: any) => p.menu_id === menu.id)
+      const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
 
-      const parentCargoP = parentMenu ? (cargoPerms || []).find((p: any) => p.menu_id === parentMenu.id) : null;
-      const parentUserP = parentMenu ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id) : null;
+      const parentCargoP = parentMenu
+        ? (cargoPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+        : null
+      const parentUserP = parentMenu
+        ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+        : null
 
       const resolvePerm = (field: string) => {
-        // 1. Explicit User Override for child
-        if (userP && userP[field] !== undefined) return userP[field];
-        // 2. User Override for parent (if parent has true, we inherit it)
-        if (parentUserP && parentUserP[field] === true) return true;
-        // 3. Explicit Cargo for child
-        if (cargoP && cargoP[field] !== undefined) return cargoP[field];
-        // 4. Cargo for parent (if parent has true, we inherit it)
-        if (parentCargoP && parentCargoP[field] === true) return true;
-        
-        return false;
+        // 1. Prioridade: Sobrescrita de usuário (Filho)
+        if (userP && userP[field] !== undefined) return userP[field]
+        // 2. Prioridade: Sobrescrita de usuário (Pai) - herda true
+        if (parentUserP && parentUserP[field] === true) return true
+        // 3. Prioridade: Permissão do Cargo (Filho)
+        if (cargoP && cargoP[field] !== undefined) return cargoP[field]
+        // 4. Prioridade: Permissão do Cargo (Pai) - herda true
+        if (parentCargoP && parentCargoP[field] === true) return true
+
+        return false
       }
+
+      const podeVer = resolvePerm('pode_ver')
 
       return {
         menu_id: menu.id,
@@ -99,7 +117,8 @@ Deno.serve(async (req: Request) => {
         rota: menu.rota,
         menu_pai: menu.menu_pai,
         menu_filho: menu.menu_filho,
-        pode_ver: resolvePerm('pode_ver'),
+        pode_ver: podeVer, // Retrocompatibilidade
+        pode_visualizar: podeVer, // Novo formato de resposta explícito
         pode_criar: resolvePerm('pode_criar'),
         pode_editar: resolvePerm('pode_editar'),
         pode_deletar: resolvePerm('pode_deletar'),

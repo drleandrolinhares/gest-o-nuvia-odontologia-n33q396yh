@@ -486,7 +486,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const fetchPermissions = useCallback(() => {
     return new Promise<void>((resolve) => {
-      // Move a validação de permissões para APÓS o carregamento da página com delay 0 (non-blocking)
       setTimeout(async () => {
         if (!user) {
           resolve()
@@ -685,7 +684,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (!perm) return false
 
-    if (action === 'view' || action === 'pode_ver') return perm.pode_ver
+    // Atualizado para considerar a normalização de nomenclatura entre frontend e edge function
+    if (action === 'view' || action === 'pode_ver' || action === 'pode_visualizar') {
+      return perm.pode_visualizar ?? perm.pode_ver
+    }
     if (action === 'create' || action === 'pode_criar') return perm.pode_criar
     if (action === 'edit' || action === 'pode_editar') return perm.pode_editar
     if (action === 'delete' || action === 'pode_deletar') return perm.pode_deletar
