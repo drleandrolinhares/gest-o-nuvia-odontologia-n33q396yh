@@ -1,11 +1,17 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.4'
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -132,11 +138,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'agenda_sac_record_id_fkey'
-            columns: ['sac_record_id']
+            foreignKeyName: "agenda_sac_record_id_fkey"
+            columns: ["sac_record_id"]
             isOneToOne: false
-            referencedRelation: 'sac_records'
-            referencedColumns: ['id']
+            referencedRelation: "sac_records"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -170,18 +176,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'agenda_segmentation_consultorio_id_fkey'
-            columns: ['consultorio_id']
+            foreignKeyName: "agenda_segmentation_consultorio_id_fkey"
+            columns: ["consultorio_id"]
             isOneToOne: false
-            referencedRelation: 'clinica_consultorios'
-            referencedColumns: ['id']
+            referencedRelation: "clinica_consultorios"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'agenda_segmentation_specialty_id_fkey'
-            columns: ['specialty_id']
+            foreignKeyName: "agenda_segmentation_specialty_id_fkey"
+            columns: ["specialty_id"]
             isOneToOne: false
-            referencedRelation: 'specialty_configs'
-            referencedColumns: ['id']
+            referencedRelation: "specialty_configs"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -266,6 +272,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cargos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       cash_box_closings: {
         Row: {
           closed_by_id: string
@@ -320,11 +347,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'chat_messages_room_id_fkey'
-            columns: ['room_id']
+            foreignKeyName: "chat_messages_room_id_fkey"
+            columns: ["room_id"]
             isOneToOne: false
-            referencedRelation: 'chat_rooms'
-            referencedColumns: ['id']
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -352,11 +379,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'chat_participants_room_id_fkey'
-            columns: ['room_id']
+            foreignKeyName: "chat_participants_room_id_fkey"
+            columns: ["room_id"]
             isOneToOne: false
-            referencedRelation: 'chat_rooms'
-            referencedColumns: ['id']
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -411,11 +438,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'checklist_modelos_sector_id_fkey'
-            columns: ['sector_id']
+            foreignKeyName: "checklist_modelos_sector_id_fkey"
+            columns: ["sector_id"]
             isOneToOne: false
-            referencedRelation: 'sectors'
-            referencedColumns: ['id']
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -446,6 +473,24 @@ export type Database = {
           morning_end?: string | null
           morning_start?: string | null
           name?: string
+        }
+        Relationships: []
+      }
+      departamentos: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
         }
         Relationships: []
       }
@@ -518,11 +563,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fiscal_boleto_entries_company_id_fkey'
-            columns: ['company_id']
+            foreignKeyName: "fiscal_boleto_entries_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: 'fiscal_companies'
-            referencedColumns: ['id']
+            referencedRelation: "fiscal_companies"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -580,11 +625,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fiscal_limit_configs_company_id_fkey'
-            columns: ['company_id']
+            foreignKeyName: "fiscal_limit_configs_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: 'fiscal_companies'
-            referencedColumns: ['id']
+            referencedRelation: "fiscal_companies"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -621,11 +666,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fiscal_sales_entries_company_id_fkey'
-            columns: ['company_id']
+            foreignKeyName: "fiscal_sales_entries_company_id_fkey"
+            columns: ["company_id"]
             isOneToOne: false
-            referencedRelation: 'fiscal_companies'
-            referencedColumns: ['id']
+            referencedRelation: "fiscal_companies"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -653,11 +698,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'hub_announcement_reads_announcement_id_fkey'
-            columns: ['announcement_id']
+            foreignKeyName: "hub_announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
             isOneToOne: false
-            referencedRelation: 'hub_announcements'
-            referencedColumns: ['id']
+            referencedRelation: "hub_announcements"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -868,11 +913,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'inventory_movements_inventory_id_fkey'
-            columns: ['inventory_id']
+            foreignKeyName: "inventory_movements_inventory_id_fkey"
+            columns: ["inventory_id"]
             isOneToOne: false
-            referencedRelation: 'inventory'
-            referencedColumns: ['id']
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -927,11 +972,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'inventory_temporary_outflows_inventory_id_fkey'
-            columns: ['inventory_id']
+            foreignKeyName: "inventory_temporary_outflows_inventory_id_fkey"
+            columns: ["inventory_id"]
             isOneToOne: false
-            referencedRelation: 'inventory'
-            referencedColumns: ['id']
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1022,6 +1067,33 @@ export type Database = {
         }
         Relationships: []
       }
+      menus_sistema: {
+        Row: {
+          created_at: string
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number | null
+          rota: string | null
+        }
+        Insert: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          rota?: string | null
+        }
+        Update: {
+          created_at?: string
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          rota?: string | null
+        }
+        Relationships: []
+      }
       monthly_readings: {
         Row: {
           created_at: string
@@ -1087,6 +1159,89 @@ export type Database = {
           tasks?: Json | null
         }
         Relationships: []
+      }
+      permissoes_cargo: {
+        Row: {
+          cargo_id: string
+          created_at: string
+          id: string
+          menu_id: string
+          pode_deletar: boolean
+          pode_editar: boolean
+          pode_ver: boolean
+        }
+        Insert: {
+          cargo_id: string
+          created_at?: string
+          id?: string
+          menu_id: string
+          pode_deletar?: boolean
+          pode_editar?: boolean
+          pode_ver?: boolean
+        }
+        Update: {
+          cargo_id?: string
+          created_at?: string
+          id?: string
+          menu_id?: string
+          pode_deletar?: boolean
+          pode_editar?: boolean
+          pode_ver?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permissoes_cargo_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permissoes_cargo_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus_sistema"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permissoes_usuario: {
+        Row: {
+          created_at: string
+          id: string
+          menu_id: string
+          pode_deletar: boolean
+          pode_editar: boolean
+          pode_ver: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_id: string
+          pode_deletar?: boolean
+          pode_editar?: boolean
+          pode_ver?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_id?: string
+          pode_deletar?: boolean
+          pode_editar?: boolean
+          pode_ver?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permissoes_usuario_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus_sistema"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       price_list: {
         Row: {
@@ -1154,11 +1309,77 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'price_stages_price_list_id_fkey'
-            columns: ['price_list_id']
+            foreignKeyName: "price_stages_price_list_id_fkey"
+            columns: ["price_list_id"]
             isOneToOne: false
-            referencedRelation: 'price_list'
-            referencedColumns: ['id']
+            referencedRelation: "price_list"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          cargo_id: string | null
+          cpf: string | null
+          created_at: string
+          data_admissao: string | null
+          data_nascimento: string | null
+          departamento_id: string | null
+          email: string
+          id: string
+          nome: string | null
+          pix_banco: string | null
+          pix_numero: string | null
+          pix_tipo: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo_id?: string | null
+          cpf?: string | null
+          created_at?: string
+          data_admissao?: string | null
+          data_nascimento?: string | null
+          departamento_id?: string | null
+          email: string
+          id: string
+          nome?: string | null
+          pix_banco?: string | null
+          pix_numero?: string | null
+          pix_tipo?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo_id?: string | null
+          cpf?: string | null
+          created_at?: string
+          data_admissao?: string | null
+          data_nascimento?: string | null
+          departamento_id?: string | null
+          email?: string
+          id?: string
+          nome?: string | null
+          pix_banco?: string | null
+          pix_numero?: string | null
+          pix_tipo?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "departamentos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1183,18 +1404,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'role_permissions_action_id_fkey'
-            columns: ['action_id']
+            foreignKeyName: "role_permissions_action_id_fkey"
+            columns: ["action_id"]
             isOneToOne: false
-            referencedRelation: 'sys_actions'
-            referencedColumns: ['id']
+            referencedRelation: "sys_actions"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'role_permissions_role_id_fkey'
-            columns: ['role_id']
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
             isOneToOne: false
-            referencedRelation: 'roles'
-            referencedColumns: ['id']
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1426,11 +1647,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'user_roles_role_id_fkey'
-            columns: ['role_id']
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
             isOneToOne: false
-            referencedRelation: 'roles'
-            referencedColumns: ['id']
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1520,31 +1741,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1553,23 +1776,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1578,23 +1801,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1603,36 +1826,36 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
@@ -1640,6 +1863,7 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -1717,6 +1941,11 @@ export const Constants = {
 //   id: uuid (not null, default: gen_random_uuid())
 //   name: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: cargos
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   descricao: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: cash_box_closings
 //   id: uuid (not null, default: gen_random_uuid())
 //   closing_date: date (not null)
@@ -1757,6 +1986,10 @@ export const Constants = {
 //   morning_end: time without time zone (nullable)
 //   afternoon_start: time without time zone (nullable)
 //   afternoon_end: time without time zone (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: departamentos
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
 // Table: departments
 //   id: uuid (not null, default: gen_random_uuid())
@@ -1899,6 +2132,13 @@ export const Constants = {
 //   link: text (not null)
 //   authorized_sectors: _text (nullable, default: '{}'::text[])
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: menus_sistema
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   rota: text (nullable)
+//   icone: text (nullable)
+//   ordem: integer (nullable, default: 0)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: monthly_readings
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -1916,6 +2156,22 @@ export const Constants = {
 //   role: text (not null)
 //   department: text (not null)
 //   tasks: jsonb (nullable, default: '[]'::jsonb)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: permissoes_cargo
+//   id: uuid (not null, default: gen_random_uuid())
+//   cargo_id: uuid (not null)
+//   menu_id: uuid (not null)
+//   pode_ver: boolean (not null, default: false)
+//   pode_editar: boolean (not null, default: false)
+//   pode_deletar: boolean (not null, default: false)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: permissoes_usuario
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   menu_id: uuid (not null)
+//   pode_ver: boolean (not null, default: false)
+//   pode_editar: boolean (not null, default: false)
+//   pode_deletar: boolean (not null, default: false)
 //   created_at: timestamp with time zone (not null, default: now())
 // Table: price_list
 //   id: uuid (not null, default: gen_random_uuid())
@@ -1935,6 +2191,21 @@ export const Constants = {
 //   name: text (not null)
 //   percentage: numeric (nullable, default: 0)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: profiles
+//   id: uuid (not null)
+//   email: text (not null)
+//   nome: text (nullable)
+//   cargo_id: uuid (nullable)
+//   departamento_id: uuid (nullable)
+//   cpf: text (nullable)
+//   telefone: text (nullable)
+//   data_nascimento: date (nullable)
+//   pix_tipo: text (nullable)
+//   pix_numero: text (nullable)
+//   pix_banco: text (nullable)
+//   data_admissao: date (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   updated_at: timestamp with time zone (not null, default: now())
 // Table: role_permissions
 //   id: uuid (not null, default: gen_random_uuid())
 //   role_id: uuid (not null)
@@ -2035,6 +2306,9 @@ export const Constants = {
 //   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 // Table: bonus_settings
 //   PRIMARY KEY bonus_settings_pkey: PRIMARY KEY (id)
+// Table: cargos
+//   UNIQUE cargos_nome_key: UNIQUE (nome)
+//   PRIMARY KEY cargos_pkey: PRIMARY KEY (id)
 // Table: cash_box_closings
 //   PRIMARY KEY cash_box_closings_pkey: PRIMARY KEY (id)
 //   CHECK cash_box_closings_status_check: CHECK ((status = ANY (ARRAY['PENDENTE'::text, 'CONFERIDO'::text])))
@@ -2055,6 +2329,9 @@ export const Constants = {
 //   FOREIGN KEY checklist_modelos_sector_id_fkey: FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL
 // Table: clinica_consultorios
 //   PRIMARY KEY clinica_consultorios_pkey: PRIMARY KEY (id)
+// Table: departamentos
+//   UNIQUE departamentos_nome_key: UNIQUE (nome)
+//   PRIMARY KEY departamentos_pkey: PRIMARY KEY (id)
 // Table: departments
 //   UNIQUE departments_name_key: UNIQUE (name)
 //   PRIMARY KEY departments_pkey: PRIMARY KEY (id)
@@ -2106,17 +2383,36 @@ export const Constants = {
 //   PRIMARY KEY kpis_pkey: PRIMARY KEY (id)
 // Table: menu_configurations
 //   PRIMARY KEY menu_configurations_pkey: PRIMARY KEY (id)
+// Table: menus_sistema
+//   UNIQUE menus_sistema_nome_key: UNIQUE (nome)
+//   PRIMARY KEY menus_sistema_pkey: PRIMARY KEY (id)
 // Table: monthly_readings
 //   PRIMARY KEY monthly_readings_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY monthly_readings_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE monthly_readings_user_month_key: UNIQUE (user_id, reference_month)
 // Table: onboarding
 //   PRIMARY KEY onboarding_pkey: PRIMARY KEY (id)
+// Table: permissoes_cargo
+//   FOREIGN KEY permissoes_cargo_cargo_id_fkey: FOREIGN KEY (cargo_id) REFERENCES cargos(id) ON DELETE CASCADE
+//   UNIQUE permissoes_cargo_cargo_menu_key: UNIQUE (cargo_id, menu_id)
+//   FOREIGN KEY permissoes_cargo_menu_id_fkey: FOREIGN KEY (menu_id) REFERENCES menus_sistema(id) ON DELETE CASCADE
+//   PRIMARY KEY permissoes_cargo_pkey: PRIMARY KEY (id)
+// Table: permissoes_usuario
+//   FOREIGN KEY permissoes_usuario_menu_id_fkey: FOREIGN KEY (menu_id) REFERENCES menus_sistema(id) ON DELETE CASCADE
+//   PRIMARY KEY permissoes_usuario_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY permissoes_usuario_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   UNIQUE permissoes_usuario_user_menu_key: UNIQUE (user_id, menu_id)
 // Table: price_list
 //   PRIMARY KEY price_list_pkey: PRIMARY KEY (id)
 // Table: price_stages
 //   PRIMARY KEY price_stages_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY price_stages_price_list_id_fkey: FOREIGN KEY (price_list_id) REFERENCES price_list(id) ON DELETE CASCADE
+// Table: profiles
+//   FOREIGN KEY profiles_cargo_id_fkey: FOREIGN KEY (cargo_id) REFERENCES cargos(id) ON DELETE SET NULL
+//   UNIQUE profiles_cpf_key: UNIQUE (cpf)
+//   FOREIGN KEY profiles_departamento_id_fkey: FOREIGN KEY (departamento_id) REFERENCES departamentos(id) ON DELETE SET NULL
+//   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
 // Table: role_permissions
 //   FOREIGN KEY role_permissions_action_id_fkey: FOREIGN KEY (action_id) REFERENCES sys_actions(id) ON DELETE CASCADE
 //   PRIMARY KEY role_permissions_pkey: PRIMARY KEY (id)
@@ -2177,6 +2473,10 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+// Table: cargos
+//   Policy "Allow all authenticated users on cargos" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: cash_box_closings
 //   Policy "Allow all authenticated users on cash_box_closings" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2213,6 +2513,10 @@ export const Constants = {
 //     USING: true
 //   Policy "clinica_consultorios_update" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+// Table: departamentos
+//   Policy "Allow all authenticated users on departamentos" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: departments
 //   Policy "Allow all authenticated users on departments" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2306,6 +2610,10 @@ export const Constants = {
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+// Table: menus_sistema
+//   Policy "Allow all authenticated users on menus_sistema" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: monthly_readings
 //   Policy "Users can insert their own monthly_readings" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: (user_id = auth.uid())
@@ -2313,6 +2621,14 @@ export const Constants = {
 //     USING: ((user_id = auth.uid()) OR is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
 // Table: onboarding
 //   Policy "Allow all authenticated users" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: permissoes_cargo
+//   Policy "Allow all authenticated users on permissoes_cargo" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: permissoes_usuario
+//   Policy "Allow all authenticated users on permissoes_usuario" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: price_list
@@ -2333,6 +2649,10 @@ export const Constants = {
 //     USING: true
 //   Policy "price_stages_update" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin_user(auth.uid()) OR is_master_user(auth.uid()))
+// Table: profiles
+//   Policy "Allow all authenticated users on profiles" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: role_permissions
 //   Policy "Allow all authenticated users on role_permissions" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2396,7 +2716,7 @@ export const Constants = {
 //       RETURN OLD;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION audit_fiscal_sales_deletions()
 //   CREATE OR REPLACE FUNCTION public.audit_fiscal_sales_deletions()
 //    RETURNS trigger
@@ -2409,7 +2729,7 @@ export const Constants = {
 //       RETURN OLD;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION fix_auth_user_tokens(uuid)
 //   CREATE OR REPLACE FUNCTION public.fix_auth_user_tokens(user_id uuid)
 //    RETURNS void
@@ -2429,7 +2749,7 @@ export const Constants = {
 //       phone = NULLIF(phone, '')
 //     WHERE id = user_id;
 //   $function$
-//
+//   
 // FUNCTION get_auth_user_rooms()
 //   CREATE OR REPLACE FUNCTION public.get_auth_user_rooms()
 //    RETURNS SETOF uuid
@@ -2439,7 +2759,7 @@ export const Constants = {
 //   AS $function$
 //     SELECT room_id FROM public.chat_participants WHERE user_id = auth.uid();
 //   $function$
-//
+//   
 // FUNCTION get_or_create_individual_room(uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public.get_or_create_individual_room(user1 uuid, user2 uuid)
 //    RETURNS uuid
@@ -2455,7 +2775,7 @@ export const Constants = {
 //     JOIN public.chat_participants p2 ON p2.room_id = r.id AND p2.user_id = user2
 //     WHERE r.type = 'individual'
 //     LIMIT 1;
-//
+//   
 //     IF v_room_id IS NULL THEN
 //       INSERT INTO public.chat_rooms (type) VALUES ('individual') RETURNING id INTO v_room_id;
 //       INSERT INTO public.chat_participants (room_id, user_id) VALUES (v_room_id, user1), (v_room_id, user2);
@@ -2463,7 +2783,7 @@ export const Constants = {
 //     RETURN v_room_id;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION get_unread_counts(uuid)
 //   CREATE OR REPLACE FUNCTION public.get_unread_counts(user_id_param uuid)
 //    RETURNS TABLE(room_id uuid, unread_count bigint)
@@ -2480,7 +2800,21 @@ export const Constants = {
 //       AND m.created_at > COALESCE(cp.last_read_at, '1970-01-01'::timestamptz)
 //     GROUP BY cp.room_id;
 //   $function$
-//
+//   
+// FUNCTION handle_new_user()
+//   CREATE OR REPLACE FUNCTION public.handle_new_user()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     INSERT INTO public.profiles (id, email)
+//     VALUES (NEW.id, NEW.email)
+//     ON CONFLICT (id) DO NOTHING;
+//     RETURN NEW;
+//   END;
+//   $function$
+//   
 // FUNCTION is_admin_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_admin_user(user_uuid uuid)
 //    RETURNS boolean
@@ -2494,7 +2828,7 @@ export const Constants = {
 //       WHERE ur.user_id = user_uuid AND r.name IN ('ADMIN', 'MASTER', 'DIRETORIA')
 //     );
 //   $function$
-//
+//   
 // FUNCTION is_master_user(uuid)
 //   CREATE OR REPLACE FUNCTION public.is_master_user(user_uuid uuid)
 //    RETURNS boolean
@@ -2508,7 +2842,7 @@ export const Constants = {
 //       WHERE ur.user_id = user_uuid AND r.name IN ('ADMIN', 'MASTER')
 //     );
 //   $function$
-//
+//   
 // FUNCTION mark_room_read(uuid, uuid)
 //   CREATE OR REPLACE FUNCTION public.mark_room_read(p_room_id uuid, p_user_id uuid)
 //    RETURNS void
@@ -2519,7 +2853,7 @@ export const Constants = {
 //     SET last_read_at = NOW()
 //     WHERE room_id = p_room_id AND user_id = p_user_id;
 //   $function$
-//
+//   
 // FUNCTION reset_financial_data(text)
 //   CREATE OR REPLACE FUNCTION public.reset_financial_data(acting_user_name text)
 //    RETURNS void
@@ -2531,31 +2865,31 @@ export const Constants = {
 //     current_user_id uuid;
 //   BEGIN
 //       current_user_id := auth.uid();
-//
+//       
 //       IF current_user_id IS NULL THEN
 //           RAISE EXCEPTION 'Não autenticado';
 //       END IF;
-//
+//   
 //       -- Verify if the user is an admin or master
 //       IF NOT (public.is_admin_user(current_user_id) OR public.is_master_user(current_user_id)) THEN
 //           RAISE EXCEPTION 'Acesso negado. Apenas administradores podem realizar esta ação.';
 //       END IF;
-//
+//   
 //       -- Delete all records from the target financial tables
 //       -- Safe update extension requires a WHERE clause for DELETE operations
 //       DELETE FROM public.cash_box_closings WHERE id IS NOT NULL;
 //       DELETE FROM public.fiscal_sales_entries WHERE id IS NOT NULL;
 //       DELETE FROM public.fiscal_boleto_entries WHERE id IS NOT NULL;
-//
+//   
 //       -- Create the explicit audit log entry required
 //       INSERT INTO public.audit_logs (user_id, action)
 //       VALUES (
-//           current_user_id,
+//           current_user_id, 
 //           'RESET TOTAL: Todo o histórico de caixa e financeiro foi apagado por ' || COALESCE(acting_user_name, 'SISTEMA')
 //       );
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_agenda_to_sac()
 //   CREATE OR REPLACE FUNCTION public.sync_agenda_to_sac()
 //    RETURNS trigger
@@ -2564,14 +2898,14 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //       IF NEW.is_completed = true AND OLD.is_completed = false AND NEW.type = 'SAC' AND NEW.sac_record_id IS NOT NULL THEN
-//           UPDATE public.sac_records
-//           SET status = 'RESOLVIDO', solved_at = NOW()
+//           UPDATE public.sac_records 
+//           SET status = 'RESOLVIDO', solved_at = NOW() 
 //           WHERE id = NEW.sac_record_id AND status != 'RESOLVIDO';
 //       END IF;
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_employee_dates_to_agenda()
 //   CREATE OR REPLACE FUNCTION public.sync_employee_dates_to_agenda()
 //    RETURNS trigger
@@ -2587,7 +2921,7 @@ export const Constants = {
 //           DELETE FROM public.agenda WHERE assigned_to = OLD.id::text AND is_completed = false AND (type = 'BÔNUS' OR type = 'FÉRIAS');
 //           RETURN OLD;
 //       END IF;
-//
+//   
 //       -- Handle Bonus Due Date
 //       IF NEW.bonus_due_date IS NOT NULL AND NEW.bonus_due_date <> '' THEN
 //           IF TG_OP = 'INSERT' OR OLD.bonus_due_date IS DISTINCT FROM NEW.bonus_due_date OR OLD.name IS DISTINCT FROM NEW.name THEN
@@ -2600,7 +2934,7 @@ export const Constants = {
 //       ELSIF TG_OP = 'UPDATE' AND (OLD.bonus_due_date IS NOT NULL AND OLD.bonus_due_date <> '') THEN
 //           DELETE FROM public.agenda WHERE assigned_to = NEW.id::text AND type = 'BÔNUS' AND is_completed = false;
 //       END IF;
-//
+//   
 //       -- Handle Vacation Due Date
 //       IF NEW.vacation_due_date IS NOT NULL THEN
 //           IF TG_OP = 'INSERT' OR OLD.vacation_due_date IS DISTINCT FROM NEW.vacation_due_date OR OLD.name IS DISTINCT FROM NEW.name THEN
@@ -2614,11 +2948,11 @@ export const Constants = {
 //       ELSIF TG_OP = 'UPDATE' AND OLD.vacation_due_date IS NOT NULL THEN
 //           DELETE FROM public.agenda WHERE assigned_to = NEW.id::text AND type = 'FÉRIAS' AND is_completed = false;
 //       END IF;
-//
+//   
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_sac_to_agenda()
 //   CREATE OR REPLACE FUNCTION public.sync_sac_to_agenda()
 //    RETURNS trigger
@@ -2627,14 +2961,14 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //       IF NEW.status = 'RESOLVIDO' AND OLD.status != 'RESOLVIDO' THEN
-//           UPDATE public.agenda
-//           SET is_completed = true, completed_at = NOW()
+//           UPDATE public.agenda 
+//           SET is_completed = true, completed_at = NOW() 
 //           WHERE sac_record_id = NEW.id AND is_completed = false;
 //       END IF;
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION trg_audit_employee_sensitive_data()
 //   CREATE OR REPLACE FUNCTION public.trg_audit_employee_sensitive_data()
 //    RETURNS trigger
@@ -2648,7 +2982,7 @@ export const Constants = {
 //   BEGIN
 //       current_user_id := auth.uid();
 //       IF current_user_id IS NULL THEN RETURN NEW; END IF;
-//
+//   
 //       IF NEW.salary IS DISTINCT FROM OLD.salary THEN
 //           changes := changes || 'Salário, ';
 //       END IF;
@@ -2661,17 +2995,17 @@ export const Constants = {
 //       IF NEW.role IS DISTINCT FROM OLD.role THEN
 //           changes := changes || 'Cargo, ';
 //       END IF;
-//
+//       
 //       IF changes != '' THEN
 //           changes := rtrim(changes, ', ');
 //           action_desc := 'DADOS SENSÍVEIS ALTERADOS: Colaborador ' || NEW.name || ' - Campos alterados: ' || changes;
 //           INSERT INTO public.audit_logs (user_id, action) VALUES (current_user_id, action_desc);
 //       END IF;
-//
+//       
 //       RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION update_room_last_message_at()
 //   CREATE OR REPLACE FUNCTION public.update_room_last_message_at()
 //    RETURNS trigger
@@ -2685,7 +3019,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 
 // --- TRIGGERS ---
 // Table: agenda
@@ -2702,16 +3036,34 @@ export const Constants = {
 // --- INDEXES ---
 // Table: agenda_segmentation
 //   CREATE UNIQUE INDEX agenda_segmentation_consultorio_id_day_of_week_shift_key ON public.agenda_segmentation USING btree (consultorio_id, day_of_week, shift)
+// Table: cargos
+//   CREATE UNIQUE INDEX cargos_nome_key ON public.cargos USING btree (nome)
 // Table: chat_participants
 //   CREATE UNIQUE INDEX chat_participants_room_id_user_id_key ON public.chat_participants USING btree (room_id, user_id)
+// Table: departamentos
+//   CREATE UNIQUE INDEX departamentos_nome_key ON public.departamentos USING btree (nome)
 // Table: departments
 //   CREATE UNIQUE INDEX departments_name_key ON public.departments USING btree (name)
 // Table: fiscal_limit_configs
 //   CREATE UNIQUE INDEX fiscal_limit_configs_company_month_year_idx ON public.fiscal_limit_configs USING btree (company_id, month, year)
 // Table: hub_announcement_reads
 //   CREATE UNIQUE INDEX hub_announcement_reads_user_id_announcement_id_key ON public.hub_announcement_reads USING btree (user_id, announcement_id)
+// Table: menus_sistema
+//   CREATE UNIQUE INDEX menus_sistema_nome_key ON public.menus_sistema USING btree (nome)
 // Table: monthly_readings
 //   CREATE UNIQUE INDEX monthly_readings_user_month_key ON public.monthly_readings USING btree (user_id, reference_month)
+// Table: permissoes_cargo
+//   CREATE INDEX idx_permissoes_cargo_cargo_id ON public.permissoes_cargo USING btree (cargo_id)
+//   CREATE INDEX idx_permissoes_cargo_menu_id ON public.permissoes_cargo USING btree (menu_id)
+//   CREATE UNIQUE INDEX permissoes_cargo_cargo_menu_key ON public.permissoes_cargo USING btree (cargo_id, menu_id)
+// Table: permissoes_usuario
+//   CREATE INDEX idx_permissoes_usuario_menu_id ON public.permissoes_usuario USING btree (menu_id)
+//   CREATE INDEX idx_permissoes_usuario_user_id ON public.permissoes_usuario USING btree (user_id)
+//   CREATE UNIQUE INDEX permissoes_usuario_user_menu_key ON public.permissoes_usuario USING btree (user_id, menu_id)
+// Table: profiles
+//   CREATE INDEX idx_profiles_cargo_id ON public.profiles USING btree (cargo_id)
+//   CREATE INDEX idx_profiles_departamento_id ON public.profiles USING btree (departamento_id)
+//   CREATE UNIQUE INDEX profiles_cpf_key ON public.profiles USING btree (cpf)
 // Table: role_permissions
 //   CREATE INDEX idx_role_permissions_action_id ON public.role_permissions USING btree (action_id)
 //   CREATE INDEX idx_role_permissions_role_id ON public.role_permissions USING btree (role_id)
@@ -2732,3 +3084,4 @@ export const Constants = {
 //   CREATE UNIQUE INDEX user_roles_user_role_key ON public.user_roles USING btree (user_id, role_id)
 // Table: work_schedules
 //   CREATE UNIQUE INDEX work_schedules_employee_id_work_date_key ON public.work_schedules USING btree (employee_id, work_date)
+
