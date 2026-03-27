@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ShieldKeyhole } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import { PermissoesPorCargo } from '@/components/permissoes/PermissoesPorCargo'
 import { PermissoesIndividuais } from '@/components/permissoes/PermissoesIndividuais'
 
@@ -8,7 +8,7 @@ export default function Permissoes() {
     <div className="space-y-6 animate-fade-in-up uppercase pb-10">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-nuvia-navy flex items-center gap-3">
-          <ShieldKeyhole className="h-8 w-8 text-primary" /> PERMISSÕES DE ACESSO
+          <Shield className="h-8 w-8 text-primary" /> PERMISSÕES DE ACESSO
         </h1>
         <p className="text-muted-foreground mt-1 font-semibold">
           GERENCIE OS NÍVEIS DE ACESSO POR CARGO OU INDIVIDUALMENTE.
