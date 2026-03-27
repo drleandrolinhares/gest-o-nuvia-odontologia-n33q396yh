@@ -103,6 +103,14 @@ export function PermissoesIndividuais() {
           .forEach((child) => {
             next[child.id] = { ...next[child.id], [field]: newValue }
           })
+      } else {
+        // Validação de hierarquia: se ativou um filho, ativa o pai
+        if (newValue === true) {
+          const parent = menus.find((m) => m.nome === parentName && !m.menu_filho)
+          if (parent) {
+            next[parent.id] = { ...next[parent.id], [field]: true }
+          }
+        }
       }
       return next
     })
@@ -111,13 +119,32 @@ export function PermissoesIndividuais() {
   const handleSave = async () => {
     if (!selectedUser) return
     setSaving(true)
+
+    // Garantir hierarquia no momento do save
+    const finalPerms = { ...perms }
+    menus.forEach((m) => {
+      if (m.menu_filho) {
+        const parent = menus.find((p) => p.nome === m.menu_pai && !p.menu_filho)
+        if (parent) {
+          if (finalPerms[m.id]?.ver && !finalPerms[parent.id]?.ver)
+            finalPerms[parent.id] = { ...finalPerms[parent.id], ver: true }
+          if (finalPerms[m.id]?.criar && !finalPerms[parent.id]?.criar)
+            finalPerms[parent.id] = { ...finalPerms[parent.id], criar: true }
+          if (finalPerms[m.id]?.editar && !finalPerms[parent.id]?.editar)
+            finalPerms[parent.id] = { ...finalPerms[parent.id], editar: true }
+          if (finalPerms[m.id]?.deletar && !finalPerms[parent.id]?.deletar)
+            finalPerms[parent.id] = { ...finalPerms[parent.id], deletar: true }
+        }
+      }
+    })
+
     try {
       const payload = menus.map((m) => ({
         menu_id: m.id,
-        pode_ver: perms[m.id]?.ver || false,
-        pode_criar: perms[m.id]?.criar || false,
-        pode_editar: perms[m.id]?.editar || false,
-        pode_deletar: perms[m.id]?.deletar || false,
+        pode_ver: finalPerms[m.id]?.ver || false,
+        pode_criar: finalPerms[m.id]?.criar || false,
+        pode_editar: finalPerms[m.id]?.editar || false,
+        pode_deletar: finalPerms[m.id]?.deletar || false,
       }))
       await permissionsService.savePermissoesUsuario(selectedUser, payload)
       await fetchPermissions() // ATUALIZA O SIDEBAR INSTANTANEAMENTE

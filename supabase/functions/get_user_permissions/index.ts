@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -20,9 +20,12 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('Missing Authorization header')
-    
+
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       throw new Error('Unauthorized')
@@ -70,10 +73,34 @@ Deno.serve(async (req: Request) => {
 
     if (userPermsError) throw userPermsError
 
-    // Combine them (user permissions override cargo permissions)
+    // Combine them with hierarchy resolution
     const permissions = (menus || []).map((menu: any) => {
+      const parentMenu = menu.menu_filho
+        ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho)
+        : null
+
       const cargoP = (cargoPerms || []).find((p: any) => p.menu_id === menu.id)
       const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
+
+      const parentCargoP = parentMenu
+        ? (cargoPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+        : null
+      const parentUserP = parentMenu
+        ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+        : null
+
+      const resolvePerm = (field: string) => {
+        // 1. Explicit User Override for child
+        if (userP && userP[field] !== undefined) return userP[field]
+        // 2. User Override for parent (if parent has true, we inherit it)
+        if (parentUserP && parentUserP[field] === true) return true
+        // 3. Explicit Cargo for child
+        if (cargoP && cargoP[field] !== undefined) return cargoP[field]
+        // 4. Cargo for parent (if parent has true, we inherit it)
+        if (parentCargoP && parentCargoP[field] === true) return true
+
+        return false
+      }
 
       return {
         menu_id: menu.id,
@@ -81,10 +108,10 @@ Deno.serve(async (req: Request) => {
         rota: menu.rota,
         menu_pai: menu.menu_pai,
         menu_filho: menu.menu_filho,
-        pode_ver: userP ? userP.pode_ver : (cargoP ? cargoP.pode_ver : false),
-        pode_criar: userP ? userP.pode_criar : (cargoP ? cargoP.pode_criar : false),
-        pode_editar: userP ? userP.pode_editar : (cargoP ? cargoP.pode_editar : false),
-        pode_deletar: userP ? userP.pode_deletar : (cargoP ? cargoP.pode_deletar : false),
+        pode_ver: resolvePerm('pode_ver'),
+        pode_criar: resolvePerm('pode_criar'),
+        pode_editar: resolvePerm('pode_editar'),
+        pode_deletar: resolvePerm('pode_deletar'),
       }
     })
 
@@ -99,4 +126,3 @@ Deno.serve(async (req: Request) => {
     })
   }
 })
-

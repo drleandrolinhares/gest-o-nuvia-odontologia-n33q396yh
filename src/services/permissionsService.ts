@@ -123,8 +123,27 @@ export const permissionsService = {
       .eq('user_id', targetUserId)
 
     const permissions = (menus || []).map((menu: any) => {
+      const parentMenu = menu.menu_filho
+        ? (menus || []).find((m: any) => m.nome === menu.menu_pai && !m.menu_filho)
+        : null
+
       const cargoP = cargoPerms.find((p: any) => p.menu_id === menu.id)
       const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
+
+      const parentCargoP = parentMenu
+        ? cargoPerms.find((p: any) => p.menu_id === parentMenu.id)
+        : null
+      const parentUserP = parentMenu
+        ? (userPerms || []).find((p: any) => p.menu_id === parentMenu.id)
+        : null
+
+      const resolvePerm = (field: string) => {
+        if (userP && userP[field] !== undefined) return userP[field]
+        if (parentUserP && parentUserP[field] === true) return true
+        if (cargoP && cargoP[field] !== undefined) return cargoP[field]
+        if (parentCargoP && parentCargoP[field] === true) return true
+        return false
+      }
 
       return {
         menu_id: menu.id,
@@ -132,10 +151,10 @@ export const permissionsService = {
         rota: menu.rota,
         menu_pai: menu.menu_pai,
         menu_filho: menu.menu_filho,
-        pode_ver: userP ? userP.pode_ver : cargoP ? cargoP.pode_ver : false,
-        pode_criar: userP ? userP.pode_criar : cargoP ? cargoP.pode_criar : false,
-        pode_editar: userP ? userP.pode_editar : cargoP ? cargoP.pode_editar : false,
-        pode_deletar: userP ? userP.pode_deletar : cargoP ? cargoP.pode_deletar : false,
+        pode_ver: resolvePerm('pode_ver'),
+        pode_criar: resolvePerm('pode_criar'),
+        pode_editar: resolvePerm('pode_editar'),
+        pode_deletar: resolvePerm('pode_deletar'),
       }
     })
 
