@@ -36,6 +36,7 @@ import EscalaTrabalho from '@/pages/EscalaTrabalho'
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
 import { HubProvider } from '@/stores/hub'
+import { ChatProvider } from '@/stores/chat'
 import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
@@ -52,9 +53,11 @@ export default function App() {
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <HubProvider>
-                      <Layout />
-                    </HubProvider>
+                    <ChatProvider>
+                      <HubProvider>
+                        <Layout />
+                      </HubProvider>
+                    </ChatProvider>
                   </ProtectedRoute>
                 }
               >
