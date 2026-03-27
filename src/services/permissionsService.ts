@@ -77,30 +77,50 @@ export const permissionsService = {
       data: { session },
     } = await supabase.auth.getSession()
 
-    const res = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get_user_permissions`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify(userId ? { userId } : {}),
-      },
-    )
+    if (!session) throw new Error('Não autenticado')
 
-    const text = await res.text()
-    let result
-    try {
-      result = JSON.parse(text)
-    } catch {
-      throw new Error('Erro ao buscar permissões')
+    const targetUserId = userId || session.user.id
+
+    // Fetch profile to get cargo_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('cargo_id')
+      .eq('id', targetUserId)
+      .single()
+
+    const cargoId = profile?.cargo_id
+
+    // Fetch menus
+    const { data: menus } = await supabase.from('menus_sistema').select('*')
+
+    // Fetch cargo permissions
+    let cargoPerms: any[] = []
+    if (cargoId) {
+      const { data } = await supabase.from('permissoes_cargo').select('*').eq('cargo_id', cargoId)
+      cargoPerms = data || []
     }
 
-    if (!res.ok || result.error) {
-      throw new Error(result.error || 'Erro ao buscar permissões')
-    }
+    // Fetch user permissions overrides
+    const { data: userPerms } = await supabase
+      .from('permissoes_usuario')
+      .select('*')
+      .eq('user_id', targetUserId)
 
-    return result.permissions
+    // Combine them (user permissions override cargo permissions)
+    const permissions = (menus || []).map((menu: any) => {
+      const cargoP = cargoPerms.find((p: any) => p.menu_id === menu.id)
+      const userP = (userPerms || []).find((p: any) => p.menu_id === menu.id)
+
+      return {
+        menu_id: menu.id,
+        nome: menu.nome,
+        rota: menu.rota,
+        pode_ver: userP ? userP.pode_ver : cargoP ? cargoP.pode_ver : false,
+        pode_editar: userP ? userP.pode_editar : cargoP ? cargoP.pode_editar : false,
+        pode_deletar: userP ? userP.pode_deletar : cargoP ? cargoP.pode_deletar : false,
+      }
+    })
+
+    return permissions
   },
 }

@@ -40,7 +40,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   })
 
   const { unreadCounts } = useChatStore()
-  const { sacRecords } = useAppStore()
+  const { sacRecords, can } = useAppStore()
 
   const pendingSacsCount = useMemo(
     () => sacRecords.filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
@@ -49,18 +49,18 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
 
   const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0)
 
-  const navigationSections = useMemo(
-    () => [
+  const navigationSections = useMemo(() => {
+    const sections = [
       {
         title: 'OPERACIONAL',
         icon: Activity,
         items: [
           { name: 'SAC', href: '/sac', module: 'SAC', badge: pendingSacsCount },
-          { name: 'ROTINA DIÁRIA', href: '/rotina-diaria', module: 'AGENDA' },
+          { name: 'ROTINA DIÁRIA', href: '/rotina-diaria', module: 'ROTINA DIÁRIA' },
           { name: 'MENSAGENS', href: '/mensagens', module: 'MENSAGENS', badge: totalUnread },
           { name: 'PERFORMANCE', href: '/performance', module: 'PERFORMANCE' },
           { name: 'COMUNICADOS', href: '/comunicados', module: 'COMUNICADOS' },
-          { name: 'AVISOS E RECADOS', href: '/avisos-e-recados', module: 'AVISOS' },
+          { name: 'AVISOS E RECADOS', href: '/avisos-e-recados', module: 'AVISOS E RECADOS' },
         ],
       },
       {
@@ -75,7 +75,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         title: 'FINANCEIRO',
         icon: DollarSign,
         items: [
-          { name: 'CENTRAL DE ACESSOS', href: '/central-de-acessos', module: 'ACESSOS' },
+          { name: 'CENTRAL DE ACESSOS', href: '/central-de-acessos', module: 'CENTRAL DE ACESSOS' },
           { name: 'ESTOQUE', href: '/estoque', module: 'ESTOQUE' },
         ],
       },
@@ -85,10 +85,18 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         items: [
           { name: 'DASHBOARD', href: '/dashboard', module: 'DASHBOARD' },
           { name: 'KPIS', href: '/kpis', module: 'KPIS' },
-          { name: 'USUÁRIOS', href: '/usuarios', module: 'USUÁRIOS E PERMISSÕES', icon: Users },
-          { name: 'ESCALA DE TRABALHO', href: '/escala-de-trabalho', module: 'RH' },
+          { name: 'USUÁRIOS', href: '/usuarios', module: 'USUÁRIOS', icon: Users },
+          {
+            name: 'ESCALA DE TRABALHO',
+            href: '/escala-de-trabalho',
+            module: 'ESCALA DE TRABALHO',
+          },
           { name: 'PRECIFICAÇÃO', href: '/precificacao', module: 'PRECIFICAÇÃO' },
-          { name: 'SEGMENTAÇÃO DA AGENDA', href: '/segmentacao-agenda', module: 'SEGMENTAÇÃO' },
+          {
+            name: 'SEGMENTAÇÃO DA AGENDA',
+            href: '/segmentacao-agenda',
+            module: 'SEGMENTAÇÃO DA AGENDA',
+          },
         ],
       },
       {
@@ -96,19 +104,29 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         icon: Settings,
         items: [
           { name: 'CONFIGURAÇÕES', href: '/configuracoes', module: 'CONFIGURAÇÕES' },
-          {
-            name: 'PERMISSÕES',
-            href: '/permissoes',
-            module: 'USUÁRIOS E PERMISSÕES',
-            icon: Shield,
-          },
+          { name: 'PERMISSÕES', href: '/permissoes', module: 'PERMISSÕES', icon: Shield },
           { name: 'LOGS', href: '/logs', module: 'LOGS' },
-          { name: 'DEBUG', href: '/debug', module: 'LOGS', adminOnly: true, icon: Bug },
+          { name: 'DEBUG', href: '/debug', module: 'DEBUG', adminOnly: true, icon: Bug },
         ],
       },
-    ],
-    [totalUnread, pendingSacsCount],
-  )
+    ]
+
+    return sections
+      .map((section) => {
+        const visibleItems = section.items.filter((item) => {
+          if (
+            item.adminOnly &&
+            user?.email !== 'drleandrolinhares@gmail.com' &&
+            user?.email !== 'master@nuvia.com.br'
+          ) {
+            return false
+          }
+          return can(item.module, 'view')
+        })
+        return { ...section, items: visibleItems }
+      })
+      .filter((section) => section.items.length > 0 && can(section.title, 'view'))
+  }, [totalUnread, pendingSacsCount, can, user?.email])
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => {
@@ -264,7 +282,9 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           {(!isCollapsed || isMobile) && (
             <div className="ml-3 overflow-hidden">
               <p className="text-sm font-medium text-white truncate">{user?.email}</p>
-              <p className="text-xs text-slate-400 truncate uppercase">Administrador</p>
+              <p className="text-xs text-slate-400 truncate uppercase">
+                {user?.user_metadata?.name || 'SISTEMA'}
+              </p>
             </div>
           )}
         </div>

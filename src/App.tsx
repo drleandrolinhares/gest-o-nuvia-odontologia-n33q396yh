@@ -90,7 +90,7 @@ export default function App() {
                 <Route
                   path="rotina-diaria"
                   element={
-                    <PermissionRoute module="AGENDA">
+                    <PermissionRoute module="ROTINA DIÁRIA">
                       <RotinaDiaria />
                     </PermissionRoute>
                   }
@@ -122,7 +122,7 @@ export default function App() {
                 <Route
                   path="avisos-e-recados"
                   element={
-                    <PermissionRoute module="AVISOS">
+                    <PermissionRoute module="AVISOS E RECADOS">
                       <AvisosRecados />
                     </PermissionRoute>
                   }
@@ -150,7 +150,7 @@ export default function App() {
                 <Route
                   path="central-de-acessos"
                   element={
-                    <PermissionRoute module="ACESSOS">
+                    <PermissionRoute module="CENTRAL DE ACESSOS">
                       <Acessos />
                     </PermissionRoute>
                   }
@@ -158,7 +158,7 @@ export default function App() {
                 <Route
                   path="central-de-acessos/:id"
                   element={
-                    <PermissionRoute module="ACESSOS">
+                    <PermissionRoute module="CENTRAL DE ACESSOS">
                       <AcessoManual />
                     </PermissionRoute>
                   }
@@ -192,7 +192,7 @@ export default function App() {
                 <Route
                   path="usuarios"
                   element={
-                    <PermissionRoute module="USUÁRIOS E PERMISSÕES">
+                    <PermissionRoute module="USUÁRIOS">
                       <UsuariosPermissoes />
                     </PermissionRoute>
                   }
@@ -200,7 +200,7 @@ export default function App() {
                 <Route
                   path="escala-de-trabalho"
                   element={
-                    <PermissionRoute module="RH">
+                    <PermissionRoute module="ESCALA DE TRABALHO">
                       <EscalaTrabalho />
                     </PermissionRoute>
                   }
@@ -216,7 +216,7 @@ export default function App() {
                 <Route
                   path="segmentacao-agenda"
                   element={
-                    <PermissionRoute module="SEGMENTAÇÃO">
+                    <PermissionRoute module="SEGMENTAÇÃO DA AGENDA">
                       <AgendaSegmentation />
                     </PermissionRoute>
                   }
@@ -234,7 +234,7 @@ export default function App() {
                 <Route
                   path="permissoes"
                   element={
-                    <PermissionRoute module="USUÁRIOS E PERMISSÕES">
+                    <PermissionRoute module="PERMISSÕES">
                       <Permissoes />
                     </PermissionRoute>
                   }
@@ -250,7 +250,7 @@ export default function App() {
                 <Route
                   path="debug"
                   element={
-                    <PermissionRoute module="LOGS" adminOnly>
+                    <PermissionRoute module="DEBUG" adminOnly>
                       <DebugAccess />
                     </PermissionRoute>
                   }

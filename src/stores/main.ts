@@ -18,6 +18,7 @@ import { accessService } from '@/services/accessService'
 import { settingsService } from '@/services/settingsService'
 import { sacService } from '@/services/sacService'
 import { clinicService } from '@/services/clinicService'
+import { permissionsService } from '@/services/permissionsService'
 import type { Database } from '@/lib/supabase/types'
 import type {
   PurchaseRecord,
@@ -75,7 +76,8 @@ interface AppStore {
   currentUserId: string | null
   isAdmin: boolean
   isMaster: boolean
-  can: (module: string, action: string) => boolean
+  userPermissions: any[]
+  can: (module: string, action?: string) => boolean
   packageTypes: string[]
   specialties: string[]
   agendaTypes: string[]
@@ -420,6 +422,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [packageTypes, setPackageTypes] = useState(mockPackageTypes)
   const [agendaTypes, setAgendaTypes] = useState(mockAgendaTypes)
 
+  const [userPermissions, setUserPermissions] = useState<any[]>([])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
   const [inventoryOptions, setInventoryOptions] = useState<InventoryOption[]>([])
   const [temporaryOutflows, setTemporaryOutflows] = useState<TemporaryOutflow[]>([])
@@ -440,6 +443,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const storeRef = useRef({
     user,
+    userPermissions,
     inventory,
     roles,
     rolePermissions,
@@ -454,6 +458,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     storeRef.current = {
       user,
+      userPermissions,
       inventory,
       roles,
       rolePermissions,
@@ -466,6 +471,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [
     user,
+    userPermissions,
     inventory,
     roles,
     rolePermissions,
@@ -493,6 +499,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       Promise.all([
+        permissionsService
+          .getUserPermissions(user.id)
+          .then((r) => setUserPermissions(r))
+          .catch(() => setUserPermissions([])),
         inventoryService.fetchAll().then((r) => setInventory(handleResponse(r, mInv))),
         inventoryService.fetchOptions().then((r) => setInventoryOptions(handleResponse(r, mOpt))),
         inventoryService.fetchPendingOutflows().then((r) => {
@@ -537,6 +547,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         })
     } else {
       setIsAuthenticated(false)
+      setUserPermissions([])
       setInventory([])
       setInventoryOptions([])
       setTemporaryOutflows([])
@@ -558,7 +569,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isMaster = useMemo(() => !!user, [user])
   const currentUserId = useMemo(() => user?.id || null, [user])
 
-  const can = useCallback((_module: string, _action: string) => true, [])
+  const can = useCallback((moduleName: string, action: string = 'view') => {
+    if (!moduleName) return true
+
+    const email = storeRef.current.user?.email
+    // Override for master admins
+    if (email === 'master@nuvia.com.br' || email === 'drleandrolinhares@gmail.com') return true
+
+    const perm = storeRef.current.userPermissions?.find(
+      (p: any) => p.nome.toUpperCase() === moduleName.toUpperCase(),
+    )
+
+    if (!perm) return false
+
+    if (action === 'view' || action === 'pode_ver') return perm.pode_ver
+    if (
+      action === 'edit' ||
+      action === 'pode_editar' ||
+      action === 'create' ||
+      action === 'pode_criar'
+    )
+      return perm.pode_editar
+    if (action === 'delete' || action === 'pode_deletar') return perm.pode_deletar
+
+    return false
+  }, [])
 
   const logAction = useCallback((action: string) => {
     if (!storeRef.current.user) return
@@ -1693,6 +1728,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentUserId,
       isAdmin,
       isMaster,
+      userPermissions,
       can,
       packageTypes,
       specialties,
@@ -1792,6 +1828,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       currentUserId,
       isAdmin,
       isMaster,
+      userPermissions,
       can,
       packageTypes,
       specialties,
