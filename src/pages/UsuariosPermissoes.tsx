@@ -57,7 +57,6 @@ export default function UsuariosPermissoes() {
         userService.fetchDepartamentos(),
       ])
 
-      // Garante que não tenhamos perfis nulos no array para evitar erros de leitura (Cannot read property)
       const validProfiles = (pData || []).filter((p) => p != null)
 
       setProfiles(validProfiles)
@@ -105,17 +104,24 @@ export default function UsuariosPermissoes() {
   }
 
   const myProfile = useMemo(() => {
-    if (!profiles || profiles.length === 0) {
-      // Retorna fallback do Auth se os perfis ainda não carregaram, para o modal não quebrar
-      return user ? { id: user.id, email: user.email, nome: user.user_metadata?.name || '' } : null
+    if (!user || !user.email) return null
+
+    const matchedProfile =
+      profiles.find((p) => p?.id === user.id) || profiles.find((p) => p?.email === user.email)
+
+    if (matchedProfile) {
+      return matchedProfile
     }
 
-    return (
-      profiles.find((p) => p?.id === user?.id) ||
-      profiles.find((p) => p?.email === user?.email) ||
-      profiles[0] ||
-      null
-    )
+    return {
+      id: user.id,
+      email: user.email,
+      nome: user.user_metadata?.name || '',
+      telefone: '',
+      pix_tipo: '',
+      pix_numero: '',
+      pix_banco: '',
+    }
   }, [profiles, user])
 
   return (

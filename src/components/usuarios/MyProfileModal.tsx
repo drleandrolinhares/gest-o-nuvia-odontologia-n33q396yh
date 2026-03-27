@@ -27,28 +27,36 @@ export function MyProfileModal({ open, onOpenChange, profile, onSuccess }: any) 
   })
 
   useEffect(() => {
-    // Adicionado optional chaining (profile?.) para evitar quebras se o profile não estiver totalmente carregado
-    if (open && profile) {
+    if (open && profile && profile.email) {
       setFormData({
-        nome: profile?.nome || profile?.user_metadata?.name || '',
-        email: profile?.email || '',
-        telefone: profile?.telefone || '',
-        pix_tipo: profile?.pix_tipo || '',
-        pix_numero: profile?.pix_numero || '',
-        pix_banco: profile?.pix_banco || '',
+        nome: profile.nome || profile.user_metadata?.name || '',
+        email: profile.email || '',
+        telefone: profile.telefone || '',
+        pix_tipo: profile.pix_tipo || '',
+        pix_numero: profile.pix_numero || '',
+        pix_banco: profile.pix_banco || '',
       })
     }
   }, [open, profile])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!profile) return
+    if (!profile || !profile.email) return
 
     setLoading(true)
 
     try {
-      if (formData.email !== profile?.email) {
-        await userService.updateMyEmail(formData.email)
+      if (formData.email && formData.email !== profile.email) {
+        try {
+          await userService.updateMyEmail(formData.email)
+        } catch (emailErr: any) {
+          if (emailErr.status === 429 || emailErr.message?.includes('Rate Limit')) {
+            throw new Error(
+              'Limite de tentativas excedido pelo Supabase. Aguarde alguns instantes antes de alterar o e-mail.',
+            )
+          }
+          throw emailErr
+        }
       }
 
       await userService.updateProfile(profile.id, {

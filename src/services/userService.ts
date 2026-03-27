@@ -83,7 +83,14 @@ export const userService = {
   },
   updateMyEmail: async (email: string) => {
     const { error } = await supabase.auth.updateUser({ email })
-    if (error) throw error
+    if (error) {
+      if (error.status === 429) {
+        throw new Error(
+          'Limite de tentativas excedido (Rate Limit do Supabase). Aguarde alguns instantes antes de alterar o e-mail novamente.',
+        )
+      }
+      throw error
+    }
     return true
   },
 }
