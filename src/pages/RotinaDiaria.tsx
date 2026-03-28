@@ -13,6 +13,7 @@ import {
   Star,
   Pencil,
   Trash2,
+  ShieldCheck,
 } from 'lucide-react'
 import {
   format,
@@ -116,6 +117,9 @@ export default function RotinaDiaria() {
 
   const [colaboradores, setColaboradores] = useState<{ id: string; nome: string }[]>([])
   const [selectedColaboradorId, setSelectedColaboradorId] = useState<string>('')
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ id: string; nome: string } | null>(
+    null,
+  )
 
   const [isAdmin, setIsAdmin] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
@@ -158,6 +162,8 @@ export default function RotinaDiaria() {
       const { data: profile } = await supabase
         .from('profiles')
         .select(`
+          id,
+          nome,
           cargo_id,
           cargos (
             nome
@@ -165,6 +171,8 @@ export default function RotinaDiaria() {
         `)
         .eq('id', user.id)
         .single()
+
+      if (profile) setCurrentUserProfile({ id: profile.id, nome: profile.nome || 'Admin' })
 
       const cargoNome = (profile?.cargos as any)?.nome?.toUpperCase() || ''
       const userIsCEO = cargoNome === 'CEO'
@@ -227,7 +235,7 @@ export default function RotinaDiaria() {
     } else {
       const { data: ed } = await supabase
         .from('rotinas_execucao')
-        .select('*')
+        .select(`*, marcado_por:marcado_por_id (nome)`)
         .eq('usuario_id', activeUserId)
         .eq('data', targetDateStr)
       execData = ed || []
@@ -247,7 +255,8 @@ export default function RotinaDiaria() {
         intervaloDias: c.intervalo_dias,
         completed: !!exec?.concluido,
         completedAt: exec?.timestamp_conclusao,
-      }
+        marcadoPorNome: exec?.marcado_por?.nome,
+      } as any
     })
 
     setTasks(mappedTasks)
@@ -420,6 +429,8 @@ export default function RotinaDiaria() {
         ? selectedColaboradorId
         : user.id
 
+    const marcadoPorId = isAdmin && targetUserId !== user.id ? user.id : null
+
     const nowStr = new Date().toISOString()
     let newProgress = 0
     let newPoints = 0
@@ -427,7 +438,14 @@ export default function RotinaDiaria() {
     // Otimista
     setTasks((prev) => {
       const updated = prev.map((t) =>
-        t.id === taskId ? { ...t, completed: true, completedAt: nowStr } : t,
+        t.id === taskId
+          ? ({
+              ...t,
+              completed: true,
+              completedAt: nowStr,
+              marcadoPorNome: marcadoPorId ? currentUserProfile?.nome : undefined,
+            } as any)
+          : t,
       )
 
       const active = updated.filter(
@@ -465,6 +483,7 @@ export default function RotinaDiaria() {
       p_data: targetDateStr,
       p_percentual: newProgress,
       p_pontos: newPoints,
+      p_marcado_por_id: marcadoPorId,
     })
 
     if (error) {
@@ -536,14 +555,24 @@ export default function RotinaDiaria() {
               </div>
 
               {selectedCargoId && (
-                <div className="w-full sm:w-64">
+                <div className="w-full sm:w-64 relative">
                   <Select value={selectedColaboradorId} onValueChange={setSelectedColaboradorId}>
-                    <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
-                      <SelectValue placeholder="COLABORADOR" />
+                    <SelectTrigger
+                      className={cn(
+                        'w-full font-black uppercase tracking-wider h-11 transition-all',
+                        selectedColaboradorId && selectedColaboradorId !== 'todos'
+                          ? 'bg-indigo-50 border-indigo-300 text-indigo-800 shadow-sm'
+                          : 'bg-white text-nuvia-navy',
+                      )}
+                    >
+                      <SelectValue placeholder="SIMULAR COLABORADOR" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="todos" className="font-bold uppercase tracking-wider">
-                        TODOS (GERAL)
+                      <SelectItem
+                        value="todos"
+                        className="font-bold uppercase tracking-wider text-slate-500"
+                      >
+                        VISÃO GERAL DO CARGO
                       </SelectItem>
                       {colaboradores.map((colab) => (
                         <SelectItem
@@ -556,6 +585,11 @@ export default function RotinaDiaria() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {selectedColaboradorId && selectedColaboradorId !== 'todos' && (
+                    <div className="absolute -top-2.5 -right-2 bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in duration-300 border border-white">
+                      SIMULANDO
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -577,11 +611,17 @@ export default function RotinaDiaria() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-8 animate-in fade-in duration-300">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-6 mb-2">
             <div>
-              <h2 className="text-2xl md:text-3xl font-black text-nuvia-navy tracking-wider">
+              <h2 className="text-2xl md:text-3xl font-black text-nuvia-navy tracking-wider flex items-center flex-wrap gap-2">
                 ROTINA DIÁRIA -{' '}
                 {selectedColaboradorId && selectedColaboradorId !== 'todos'
                   ? selectedColaborador?.nome
                   : selectedCargo?.nome}
+                {isAdmin && selectedColaboradorId && selectedColaboradorId !== 'todos' && (
+                  <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-md border border-indigo-200 ml-2 shadow-sm uppercase tracking-widest flex items-center gap-1">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    MODO SIMULAÇÃO
+                  </span>
+                )}
               </h2>
               <div className="mt-3 flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md">
@@ -775,12 +815,20 @@ export default function RotinaDiaria() {
                                 </span>
 
                                 {task.completed ? (
-                                  <span className="flex items-center gap-1 text-emerald-600">
-                                    <CheckCircle2 className="h-3.5 w-3.5" />
-                                    CONCLUÍDO{' '}
-                                    {task.completedAt &&
-                                      `ÀS ${new Date(task.completedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
-                                  </span>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="flex items-center gap-1 text-emerald-600">
+                                      <CheckCircle2 className="h-3.5 w-3.5" />
+                                      CONCLUÍDO{' '}
+                                      {task.completedAt &&
+                                        `ÀS ${new Date(task.completedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+                                    </span>
+                                    {(task as any).marcadoPorNome && (
+                                      <span className="px-2 py-0.5 rounded text-[9px] font-black bg-indigo-100 text-indigo-700 uppercase tracking-widest border border-indigo-200 shadow-sm flex items-center gap-1">
+                                        <ShieldCheck className="h-3 w-3" />
+                                        MARCADO POR: {(task as any).marcadoPorNome.split(' ')[0]}
+                                      </span>
+                                    )}
+                                  </div>
                                 ) : (
                                   <span
                                     className={cn(
