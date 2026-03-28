@@ -1,15 +1,5 @@
-import { useState } from 'react'
-import {
-  LayoutDashboard,
-  Plus,
-  Target,
-  BarChart3,
-  Filter,
-  CheckCircle2,
-  AlertCircle,
-  Edit2,
-  Trash2,
-} from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { LayoutDashboard, Plus, Target, BarChart3, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -18,8 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
@@ -29,18 +17,10 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
 
-type KpiFormat = 'currency' | 'number' | 'percentage'
-interface KpiData {
-  id: string
-  name: string
-  target: number
-  current: number
-  format: KpiFormat
-  invert?: boolean
-  date?: string
-}
+import type { KpiData, KpiFormat } from '@/components/kpis/types'
+import { KpiGaugeCard } from '@/components/kpis/KpiGaugeCard'
+import { KpiDetails } from '@/components/kpis/KpiDetails'
 
 const MOCK_ROLES = [
   { id: '1', name: 'CRC COMERCIAL' },
@@ -57,6 +37,14 @@ const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
       current: 35000,
       format: 'currency',
       date: '2026-03-01',
+      history: [
+        { period: 'Out', value: 28000 },
+        { period: 'Nov', value: 31000 },
+        { period: 'Dez', value: 45000 },
+        { period: 'Jan', value: 32000 },
+        { period: 'Fev', value: 34000 },
+        { period: 'Mar', value: 35000 },
+      ],
     },
     {
       id: 'k2',
@@ -65,6 +53,14 @@ const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
       current: 85,
       format: 'number',
       date: '2026-03-01',
+      history: [
+        { period: 'Out', value: 60 },
+        { period: 'Nov', value: 75 },
+        { period: 'Dez', value: 90 },
+        { period: 'Jan', value: 80 },
+        { period: 'Fev', value: 82 },
+        { period: 'Mar', value: 85 },
+      ],
     },
     {
       id: 'k3',
@@ -73,6 +69,14 @@ const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
       current: 25,
       format: 'percentage',
       date: '2026-03-01',
+      history: [
+        { period: 'Out', value: 18 },
+        { period: 'Nov', value: 22 },
+        { period: 'Dez', value: 28 },
+        { period: 'Jan', value: 20 },
+        { period: 'Fev', value: 24 },
+        { period: 'Mar', value: 25 },
+      ],
     },
   ],
   '2': [
@@ -84,6 +88,14 @@ const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
       format: 'currency',
       invert: true,
       date: '2026-03-01',
+      history: [
+        { period: 'Out', value: 15000 },
+        { period: 'Nov', value: 14500 },
+        { period: 'Dez', value: 16000 },
+        { period: 'Jan', value: 13500 },
+        { period: 'Fev', value: 12500 },
+        { period: 'Mar', value: 12000 },
+      ],
     },
     {
       id: 'k5',
@@ -92,6 +104,14 @@ const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
       current: 95,
       format: 'percentage',
       date: '2026-03-01',
+      history: [
+        { period: 'Out', value: 80 },
+        { period: 'Nov', value: 85 },
+        { period: 'Dez', value: 88 },
+        { period: 'Jan', value: 92 },
+        { period: 'Fev', value: 94 },
+        { period: 'Mar', value: 95 },
+      ],
     },
   ],
   '3': [
@@ -102,6 +122,14 @@ const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
       current: 120,
       format: 'number',
       date: '2026-03-01',
+      history: [
+        { period: 'Out', value: 90 },
+        { period: 'Nov', value: 105 },
+        { period: 'Dez', value: 140 },
+        { period: 'Jan', value: 110 },
+        { period: 'Fev', value: 115 },
+        { period: 'Mar', value: 120 },
+      ],
     },
     {
       id: 'k7',
@@ -111,6 +139,14 @@ const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
       format: 'number',
       invert: true,
       date: '2026-03-01',
+      history: [
+        { period: 'Out', value: 22 },
+        { period: 'Nov', value: 20 },
+        { period: 'Dez', value: 25 },
+        { period: 'Jan', value: 18 },
+        { period: 'Fev', value: 15 },
+        { period: 'Mar', value: 12 },
+      ],
     },
   ],
 }
@@ -119,24 +155,20 @@ export default function KPIs() {
   const [selectedRole, setSelectedRole] = useState('')
   const [period, setPeriod] = useState('mes')
   const [kpisByRole, setKpisByRole] = useState(INITIAL_MOCK_KPIS)
+  const [activeKpiId, setActiveKpiId] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKpi, setEditingKpi] = useState<KpiData | null>(null)
   const [formData, setFormData] = useState<Partial<KpiData>>({})
 
   const currentRoleName = MOCK_ROLES.find((r) => r.id === selectedRole)?.name
   const currentKpis = selectedRole ? kpisByRole[selectedRole] || [] : []
+  const activeKpi = currentKpis.find((k) => k.id === activeKpiId) || currentKpis[0]
 
-  const formatValue = (v: number, format: string) => {
-    if (format === 'currency')
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
-    if (format === 'percentage') return `${v}%`
-    return v.toString()
-  }
-
-  const getProgress = (current: number, target: number, invert?: boolean) => {
-    const p = invert ? (target / current) * 100 : (current / target) * 100
-    return Math.min(Math.max(p, 0), 100)
-  }
+  useEffect(() => {
+    if (currentKpis.length > 0 && !currentKpis.find((k) => k.id === activeKpiId)) {
+      setActiveKpiId(currentKpis[0].id)
+    }
+  }, [selectedRole, currentKpis, activeKpiId])
 
   const handleOpenModal = (kpi?: KpiData) => {
     setEditingKpi(kpi || null)
@@ -156,11 +188,29 @@ export default function KPIs() {
     if (!selectedRole || !formData.name) return
     setKpisByRole((prev) => {
       const roleKpis = prev[selectedRole] || []
-      return {
-        ...prev,
-        [selectedRole]: editingKpi
-          ? roleKpis.map((k) => (k.id === editingKpi.id ? ({ ...k, ...formData } as KpiData) : k))
-          : [...roleKpis, { ...formData, id: `kpi-${Date.now()}` } as KpiData],
+
+      if (editingKpi) {
+        return {
+          ...prev,
+          [selectedRole]: roleKpis.map((k) =>
+            k.id === editingKpi.id ? ({ ...k, ...formData } as KpiData) : k,
+          ),
+        }
+      } else {
+        const val = formData.current || 0
+        const newHistory = [
+          { period: 'Nov', value: val * 0.7 },
+          { period: 'Dez', value: val * 0.8 },
+          { period: 'Jan', value: val * 0.85 },
+          { period: 'Fev', value: val * 0.9 },
+          { period: 'Mar', value: val },
+        ]
+        const newKpi: KpiData = {
+          ...formData,
+          id: `kpi-${Date.now()}`,
+          history: newHistory,
+        } as KpiData
+        return { ...prev, [selectedRole]: [...roleKpis, newKpi] }
       }
     })
     setIsModalOpen(false)
@@ -169,6 +219,7 @@ export default function KPIs() {
   const handleDelete = (id: string) => {
     if (selectedRole && window.confirm('Deseja realmente excluir este KPI?')) {
       setKpisByRole((p) => ({ ...p, [selectedRole]: p[selectedRole].filter((k) => k.id !== id) }))
+      if (activeKpiId === id) setActiveKpiId(null)
     }
   }
 
@@ -242,95 +293,16 @@ export default function KPIs() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentKpis.length > 0 ? (
-              currentKpis.map((kpi) => {
-                const progress = getProgress(kpi.current, kpi.target, kpi.invert)
-                const isMet = kpi.invert ? kpi.current <= kpi.target : kpi.current >= kpi.target
-                return (
-                  <Card
-                    key={kpi.id}
-                    className="border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow"
-                  >
-                    <div
-                      className={cn(
-                        'absolute top-0 left-0 w-1 h-full',
-                        isMet ? 'bg-green-500' : 'bg-primary',
-                      )}
-                    />
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1 pr-2">
-                          <CardTitle className="text-sm font-black text-nuvia-navy uppercase line-clamp-2">
-                            {kpi.name}
-                          </CardTitle>
-                          <Badge
-                            variant="secondary"
-                            className={cn(
-                              'mt-2 text-[10px] font-bold',
-                              isMet ? 'bg-green-100 text-green-800' : 'bg-primary/10 text-primary',
-                            )}
-                          >
-                            {isMet ? (
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                            ) : (
-                              <AlertCircle className="w-3 h-3 mr-1" />
-                            )}
-                            {isMet ? 'ATINGIDO' : 'PENDENTE'}
-                          </Badge>
-                          <CardDescription className="text-xs font-bold mt-2">
-                            META: {formatValue(kpi.target, kpi.format)}
-                            {kpi.date && (
-                              <span className="ml-1 text-slate-400">
-                                (
-                                {new Date(kpi.date).toLocaleDateString('pt-BR', {
-                                  timeZone: 'UTC',
-                                })}
-                                )
-                              </span>
-                            )}
-                          </CardDescription>
-                        </div>
-                        <div className="flex flex-col gap-1 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 bg-slate-100 text-slate-500 hover:text-nuvia-navy hover:bg-slate-200"
-                            onClick={() => handleOpenModal(kpi)}
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100"
-                            onClick={() => handleDelete(kpi.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex justify-between items-end mb-2">
-                        <div className="text-2xl font-black text-nuvia-navy">
-                          {formatValue(kpi.current, kpi.format)}
-                        </div>
-                        <div className="text-xs font-bold text-slate-400 mb-1">
-                          {progress.toFixed(0)}%
-                        </div>
-                      </div>
-                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                        <div
-                          className={cn(
-                            'h-full rounded-full transition-all duration-500',
-                            isMet ? 'bg-green-500' : 'bg-primary',
-                          )}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })
+              currentKpis.map((kpi) => (
+                <KpiGaugeCard
+                  key={kpi.id}
+                  kpi={kpi}
+                  isActive={activeKpi?.id === kpi.id}
+                  onClick={() => setActiveKpiId(kpi.id)}
+                  onEdit={() => handleOpenModal(kpi)}
+                  onDelete={() => handleDelete(kpi.id)}
+                />
+              ))
             ) : (
               <div className="col-span-full flex flex-col items-center justify-center min-h-[20vh] text-center space-y-4 border-2 border-dashed border-slate-200 rounded-xl bg-white p-8">
                 <BarChart3 className="h-12 w-12 text-slate-300" />
@@ -341,13 +313,15 @@ export default function KPIs() {
               </div>
             )}
           </div>
+
+          {activeKpi && currentKpis.length > 0 && <KpiDetails kpi={activeKpi} />}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-[30vh] border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 p-8 text-center">
           <Target className="h-12 w-12 text-slate-300 mb-2" />
           <h3 className="text-lg font-black text-slate-500">SELECIONE UM CARGO</h3>
           <p className="text-sm font-bold text-slate-400 max-w-sm mt-2">
-            ESCOLHA UM CARGO NO MENU ACIMA PARA VISUALIZAR OU GERENCIAR SEUS INDICADORES DE
+            ESCOLHA UM CARGO NO MENU ACIMA PARA VISUALIZAR SEUS DASHBOARDS E INDICADORES DE
             PERFORMANCE.
           </p>
         </div>
