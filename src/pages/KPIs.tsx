@@ -32,6 +32,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { CrmComercial, type Orcamento } from '@/components/kpis/CrmComercial'
 import { CrcLeadAgendamento } from '@/components/kpis/CrcLeadAgendamento'
+import { CrcFinanceiro } from '@/components/kpis/CrcFinanceiro'
 
 export type KpiFormat = 'currency' | 'number' | 'percentage'
 
@@ -58,26 +59,7 @@ const generateMockKpis = (cargoName: string): KpiData[] => {
     return []
   }
   if (cargoName.toUpperCase().includes('FINANCEIRO')) {
-    return [
-      {
-        id: '3',
-        name: 'INADIMPLÊNCIA',
-        current: 5,
-        target: 3,
-        format: 'percentage',
-        date: '2023-10-01',
-        observacoes: 'Manter a inadimplência controlada.',
-      },
-      {
-        id: '4',
-        name: 'CUSTOS FIXOS',
-        current: 45000,
-        target: 50000,
-        format: 'currency',
-        date: '2023-10-01',
-        observacoes: 'Acompanhar as despesas fixas.',
-      },
-    ]
+    return []
   }
   return [
     {
@@ -128,6 +110,8 @@ export default function KPIs() {
   const isCrcLeadAgendamento =
     currentRoleName.toUpperCase().includes('LEAD') ||
     currentRoleName.toUpperCase().includes('AGENDAMENTO')
+
+  const isCrcFinanceiro = currentRoleName.toUpperCase().includes('FINANCEIRO')
 
   const currentKpis = mockedKpisByRole[selectedRole] || []
 
@@ -337,7 +321,8 @@ export default function KPIs() {
                   )
                 })
               : !isCrcComercial &&
-                !isCrcLeadAgendamento && (
+                !isCrcLeadAgendamento &&
+                !isCrcFinanceiro && (
                   <div className="col-span-full flex flex-col items-center justify-center min-h-[20vh] text-center space-y-4 border-2 border-dashed border-slate-200 rounded-xl bg-white p-8">
                     <BarChart3 className="h-12 w-12 text-slate-300" />
                     <h3 className="text-lg font-black text-slate-600">NENHUM KPI ENCONTRADO</h3>
@@ -350,6 +335,7 @@ export default function KPIs() {
 
           {isCrcComercial && <CrmComercial orcamentos={orcamentos} setOrcamentos={setOrcamentos} />}
           {isCrcLeadAgendamento && <CrcLeadAgendamento />}
+          {isCrcFinanceiro && <CrcFinanceiro />}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-[30vh] border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 p-8 text-center">
