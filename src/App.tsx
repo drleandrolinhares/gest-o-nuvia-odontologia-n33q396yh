@@ -22,6 +22,7 @@ import DebugAccess from '@/pages/DebugAccess'
 import AccessDenied from '@/pages/AccessDenied'
 import UsuariosPermissoes from '@/pages/UsuariosPermissoes'
 import Permissoes from '@/pages/Permissoes'
+import KpiPermissions from '@/pages/KpiPermissions'
 
 // Novos Módulos
 import Comunicados from '@/pages/Comunicados'
@@ -217,6 +218,14 @@ export default function App() {
                       element={
                         <PermissionRoute module="KPIS">
                           <KPIs />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="kpis/permissoes"
+                      element={
+                        <PermissionRoute module="KPIS" adminOnly>
+                          <KpiPermissions />
                         </PermissionRoute>
                       }
                     />
