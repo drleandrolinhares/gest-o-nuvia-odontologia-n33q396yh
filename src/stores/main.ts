@@ -569,9 +569,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }),
         ),
         safeFetch(
-          settingsService.fetchSuppliers().then((r) => {
-            if (isMounted) setSuppliers(handleResponse(r, mSup))
-          }),
+          (async () => {
+            try {
+              const r = await settingsService.fetchSuppliers()
+              if (isMounted) setSuppliers(handleResponse(r, mSup))
+            } catch (err) {
+              console.warn('Suppliers fetch failed gracefully:', err)
+              if (isMounted) setSuppliers([])
+            }
+          })(),
         ),
         safeFetch(
           settingsService.fetchDocuments().then((r) => {
