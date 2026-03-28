@@ -19,8 +19,9 @@ interface Cargo {
 
 interface Kpi {
   id: string
-  name: string
-  sector: string
+  nome_kpi: string
+  cargo_id: string
+  cargos: { nome: string } | null
 }
 
 interface PermissionMap {
@@ -45,8 +46,11 @@ export default function KpiPermissions() {
     try {
       const [cargosRes, kpisRes, permsRes] = await Promise.all([
         supabase.from('cargos').select('id, nome').order('nome'),
-        supabase.from('kpis').select('id, name, sector').order('name'),
-        (supabase as any).from('kpis_permissoes').select('*'),
+        supabase
+          .from('kpis_config')
+          .select('id, nome_kpi, cargo_id, cargos(nome)')
+          .order('nome_kpi'),
+        supabase.from('kpis_permissoes').select('*'),
       ])
 
       if (cargosRes.error) throw cargosRes.error
@@ -54,7 +58,7 @@ export default function KpiPermissions() {
       if (permsRes.error) throw permsRes.error
 
       setCargos(cargosRes.data || [])
-      setKpis(kpisRes.data || [])
+      setKpis((kpisRes.data as unknown as Kpi[]) || [])
 
       const permMap: PermissionMap = {}
       ;(permsRes.data || []).forEach((p: any) => {
@@ -90,7 +94,7 @@ export default function KpiPermissions() {
     setPermissions((prev) => ({ ...prev, [key]: updated }))
 
     try {
-      const { error } = await (supabase as any).from('kpis_permissoes').upsert(
+      const { error } = await supabase.from('kpis_permissoes').upsert(
         {
           cargo_id: cargoId,
           kpi_id: kpiId,
@@ -144,7 +148,9 @@ export default function KpiPermissions() {
             <Table>
               <TableHeader className="bg-slate-50">
                 <TableRow>
-                  <TableHead className="w-[250px] font-black text-nuvia-navy">CARGO</TableHead>
+                  <TableHead className="w-[250px] font-black text-nuvia-navy">
+                    CARGO (QUE RECEBE ACESSO)
+                  </TableHead>
                   <TableHead className="font-black text-nuvia-navy">KPI</TableHead>
                   <TableHead className="w-[150px] text-center font-black text-nuvia-navy">
                     VISUALIZAR
@@ -173,9 +179,9 @@ export default function KpiPermissions() {
                           {j === 0 ? cargo.nome : ''}
                         </TableCell>
                         <TableCell className="font-semibold text-slate-600">
-                          {kpi.name}
+                          {kpi.nome_kpi}
                           <span className="ml-2 text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                            {kpi.sector}
+                            {kpi.cargos?.nome || 'GERAL'}
                           </span>
                         </TableCell>
                         <TableCell className="text-center">

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, Plus, Target, BarChart3, Filter } from 'lucide-react'
+import { LayoutDashboard, Plus, Target, BarChart3, Filter, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/use-auth'
+import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -22,155 +25,165 @@ import type { KpiData, KpiFormat } from '@/components/kpis/types'
 import { KpiGaugeCard } from '@/components/kpis/KpiGaugeCard'
 import { KpiDetails } from '@/components/kpis/KpiDetails'
 
-const MOCK_ROLES = [
-  { id: '1', name: 'CRC COMERCIAL' },
-  { id: '2', name: 'GERENTE ADM' },
-  { id: '3', name: 'RECEPCIONISTA' },
-]
-
-const INITIAL_MOCK_KPIS: Record<string, KpiData[]> = {
-  '1': [
-    {
-      id: 'k1',
-      name: 'Vendas Convertidas',
-      target: 50000,
-      current: 35000,
-      format: 'currency',
-      date: '2026-03-01',
-      history: [
-        { period: 'Out', value: 28000 },
-        { period: 'Nov', value: 31000 },
-        { period: 'Dez', value: 45000 },
-        { period: 'Jan', value: 32000 },
-        { period: 'Fev', value: 34000 },
-        { period: 'Mar', value: 35000 },
-      ],
-    },
-    {
-      id: 'k2',
-      name: 'Novos Contatos',
-      target: 100,
-      current: 85,
-      format: 'number',
-      date: '2026-03-01',
-      history: [
-        { period: 'Out', value: 60 },
-        { period: 'Nov', value: 75 },
-        { period: 'Dez', value: 90 },
-        { period: 'Jan', value: 80 },
-        { period: 'Fev', value: 82 },
-        { period: 'Mar', value: 85 },
-      ],
-    },
-    {
-      id: 'k3',
-      name: 'Taxa de Conversão',
-      target: 30,
-      current: 25,
-      format: 'percentage',
-      date: '2026-03-01',
-      history: [
-        { period: 'Out', value: 18 },
-        { period: 'Nov', value: 22 },
-        { period: 'Dez', value: 28 },
-        { period: 'Jan', value: 20 },
-        { period: 'Fev', value: 24 },
-        { period: 'Mar', value: 25 },
-      ],
-    },
-  ],
-  '2': [
-    {
-      id: 'k4',
-      name: 'Redução de Custos',
-      target: 10000,
-      current: 12000,
-      format: 'currency',
-      invert: true,
-      date: '2026-03-01',
-      history: [
-        { period: 'Out', value: 15000 },
-        { period: 'Nov', value: 14500 },
-        { period: 'Dez', value: 16000 },
-        { period: 'Jan', value: 13500 },
-        { period: 'Fev', value: 12500 },
-        { period: 'Mar', value: 12000 },
-      ],
-    },
-    {
-      id: 'k5',
-      name: 'Satisfação da Equipe',
-      target: 90,
-      current: 95,
-      format: 'percentage',
-      date: '2026-03-01',
-      history: [
-        { period: 'Out', value: 80 },
-        { period: 'Nov', value: 85 },
-        { period: 'Dez', value: 88 },
-        { period: 'Jan', value: 92 },
-        { period: 'Fev', value: 94 },
-        { period: 'Mar', value: 95 },
-      ],
-    },
-  ],
-  '3': [
-    {
-      id: 'k6',
-      name: 'Agendamentos Efetuados',
-      target: 150,
-      current: 120,
-      format: 'number',
-      date: '2026-03-01',
-      history: [
-        { period: 'Out', value: 90 },
-        { period: 'Nov', value: 105 },
-        { period: 'Dez', value: 140 },
-        { period: 'Jan', value: 110 },
-        { period: 'Fev', value: 115 },
-        { period: 'Mar', value: 120 },
-      ],
-    },
-    {
-      id: 'k7',
-      name: 'Tempo Médio de Espera',
-      target: 15,
-      current: 12,
-      format: 'number',
-      invert: true,
-      date: '2026-03-01',
-      history: [
-        { period: 'Out', value: 22 },
-        { period: 'Nov', value: 20 },
-        { period: 'Dez', value: 25 },
-        { period: 'Jan', value: 18 },
-        { period: 'Fev', value: 15 },
-        { period: 'Mar', value: 12 },
-      ],
-    },
-  ],
+interface Cargo {
+  id: string
+  nome: string
 }
 
 export default function KPIs() {
+  const { user } = useAuth()
+  const { toast } = useToast()
+
+  const [cargos, setCargos] = useState<Cargo[]>([])
   const [selectedRole, setSelectedRole] = useState('')
   const [period, setPeriod] = useState('mes')
-  const [kpisByRole, setKpisByRole] = useState(INITIAL_MOCK_KPIS)
+  const [currentKpis, setCurrentKpis] = useState<KpiData[]>([])
+
   const [activeKpiId, setActiveKpiId] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKpi, setEditingKpi] = useState<KpiData | null>(null)
   const [formData, setFormData] = useState<Partial<KpiData>>({})
 
-  const currentRoleName = MOCK_ROLES.find((r) => r.id === selectedRole)?.name
-  const currentKpis = selectedRole ? kpisByRole[selectedRole] || [] : []
+  const [loading, setLoading] = useState(true)
+  const [userCargoId, setUserCargoId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  const currentRoleName = cargos.find((r) => r.id === selectedRole)?.nome
   const activeKpi = currentKpis.find((k) => k.id === activeKpiId) || currentKpis[0]
+
+  useEffect(() => {
+    if (user) {
+      fetchInitialData()
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (selectedRole) {
+      fetchKpisForRole(selectedRole)
+    }
+  }, [selectedRole, userCargoId, isAdmin])
 
   useEffect(() => {
     if (currentKpis.length > 0 && !currentKpis.find((k) => k.id === activeKpiId)) {
       setActiveKpiId(currentKpis[0].id)
     }
-  }, [selectedRole, currentKpis, activeKpiId])
+  }, [currentKpis, activeKpiId])
+
+  const fetchInitialData = async () => {
+    setLoading(true)
+    try {
+      const [profileRes, adminRes, masterRes, cargosRes] = await Promise.all([
+        supabase.from('profiles').select('cargo_id').eq('id', user!.id).single(),
+        supabase.rpc('is_admin_user', { user_uuid: user!.id }),
+        supabase.rpc('is_master_user', { user_uuid: user!.id }),
+        supabase.from('cargos').select('id, nome').order('nome'),
+      ])
+
+      setUserCargoId(profileRes.data?.cargo_id || null)
+      setIsAdmin(adminRes.data || masterRes.data || false)
+
+      const roles = cargosRes.data || []
+      setCargos(roles)
+
+      // Auto-select logged user's role if available
+      if (profileRes.data?.cargo_id && roles.find((r) => r.id === profileRes.data?.cargo_id)) {
+        setSelectedRole(profileRes.data.cargo_id)
+      } else if (roles.length > 0) {
+        setSelectedRole(roles[0].id)
+      }
+    } catch (e) {
+      console.error('Erro ao inicializar:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchKpisForRole = async (roleId: string) => {
+    try {
+      // Fetch Configs
+      const { data: configs, error: configsErr } = await supabase
+        .from('kpis_config')
+        .select('*')
+        .eq('cargo_id', roleId)
+
+      if (configsErr) throw configsErr
+      if (!configs || configs.length === 0) {
+        setCurrentKpis([])
+        return
+      }
+
+      const kpiIds = configs.map((c) => c.id)
+
+      // Fetch Dados (History)
+      const { data: dados, error: dadosErr } = await supabase
+        .from('kpis_dados')
+        .select('*')
+        .in('kpi_id', kpiIds)
+        .order('data', { ascending: true })
+
+      if (dadosErr) throw dadosErr
+
+      // Fetch Permissions
+      let perms: any[] = []
+      if (!isAdmin && userCargoId) {
+        const { data: p } = await supabase
+          .from('kpis_permissoes')
+          .select('*')
+          .eq('cargo_id', userCargoId)
+          .in('kpi_id', kpiIds)
+        perms = p || []
+      }
+
+      // Map Data
+      const mapped: KpiData[] = configs
+        .map((config) => {
+          const historyData = (dados || []).filter((d) => d.kpi_id === config.id)
+          const currentData = historyData.length > 0 ? historyData[historyData.length - 1] : null
+
+          const pode_visualizar =
+            isAdmin || perms.some((p) => p.kpi_id === config.id && p.pode_visualizar)
+          const pode_editar = isAdmin || perms.some((p) => p.kpi_id === config.id && p.pode_editar)
+
+          const history = historyData.map((h) => {
+            const d = new Date(h.data + 'T00:00:00') // ignore timezones
+            const month = d.toLocaleString('pt-BR', { month: 'short' })
+            return {
+              period: month.charAt(0).toUpperCase() + month.slice(1),
+              value: Number(h.valor_atual),
+            }
+          })
+
+          return {
+            id: config.id,
+            name: config.nome_kpi,
+            target: Number(config.meta_padrao),
+            current: currentData ? Number(currentData.valor_atual) : 0,
+            format: config.unidade as KpiFormat,
+            date: currentData ? currentData.data : '',
+            history,
+            pode_visualizar,
+            pode_editar,
+          }
+        })
+        .filter((k) => k.pode_visualizar) // Ensure strict visibility rule
+
+      setCurrentKpis(mapped)
+    } catch (e: any) {
+      console.error(e)
+      toast({ title: 'Erro ao carregar KPIs', description: e.message, variant: 'destructive' })
+    }
+  }
 
   const handleOpenModal = (kpi?: KpiData) => {
+    if (kpi && !kpi.pode_editar) {
+      toast({
+        title: 'Acesso Negado',
+        description: 'Você não tem permissão para editar este indicador.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setEditingKpi(kpi || null)
     setFormData(
       kpi || {
@@ -184,43 +197,109 @@ export default function KPIs() {
     setIsModalOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedRole || !formData.name) return
-    setKpisByRole((prev) => {
-      const roleKpis = prev[selectedRole] || []
 
+    try {
       if (editingKpi) {
-        return {
-          ...prev,
-          [selectedRole]: roleKpis.map((k) =>
-            k.id === editingKpi.id ? ({ ...k, ...formData } as KpiData) : k,
-          ),
+        // Atualiza Config
+        await supabase
+          .from('kpis_config')
+          .update({
+            nome_kpi: formData.name,
+            unidade: formData.format,
+            meta_padrao: formData.target,
+          })
+          .eq('id', editingKpi.id)
+
+        // Se houve alteração nos dados numéricos, salva novo histórico
+        if (formData.current !== editingKpi.current || formData.date !== editingKpi.date) {
+          await supabase.from('kpis_dados').insert({
+            kpi_id: editingKpi.id,
+            cargo_id: selectedRole,
+            valor_atual: formData.current,
+            data: formData.date || new Date().toISOString().split('T')[0],
+            usuario_id: user?.id,
+          })
         }
+        toast({ title: 'KPI atualizado com sucesso!' })
       } else {
-        const val = formData.current || 0
-        const newHistory = [
-          { period: 'Nov', value: val * 0.7 },
-          { period: 'Dez', value: val * 0.8 },
-          { period: 'Jan', value: val * 0.85 },
-          { period: 'Fev', value: val * 0.9 },
-          { period: 'Mar', value: val },
-        ]
-        const newKpi: KpiData = {
-          ...formData,
-          id: `kpi-${Date.now()}`,
-          history: newHistory,
-        } as KpiData
-        return { ...prev, [selectedRole]: [...roleKpis, newKpi] }
+        // Cria novo KPI
+        const { data: newConfig, error: configError } = await supabase
+          .from('kpis_config')
+          .insert({
+            cargo_id: selectedRole,
+            nome_kpi: formData.name,
+            unidade: formData.format || 'number',
+            meta_padrao: formData.target || 0,
+          })
+          .select()
+          .single()
+
+        if (configError) throw configError
+
+        if (newConfig) {
+          // Insere dados iniciais
+          await supabase.from('kpis_dados').insert({
+            kpi_id: newConfig.id,
+            cargo_id: selectedRole,
+            valor_atual: formData.current || 0,
+            data: formData.date || new Date().toISOString().split('T')[0],
+            usuario_id: user?.id,
+          })
+
+          // Libera permissão automaticamente para o cargo do criador
+          if (userCargoId && !isAdmin) {
+            await supabase.from('kpis_permissoes').insert({
+              cargo_id: userCargoId,
+              kpi_id: newConfig.id,
+              pode_visualizar: true,
+              pode_editar: true,
+            })
+          }
+        }
+        toast({ title: 'KPI criado com sucesso!' })
       }
-    })
-    setIsModalOpen(false)
+      setIsModalOpen(false)
+      fetchKpisForRole(selectedRole)
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar KPI', description: e.message, variant: 'destructive' })
+    }
   }
 
-  const handleDelete = (id: string) => {
-    if (selectedRole && window.confirm('Deseja realmente excluir este KPI?')) {
-      setKpisByRole((p) => ({ ...p, [selectedRole]: p[selectedRole].filter((k) => k.id !== id) }))
-      if (activeKpiId === id) setActiveKpiId(null)
+  const handleDelete = async (id: string) => {
+    const kpi = currentKpis.find((k) => k.id === id)
+    if (kpi && !kpi.pode_editar) {
+      toast({
+        title: 'Acesso Negado',
+        description: 'Você não tem permissão para excluir este indicador.',
+        variant: 'destructive',
+      })
+      return
     }
+
+    if (
+      selectedRole &&
+      window.confirm('Deseja realmente excluir este KPI e todo o seu histórico de dados?')
+    ) {
+      try {
+        const { error } = await supabase.from('kpis_config').delete().eq('id', id)
+        if (error) throw error
+        toast({ title: 'KPI excluído com sucesso!' })
+        if (activeKpiId === id) setActiveKpiId(null)
+        fetchKpisForRole(selectedRole)
+      } catch (e: any) {
+        toast({ title: 'Erro ao excluir KPI', description: e.message, variant: 'destructive' })
+      }
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -244,9 +323,9 @@ export default function KPIs() {
               <SelectValue placeholder="ESCOLHA UM CARGO..." />
             </SelectTrigger>
             <SelectContent>
-              {MOCK_ROLES.map((r) => (
+              {cargos.map((r) => (
                 <SelectItem key={r.id} value={r.id} className="font-bold">
-                  {r.name}
+                  {r.nome}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -299,8 +378,20 @@ export default function KPIs() {
                   kpi={kpi}
                   isActive={activeKpi?.id === kpi.id}
                   onClick={() => setActiveKpiId(kpi.id)}
-                  onEdit={() => handleOpenModal(kpi)}
-                  onDelete={() => handleDelete(kpi.id)}
+                  onEdit={() => {
+                    if (!kpi.pode_editar) {
+                      toast({ title: 'Acesso Negado', variant: 'destructive' })
+                      return
+                    }
+                    handleOpenModal(kpi)
+                  }}
+                  onDelete={() => {
+                    if (!kpi.pode_editar) {
+                      toast({ title: 'Acesso Negado', variant: 'destructive' })
+                      return
+                    }
+                    handleDelete(kpi.id)
+                  }}
                 />
               ))
             ) : (
@@ -308,7 +399,7 @@ export default function KPIs() {
                 <BarChart3 className="h-12 w-12 text-slate-300" />
                 <h3 className="text-lg font-black text-slate-600">NENHUM KPI ENCONTRADO</h3>
                 <p className="text-sm text-slate-400 font-bold max-w-md">
-                  ESTE CARGO AINDA NÃO POSSUI INDICADORES. CLIQUE EM ADICIONAR KPI PARA COMEÇAR.
+                  ESTE CARGO AINDA NÃO POSSUI INDICADORES VISÍVEIS PARA O SEU PERFIL.
                 </p>
               </div>
             )}
@@ -346,7 +437,7 @@ export default function KPIs() {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label className="font-bold text-xs text-slate-500 tracking-wider">
-                  VALOR ATUAL
+                  VALOR ATUAL (ATUALIZAR DADO)
                 </Label>
                 <Input
                   className="font-bold"
@@ -356,7 +447,9 @@ export default function KPIs() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label className="font-bold text-xs text-slate-500 tracking-wider">META</Label>
+                <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                  META PADRÃO
+                </Label>
                 <Input
                   className="font-bold"
                   type="number"
@@ -389,7 +482,9 @@ export default function KPIs() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label className="font-bold text-xs text-slate-500 tracking-wider">DATA</Label>
+                <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                  DATA DO DADO
+                </Label>
                 <Input
                   className="font-bold"
                   type="date"

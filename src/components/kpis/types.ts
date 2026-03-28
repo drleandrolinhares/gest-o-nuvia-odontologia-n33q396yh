@@ -14,4 +14,6 @@ export interface KpiData {
   invert?: boolean
   date?: string
   history?: KpiHistory[]
+  pode_visualizar?: boolean
+  pode_editar?: boolean
 }
