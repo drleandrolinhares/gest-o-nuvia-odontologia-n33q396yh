@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   CalendarDays,
   Settings,
@@ -12,6 +12,7 @@ import {
   Trophy,
   Star,
 } from 'lucide-react'
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -29,6 +30,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { ConfigRotinaModal, Task } from '@/components/ConfigRotinaModal'
+import { useToast } from '@/components/ui/use-toast'
 
 interface Cargo {
   id: string
@@ -49,15 +51,14 @@ interface RankingData {
 
 export default function RotinaDiaria() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [selectedCargoId, setSelectedCargoId] = useState<string>('')
   const [isAdmin, setIsAdmin] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
+  const [rankings, setRankings] = useState<RankingData[]>([])
   const [isConfigOpen, setIsConfigOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
-
-  // Ranking state
-  const [mockRankings, setMockRankings] = useState<RankingData[]>([])
   const [rankingPeriod, setRankingPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function RotinaDiaria() {
   }, [])
 
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkAdminAndUser = async () => {
       if (!user) return
       const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
       const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
@@ -91,104 +92,98 @@ export default function RotinaDiaria() {
         }
       }
     }
-    checkAdmin()
+    checkAdminAndUser()
   }, [user, selectedCargoId])
 
-  useEffect(() => {
-    if (cargos.length > 0 && tasks.length === 0) {
-      const crcCargo = cargos.find((c) => c.nome.toUpperCase().includes('CRC')) || cargos[0]
-      const auxCargo = cargos.find((c) => c.nome.toUpperCase().includes('AUXILIAR')) || cargos[0]
+  const fetchTasks = useCallback(async () => {
+    if (!selectedCargoId || !user) return
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
 
-      if (!crcCargo) return
+    const { data: configData } = await supabase
+      .from('rotinas_config')
+      .select('*')
+      .eq('cargo_id', selectedCargoId)
 
-      const mockTasks: Task[] = [
-        {
-          id: '1',
-          cargoId: crcCargo.id,
-          action: 'Revisar metas e indicadores do dia',
-          time: '08:00',
-          days: ['seg', 'ter', 'qua', 'qui', 'sex'],
-          frequency: 'diario',
-          completed: true,
-          completedAt: new Date(new Date().setHours(8, 5, 0)).toISOString(),
-        },
-        {
-          id: '2',
-          cargoId: crcCargo.id,
-          action: 'Follow-up com leads quentes (WhatsApp)',
-          time: '10:00',
-          days: ['seg', 'ter', 'qua', 'qui', 'sex'],
-          frequency: 'diario',
-          completed: false,
-        },
-        {
-          id: '3',
-          cargoId: crcCargo.id,
-          action: 'Atualizar CRM com fechamentos do turno da manhã',
-          time: '12:00',
-          days: ['seg', 'ter', 'qua', 'qui', 'sex'],
-          frequency: 'diario',
-          completed: false,
-        },
-        {
-          id: '4',
-          cargoId: crcCargo.id,
-          action: 'Planejamento da agenda do dia seguinte',
-          time: '17:30',
-          days: ['seg', 'ter', 'qua', 'qui', 'sex'],
-          frequency: 'diario',
-          completed: false,
-        },
-      ]
+    if (!configData) return
 
-      if (auxCargo && auxCargo.id !== crcCargo.id) {
-        mockTasks.push({
-          id: '5',
-          cargoId: auxCargo.id,
-          action: 'Esterilização dos materiais da manhã',
-          time: '12:30',
-          days: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'],
-          frequency: 'diario',
-          completed: false,
-        })
+    const { data: execData } = await supabase
+      .from('rotinas_execucao')
+      .select('*')
+      .eq('usuario_id', user.id)
+      .eq('data', todayStr)
+
+    const mappedTasks: Task[] = configData.map((c: any) => {
+      const exec = execData?.find((e: any) => e.rotina_id === c.id)
+      return {
+        id: c.id,
+        cargoId: c.cargo_id,
+        action: c.acao,
+        time: c.horario,
+        days: c.dias_semana || [],
+        frequency: c.frequencia,
+        completed: !!exec?.concluido,
+        completedAt: exec?.timestamp_conclusao,
       }
+    })
 
-      setTasks(mockTasks)
+    setTasks(mappedTasks)
+  }, [selectedCargoId, user])
+
+  const fetchRanking = useCallback(async () => {
+    if (!selectedCargoId) return
+    const now = new Date()
+    const startM = format(startOfMonth(now), 'yyyy-MM-dd')
+    const endM = format(endOfMonth(now), 'yyyy-MM-dd')
+    const todayStr = format(now, 'yyyy-MM-dd')
+    const startW = format(startOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd')
+    const endW = format(endOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd')
+
+    const { data: usersData } = await supabase
+      .from('profiles')
+      .select('id, nome, cargo_id')
+      .eq('cargo_id', selectedCargoId)
+
+    if (!usersData || usersData.length === 0) {
+      setRankings([])
+      return
     }
-  }, [cargos, tasks.length])
 
-  // Gerar dados mockados para o ranking
+    const userIds = usersData.map((u) => u.id)
+    const { data: pontosData } = await supabase
+      .from('rotinas_pontos')
+      .select('*')
+      .in('usuario_id', userIds)
+      .gte('data', startM)
+      .lte('data', endM)
+
+    const aggregated = usersData.map((u) => {
+      const userPontos = (pontosData || []).filter((p: any) => p.usuario_id === u.id)
+      const daily = userPontos.find((p: any) => p.data === todayStr)
+      const weekly = userPontos.filter((p: any) => p.data >= startW && p.data <= endW)
+
+      return {
+        id: u.id,
+        name: u.nome || 'Colaborador',
+        cargoId: u.cargo_id,
+        progressToday: daily ? Number(daily.percentual) : 0,
+        points: {
+          daily: daily ? daily.pontos : 0,
+          weekly: weekly.reduce((sum: number, p: any) => sum + p.pontos, 0),
+          monthly: userPontos.reduce((sum: number, p: any) => sum + p.pontos, 0),
+        },
+      }
+    })
+
+    setRankings(aggregated.sort((a, b) => b.points[rankingPeriod] - a.points[rankingPeriod]))
+  }, [selectedCargoId, rankingPeriod])
+
   useEffect(() => {
-    if (cargos.length > 0 && mockRankings.length === 0) {
-      const generated: RankingData[] = []
-      cargos.forEach((cargo) => {
-        const names = [
-          'Ana Silva',
-          'Carlos Santos',
-          'Beatriz Costa',
-          'Daniel Lima',
-          'Fernanda Alves',
-        ]
-        const count = Math.floor(Math.random() * 3) + 2
-        for (let i = 0; i < count; i++) {
-          const progressMock = Math.floor(Math.random() * 50) + 40
-          const pts = Math.round(progressMock / 10)
-          generated.push({
-            id: `mock-${cargo.id}-${i}`,
-            name: names[i % names.length],
-            cargoId: cargo.id,
-            progressToday: progressMock,
-            points: {
-              daily: pts,
-              weekly: pts * 4 + Math.floor(Math.random() * 10),
-              monthly: pts * 18 + Math.floor(Math.random() * 30),
-            },
-          })
-        }
-      })
-      setMockRankings(generated)
-    }
-  }, [cargos, mockRankings.length])
+    fetchTasks()
+  }, [fetchTasks])
+
+  useEffect(() => {
+    fetchRanking()
+  }, [fetchRanking])
 
   const selectedCargo = cargos.find((c) => c.id === selectedCargoId)
 
@@ -210,7 +205,6 @@ export default function RotinaDiaria() {
   const WEEKDAYS_MAP = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
   const currentDayId = WEEKDAYS_MAP[currentTime.getDay()]
 
-  // Cálculos de progresso movidos para fora do render para uso no ranking
   const cargoTasks = useMemo(() => {
     return tasks
       .filter((t) => {
@@ -238,30 +232,34 @@ export default function RotinaDiaria() {
     return 'bg-emerald-500'
   }
 
-  // Ranking dinâmico incluindo o usuário atual
-  const cargoRankings = useMemo(() => {
-    let list = mockRankings.filter((r) => r.cargoId === selectedCargoId)
+  const handleTaskComplete = async (taskId: string) => {
+    if (!user) return
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
 
-    const currentPointsDaily = Math.round(progress / 10)
-    const currentPointsWeekly = currentPointsDaily * 4 + 8
-    const currentPointsMonthly = currentPointsDaily * 18 + 25
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId ? { ...t, completed: true, completedAt: new Date().toISOString() } : t,
+      ),
+    )
 
-    const me: RankingData = {
-      id: 'me',
-      name: 'VOCÊ',
-      cargoId: selectedCargoId,
-      progressToday: progress,
-      points: {
-        daily: currentPointsDaily,
-        weekly: currentPointsWeekly,
-        monthly: currentPointsMonthly,
-      },
+    const { error } = await supabase.rpc('marcar_rotina_concluida', {
+      p_rotina_id: taskId,
+      p_usuario_id: user.id,
+      p_data: todayStr,
+    })
+
+    if (error) {
+      console.error(error)
+      toast({
+        title: 'Erro ao salvar',
+        description: 'Não foi possível registrar a conclusão da tarefa.',
+        variant: 'destructive',
+      })
+      fetchTasks()
+    } else {
+      fetchRanking()
     }
-
-    list = [...list, me].sort((a, b) => b.points[rankingPeriod] - a.points[rankingPeriod])
-
-    return list
-  }, [mockRankings, selectedCargoId, progress, rankingPeriod])
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up uppercase">
@@ -276,7 +274,7 @@ export default function RotinaDiaria() {
         </div>
 
         <div className="w-full md:w-72">
-          <Select value={selectedCargoId} onValueChange={setSelectedCargoId} disabled={!isAdmin}>
+          <Select value={selectedCargoId} onValueChange={setSelectedCargoId}>
             <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
               <SelectValue placeholder="SELECIONAR CARGO" />
             </SelectTrigger>
@@ -422,17 +420,7 @@ export default function RotinaDiaria() {
                               disabled={!isReached || task.completed}
                               onCheckedChange={(c) => {
                                 if (c && isReached && !task.completed) {
-                                  setTasks(
-                                    tasks.map((t) =>
-                                      t.id === task.id
-                                        ? {
-                                            ...t,
-                                            completed: true,
-                                            completedAt: new Date().toISOString(),
-                                          }
-                                        : t,
-                                    ),
-                                  )
+                                  handleTaskComplete(task.id)
                                 }
                               }}
                               className={cn(
@@ -549,12 +537,12 @@ export default function RotinaDiaria() {
               </div>
 
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                {cargoRankings.map((colab, index) => (
+                {rankings.map((colab, index) => (
                   <div
                     key={colab.id}
                     className={cn(
                       'flex items-center p-4 border-b border-slate-100 last:border-0 transition-colors',
-                      colab.id === 'me'
+                      colab.id === user?.id
                         ? 'bg-amber-50/40 hover:bg-amber-50/60'
                         : 'hover:bg-slate-50',
                     )}
@@ -574,7 +562,7 @@ export default function RotinaDiaria() {
                       <AvatarFallback
                         className={cn(
                           'font-bold text-sm tracking-wider',
-                          colab.id === 'me'
+                          colab.id === user?.id
                             ? 'bg-amber-100 text-amber-700'
                             : 'bg-primary/10 text-primary',
                         )}
@@ -597,10 +585,10 @@ export default function RotinaDiaria() {
                               ? 'bg-emerald-50 text-emerald-600'
                               : colab.progressToday >= 50
                                 ? 'bg-amber-50 text-amber-600'
-                                : 'bg-red-50 text-red-600',
+                                : 'bg-slate-100 text-slate-500',
                           )}
                         >
-                          {colab.progressToday}% CONCLUÍDO
+                          {colab.progressToday}% CONCLUÍDO (HOJE)
                         </span>
                       </div>
                     </div>
@@ -615,6 +603,11 @@ export default function RotinaDiaria() {
                     </div>
                   </div>
                 ))}
+                {rankings.length === 0 && (
+                  <div className="p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-sm">
+                    NENHUM DADO DE RANKING ENCONTRADO PARA ESTE CARGO.
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -637,7 +630,7 @@ export default function RotinaDiaria() {
           isOpen={isConfigOpen}
           onClose={() => setIsConfigOpen(false)}
           cargos={cargos}
-          onSave={(task) => setTasks((prev) => [...prev, task])}
+          onSave={() => fetchTasks()}
           defaultCargoId={selectedCargoId}
         />
       )}

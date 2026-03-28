@@ -1,15 +1,8 @@
 import { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -17,6 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { supabase } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/use-toast'
+import { Clock } from 'lucide-react'
 
 export interface Task {
   id: string
@@ -25,21 +21,17 @@ export interface Task {
   time: string
   days: string[]
   frequency: string
-  startDate?: string
-  endDate?: string
-  completed: boolean
+  completed?: boolean
   completedAt?: string
 }
 
-const WEEKDAYS = [
-  { id: 'seg', label: 'Seg' },
-  { id: 'ter', label: 'Ter' },
-  { id: 'qua', label: 'Qua' },
-  { id: 'qui', label: 'Qui' },
-  { id: 'sex', label: 'Sex' },
-  { id: 'sab', label: 'Sáb' },
-  { id: 'dom', label: 'Dom' },
-]
+interface ConfigRotinaModalProps {
+  isOpen: boolean
+  onClose: () => void
+  cargos: { id: string; nome: string }[]
+  onSave: (task: Task) => void
+  defaultCargoId?: string
+}
 
 export function ConfigRotinaModal({
   isOpen,
@@ -47,184 +39,150 @@ export function ConfigRotinaModal({
   cargos,
   onSave,
   defaultCargoId,
-}: {
-  isOpen: boolean
-  onClose: () => void
-  cargos: { id: string; nome: string }[]
-  onSave: (task: Task) => void
-  defaultCargoId?: string
-}) {
-  const [newTask, setNewTask] = useState<Partial<Task>>({})
+}: ConfigRotinaModalProps) {
+  const [cargoId, setCargoId] = useState(defaultCargoId || '')
+  const [action, setAction] = useState('')
+  const [time, setTime] = useState('08:00')
+  const [days, setDays] = useState<string[]>(['seg', 'ter', 'qua', 'qui', 'sex'])
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (isOpen) {
-      setNewTask({
-        days: [],
-        frequency: 'diario',
-        cargoId: defaultCargoId || '',
-        action: '',
-        time: '',
-        startDate: '',
-        endDate: '',
-      })
-    }
+    if (isOpen && defaultCargoId) setCargoId(defaultCargoId)
   }, [isOpen, defaultCargoId])
 
-  const handleSave = () => {
-    if (!newTask.cargoId || !newTask.action || !newTask.time) return
-    onSave({
-      id: crypto.randomUUID(),
-      cargoId: newTask.cargoId,
-      action: newTask.action,
-      time: newTask.time,
-      days: newTask.days || [],
-      frequency: newTask.frequency || 'diario',
-      startDate: newTask.startDate,
-      endDate: newTask.endDate,
-      completed: false,
-    } as Task)
-    onClose()
+  const toggleDay = (day: string) => {
+    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]))
   }
 
-  const toggleDay = (dayId: string, checked: boolean) => {
-    const days = newTask.days || []
-    setNewTask({
-      ...newTask,
-      days: checked ? [...days, dayId] : days.filter((d) => d !== dayId),
-    })
+  const handleSave = async () => {
+    if (!cargoId || !action || !time || days.length === 0) {
+      toast({
+        title: 'Atenção',
+        description: 'Preencha todos os campos obrigatórios.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('rotinas_config')
+      .insert({
+        cargo_id: cargoId,
+        acao: action,
+        horario: time,
+        dias_semana: days,
+        frequencia: 'diario',
+      })
+      .select()
+      .single()
+
+    setLoading(false)
+
+    if (error) {
+      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' })
+    } else if (data) {
+      toast({ title: 'Sucesso', description: 'Rotina configurada com sucesso!' })
+      onSave({
+        id: data.id,
+        cargoId: data.cargo_id,
+        action: data.acao,
+        time: data.horario,
+        days: data.dias_semana,
+        frequency: data.frequencia,
+        completed: false,
+      })
+      onClose()
+      setAction('')
+    }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black text-nuvia-navy uppercase tracking-wider">
-            Configurar Rotina
+          <DialogTitle className="font-bold text-nuvia-navy uppercase">
+            Configurar Nova Rotina
           </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-5 py-4">
-          <div className="grid gap-2">
-            <Label className="uppercase text-xs font-bold text-slate-500">Cargo</Label>
-            <Select
-              value={newTask.cargoId}
-              onValueChange={(val) => setNewTask({ ...newTask, cargoId: val })}
-            >
-              <SelectTrigger className="font-bold text-nuvia-navy uppercase">
-                <SelectValue placeholder="Selecione o cargo" />
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Cargo
+            </Label>
+            <Select value={cargoId} onValueChange={setCargoId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um cargo" />
               </SelectTrigger>
               <SelectContent>
                 {cargos.map((c) => (
-                  <SelectItem key={c.id} value={c.id} className="font-bold uppercase">
+                  <SelectItem key={c.id} value={c.id}>
                     {c.nome}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-2">
-            <Label className="uppercase text-xs font-bold text-slate-500">Ação</Label>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Ação / Tarefa
+            </Label>
             <Input
-              value={newTask.action || ''}
-              onChange={(e) => setNewTask({ ...newTask, action: e.target.value })}
-              placeholder="Ex: Conferir agendas"
-              className="font-semibold text-nuvia-navy uppercase"
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+              placeholder="Ex: Revisar metas"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label className="uppercase text-xs font-bold text-slate-500">Horário</Label>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Horário Limite
+            </Label>
+            <div className="relative">
+              <Clock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <Input
                 type="time"
-                value={newTask.time || ''}
-                onChange={(e) => setNewTask({ ...newTask, time: e.target.value })}
-                className="font-semibold text-nuvia-navy"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="pl-9"
               />
             </div>
-            <div className="grid gap-2">
-              <Label className="uppercase text-xs font-bold text-slate-500">Frequência</Label>
-              <Select
-                value={newTask.frequency}
-                onValueChange={(val) => setNewTask({ ...newTask, frequency: val })}
-              >
-                <SelectTrigger className="font-bold text-nuvia-navy uppercase">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="diario" className="font-bold uppercase">
-                    Diário
-                  </SelectItem>
-                  <SelectItem value="semanal" className="font-bold uppercase">
-                    Semanal
-                  </SelectItem>
-                  <SelectItem value="quinzenal" className="font-bold uppercase">
-                    Quinzenal
-                  </SelectItem>
-                  <SelectItem value="mensal" className="font-bold uppercase">
-                    Mensal
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
-          <div className="grid gap-2">
-            <Label className="uppercase text-xs font-bold text-slate-500">Dias da Semana</Label>
-            <div className="flex flex-wrap gap-3 mt-1">
-              {WEEKDAYS.map((day) => (
-                <div key={day.id} className="flex items-center space-x-1.5">
-                  <Checkbox
-                    id={day.id}
-                    checked={newTask.days?.includes(day.id)}
-                    onCheckedChange={(c) => toggleDay(day.id, !!c)}
-                  />
-                  <Label
-                    htmlFor={day.id}
-                    className="text-sm font-semibold cursor-pointer uppercase"
-                  >
-                    {day.label}
-                  </Label>
-                </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Dias da Semana
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'].map((d) => (
+                <Button
+                  key={d}
+                  type="button"
+                  variant={days.includes(d) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleDay(d)}
+                  className="w-12 uppercase text-xs"
+                >
+                  {d}
+                </Button>
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label className="uppercase text-xs font-bold text-slate-500">
-                Início (Opcional)
-              </Label>
-              <Input
-                type="date"
-                value={newTask.startDate || ''}
-                onChange={(e) => setNewTask({ ...newTask, startDate: e.target.value })}
-                className="font-semibold text-slate-600 uppercase"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label className="uppercase text-xs font-bold text-slate-500">Fim (Opcional)</Label>
-              <Input
-                type="date"
-                value={newTask.endDate || ''}
-                onChange={(e) => setNewTask({ ...newTask, endDate: e.target.value })}
-                className="font-semibold text-slate-600 uppercase"
-              />
-            </div>
-          </div>
         </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="font-bold uppercase tracking-wider"
-          >
+        <div className="flex justify-end gap-3 mt-4">
+          <Button variant="outline" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
           <Button
+            className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37]"
             onClick={handleSave}
-            disabled={!newTask.cargoId || !newTask.action || !newTask.time}
-            className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black uppercase tracking-widest"
+            disabled={loading}
           >
-            Salvar Tarefa
+            {loading ? 'Salvando...' : 'Salvar Rotina'}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )
