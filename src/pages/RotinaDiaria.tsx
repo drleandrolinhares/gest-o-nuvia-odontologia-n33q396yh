@@ -59,7 +59,12 @@ export default function RotinaDiaria() {
   const [rankings, setRankings] = useState<RankingData[]>([])
   const [isConfigOpen, setIsConfigOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [rankingPeriod, setRankingPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
+
+  const isToday = useMemo(() => {
+    return format(selectedDate, 'yyyy-MM-dd') === format(currentTime, 'yyyy-MM-dd')
+  }, [selectedDate, currentTime])
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000)
@@ -79,25 +84,29 @@ export default function RotinaDiaria() {
       if (!user) return
       const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
       const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
-      setIsAdmin(!!isAdminData || !!isMasterData)
+      const isAdm = !!isAdminData || !!isMasterData
+      setIsAdmin(isAdm)
 
-      if (!selectedCargoId) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('cargo_id')
-          .eq('id', user.id)
-          .single()
-        if (profile?.cargo_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('cargo_id')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.cargo_id) {
+        if (!isAdm) {
           setSelectedCargoId(profile.cargo_id)
+        } else {
+          setSelectedCargoId((prev) => prev || profile.cargo_id)
         }
       }
     }
     checkAdminAndUser()
-  }, [user, selectedCargoId])
+  }, [user])
 
   const fetchTasks = useCallback(async () => {
     if (!selectedCargoId || !user) return
-    const todayStr = format(new Date(), 'yyyy-MM-dd')
+    const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
 
     const { data: configData } = await supabase
       .from('rotinas_config')
@@ -110,7 +119,7 @@ export default function RotinaDiaria() {
       .from('rotinas_execucao')
       .select('*')
       .eq('usuario_id', user.id)
-      .eq('data', todayStr)
+      .eq('data', targetDateStr)
 
     const mappedTasks: Task[] = configData.map((c: any) => {
       const exec = execData?.find((e: any) => e.rotina_id === c.id)
@@ -138,6 +147,7 @@ export default function RotinaDiaria() {
     const startW = format(startOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd')
     const endW = format(endOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd')
 
+    const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
     const { data: usersData } = await supabase
       .from('profiles')
       .select('id, nome, cargo_id')
@@ -158,7 +168,7 @@ export default function RotinaDiaria() {
 
     const aggregated = usersData.map((u) => {
       const userPontos = (pontosData || []).filter((p: any) => p.usuario_id === u.id)
-      const daily = userPontos.find((p: any) => p.data === todayStr)
+      const daily = userPontos.find((p: any) => p.data === targetDateStr)
       const weekly = userPontos.filter((p: any) => p.data >= startW && p.data <= endW)
 
       return {
@@ -187,12 +197,12 @@ export default function RotinaDiaria() {
 
   const selectedCargo = cargos.find((c) => c.id === selectedCargoId)
 
-  const currentDate = new Intl.DateTimeFormat('pt-BR', {
+  const currentDateFormatted = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  }).format(currentTime)
+  }).format(selectedDate)
 
   const isTimeReached = (taskTime: string) => {
     if (!taskTime) return true
@@ -203,7 +213,7 @@ export default function RotinaDiaria() {
   }
 
   const WEEKDAYS_MAP = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
-  const currentDayId = WEEKDAYS_MAP[currentTime.getDay()]
+  const currentDayId = WEEKDAYS_MAP[selectedDate.getDay()]
 
   const cargoTasks = useMemo(() => {
     return tasks
@@ -233,8 +243,8 @@ export default function RotinaDiaria() {
   }
 
   const handleTaskComplete = async (taskId: string) => {
-    if (!user) return
-    const todayStr = format(new Date(), 'yyyy-MM-dd')
+    if (!user || !isToday) return
+    const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
 
     setTasks((prev) =>
       prev.map((t) =>
@@ -245,7 +255,7 @@ export default function RotinaDiaria() {
     const { error } = await supabase.rpc('marcar_rotina_concluida', {
       p_rotina_id: taskId,
       p_usuario_id: user.id,
-      p_data: todayStr,
+      p_data: targetDateStr,
     })
 
     if (error) {
@@ -273,23 +283,43 @@ export default function RotinaDiaria() {
           </p>
         </div>
 
-        <div className="w-full md:w-72">
-          <Select value={selectedCargoId} onValueChange={setSelectedCargoId}>
-            <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
-              <SelectValue placeholder="SELECIONAR CARGO" />
-            </SelectTrigger>
-            <SelectContent>
-              {cargos.map((cargo) => (
-                <SelectItem
-                  key={cargo.id}
-                  value={cargo.id}
-                  className="font-bold uppercase tracking-wider"
-                >
-                  {cargo.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative">
+            <input
+              type="date"
+              value={format(selectedDate, 'yyyy-MM-dd')}
+              max={format(currentTime, 'yyyy-MM-dd')}
+              onChange={(e) => {
+                const parts = e.target.value.split('-')
+                if (parts.length === 3) {
+                  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+                  setSelectedDate(date)
+                }
+              }}
+              className="h-11 px-4 py-2 bg-white border border-slate-200 rounded-md font-bold text-nuvia-navy uppercase tracking-wider text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-full sm:w-44 cursor-pointer"
+            />
+          </div>
+
+          {isAdmin && (
+            <div className="w-full sm:w-64">
+              <Select value={selectedCargoId} onValueChange={setSelectedCargoId}>
+                <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
+                  <SelectValue placeholder="SELECIONAR CARGO" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cargos.map((cargo) => (
+                    <SelectItem
+                      key={cargo.id}
+                      value={cargo.id}
+                      className="font-bold uppercase tracking-wider"
+                    >
+                      {cargo.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </div>
 
@@ -300,9 +330,18 @@ export default function RotinaDiaria() {
               <h2 className="text-2xl md:text-3xl font-black text-nuvia-navy tracking-wider">
                 ROTINA DIÁRIA - {selectedCargo?.nome}
               </h2>
-              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md">
-                <CalendarDays className="h-4 w-4 text-slate-500" />
-                <span className="text-sm font-bold text-slate-600 capitalize">{currentDate}</span>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md">
+                  <CalendarDays className="h-4 w-4 text-slate-500" />
+                  <span className="text-sm font-bold text-slate-600 capitalize">
+                    {currentDateFormatted}
+                  </span>
+                </div>
+                {!isToday && (
+                  <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-bold uppercase rounded-md tracking-wider border border-amber-200">
+                    HISTÓRICO
+                  </span>
+                )}
               </div>
             </div>
             {isAdmin && (
@@ -417,9 +456,9 @@ export default function RotinaDiaria() {
                           <div className="flex items-start gap-4 w-full">
                             <Checkbox
                               checked={task.completed}
-                              disabled={!isReached || task.completed}
+                              disabled={!isReached || task.completed || !isToday}
                               onCheckedChange={(c) => {
-                                if (c && isReached && !task.completed) {
+                                if (c && isReached && !task.completed && isToday) {
                                   handleTaskComplete(task.id)
                                 }
                               }}
@@ -428,7 +467,7 @@ export default function RotinaDiaria() {
                                 task.completed
                                   ? 'data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]'
                                   : '',
-                                !isReached &&
+                                (!isReached || !isToday) &&
                                   !task.completed &&
                                   'opacity-50 cursor-not-allowed bg-slate-100',
                               )}
@@ -468,12 +507,18 @@ export default function RotinaDiaria() {
                                   <span
                                     className={cn(
                                       'flex items-center gap-1',
-                                      isReached ? 'text-amber-600' : 'text-slate-400',
+                                      !isToday
+                                        ? 'text-slate-400'
+                                        : isReached
+                                          ? 'text-amber-600'
+                                          : 'text-slate-400',
                                     )}
                                   >
-                                    {isReached
-                                      ? 'PENDENTE (HORÁRIO ATINGIDO)'
-                                      : 'AGUARDANDO HORÁRIO'}
+                                    {!isToday
+                                      ? 'NÃO CONCLUÍDA'
+                                      : isReached
+                                        ? 'PENDENTE (HORÁRIO ATINGIDO)'
+                                        : 'AGUARDANDO HORÁRIO'}
                                   </span>
                                 )}
                               </div>
