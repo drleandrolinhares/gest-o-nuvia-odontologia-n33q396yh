@@ -15,7 +15,7 @@ CREATE POLICY "Allow all authenticated users on kpis_permissoes" ON public.kpis_
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- Seed some initial KPIs if none exist, so the permissions page has data
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.kpis LIMIT 1) THEN
     INSERT INTO public.kpis (id, sector, name, target_value, current_value, format_type)
@@ -24,4 +24,4 @@ BEGIN
       (gen_random_uuid(), 'RECEPÇÃO', 'Novos Contatos', 100, 85, 'number'),
       (gen_random_uuid(), 'ADMINISTRATIVO', 'Redução de Custos', 10000, 12000, 'currency');
   END IF;
-END $;
+END $$;
