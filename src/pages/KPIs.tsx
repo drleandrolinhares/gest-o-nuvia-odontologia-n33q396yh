@@ -122,57 +122,7 @@ export default function KPIs() {
 
   const isCrcComercial = currentRoleName.toUpperCase().includes('COMERCIAL')
 
-  const crcKpis = useMemo(() => {
-    if (!isCrcComercial) return []
-
-    const totalOportunidades = orcamentos.length
-    const valorTotalOportunidades = orcamentos.reduce((acc, curr) => acc + curr.valor, 0)
-
-    const vendas = orcamentos.filter((o) => o.vendido)
-    const totalVendas = vendas.length
-    const valorTotalVendas = vendas.reduce((acc, curr) => acc + curr.valor, 0)
-
-    const ticketMedioOportunidade =
-      totalOportunidades > 0 ? valorTotalOportunidades / totalOportunidades : 0
-    const conversao = totalOportunidades > 0 ? (totalVendas / totalOportunidades) * 100 : 0
-    const ticketMedioVenda = totalVendas > 0 ? valorTotalVendas / totalVendas : 0
-
-    return [
-      {
-        id: 'crc-1',
-        name: 'OPORTUNIDADE DE VENDA',
-        current: valorTotalOportunidades,
-        target: 100000,
-        format: 'currency',
-        observacoes: `${totalOportunidades} ORÇAMENTO(S) LANÇADO(S)`,
-      },
-      {
-        id: 'crc-2',
-        name: 'TICKET MÉDIO OPORTUNIDADE',
-        current: ticketMedioOportunidade,
-        target: 5000,
-        format: 'currency',
-      },
-      {
-        id: 'crc-3',
-        name: 'CONVERSÃO DE VENDA',
-        current: conversao,
-        target: 30,
-        format: 'percentage',
-      },
-      {
-        id: 'crc-4',
-        name: 'TICKET MÉDIO VENDA',
-        current: ticketMedioVenda,
-        target: 6000,
-        format: 'currency',
-      },
-    ] as KpiData[]
-  }, [orcamentos, isCrcComercial])
-
-  const currentKpis = isCrcComercial
-    ? [...crcKpis, ...(mockedKpisByRole[selectedRole] || [])]
-    : mockedKpisByRole[selectedRole] || []
+  const currentKpis = mockedKpisByRole[selectedRole] || []
 
   useEffect(() => {
     if (user) {
@@ -329,63 +279,65 @@ export default function KPIs() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentKpis.length > 0 ? (
-              currentKpis.map((kpi) => {
-                const progress = kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0
-                return (
-                  <div
-                    key={kpi.id}
-                    className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow relative overflow-hidden"
-                  >
-                    {kpi.id.startsWith('crc-') && (
-                      <div className="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]" />
-                    )}
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-nuvia-navy truncate max-w-[70%]">{kpi.name}</h3>
-                      <Badge
-                        variant="outline"
-                        className={`font-black px-2.5 py-0.5 rounded-full ${getProgressColor(kpi.current, kpi.target)}`}
-                      >
-                        {progress}%
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 font-bold mb-1">VALOR ATUAL</p>
-                      <p className="text-2xl font-black text-nuvia-navy">
-                        {formatValue(kpi.current, kpi.format)}
-                      </p>
-                    </div>
-                    <div className="flex justify-between items-end pt-3 border-t border-slate-100">
+            {currentKpis.length > 0
+              ? currentKpis.map((kpi) => {
+                  const progress = kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0
+                  return (
+                    <div
+                      key={kpi.id}
+                      className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow relative overflow-hidden"
+                    >
+                      {kpi.id.startsWith('crc-') && (
+                        <div className="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]" />
+                      )}
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-nuvia-navy truncate max-w-[70%]">
+                          {kpi.name}
+                        </h3>
+                        <Badge
+                          variant="outline"
+                          className={`font-black px-2.5 py-0.5 rounded-full ${getProgressColor(kpi.current, kpi.target)}`}
+                        >
+                          {progress}%
+                        </Badge>
+                      </div>
                       <div>
-                        <p className="text-xs text-slate-400 font-bold mb-0.5">META</p>
-                        <p className="text-sm font-bold text-slate-700">
-                          {formatValue(kpi.target, kpi.format)}
+                        <p className="text-xs text-slate-500 font-bold mb-1">VALOR ATUAL</p>
+                        <p className="text-2xl font-black text-nuvia-navy">
+                          {formatValue(kpi.current, kpi.format)}
                         </p>
                       </div>
-                      {kpi.date && (
-                        <div className="flex items-center text-[10px] text-slate-400 font-bold gap-1 bg-slate-50 px-2 py-1 rounded">
-                          <CalendarIcon className="w-3 h-3" />{' '}
-                          {new Date(kpi.date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                      <div className="flex justify-between items-end pt-3 border-t border-slate-100">
+                        <div>
+                          <p className="text-xs text-slate-400 font-bold mb-0.5">META</p>
+                          <p className="text-sm font-bold text-slate-700">
+                            {formatValue(kpi.target, kpi.format)}
+                          </p>
                         </div>
+                        {kpi.date && (
+                          <div className="flex items-center text-[10px] text-slate-400 font-bold gap-1 bg-slate-50 px-2 py-1 rounded">
+                            <CalendarIcon className="w-3 h-3" />{' '}
+                            {new Date(kpi.date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                          </div>
+                        )}
+                      </div>
+                      {kpi.observacoes && (
+                        <p className="text-[10px] text-slate-500 font-medium italic mt-2 line-clamp-2">
+                          Obs: {kpi.observacoes}
+                        </p>
                       )}
                     </div>
-                    {kpi.observacoes && (
-                      <p className="text-[10px] text-slate-500 font-medium italic mt-2 line-clamp-2">
-                        Obs: {kpi.observacoes}
-                      </p>
-                    )}
+                  )
+                })
+              : !isCrcComercial && (
+                  <div className="col-span-full flex flex-col items-center justify-center min-h-[20vh] text-center space-y-4 border-2 border-dashed border-slate-200 rounded-xl bg-white p-8">
+                    <BarChart3 className="h-12 w-12 text-slate-300" />
+                    <h3 className="text-lg font-black text-slate-600">NENHUM KPI ENCONTRADO</h3>
+                    <p className="text-sm text-slate-400 font-bold max-w-md">
+                      ESTE CARGO AINDA NÃO POSSUI INDICADORES CONFIGURADOS.
+                    </p>
                   </div>
-                )
-              })
-            ) : (
-              <div className="col-span-full flex flex-col items-center justify-center min-h-[20vh] text-center space-y-4 border-2 border-dashed border-slate-200 rounded-xl bg-white p-8">
-                <BarChart3 className="h-12 w-12 text-slate-300" />
-                <h3 className="text-lg font-black text-slate-600">NENHUM KPI ENCONTRADO</h3>
-                <p className="text-sm text-slate-400 font-bold max-w-md">
-                  ESTE CARGO AINDA NÃO POSSUI INDICADORES CONFIGURADOS.
-                </p>
-              </div>
-            )}
+                )}
           </div>
 
           {isCrcComercial && <CrmComercial orcamentos={orcamentos} setOrcamentos={setOrcamentos} />}
