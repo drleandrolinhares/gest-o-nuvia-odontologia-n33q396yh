@@ -256,6 +256,7 @@ export default function RotinaDiaria() {
         completed: !!exec?.concluido,
         completedAt: exec?.timestamp_conclusao,
         marcadoPorNome: exec?.marcado_por?.nome,
+        tipoMarcacao: exec?.tipo_marcacao,
       } as any
     })
 
@@ -429,7 +430,8 @@ export default function RotinaDiaria() {
         ? selectedColaboradorId
         : user.id
 
-    const marcadoPorId = isAdmin && targetUserId !== user.id ? user.id : null
+    const marcadoPorId = user.id
+    const tipoMarcacao = targetUserId === user.id ? 'colaborador' : 'admin'
 
     const nowStr = new Date().toISOString()
     let newProgress = 0
@@ -443,7 +445,8 @@ export default function RotinaDiaria() {
               ...t,
               completed: true,
               completedAt: nowStr,
-              marcadoPorNome: marcadoPorId ? currentUserProfile?.nome : undefined,
+              marcadoPorNome: currentUserProfile?.nome,
+              tipoMarcacao,
             } as any)
           : t,
       )
@@ -484,6 +487,7 @@ export default function RotinaDiaria() {
       p_percentual: newProgress,
       p_pontos: newPoints,
       p_marcado_por_id: marcadoPorId,
+      p_tipo_marcacao: tipoMarcacao,
     })
 
     if (error) {
@@ -816,18 +820,21 @@ export default function RotinaDiaria() {
 
                                 {task.completed ? (
                                   <div className="flex flex-wrap items-center gap-2">
-                                    <span className="flex items-center gap-1 text-emerald-600">
-                                      <CheckCircle2 className="h-3.5 w-3.5" />
-                                      CONCLUÍDO{' '}
+                                    <span
+                                      className={cn(
+                                        'px-2 py-1 rounded text-[10px] sm:text-xs font-black uppercase tracking-widest border shadow-sm flex items-center gap-1.5',
+                                        (task as any).tipoMarcacao === 'admin'
+                                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                          : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                      )}
+                                    >
+                                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                                       {task.completedAt &&
-                                        `ÀS ${new Date(task.completedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+                                        `${new Date(task.completedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+                                      {' - MARCADO POR: '}
+                                      {(task as any).tipoMarcacao === 'admin' && 'ADMIN '}
+                                      {(task as any).marcadoPorNome?.split(' ')[0] || 'SISTEMA'}
                                     </span>
-                                    {(task as any).marcadoPorNome && (
-                                      <span className="px-2 py-0.5 rounded text-[9px] font-black bg-indigo-100 text-indigo-700 uppercase tracking-widest border border-indigo-200 shadow-sm flex items-center gap-1">
-                                        <ShieldCheck className="h-3 w-3" />
-                                        MARCADO POR: {(task as any).marcadoPorNome.split(' ')[0]}
-                                      </span>
-                                    )}
                                   </div>
                                 ) : (
                                   <span
