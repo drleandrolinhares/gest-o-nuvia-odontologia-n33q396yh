@@ -29,8 +29,9 @@ interface ConfigRotinaModalProps {
   isOpen: boolean
   onClose: () => void
   cargos: { id: string; nome: string }[]
-  onSave: (task: Task) => void
+  onSave: (task?: Task) => void
   defaultCargoId?: string
+  taskToEdit?: Task | null
 }
 
 export function ConfigRotinaModal({
@@ -39,17 +40,33 @@ export function ConfigRotinaModal({
   cargos,
   onSave,
   defaultCargoId,
+  taskToEdit,
 }: ConfigRotinaModalProps) {
   const [cargoId, setCargoId] = useState(defaultCargoId || '')
   const [action, setAction] = useState('')
   const [time, setTime] = useState('08:00')
   const [days, setDays] = useState<string[]>(['seg', 'ter', 'qua', 'qui', 'sex'])
+  const [frequency, setFrequency] = useState('diario')
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (isOpen && defaultCargoId) setCargoId(defaultCargoId)
-  }, [isOpen, defaultCargoId])
+    if (isOpen) {
+      if (taskToEdit) {
+        setCargoId(taskToEdit.cargoId)
+        setAction(taskToEdit.action)
+        setTime(taskToEdit.time)
+        setDays(taskToEdit.days || [])
+        setFrequency(taskToEdit.frequency || 'diario')
+      } else {
+        setCargoId(defaultCargoId || '')
+        setAction('')
+        setTime('08:00')
+        setDays(['seg', 'ter', 'qua', 'qui', 'sex'])
+        setFrequency('diario')
+      }
+    }
+  }, [isOpen, taskToEdit, defaultCargoId])
 
   const toggleDay = (day: string) => {
     setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]))
@@ -66,24 +83,40 @@ export function ConfigRotinaModal({
     }
 
     setLoading(true)
-    const { data, error } = await supabase
-      .from('rotinas_config')
-      .insert({
-        cargo_id: cargoId,
-        acao: action,
-        horario: time,
-        dias_semana: days,
-        frequencia: 'diario',
-      })
-      .select()
-      .single()
+
+    const payload = {
+      cargo_id: cargoId,
+      acao: action,
+      horario: time,
+      dias_semana: days,
+      frequencia: frequency,
+    }
+
+    let result
+    if (taskToEdit) {
+      result = await supabase
+        .from('rotinas_config')
+        .update(payload)
+        .eq('id', taskToEdit.id)
+        .select()
+        .single()
+    } else {
+      result = await supabase.from('rotinas_config').insert(payload).select().single()
+    }
+
+    const { data, error } = result
 
     setLoading(false)
 
     if (error) {
       toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' })
     } else if (data) {
-      toast({ title: 'Sucesso', description: 'Rotina configurada com sucesso!' })
+      toast({
+        title: 'Sucesso',
+        description: taskToEdit
+          ? 'Rotina atualizada com sucesso!'
+          : 'Rotina configurada com sucesso!',
+      })
       onSave({
         id: data.id,
         cargoId: data.cargo_id,
@@ -94,7 +127,6 @@ export function ConfigRotinaModal({
         completed: false,
       })
       onClose()
-      setAction('')
     }
   }
 
@@ -103,7 +135,7 @@ export function ConfigRotinaModal({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="font-bold text-nuvia-navy uppercase">
-            Configurar Nova Rotina
+            {taskToEdit ? 'Editar Rotina' : 'Configurar Nova Rotina'}
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -149,6 +181,22 @@ export function ConfigRotinaModal({
                 className="pl-9"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Frequência
+            </Label>
+            <Select value={frequency} onValueChange={setFrequency}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a frequência" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="diario">Diário</SelectItem>
+                <SelectItem value="semanal">Semanal</SelectItem>
+                <SelectItem value="mensal">Mensal</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
