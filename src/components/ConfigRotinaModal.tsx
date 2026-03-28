@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,29 +16,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/use-toast'
-import { Clock } from 'lucide-react'
 
 export interface Task {
   id: string
   cargoId: string
+  colaboradorId?: string
   action: string
   time: string
   days: string[]
   frequency: string
-  completed?: boolean
+  completed: boolean
   completedAt?: string
 }
 
-interface ConfigRotinaModalProps {
+interface Props {
   isOpen: boolean
   onClose: () => void
   cargos: { id: string; nome: string }[]
-  onSave: (task?: Task) => void
-  defaultCargoId?: string
-  taskToEdit?: Task | null
+  onSave: () => void
+  defaultCargoId: string
+  defaultColaboradorId?: string
+  colaboradorNome?: string
+  taskToEdit: Task | null
 }
+
+const DAYS = [
+  { id: 'dom', label: 'DOM' },
+  { id: 'seg', label: 'SEG' },
+  { id: 'ter', label: 'TER' },
+  { id: 'qua', label: 'QUA' },
+  { id: 'qui', label: 'QUI' },
+  { id: 'sex', label: 'SEX' },
+  { id: 'sab', label: 'SAB' },
+]
 
 export function ConfigRotinaModal({
   isOpen,
@@ -40,197 +59,158 @@ export function ConfigRotinaModal({
   cargos,
   onSave,
   defaultCargoId,
+  defaultColaboradorId,
+  colaboradorNome,
   taskToEdit,
-}: ConfigRotinaModalProps) {
-  const [cargoId, setCargoId] = useState(defaultCargoId || '')
-  const [action, setAction] = useState('')
-  const [time, setTime] = useState('08:00')
-  const [days, setDays] = useState<string[]>(['seg', 'ter', 'qua', 'qui', 'sex'])
-  const [frequency, setFrequency] = useState('diario')
-  const { toast } = useToast()
+}: Props) {
+  const [acao, setAcao] = useState('')
+  const [horario, setHorario] = useState('')
+  const [frequencia, setFrequencia] = useState('diario')
+  const [diasSemana, setDiasSemana] = useState<string[]>(['seg', 'ter', 'qua', 'qui', 'sex'])
   const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
-    if (isOpen) {
-      if (taskToEdit) {
-        setCargoId(taskToEdit.cargoId)
-        setAction(taskToEdit.action)
-        setTime(taskToEdit.time)
-        setDays(taskToEdit.days || [])
-        setFrequency(taskToEdit.frequency || 'diario')
-      } else {
-        setCargoId(defaultCargoId || '')
-        setAction('')
-        setTime('08:00')
-        setDays(['seg', 'ter', 'qua', 'qui', 'sex'])
-        setFrequency('diario')
-      }
+    if (taskToEdit) {
+      setAcao(taskToEdit.action)
+      setHorario(taskToEdit.time)
+      setFrequencia(taskToEdit.frequency)
+      setDiasSemana(taskToEdit.days || [])
+    } else {
+      setAcao('')
+      setHorario('')
+      setFrequencia('diario')
+      setDiasSemana(['seg', 'ter', 'qua', 'qui', 'sex'])
     }
-  }, [isOpen, taskToEdit, defaultCargoId])
-
-  const toggleDay = (day: string) => {
-    setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]))
-  }
+  }, [taskToEdit, isOpen])
 
   const handleSave = async () => {
-    if (!cargoId || !action || !time || days.length === 0) {
+    if (!acao || !horario || !defaultCargoId) {
       toast({
-        title: 'Atenção',
-        description: 'Preencha todos os campos obrigatórios.',
+        title: 'Erro',
+        description: 'Preencha os campos obrigatórios',
         variant: 'destructive',
       })
       return
     }
-
     setLoading(true)
 
+    // Se estiver editando, mantenha o escopo original da tarefa (seja de usuário ou de cargo)
+    // Se for nova tarefa, use o colaborador selecionado (ou null para geral)
+    const targetColaboradorId = taskToEdit ? taskToEdit.colaboradorId : defaultColaboradorId || null
+
     const payload = {
-      cargo_id: cargoId,
-      acao: action,
-      horario: time,
-      dias_semana: days,
-      frequencia: frequency,
+      acao,
+      horario,
+      frequencia,
+      dias_semana: diasSemana,
+      cargo_id: defaultCargoId,
+      colaborador_id: targetColaboradorId,
     }
 
-    let result
+    let error
     if (taskToEdit) {
-      result = await supabase
+      const { error: err } = await supabase
         .from('rotinas_config')
         .update(payload)
         .eq('id', taskToEdit.id)
-        .select()
-        .single()
+      error = err
     } else {
-      result = await supabase.from('rotinas_config').insert(payload).select().single()
+      const { error: err } = await supabase.from('rotinas_config').insert([payload])
+      error = err
     }
-
-    const { data, error } = result
 
     setLoading(false)
-
     if (error) {
-      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' })
-    } else if (data) {
-      toast({
-        title: 'Sucesso',
-        description: taskToEdit
-          ? 'Rotina atualizada com sucesso!'
-          : 'Rotina configurada com sucesso!',
-      })
-      onSave({
-        id: data.id,
-        cargoId: data.cargo_id,
-        action: data.acao,
-        time: data.horario,
-        days: data.dias_semana,
-        frequency: data.frequencia,
-        completed: false,
-      })
+      toast({ title: 'Erro', description: 'Erro ao salvar rotina', variant: 'destructive' })
+    } else {
+      toast({ title: 'Sucesso', description: 'Rotina salva com sucesso' })
+      onSave()
       onClose()
     }
+  }
+
+  const toggleDia = (dia: string) => {
+    setDiasSemana((prev) => (prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia]))
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-bold text-nuvia-navy uppercase">
-            {taskToEdit ? 'Editar Rotina' : 'Configurar Nova Rotina'}
+          <DialogTitle className="uppercase font-black text-nuvia-navy tracking-wider text-sm sm:text-base">
+            {taskToEdit
+              ? 'EDITAR ROTINA'
+              : colaboradorNome
+                ? `+ ADICIONAR TAREFA PARA ${colaboradorNome}`
+                : 'CONFIGURAR ROTINA GERAL'}
           </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Cargo
-            </Label>
-            <Select value={cargoId} onValueChange={setCargoId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um cargo" />
-              </SelectTrigger>
-              <SelectContent>
-                {cargos.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Ação / Tarefa
-            </Label>
+            <Label className="text-xs font-bold text-slate-500 uppercase">AÇÃO / TAREFA</Label>
             <Input
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              placeholder="Ex: Revisar metas"
+              value={acao}
+              onChange={(e) => setAcao(e.target.value)}
+              placeholder="Ex: CONFERIR CAIXA"
+              className="uppercase font-bold"
             />
           </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Horário Limite
-            </Label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <Input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="pl-9"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-500 uppercase">HORÁRIO LIMITE</Label>
+              <Input type="time" value={horario} onChange={(e) => setHorario(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-500 uppercase">FREQUÊNCIA</Label>
+              <Select value={frequencia} onValueChange={setFrequencia}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="diario">DIÁRIO</SelectItem>
+                  <SelectItem value="semanal">SEMANAL</SelectItem>
+                  <SelectItem value="mensal">MENSAL</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Frequência
-            </Label>
-            <Select value={frequency} onValueChange={setFrequency}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a frequência" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="diario">Diário</SelectItem>
-                <SelectItem value="semanal">Semanal</SelectItem>
-                <SelectItem value="mensal">Mensal</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Dias da Semana
-            </Label>
+            <Label className="text-xs font-bold text-slate-500 uppercase">DIAS DA SEMANA</Label>
             <div className="flex flex-wrap gap-2">
-              {['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'].map((d) => (
-                <Button
-                  key={d}
-                  type="button"
-                  variant={days.includes(d) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => toggleDay(d)}
-                  className="w-12 uppercase text-xs"
+              {DAYS.map((dia) => (
+                <div
+                  key={dia.id}
+                  className="flex items-center space-x-1 border border-slate-200 p-2 rounded-md bg-slate-50"
                 >
-                  {d}
-                </Button>
+                  <Checkbox
+                    id={`dia-${dia.id}`}
+                    checked={diasSemana.includes(dia.id)}
+                    onCheckedChange={() => toggleDia(dia.id)}
+                  />
+                  <label
+                    htmlFor={`dia-${dia.id}`}
+                    className="text-xs font-bold text-slate-600 uppercase cursor-pointer"
+                  >
+                    {dia.label}
+                  </label>
+                </div>
               ))}
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-3 mt-4">
+        <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancelar
+            CANCELAR
           </Button>
           <Button
-            className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37]"
             onClick={handleSave}
             disabled={loading}
+            className="bg-nuvia-navy hover:bg-nuvia-navy/90 text-[#D4AF37] font-bold tracking-widest"
           >
-            {loading ? 'Salvando...' : 'Salvar Rotina'}
+            {loading ? 'SALVANDO...' : 'SALVAR'}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

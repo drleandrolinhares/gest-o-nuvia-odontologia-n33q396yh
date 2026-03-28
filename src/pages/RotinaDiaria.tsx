@@ -66,6 +66,10 @@ export default function RotinaDiaria() {
   const { toast } = useToast()
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [selectedCargoId, setSelectedCargoId] = useState<string>('')
+
+  const [colaboradores, setColaboradores] = useState<{ id: string; nome: string }[]>([])
+  const [selectedColaboradorId, setSelectedColaboradorId] = useState<string>('')
+
   const [isAdmin, setIsAdmin] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
   const [rankings, setRankings] = useState<RankingData[]>([])
@@ -119,28 +123,64 @@ export default function RotinaDiaria() {
     checkAdminAndUser()
   }, [user])
 
+  useEffect(() => {
+    if (!isAdmin || !selectedCargoId) return
+    const fetchColabs = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, nome')
+        .eq('cargo_id', selectedCargoId)
+        .order('nome')
+
+      if (data) {
+        setColaboradores(data)
+        if (!selectedColaboradorId || selectedColaboradorId === 'todos') {
+          setSelectedColaboradorId('todos')
+        }
+      }
+    }
+    fetchColabs()
+  }, [isAdmin, selectedCargoId])
+
   const fetchTasks = useCallback(async () => {
     if (!selectedCargoId || !user) return
     const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
 
-    const { data: configData } = await supabase
-      .from('rotinas_config')
-      .select('*')
-      .eq('cargo_id', selectedCargoId)
+    let query = supabase.from('rotinas_config').select('*').eq('cargo_id', selectedCargoId)
 
+    let activeUserId = user.id
+    if (isAdmin) {
+      if (selectedColaboradorId && selectedColaboradorId !== 'todos') {
+        query = query.or(`colaborador_id.eq.${selectedColaboradorId},colaborador_id.is.null`)
+        activeUserId = selectedColaboradorId
+      } else {
+        query = query.is('colaborador_id', null)
+      }
+    } else {
+      query = query.or(`colaborador_id.eq.${user.id},colaborador_id.is.null`)
+    }
+
+    const { data: configData } = await query
     if (!configData) return
 
-    const { data: execData } = await supabase
-      .from('rotinas_execucao')
-      .select('*')
-      .eq('usuario_id', user.id)
-      .eq('data', targetDateStr)
+    let execData: any[] = []
+    if (isAdmin && (!selectedColaboradorId || selectedColaboradorId === 'todos')) {
+      // General view doesn't process specific execution data easily per general task without user context
+    } else {
+      const { data: ed } = await supabase
+        .from('rotinas_execucao')
+        .select('*')
+        .eq('usuario_id', activeUserId)
+        .eq('data', targetDateStr)
+      execData = ed || []
+    }
 
     const mappedTasks: Task[] = configData.map((c: any) => {
       const exec = execData?.find((e: any) => e.rotina_id === c.id)
       return {
         id: c.id,
         cargoId: c.cargo_id,
+        colaboradorId: c.colaborador_id,
         action: c.acao,
         time: c.horario,
         days: c.dias_semana || [],
@@ -151,7 +191,7 @@ export default function RotinaDiaria() {
     })
 
     setTasks(mappedTasks)
-  }, [selectedCargoId, user])
+  }, [selectedCargoId, selectedColaboradorId, user, selectedDate, isAdmin])
 
   const fetchRanking = useCallback(async () => {
     if (!selectedCargoId) return
@@ -200,7 +240,7 @@ export default function RotinaDiaria() {
     })
 
     setRankings(aggregated.sort((a, b) => b.points[rankingPeriod] - a.points[rankingPeriod]))
-  }, [selectedCargoId, rankingPeriod])
+  }, [selectedCargoId, rankingPeriod, selectedDate])
 
   useEffect(() => {
     fetchTasks()
@@ -211,6 +251,7 @@ export default function RotinaDiaria() {
   }, [fetchRanking])
 
   const selectedCargo = cargos.find((c) => c.id === selectedCargoId)
+  const selectedColaborador = colaboradores.find((c) => c.id === selectedColaboradorId)
 
   const currentDateFormatted = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
@@ -278,6 +319,10 @@ export default function RotinaDiaria() {
   const handleTaskComplete = async (taskId: string) => {
     if (!user || !isToday) return
     const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
+    const targetUserId =
+      isAdmin && selectedColaboradorId && selectedColaboradorId !== 'todos'
+        ? selectedColaboradorId
+        : user.id
 
     setTasks((prev) =>
       prev.map((t) =>
@@ -287,7 +332,7 @@ export default function RotinaDiaria() {
 
     const { error } = await supabase.rpc('marcar_rotina_concluida', {
       p_rotina_id: taskId,
-      p_usuario_id: user.id,
+      p_usuario_id: targetUserId,
       p_data: targetDateStr,
     })
 
@@ -334,23 +379,55 @@ export default function RotinaDiaria() {
           </div>
 
           {isAdmin && (
-            <div className="w-full sm:w-64">
-              <Select value={selectedCargoId} onValueChange={setSelectedCargoId}>
-                <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
-                  <SelectValue placeholder="SELECIONAR CARGO" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cargos.map((cargo) => (
-                    <SelectItem
-                      key={cargo.id}
-                      value={cargo.id}
-                      className="font-bold uppercase tracking-wider"
-                    >
-                      {cargo.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="w-full sm:w-56">
+                <Select
+                  value={selectedCargoId}
+                  onValueChange={(val) => {
+                    setSelectedCargoId(val)
+                    setSelectedColaboradorId('todos')
+                  }}
+                >
+                  <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
+                    <SelectValue placeholder="CARGO" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cargos.map((cargo) => (
+                      <SelectItem
+                        key={cargo.id}
+                        value={cargo.id}
+                        className="font-bold uppercase tracking-wider"
+                      >
+                        {cargo.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedCargoId && (
+                <div className="w-full sm:w-64">
+                  <Select value={selectedColaboradorId} onValueChange={setSelectedColaboradorId}>
+                    <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
+                      <SelectValue placeholder="COLABORADOR" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos" className="font-bold uppercase tracking-wider">
+                        TODOS (GERAL)
+                      </SelectItem>
+                      {colaboradores.map((colab) => (
+                        <SelectItem
+                          key={colab.id}
+                          value={colab.id}
+                          className="font-bold uppercase tracking-wider"
+                        >
+                          {colab.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -361,7 +438,10 @@ export default function RotinaDiaria() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-6 mb-2">
             <div>
               <h2 className="text-2xl md:text-3xl font-black text-nuvia-navy tracking-wider">
-                ROTINA DIÁRIA - {selectedCargo?.nome}
+                ROTINA DIÁRIA -{' '}
+                {selectedColaboradorId && selectedColaboradorId !== 'todos'
+                  ? selectedColaborador?.nome
+                  : selectedCargo?.nome}
               </h2>
               <div className="mt-3 flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md">
@@ -383,9 +463,12 @@ export default function RotinaDiaria() {
                   setTaskToEdit(null)
                   setIsConfigOpen(true)
                 }}
-                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md shrink-0 h-11 px-6"
+                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md shrink-0 h-11 px-4 sm:px-6 text-xs sm:text-sm"
               >
-                <Settings className="h-4 w-4 mr-2" /> CONFIGURAR ROTINA
+                <Settings className="h-4 w-4 mr-2" />
+                {selectedColaboradorId && selectedColaboradorId !== 'todos'
+                  ? `+ TAREFA: ${colaboradores.find((c) => c.id === selectedColaboradorId)?.nome?.split(' ')[0]}`
+                  : 'CONFIGURAR ROTINA GERAL'}
               </Button>
             )}
           </div>
@@ -396,7 +479,7 @@ export default function RotinaDiaria() {
                 value="minhas-tarefas"
                 className="font-bold tracking-wider text-xs uppercase h-full"
               >
-                MINHAS TAREFAS
+                TAREFAS
               </TabsTrigger>
               <TabsTrigger
                 value="ranking"
@@ -501,7 +584,13 @@ export default function RotinaDiaria() {
                           <div className="flex items-start gap-4 w-full">
                             <Checkbox
                               checked={task.completed}
-                              disabled={!isReached || task.completed || !isToday}
+                              disabled={
+                                !isReached ||
+                                task.completed ||
+                                !isToday ||
+                                (isAdmin &&
+                                  (!selectedColaboradorId || selectedColaboradorId === 'todos'))
+                              }
                               onCheckedChange={(c) => {
                                 if (c && isReached && !task.completed && isToday) {
                                   handleTaskComplete(task.id)
@@ -512,7 +601,11 @@ export default function RotinaDiaria() {
                                 task.completed
                                   ? 'data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]'
                                   : '',
-                                (!isReached || !isToday) &&
+                                (!isReached ||
+                                  !isToday ||
+                                  (isAdmin &&
+                                    (!selectedColaboradorId ||
+                                      selectedColaboradorId === 'todos'))) &&
                                   !task.completed &&
                                   'opacity-50 cursor-not-allowed bg-slate-100',
                               )}
@@ -566,6 +659,19 @@ export default function RotinaDiaria() {
                                         : 'AGUARDANDO HORÁRIO'}
                                   </span>
                                 )}
+
+                                {isAdmin && (
+                                  <span
+                                    className={cn(
+                                      'px-2 py-0.5 rounded text-[10px] font-black',
+                                      task.colaboradorId
+                                        ? 'bg-indigo-50 text-indigo-600'
+                                        : 'bg-slate-100 text-slate-500',
+                                    )}
+                                  >
+                                    {task.colaboradorId ? 'ESPECÍFICA' : 'GERAL (CARGO)'}
+                                  </span>
+                                )}
                               </div>
                             </div>
 
@@ -606,7 +712,7 @@ export default function RotinaDiaria() {
                       NENHUMA TAREFA PARA HOJE
                     </h3>
                     <p className="text-sm font-bold text-slate-400 tracking-wider text-center max-w-md leading-relaxed">
-                      ESTE CARGO NÃO POSSUI TAREFAS AGENDADAS PARA O DIA ATUAL NO SISTEMA.
+                      ESTE PERFIL NÃO POSSUI TAREFAS AGENDADAS PARA O DIA ATUAL NO SISTEMA.
                     </p>
                     {isAdmin && (
                       <p className="text-xs font-black text-[#D4AF37] text-center mt-4 bg-[#D4AF37]/10 px-4 py-2 rounded-md tracking-widest">
@@ -749,6 +855,14 @@ export default function RotinaDiaria() {
           cargos={cargos}
           onSave={() => fetchTasks()}
           defaultCargoId={selectedCargoId}
+          defaultColaboradorId={
+            selectedColaboradorId === 'todos' ? undefined : selectedColaboradorId
+          }
+          colaboradorNome={
+            selectedColaboradorId && selectedColaboradorId !== 'todos'
+              ? colaboradores.find((c) => c.id === selectedColaboradorId)?.nome
+              : undefined
+          }
           taskToEdit={taskToEdit}
         />
       )}
