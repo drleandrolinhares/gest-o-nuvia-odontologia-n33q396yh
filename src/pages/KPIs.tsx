@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog,
   DialogContent,
@@ -331,26 +332,23 @@ export default function KPIs() {
             </SelectContent>
           </Select>
         </div>
-        <div className="sm:w-64 space-y-1.5">
+        <div className="sm:w-80 space-y-1.5">
           <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5" /> PERÍODO
           </label>
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="font-bold text-nuvia-navy">
-              <SelectValue placeholder="PERÍODO" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="semana" className="font-bold">
-                ESTA SEMANA
-              </SelectItem>
-              <SelectItem value="mes" className="font-bold">
-                ESTE MÊS
-              </SelectItem>
-              <SelectItem value="trimestre" className="font-bold">
-                TRIMESTRE
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Tabs value={period} onValueChange={setPeriod} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="dia" className="font-bold text-xs">
+                DIA
+              </TabsTrigger>
+              <TabsTrigger value="semana" className="font-bold text-xs">
+                SEMANA
+              </TabsTrigger>
+              <TabsTrigger value="mes" className="font-bold text-xs">
+                MÊS
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
