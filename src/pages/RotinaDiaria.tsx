@@ -14,7 +14,16 @@ import {
   Pencil,
   Trash2,
 } from 'lucide-react'
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
+import {
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  differenceInDays,
+  parseISO,
+  startOfDay,
+} from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -58,6 +67,43 @@ interface RankingData {
     daily: number
     weekly: number
     monthly: number
+  }
+}
+
+const isTaskActiveOnDate = (task: Task | any, targetDate: Date) => {
+  const target = startOfDay(targetDate)
+  const baseDateStr = task.dataInicio || task.data_inicio
+  const baseDate = baseDateStr ? startOfDay(parseISO(baseDateStr)) : target
+
+  if (target < baseDate) return false
+
+  const taskDays = task.days || task.dias_semana || []
+  const WEEKDAYS_MAP = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
+  const targetDayId = WEEKDAYS_MAP[targetDate.getDay()]
+
+  const diffDays = differenceInDays(target, baseDate)
+  const freq = task.frequency || task.frequencia
+
+  switch (freq) {
+    case 'diario':
+      return taskDays.length === 0 || taskDays.includes(targetDayId)
+    case 'semanal':
+      return taskDays.includes(targetDayId)
+    case 'quinzenal': {
+      const weeksDiff = Math.floor(diffDays / 7)
+      if (weeksDiff % 2 !== 0) return false
+      return taskDays.includes(targetDayId)
+    }
+    case 'mensal': {
+      return target.getDate() === baseDate.getDate()
+    }
+    case 'customizado': {
+      const interval = task.intervaloDias || task.intervalo_dias
+      if (!interval) return false
+      return diffDays % interval === 0
+    }
+    default:
+      return taskDays.includes(targetDayId)
   }
 }
 
@@ -165,7 +211,7 @@ export default function RotinaDiaria() {
 
     let execData: any[] = []
     if (isAdmin && (!selectedColaboradorId || selectedColaboradorId === 'todos')) {
-      // General view doesn't process specific execution data easily per general task without user context
+      // General view doesn't process specific execution easily per generic task
     } else {
       const { data: ed } = await supabase
         .from('rotinas_execucao')
@@ -185,6 +231,8 @@ export default function RotinaDiaria() {
         time: c.horario,
         days: c.dias_semana || [],
         frequency: c.frequencia,
+        dataInicio: c.data_inicio,
+        intervaloDias: c.intervalo_dias,
         completed: !!exec?.concluido,
         completedAt: exec?.timestamp_conclusao,
       }
@@ -198,11 +246,10 @@ export default function RotinaDiaria() {
     const now = new Date()
     const startM = format(startOfMonth(now), 'yyyy-MM-dd')
     const endM = format(endOfMonth(now), 'yyyy-MM-dd')
-    const todayStr = format(now, 'yyyy-MM-dd')
     const startW = format(startOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd')
     const endW = format(endOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd')
-
     const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
+
     const { data: usersData } = await supabase
       .from('profiles')
       .select('id, nome, cargo_id')
@@ -214,6 +261,8 @@ export default function RotinaDiaria() {
     }
 
     const userIds = usersData.map((u) => u.id)
+
+    // Histórico para semanal e mensal
     const { data: pontosData } = await supabase
       .from('rotinas_pontos')
       .select('*')
@@ -221,25 +270,60 @@ export default function RotinaDiaria() {
       .gte('data', startM)
       .lte('data', endM)
 
+    // Dados dinâmicos para Hoje (respeita recorrencia customizada em tempo real)
+    const { data: allConfigs } = await supabase
+      .from('rotinas_config')
+      .select('*')
+      .eq('cargo_id', selectedCargoId)
+
+    const { data: allExecsToday } = await supabase
+      .from('rotinas_execucao')
+      .select('*')
+      .in('usuario_id', userIds)
+      .eq('data', targetDateStr)
+
     const aggregated = usersData.map((u) => {
+      // Histórico
       const userPontos = (pontosData || []).filter((p: any) => p.usuario_id === u.id)
-      const daily = userPontos.find((p: any) => p.data === targetDateStr)
       const weekly = userPontos.filter((p: any) => p.data >= startW && p.data <= endW)
+      const monthly = userPontos.filter((p: any) => p.data >= startM && p.data <= endM)
+
+      // Cálculo Dinâmico do Dia
+      const userConfigs = (allConfigs || []).filter(
+        (c: any) => c.colaborador_id === u.id || !c.colaborador_id,
+      )
+      const activeTasks = userConfigs.filter((c: any) => isTaskActiveOnDate(c, selectedDate))
+      const totalTasks = activeTasks.length
+
+      const userExecs = (allExecsToday || []).filter(
+        (e: any) => e.usuario_id === u.id && e.concluido,
+      )
+      const completedTasks = activeTasks.filter((t: any) =>
+        userExecs.some((e: any) => e.rotina_id === t.id),
+      ).length
+
+      const progressToday = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)
+      const pointsToday = Math.round(progressToday / 10)
 
       return {
         id: u.id,
         name: u.nome || 'Colaborador',
         cargoId: u.cargo_id,
-        progressToday: daily ? Number(daily.percentual) : 0,
+        progressToday: progressToday,
         points: {
-          daily: daily ? daily.pontos : 0,
+          daily: pointsToday,
           weekly: weekly.reduce((sum: number, p: any) => sum + p.pontos, 0),
-          monthly: userPontos.reduce((sum: number, p: any) => sum + p.pontos, 0),
+          monthly: monthly.reduce((sum: number, p: any) => sum + p.pontos, 0),
         },
       }
     })
 
-    setRankings(aggregated.sort((a, b) => b.points[rankingPeriod] - a.points[rankingPeriod]))
+    setRankings(
+      aggregated.sort((a, b) => {
+        if (rankingPeriod === 'daily') return b.progressToday - a.progressToday
+        return b.points[rankingPeriod] - a.points[rankingPeriod]
+      }),
+    )
   }, [selectedCargoId, rankingPeriod, selectedDate])
 
   useEffect(() => {
@@ -268,18 +352,14 @@ export default function RotinaDiaria() {
     return currentTime >= taskDate
   }
 
-  const WEEKDAYS_MAP = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
-  const currentDayId = WEEKDAYS_MAP[selectedDate.getDay()]
-
   const cargoTasks = useMemo(() => {
     return tasks
       .filter((t) => {
         if (t.cargoId !== selectedCargoId) return false
-        if (t.days && t.days.length > 0 && !t.days.includes(currentDayId)) return false
-        return true
+        return isTaskActiveOnDate(t, selectedDate)
       })
       .sort((a, b) => a.time.localeCompare(b.time))
-  }, [tasks, selectedCargoId, currentDayId])
+  }, [tasks, selectedCargoId, selectedDate])
 
   const completedCount = cargoTasks.filter((t) => t.completed).length
   const totalCount = cargoTasks.length
@@ -324,16 +404,51 @@ export default function RotinaDiaria() {
         ? selectedColaboradorId
         : user.id
 
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId ? { ...t, completed: true, completedAt: new Date().toISOString() } : t,
-      ),
-    )
+    const nowStr = new Date().toISOString()
+    let newProgress = 0
+    let newPoints = 0
 
-    const { error } = await supabase.rpc('marcar_rotina_concluida', {
+    // Otimista
+    setTasks((prev) => {
+      const updated = prev.map((t) =>
+        t.id === taskId ? { ...t, completed: true, completedAt: nowStr } : t,
+      )
+
+      const active = updated.filter(
+        (t) => t.cargoId === selectedCargoId && isTaskActiveOnDate(t, selectedDate),
+      )
+      const comp = active.filter((t) => t.completed).length
+      newProgress = active.length === 0 ? 0 : Math.round((comp / active.length) * 100)
+      newPoints = Math.round(newProgress / 10)
+
+      return updated
+    })
+
+    // Atualiza Ranking Localmente
+    setRankings((prev) => {
+      const updated = prev.map((r) =>
+        r.id === targetUserId
+          ? {
+              ...r,
+              progressToday: newProgress,
+              points: { ...r.points, daily: newPoints },
+            }
+          : r,
+      )
+      return updated.sort((a, b) =>
+        rankingPeriod === 'daily'
+          ? b.progressToday - a.progressToday
+          : b.points[rankingPeriod] - a.points[rankingPeriod],
+      )
+    })
+
+    // Comunica Backend com nova RPC
+    const { error } = await supabase.rpc('registrar_execucao_rotina', {
       p_rotina_id: taskId,
       p_usuario_id: targetUserId,
       p_data: targetDateStr,
+      p_percentual: newProgress,
+      p_pontos: newPoints,
     })
 
     if (error) {
@@ -344,7 +459,6 @@ export default function RotinaDiaria() {
         variant: 'destructive',
       })
       fetchTasks()
-    } else {
       fetchRanking()
     }
   }
@@ -712,7 +826,7 @@ export default function RotinaDiaria() {
                       NENHUMA TAREFA PARA HOJE
                     </h3>
                     <p className="text-sm font-bold text-slate-400 tracking-wider text-center max-w-md leading-relaxed">
-                      ESTE PERFIL NÃO POSSUI TAREFAS AGENDADAS PARA O DIA ATUAL NO SISTEMA.
+                      ESTE PERFIL NÃO POSSUI TAREFAS AGENDADAS PARA A DATA ATUAL NO SISTEMA.
                     </p>
                     {isAdmin && (
                       <p className="text-xs font-black text-[#D4AF37] text-center mt-4 bg-[#D4AF37]/10 px-4 py-2 rounded-md tracking-widest">
@@ -813,12 +927,21 @@ export default function RotinaDiaria() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-black text-amber-500 flex items-center justify-end">
-                        {colab.points[rankingPeriod]}
-                        <Star className="h-5 w-5 fill-amber-500 text-amber-500 ml-1 mb-1" />
+                      <p
+                        className={cn(
+                          'text-2xl font-black flex items-center justify-end',
+                          rankingPeriod === 'daily' ? 'text-nuvia-navy' : 'text-amber-500',
+                        )}
+                      >
+                        {rankingPeriod === 'daily'
+                          ? `${colab.progressToday}%`
+                          : colab.points[rankingPeriod]}
+                        {rankingPeriod !== 'daily' && (
+                          <Star className="h-5 w-5 fill-amber-500 text-amber-500 ml-1 mb-1" />
+                        )}
                       </p>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">
-                        PONTOS
+                        {rankingPeriod === 'daily' ? 'CONCLUÍDO' : 'PONTOS'}
                       </p>
                     </div>
                   </div>
