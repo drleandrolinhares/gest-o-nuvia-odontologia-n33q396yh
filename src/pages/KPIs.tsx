@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   LayoutDashboard,
   Plus,
@@ -30,6 +30,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { CrmComercial, type Orcamento } from '@/components/kpis/CrmComercial'
 
 export type KpiFormat = 'currency' | 'number' | 'percentage'
 
@@ -49,29 +50,10 @@ interface Cargo {
 }
 
 const generateMockKpis = (cargoName: string): KpiData[] => {
-  if (cargoName.includes('COMERCIAL')) {
-    return [
-      {
-        id: '1',
-        name: 'VENDAS MENSAIS',
-        current: 150000,
-        target: 200000,
-        format: 'currency',
-        date: '2023-10-01',
-        observacoes: 'Acompanhamento de vendas da equipe.',
-      },
-      {
-        id: '2',
-        name: 'TAXA DE CONVERSÃO',
-        current: 45,
-        target: 60,
-        format: 'percentage',
-        date: '2023-10-01',
-        observacoes: 'Leads convertidos em vendas.',
-      },
-    ]
+  if (cargoName.toUpperCase().includes('COMERCIAL')) {
+    return []
   }
-  if (cargoName.includes('FINANCEIRO')) {
+  if (cargoName.toUpperCase().includes('FINANCEIRO')) {
     return [
       {
         id: '3',
@@ -125,13 +107,72 @@ export default function KPIs() {
 
   const [mockedKpisByRole, setMockedKpisByRole] = useState<Record<string, KpiData[]>>({})
 
+  // CRM State for Comercial
+  const [orcamentos, setOrcamentos] = useState<Orcamento[]>([
+    { id: '1', data: '2023-10-01', paciente: 'MOCK PACIENTE A', valor: 5000, vendido: false },
+    { id: '2', data: '2023-10-02', paciente: 'MOCK PACIENTE B', valor: 3500, vendido: true },
+  ])
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState<Partial<KpiData>>({})
 
   const [loading, setLoading] = useState(true)
 
   const currentRoleName = cargos.find((r) => r.id === selectedRole)?.nome || ''
-  const currentKpis = mockedKpisByRole[selectedRole] || []
+
+  const isCrcComercial = currentRoleName.toUpperCase().includes('COMERCIAL')
+
+  const crcKpis = useMemo(() => {
+    if (!isCrcComercial) return []
+
+    const totalOportunidades = orcamentos.length
+    const valorTotalOportunidades = orcamentos.reduce((acc, curr) => acc + curr.valor, 0)
+
+    const vendas = orcamentos.filter((o) => o.vendido)
+    const totalVendas = vendas.length
+    const valorTotalVendas = vendas.reduce((acc, curr) => acc + curr.valor, 0)
+
+    const ticketMedioOportunidade =
+      totalOportunidades > 0 ? valorTotalOportunidades / totalOportunidades : 0
+    const conversao = totalOportunidades > 0 ? (totalVendas / totalOportunidades) * 100 : 0
+    const ticketMedioVenda = totalVendas > 0 ? valorTotalVendas / totalVendas : 0
+
+    return [
+      {
+        id: 'crc-1',
+        name: 'OPORTUNIDADE DE VENDA',
+        current: valorTotalOportunidades,
+        target: 100000,
+        format: 'currency',
+        observacoes: `${totalOportunidades} ORÇAMENTO(S) LANÇADO(S)`,
+      },
+      {
+        id: 'crc-2',
+        name: 'TICKET MÉDIO OPORTUNIDADE',
+        current: ticketMedioOportunidade,
+        target: 5000,
+        format: 'currency',
+      },
+      {
+        id: 'crc-3',
+        name: 'CONVERSÃO DE VENDA',
+        current: conversao,
+        target: 30,
+        format: 'percentage',
+      },
+      {
+        id: 'crc-4',
+        name: 'TICKET MÉDIO VENDA',
+        current: ticketMedioVenda,
+        target: 6000,
+        format: 'currency',
+      },
+    ] as KpiData[]
+  }, [orcamentos, isCrcComercial])
+
+  const currentKpis = isCrcComercial
+    ? [...crcKpis, ...(mockedKpisByRole[selectedRole] || [])]
+    : mockedKpisByRole[selectedRole] || []
 
   useEffect(() => {
     if (user) {
@@ -202,7 +243,7 @@ export default function KPIs() {
   const formatValue = (val: number, format: KpiFormat) => {
     if (format === 'currency')
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
-    if (format === 'percentage') return `${val}%`
+    if (format === 'percentage') return `${val.toFixed(1)}%`
     return val.toLocaleString('pt-BR')
   }
 
@@ -294,8 +335,11 @@ export default function KPIs() {
                 return (
                   <div
                     key={kpi.id}
-                    className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
+                    className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow relative overflow-hidden"
                   >
+                    {kpi.id.startsWith('crc-') && (
+                      <div className="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]" />
+                    )}
                     <div className="flex justify-between items-start">
                       <h3 className="font-bold text-nuvia-navy truncate max-w-[70%]">{kpi.name}</h3>
                       <Badge
@@ -343,6 +387,8 @@ export default function KPIs() {
               </div>
             )}
           </div>
+
+          {isCrcComercial && <CrmComercial orcamentos={orcamentos} setOrcamentos={setOrcamentos} />}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-[30vh] border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 p-8 text-center">
