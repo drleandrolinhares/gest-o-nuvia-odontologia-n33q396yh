@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react'
-import { CalendarDays, Settings, CheckCircle2, ChevronDown, ListTodo, Clock } from 'lucide-react'
+import {
+  CalendarDays,
+  Settings,
+  CheckCircle2,
+  ChevronDown,
+  ListTodo,
+  Clock,
+  CheckSquare,
+  Clock3,
+  Percent,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -214,21 +225,89 @@ export default function RotinaDiaria() {
 
             const completedCount = cargoTasks.filter((t) => t.completed).length
             const totalCount = cargoTasks.length
+            const pendingCount = totalCount - completedCount
             const progress = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100)
+
+            const getProgressColorClass = (p: number) => {
+              if (p < 50) return 'text-red-500'
+              if (p <= 80) return 'text-amber-500'
+              return 'text-emerald-500'
+            }
+
+            const getProgressBgClass = (p: number) => {
+              if (p < 50) return 'bg-red-500'
+              if (p <= 80) return 'bg-amber-500'
+              return 'bg-emerald-500'
+            }
 
             return (
               <>
+                {/* Status Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="border-slate-200 shadow-sm bg-white">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-4">
+                      <CardTitle className="text-xs font-black tracking-widest text-slate-500 uppercase">
+                        TAREFAS HOJE
+                      </CardTitle>
+                      <ListTodo className="h-4 w-4 text-slate-400" />
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl font-bold text-nuvia-navy">{totalCount}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-slate-200 shadow-sm bg-white">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-4">
+                      <CardTitle className="text-xs font-black tracking-widest text-slate-500 uppercase">
+                        CONCLUÍDAS
+                      </CardTitle>
+                      <CheckSquare className="h-4 w-4 text-emerald-500" />
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl font-bold text-emerald-500">{completedCount}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-slate-200 shadow-sm bg-white">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-4">
+                      <CardTitle className="text-xs font-black tracking-widest text-slate-500 uppercase">
+                        PENDENTES
+                      </CardTitle>
+                      <Clock3 className="h-4 w-4 text-amber-500" />
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className="text-2xl font-bold text-amber-500">{pendingCount}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-slate-200 shadow-sm bg-white">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-4">
+                      <CardTitle className="text-xs font-black tracking-widest text-slate-500 uppercase">
+                        % PROGRESSO
+                      </CardTitle>
+                      <Percent className={`h-4 w-4 ${getProgressColorClass(progress)}`} />
+                    </CardHeader>
+                    <CardContent className="px-4 pb-4">
+                      <div className={`text-2xl font-bold ${getProgressColorClass(progress)}`}>
+                        {progress}%
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 <div className="bg-slate-50 p-5 rounded-lg border border-slate-100 space-y-3">
                   <div className="flex items-center justify-between text-sm font-black text-nuvia-navy tracking-wider">
                     <span className="flex items-center gap-2">
                       <ListTodo className="h-5 w-5 text-primary" /> PROGRESSO DA ROTINA
                     </span>
-                    <span className="text-primary text-base">{progress}% CONCLUÍDO</span>
+                    <span className={`text-base font-bold ${getProgressColorClass(progress)}`}>
+                      {progress}% CONCLUÍDO
+                    </span>
                   </div>
                   <Progress
                     value={progress}
                     className="h-3 bg-slate-200"
-                    indicatorClassName="bg-[#D4AF37] transition-all duration-500 ease-out"
+                    indicatorClassName={cn(
+                      'transition-all duration-500 ease-out',
+                      getProgressBgClass(progress),
+                    )}
                   />
                 </div>
 
