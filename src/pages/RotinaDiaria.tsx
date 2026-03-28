@@ -112,6 +112,7 @@ export default function RotinaDiaria() {
   const { toast } = useToast()
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [selectedCargoId, setSelectedCargoId] = useState<string>('')
+  const [isCEO, setIsCEO] = useState(false)
 
   const [colaboradores, setColaboradores] = useState<{ id: string; nome: string }[]>([])
   const [selectedColaboradorId, setSelectedColaboradorId] = useState<string>('')
@@ -139,7 +140,9 @@ export default function RotinaDiaria() {
   useEffect(() => {
     const fetchCargos = async () => {
       const { data } = await supabase.from('cargos').select('id, nome').order('nome')
-      if (data) setCargos(data)
+      if (data) {
+        setCargos(data.filter((c) => c.nome.toUpperCase() !== 'CEO'))
+      }
     }
     fetchCargos()
   }, [])
@@ -154,15 +157,24 @@ export default function RotinaDiaria() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('cargo_id')
+        .select(`
+          cargo_id,
+          cargos (
+            nome
+          )
+        `)
         .eq('id', user.id)
         .single()
 
+      const cargoNome = (profile?.cargos as any)?.nome?.toUpperCase() || ''
+      const userIsCEO = cargoNome === 'CEO'
+      setIsCEO(userIsCEO)
+
       if (profile?.cargo_id) {
         if (!isAdm) {
-          setSelectedCargoId(profile.cargo_id)
+          setSelectedCargoId(userIsCEO ? '' : profile.cargo_id)
         } else {
-          setSelectedCargoId((prev) => prev || profile.cargo_id)
+          setSelectedCargoId((prev) => prev || (userIsCEO ? '' : profile.cargo_id))
         }
       }
     }
@@ -358,7 +370,11 @@ export default function RotinaDiaria() {
         if (t.cargoId !== selectedCargoId) return false
         return isTaskActiveOnDate(t, selectedDate)
       })
-      .sort((a, b) => a.time.localeCompare(b.time))
+      .sort((a, b) => {
+        if (!a.time) return 1
+        if (!b.time) return -1
+        return a.time.localeCompare(b.time)
+      })
   }, [tasks, selectedCargoId, selectedDate])
 
   const completedCount = cargoTasks.filter((t) => t.completed).length
@@ -547,7 +563,17 @@ export default function RotinaDiaria() {
         </div>
       </div>
 
-      {selectedCargoId ? (
+      {isCEO && !isAdmin && !selectedCargoId ? (
+        <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-6 border-2 border-dashed border-slate-200 rounded-xl bg-white/50 p-8 animate-in fade-in duration-500">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-2 shadow-sm">
+            <CheckCircle2 className="h-10 w-10 text-slate-400" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-400 tracking-widest">PERFIL CEO</h2>
+          <p className="text-sm font-bold text-slate-400 max-w-md leading-relaxed">
+            O PERFIL CEO NÃO POSSUI ROTINA DIÁRIA CONFIGURADA PARA ACOMPANHAMENTO NO SISTEMA.
+          </p>
+        </div>
+      ) : selectedCargoId ? (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-8 animate-in fade-in duration-300">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-6 mb-2">
             <div>
