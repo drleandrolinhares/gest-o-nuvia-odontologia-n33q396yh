@@ -48,9 +48,10 @@ export interface Orcamento {
 
 interface CrmComercialProps {
   cargoId: string
+  podeEditar?: boolean
 }
 
-export function CrmComercial({ cargoId }: CrmComercialProps) {
+export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) {
   const { toast } = useToast()
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([])
   const [configId, setConfigId] = useState<string | null>(null)
@@ -82,6 +83,16 @@ export function CrmComercial({ cargoId }: CrmComercialProps) {
           .single()
         if (error) throw error
         config = newConfig
+
+        await supabase.from('kpis_permissoes').upsert(
+          {
+            cargo_id: cargoId,
+            kpi_id: config.id,
+            pode_visualizar: true,
+            pode_editar: true,
+          },
+          { onConflict: 'cargo_id,kpi_id' },
+        )
       }
       setConfigId(config.id)
 
@@ -110,7 +121,7 @@ export function CrmComercial({ cargoId }: CrmComercialProps) {
   }
 
   const handleSave = async () => {
-    if (!form.paciente || !form.valor || !form.data || !configId) return
+    if (!form.paciente || !form.valor || !form.data || !configId || !podeEditar) return
 
     try {
       const { data, error } = await supabase
@@ -148,6 +159,7 @@ export function CrmComercial({ cargoId }: CrmComercialProps) {
   }
 
   const toggleVendido = async (id: string) => {
+    if (!podeEditar) return
     const current = orcamentos.find((o) => o.id === id)
     if (!current) return
 
@@ -349,7 +361,9 @@ export function CrmComercial({ cargoId }: CrmComercialProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="col-span-1 lg:col-span-2 border-slate-200 shadow-sm">
+        <Card
+          className={`border-slate-200 shadow-sm ${podeEditar ? 'col-span-1 lg:col-span-2' : 'col-span-1 lg:col-span-3'}`}
+        >
           <CardHeader>
             <CardTitle className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" /> EVOLUÇÃO MENSAL
@@ -397,103 +411,107 @@ export function CrmComercial({ cargoId }: CrmComercialProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-sm flex flex-col justify-center p-6 bg-nuvia-navy/5">
-          <div className="text-center space-y-4">
-            <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-nuvia-navy tracking-widest">
-                LANÇAR ORÇAMENTO
-              </h3>
-              <p className="text-xs font-bold text-slate-500 mt-1">
-                Cadastre novas oportunidades para atualizar indicadores.
-              </p>
-            </div>
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={() =>
-                    setForm({ data: new Date().toISOString().split('T')[0], vendido: false })
-                  }
-                  className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full shadow-md"
-                >
-                  <Plus className="h-4 w-4 mr-2" /> NOVO ORÇAMENTO
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="uppercase">
-                <DialogHeader>
-                  <DialogTitle className="font-black text-nuvia-navy tracking-widest">
-                    LANÇAR ORÇAMENTO
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label className="font-bold text-xs text-slate-500 tracking-wider">DATA</Label>
-                    <Input
-                      type="date"
-                      className="font-bold uppercase"
-                      value={form.data || ''}
-                      onChange={(e) => setForm({ ...form, data: e.target.value })}
-                    />
+        {podeEditar && (
+          <Card className="border-slate-200 shadow-sm flex flex-col justify-center p-6 bg-nuvia-navy/5">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-nuvia-navy tracking-widest">
+                  LANÇAR ORÇAMENTO
+                </h3>
+                <p className="text-xs font-bold text-slate-500 mt-1">
+                  Cadastre novas oportunidades para atualizar indicadores.
+                </p>
+              </div>
+              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    onClick={() =>
+                      setForm({ data: new Date().toISOString().split('T')[0], vendido: false })
+                    }
+                    className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full shadow-md"
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> NOVO ORÇAMENTO
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="uppercase">
+                  <DialogHeader>
+                    <DialogTitle className="font-black text-nuvia-navy tracking-widest">
+                      LANÇAR ORÇAMENTO
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                        DATA
+                      </Label>
+                      <Input
+                        type="date"
+                        className="font-bold uppercase"
+                        value={form.data || ''}
+                        onChange={(e) => setForm({ ...form, data: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                        PACIENTE
+                      </Label>
+                      <Input
+                        className="font-bold uppercase"
+                        placeholder="NOME DO PACIENTE"
+                        value={form.paciente || ''}
+                        onChange={(e) => setForm({ ...form, paciente: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                        VALOR (R$)
+                      </Label>
+                      <Input
+                        type="number"
+                        className="font-bold uppercase"
+                        placeholder="0,00"
+                        value={form.valor ?? ''}
+                        onChange={(e) => setForm({ ...form, valor: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2 pt-2">
+                      <Switch
+                        id="vendido-switch"
+                        checked={form.vendido || false}
+                        onCheckedChange={(c) => setForm({ ...form, vendido: c })}
+                        className="data-[state=checked]:bg-green-500"
+                      />
+                      <Label
+                        htmlFor="vendido-switch"
+                        className="font-bold text-xs text-slate-500 tracking-wider cursor-pointer"
+                      >
+                        JÁ FOI VENDIDO?
+                      </Label>
+                    </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label className="font-bold text-xs text-slate-500 tracking-wider">
-                      PACIENTE
-                    </Label>
-                    <Input
-                      className="font-bold uppercase"
-                      placeholder="NOME DO PACIENTE"
-                      value={form.paciente || ''}
-                      onChange={(e) => setForm({ ...form, paciente: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label className="font-bold text-xs text-slate-500 tracking-wider">
-                      VALOR (R$)
-                    </Label>
-                    <Input
-                      type="number"
-                      className="font-bold uppercase"
-                      placeholder="0,00"
-                      value={form.valor ?? ''}
-                      onChange={(e) => setForm({ ...form, valor: Number(e.target.value) })}
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2 pt-2">
-                    <Switch
-                      id="vendido-switch"
-                      checked={form.vendido || false}
-                      onCheckedChange={(c) => setForm({ ...form, vendido: c })}
-                      className="data-[state=checked]:bg-green-500"
-                    />
-                    <Label
-                      htmlFor="vendido-switch"
-                      className="font-bold text-xs text-slate-500 tracking-wider cursor-pointer"
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      className="font-bold tracking-widest"
+                      onClick={() => setIsModalOpen(false)}
                     >
-                      JÁ FOI VENDIDO?
-                    </Label>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="outline"
-                    className="font-bold tracking-widest"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    CANCELAR
-                  </Button>
-                  <Button
-                    className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest"
-                    onClick={handleSave}
-                  >
-                    SALVAR
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </Card>
+                      CANCELAR
+                    </Button>
+                    <Button
+                      className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest"
+                      onClick={handleSave}
+                    >
+                      SALVAR
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </Card>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
@@ -554,6 +572,7 @@ export function CrmComercial({ cargoId }: CrmComercialProps) {
                         <Switch
                           checked={orc.vendido}
                           onCheckedChange={() => toggleVendido(orc.id)}
+                          disabled={!podeEditar}
                           className="data-[state=checked]:bg-green-500 scale-90"
                         />
                       </div>

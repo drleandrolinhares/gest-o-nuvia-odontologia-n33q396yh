@@ -51,9 +51,10 @@ const TYPE_LABELS: Record<string, string> = {
 
 interface CrcFinanceiroProps {
   cargoId: string
+  podeEditar?: boolean
 }
 
-export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
+export function CrcFinanceiro({ cargoId, podeEditar = true }: CrcFinanceiroProps) {
   const { toast } = useToast()
   const [entries, setEntries] = useState<FinanceiroEntry[]>([])
   const [configId, setConfigId] = useState<string | null>(null)
@@ -86,6 +87,16 @@ export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
           .single()
         if (error) throw error
         config = newConfig
+
+        await supabase.from('kpis_permissoes').upsert(
+          {
+            cargo_id: cargoId,
+            kpi_id: config.id,
+            pode_visualizar: true,
+            pode_editar: true,
+          },
+          { onConflict: 'cargo_id,kpi_id' },
+        )
       }
       setConfigId(config.id)
 
@@ -113,7 +124,7 @@ export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
   }
 
   const handleAddEntry = async () => {
-    if (!value || isNaN(Number(value)) || !configId) return
+    if (!value || isNaN(Number(value)) || !configId || !podeEditar) return
 
     try {
       const payload = {
@@ -152,6 +163,7 @@ export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
   }
 
   const handleDelete = async (id: string) => {
+    if (!podeEditar) return
     try {
       const { error } = await supabase.from('kpis_dados').delete().eq('id', id)
       if (error) throw error
@@ -189,78 +201,80 @@ export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
 
   return (
     <div className="space-y-6 animate-fade-in uppercase">
-      <Card className="border-slate-200 shadow-sm bg-white">
-        <CardHeader className="pb-4 border-b border-slate-100">
-          <CardTitle className="text-lg font-black text-nuvia-navy flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-primary" />
-            NOVO LANÇAMENTO FINANCEIRO
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">DATA</Label>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="font-bold"
-              />
+      {podeEditar && (
+        <Card className="border-slate-200 shadow-sm bg-white">
+          <CardHeader className="pb-4 border-b border-slate-100">
+            <CardTitle className="text-lg font-black text-nuvia-navy flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-primary" />
+              NOVO LANÇAMENTO FINANCEIRO
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">DATA</Label>
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">TIPO DE MOVIMENTAÇÃO</Label>
+                <Select value={type} onValueChange={(v: any) => setType(v)}>
+                  <SelectTrigger className="font-bold uppercase">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="font-bold uppercase" value="receita_pagamento">
+                      RECEITA - PAGAMENTO
+                    </SelectItem>
+                    <SelectItem className="font-bold uppercase" value="receita_boleto">
+                      RECEITA - BOLETO
+                    </SelectItem>
+                    <SelectItem className="font-bold uppercase" value="receita_cheque">
+                      RECEITA - CHEQUE
+                    </SelectItem>
+                    <SelectItem className="font-bold uppercase" value="receita_cartao">
+                      RECEITA - CARTÃO
+                    </SelectItem>
+                    <SelectItem className="font-bold uppercase" value="despesa">
+                      DESPESA
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">VALOR (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  className="font-bold"
+                  placeholder="0,00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">OBSERVAÇÃO</Label>
+                <Input
+                  value={observation}
+                  onChange={(e) => setObservation(e.target.value)}
+                  className="font-bold uppercase"
+                  placeholder="EX: MENSALIDADE"
+                />
+              </div>
+              <Button
+                onClick={handleAddEntry}
+                className="w-full bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black shadow-md"
+              >
+                <Plus className="w-4 h-4 mr-2" /> LANÇAR
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">TIPO DE MOVIMENTAÇÃO</Label>
-              <Select value={type} onValueChange={(v: any) => setType(v)}>
-                <SelectTrigger className="font-bold uppercase">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem className="font-bold uppercase" value="receita_pagamento">
-                    RECEITA - PAGAMENTO
-                  </SelectItem>
-                  <SelectItem className="font-bold uppercase" value="receita_boleto">
-                    RECEITA - BOLETO
-                  </SelectItem>
-                  <SelectItem className="font-bold uppercase" value="receita_cheque">
-                    RECEITA - CHEQUE
-                  </SelectItem>
-                  <SelectItem className="font-bold uppercase" value="receita_cartao">
-                    RECEITA - CARTÃO
-                  </SelectItem>
-                  <SelectItem className="font-bold uppercase" value="despesa">
-                    DESPESA
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">VALOR (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="font-bold"
-                placeholder="0,00"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">OBSERVAÇÃO</Label>
-              <Input
-                value={observation}
-                onChange={(e) => setObservation(e.target.value)}
-                className="font-bold uppercase"
-                placeholder="EX: MENSALIDADE"
-              />
-            </div>
-            <Button
-              onClick={handleAddEntry}
-              className="w-full bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black shadow-md"
-            >
-              <Plus className="w-4 h-4 mr-2" /> LANÇAR
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card
@@ -382,13 +396,16 @@ export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
                   <TableHead className="font-black text-slate-600 text-xs tracking-wider text-right">
                     VALOR
                   </TableHead>
-                  <TableHead className="w-12"></TableHead>
+                  {podeEditar && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {entries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">
+                    <TableCell
+                      colSpan={podeEditar ? 5 : 4}
+                      className="text-center py-8 text-slate-400 font-bold"
+                    >
                       NENHUM LANÇAMENTO REGISTRADO
                     </TableCell>
                   </TableRow>
@@ -420,16 +437,18 @@ export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
                       >
                         {e.type === 'despesa' ? '-' : '+'} {formatCurrency(e.value)}
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(e.id)}
-                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
+                      {podeEditar && (
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(e.id)}
+                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}

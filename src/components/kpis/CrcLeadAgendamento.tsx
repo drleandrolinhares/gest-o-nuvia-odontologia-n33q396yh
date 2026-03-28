@@ -83,9 +83,10 @@ function KpiCard({
 
 interface CrcLeadAgendamentoProps {
   cargoId: string
+  podeEditar?: boolean
 }
 
-export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
+export function CrcLeadAgendamento({ cargoId, podeEditar = true }: CrcLeadAgendamentoProps) {
   const { toast } = useToast()
   const [entries, setEntries] = useState<LeadEntry[]>([])
   const [configId, setConfigId] = useState<string | null>(null)
@@ -124,6 +125,16 @@ export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
           .single()
         if (error) throw error
         config = newConfig
+
+        await supabase.from('kpis_permissoes').upsert(
+          {
+            cargo_id: cargoId,
+            kpi_id: config.id,
+            pode_visualizar: true,
+            pode_editar: true,
+          },
+          { onConflict: 'cargo_id,kpi_id' },
+        )
       }
       setConfigId(config.id)
 
@@ -155,7 +166,15 @@ export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
   }
 
   const handleAdd = async () => {
-    if (!form.investment || !form.newLeads || !form.scheduled || !form.attended || !configId) return
+    if (
+      !form.investment ||
+      !form.newLeads ||
+      !form.scheduled ||
+      !form.attended ||
+      !configId ||
+      !podeEditar
+    )
+      return
 
     try {
       const payload = {
@@ -206,6 +225,7 @@ export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
   }
 
   const handleDelete = async (id: string) => {
+    if (!podeEditar) return
     try {
       const { error } = await supabase.from('kpis_dados').delete().eq('id', id)
       if (error) throw error
@@ -317,102 +337,104 @@ export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
       </div>
 
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-6">
-        <div>
-          <h3 className="text-lg font-black text-nuvia-navy mb-4">LANÇAMENTO DIÁRIO POR CANAL</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">DATA</Label>
-              <Input
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-                className="font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">CANAL</Label>
-              <Select
-                value={form.channel}
-                onValueChange={(v) => setForm((p) => ({ ...p, channel: v }))}
-              >
-                <SelectTrigger className="font-bold">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CHANNELS.map((c) => (
-                    <SelectItem key={c} value={c} className="font-bold">
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">INVESTIMENTO (R$)</Label>
-              <Input
-                type="number"
-                value={form.investment}
-                onChange={(e) => setForm((p) => ({ ...p, investment: e.target.value }))}
-                className="font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">LEADS NOVOS</Label>
-              <Input
-                type="number"
-                value={form.newLeads}
-                onChange={(e) => setForm((p) => ({ ...p, newLeads: e.target.value }))}
-                className="font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">AGENDAMENTOS</Label>
-              <Input
-                type="number"
-                value={form.scheduled}
-                onChange={(e) => setForm((p) => ({ ...p, scheduled: e.target.value }))}
-                className="font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">COMPARECIMENTOS</Label>
-              <Input
-                type="number"
-                value={form.attended}
-                onChange={(e) => setForm((p) => ({ ...p, attended: e.target.value }))}
-                className="font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500" title="Contatos >30 dias">
-                CONTATOS FOLLOW-UP
-              </Label>
-              <Input
-                type="number"
-                value={form.followUpContacts}
-                onChange={(e) => setForm((p) => ({ ...p, followUpContacts: e.target.value }))}
-                className="font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500">RESGATES</Label>
-              <Input
-                type="number"
-                value={form.rescued}
-                onChange={(e) => setForm((p) => ({ ...p, rescued: e.target.value }))}
-                className="font-bold"
-              />
-            </div>
-            <div className="col-span-full flex justify-end mt-2">
-              <Button
-                onClick={handleAdd}
-                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full sm:w-auto"
-              >
-                <Plus className="w-4 h-4 mr-2" /> ADICIONAR
-              </Button>
+        {podeEditar && (
+          <div>
+            <h3 className="text-lg font-black text-nuvia-navy mb-4">LANÇAMENTO DIÁRIO POR CANAL</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">DATA</Label>
+                <Input
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+                  className="font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">CANAL</Label>
+                <Select
+                  value={form.channel}
+                  onValueChange={(v) => setForm((p) => ({ ...p, channel: v }))}
+                >
+                  <SelectTrigger className="font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CHANNELS.map((c) => (
+                      <SelectItem key={c} value={c} className="font-bold">
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">INVESTIMENTO (R$)</Label>
+                <Input
+                  type="number"
+                  value={form.investment}
+                  onChange={(e) => setForm((p) => ({ ...p, investment: e.target.value }))}
+                  className="font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">LEADS NOVOS</Label>
+                <Input
+                  type="number"
+                  value={form.newLeads}
+                  onChange={(e) => setForm((p) => ({ ...p, newLeads: e.target.value }))}
+                  className="font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">AGENDAMENTOS</Label>
+                <Input
+                  type="number"
+                  value={form.scheduled}
+                  onChange={(e) => setForm((p) => ({ ...p, scheduled: e.target.value }))}
+                  className="font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">COMPARECIMENTOS</Label>
+                <Input
+                  type="number"
+                  value={form.attended}
+                  onChange={(e) => setForm((p) => ({ ...p, attended: e.target.value }))}
+                  className="font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500" title="Contatos >30 dias">
+                  CONTATOS FOLLOW-UP
+                </Label>
+                <Input
+                  type="number"
+                  value={form.followUpContacts}
+                  onChange={(e) => setForm((p) => ({ ...p, followUpContacts: e.target.value }))}
+                  className="font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-slate-500">RESGATES</Label>
+                <Input
+                  type="number"
+                  value={form.rescued}
+                  onChange={(e) => setForm((p) => ({ ...p, rescued: e.target.value }))}
+                  className="font-bold"
+                />
+              </div>
+              <div className="col-span-full flex justify-end mt-2">
+                <Button
+                  onClick={handleAdd}
+                  className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full sm:w-auto"
+                >
+                  <Plus className="w-4 h-4 mr-2" /> ADICIONAR
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="rounded-md border border-slate-200 overflow-x-auto">
           <Table>
@@ -435,14 +457,14 @@ export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
                 <TableHead className="font-bold text-slate-500 text-xs text-center">
                   RESGATES
                 </TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                {podeEditar && <TableHead className="w-[50px]"></TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {entries.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={podeEditar ? 8 : 7}
                     className="text-center py-6 text-slate-400 font-bold text-xs"
                   >
                     NENHUM LANÇAMENTO REGISTRADO
@@ -469,16 +491,18 @@ export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
                     <TableCell className="font-bold text-center text-xs">{e.scheduled}</TableCell>
                     <TableCell className="font-bold text-center text-xs">{e.attended}</TableCell>
                     <TableCell className="font-bold text-center text-xs">{e.rescued}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(e.id)}
-                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
+                    {podeEditar && (
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(e.id)}
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}
