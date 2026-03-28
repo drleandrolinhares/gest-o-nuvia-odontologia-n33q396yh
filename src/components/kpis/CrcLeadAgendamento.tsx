@@ -1,5 +1,15 @@
-import { useState, useMemo } from 'react'
-import { Plus, Trash2, TrendingUp, Users, CalendarCheck, PhoneCall, DollarSign } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import {
+  Plus,
+  Trash2,
+  TrendingUp,
+  Users,
+  CalendarCheck,
+  PhoneCall,
+  DollarSign,
+  Loader2,
+} from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { useToast } from '@/components/ui/use-toast'
 
 export interface LeadEntry {
   id: string
@@ -70,31 +81,15 @@ function KpiCard({
   )
 }
 
-export function CrcLeadAgendamento() {
-  const [entries, setEntries] = useState<LeadEntry[]>([
-    {
-      id: '1',
-      date: new Date().toISOString().split('T')[0],
-      channel: 'Instagram',
-      investment: 500,
-      newLeads: 50,
-      scheduled: 15,
-      attended: 10,
-      followUpContacts: 20,
-      rescued: 5,
-    },
-    {
-      id: '2',
-      date: new Date().toISOString().split('T')[0],
-      channel: 'Google',
-      investment: 300,
-      newLeads: 25,
-      scheduled: 10,
-      attended: 8,
-      followUpContacts: 10,
-      rescued: 2,
-    },
-  ])
+interface CrcLeadAgendamentoProps {
+  cargoId: string
+}
+
+export function CrcLeadAgendamento({ cargoId }: CrcLeadAgendamentoProps) {
+  const { toast } = useToast()
+  const [entries, setEntries] = useState<LeadEntry[]>([])
+  const [configId, setConfigId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -107,14 +102,63 @@ export function CrcLeadAgendamento() {
     rescued: '',
   })
 
-  const handleAdd = () => {
-    if (!form.investment || !form.newLeads || !form.scheduled || !form.attended) return
+  useEffect(() => {
+    if (cargoId) fetchData()
+  }, [cargoId])
 
-    setEntries([
-      ...entries,
-      {
-        id: Math.random().toString(),
-        date: form.date,
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      let { data: config } = await supabase
+        .from('kpis_config')
+        .select('*')
+        .eq('cargo_id', cargoId)
+        .eq('nome_kpi', 'CRC_LEAD')
+        .single()
+
+      if (!config) {
+        const { data: newConfig, error } = await supabase
+          .from('kpis_config')
+          .insert({ cargo_id: cargoId, nome_kpi: 'CRC_LEAD', unidade: 'module' })
+          .select()
+          .single()
+        if (error) throw error
+        config = newConfig
+      }
+      setConfigId(config.id)
+
+      const { data: dados, error: dadosErr } = await supabase
+        .from('kpis_dados')
+        .select('*')
+        .eq('kpi_id', config.id)
+        .order('data', { ascending: false })
+
+      if (dadosErr) throw dadosErr
+
+      const parsed = (dados || []).map((d) => ({
+        id: d.id,
+        date: d.data,
+        channel: (d.valores_json as any)?.channel || 'Outros',
+        investment: (d.valores_json as any)?.investment || 0,
+        newLeads: (d.valores_json as any)?.newLeads || 0,
+        scheduled: (d.valores_json as any)?.scheduled || 0,
+        attended: (d.valores_json as any)?.attended || 0,
+        followUpContacts: (d.valores_json as any)?.followUpContacts || 0,
+        rescued: (d.valores_json as any)?.rescued || 0,
+      }))
+      setEntries(parsed)
+    } catch (e) {
+      console.error('Erro ao buscar dados de Lead:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAdd = async () => {
+    if (!form.investment || !form.newLeads || !form.scheduled || !form.attended || !configId) return
+
+    try {
+      const payload = {
         channel: form.channel,
         investment: Number(form.investment),
         newLeads: Number(form.newLeads),
@@ -122,17 +166,54 @@ export function CrcLeadAgendamento() {
         attended: Number(form.attended),
         followUpContacts: Number(form.followUpContacts) || 0,
         rescued: Number(form.rescued) || 0,
-      },
-    ])
-    setForm((p) => ({
-      ...p,
-      investment: '',
-      newLeads: '',
-      scheduled: '',
-      attended: '',
-      followUpContacts: '',
-      rescued: '',
-    }))
+      }
+
+      const { data, error } = await supabase
+        .from('kpis_dados')
+        .insert({
+          kpi_id: configId,
+          cargo_id: cargoId,
+          data: form.date,
+          valores_json: payload,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setEntries([
+        ...entries,
+        {
+          id: data.id,
+          date: data.data,
+          ...payload,
+        },
+      ])
+
+      setForm((p) => ({
+        ...p,
+        investment: '',
+        newLeads: '',
+        scheduled: '',
+        attended: '',
+        followUpContacts: '',
+        rescued: '',
+      }))
+      toast({ title: 'Lançamento registrado com sucesso!' })
+    } catch (e) {
+      toast({ title: 'Erro ao registrar lançamento', variant: 'destructive' })
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase.from('kpis_dados').delete().eq('id', id)
+      if (error) throw error
+      setEntries(entries.filter((e) => e.id !== id))
+      toast({ title: 'Registro excluído.' })
+    } catch (e) {
+      toast({ title: 'Erro ao excluir', variant: 'destructive' })
+    }
   }
 
   const totals = useMemo(
@@ -169,6 +250,14 @@ export function CrcLeadAgendamento() {
 
   const chartConfig = { cpl: { label: 'CPL', color: 'hsl(var(--primary))' } }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-32 mt-8">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 animate-fade-in uppercase">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -198,7 +287,7 @@ export function CrcLeadAgendamento() {
           icon={DollarSign}
           color="bg-purple-500"
           value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cpl)}
-          description={`Investimento Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.investment)}`}
+          description={`Invest. Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totals.investment)}`}
         />
       </div>
 
@@ -384,7 +473,7 @@ export function CrcLeadAgendamento() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setEntries(entries.filter((x) => x.id !== e.id))}
+                        onClick={() => handleDelete(e.id)}
                         className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />

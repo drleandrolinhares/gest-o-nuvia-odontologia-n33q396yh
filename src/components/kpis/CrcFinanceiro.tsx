@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { supabase } from '@/lib/supabase/client'
 import {
   Select,
   SelectContent,
@@ -27,7 +28,10 @@ import {
   Activity,
   CheckCircle2,
   AlertCircle,
+  Loader2,
+  Trash2,
 } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 
 export interface FinanceiroEntry {
   id: string
@@ -45,48 +49,117 @@ const TYPE_LABELS: Record<string, string> = {
   despesa: 'DESPESA',
 }
 
-export function CrcFinanceiro() {
-  const [entries, setEntries] = useState<FinanceiroEntry[]>([
-    {
-      id: '1',
-      date: new Date().toISOString().split('T')[0],
-      type: 'receita_pagamento',
-      value: 15000,
-      observation: 'PAGAMENTOS À VISTA',
-    },
-    {
-      id: '2',
-      date: new Date().toISOString().split('T')[0],
-      type: 'receita_cartao',
-      value: 8000,
-      observation: 'MAQUINETA',
-    },
-    {
-      id: '3',
-      date: new Date().toISOString().split('T')[0],
-      type: 'despesa',
-      value: 12000,
-      observation: 'FOLHA DE PAGAMENTO E CUSTOS',
-    },
-  ])
+interface CrcFinanceiroProps {
+  cargoId: string
+}
+
+export function CrcFinanceiro({ cargoId }: CrcFinanceiroProps) {
+  const { toast } = useToast()
+  const [entries, setEntries] = useState<FinanceiroEntry[]>([])
+  const [configId, setConfigId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [type, setType] = useState<FinanceiroEntry['type']>('receita_pagamento')
   const [value, setValue] = useState('')
   const [observation, setObservation] = useState('')
 
-  const handleAddEntry = () => {
-    if (!value || isNaN(Number(value))) return
-    const newEntry: FinanceiroEntry = {
-      id: Math.random().toString(),
-      date,
-      type,
-      value: Number(value),
-      observation,
+  useEffect(() => {
+    if (cargoId) fetchData()
+  }, [cargoId])
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      let { data: config } = await supabase
+        .from('kpis_config')
+        .select('*')
+        .eq('cargo_id', cargoId)
+        .eq('nome_kpi', 'FINANCEIRO')
+        .single()
+
+      if (!config) {
+        const { data: newConfig, error } = await supabase
+          .from('kpis_config')
+          .insert({ cargo_id: cargoId, nome_kpi: 'FINANCEIRO', unidade: 'module' })
+          .select()
+          .single()
+        if (error) throw error
+        config = newConfig
+      }
+      setConfigId(config.id)
+
+      const { data: dados, error: dadosErr } = await supabase
+        .from('kpis_dados')
+        .select('*')
+        .eq('kpi_id', config.id)
+        .order('data', { ascending: false })
+
+      if (dadosErr) throw dadosErr
+
+      const parsed = (dados || []).map((d) => ({
+        id: d.id,
+        date: d.data,
+        type: (d.valores_json as any)?.type || 'receita_pagamento',
+        value: (d.valores_json as any)?.value || 0,
+        observation: (d.valores_json as any)?.observation || '',
+      }))
+      setEntries(parsed)
+    } catch (e) {
+      console.error('Erro ao buscar dados Financeiros:', e)
+    } finally {
+      setLoading(false)
     }
-    setEntries([newEntry, ...entries])
-    setValue('')
-    setObservation('')
+  }
+
+  const handleAddEntry = async () => {
+    if (!value || isNaN(Number(value)) || !configId) return
+
+    try {
+      const payload = {
+        type,
+        value: Number(value),
+        observation,
+      }
+
+      const { data, error } = await supabase
+        .from('kpis_dados')
+        .insert({
+          kpi_id: configId,
+          cargo_id: cargoId,
+          data: date,
+          valores_json: payload,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setEntries([
+        {
+          id: data.id,
+          date: data.data,
+          ...payload,
+        },
+        ...entries,
+      ])
+      setValue('')
+      setObservation('')
+      toast({ title: 'Lançamento registrado!' })
+    } catch (e) {
+      toast({ title: 'Erro ao registrar', variant: 'destructive' })
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase.from('kpis_dados').delete().eq('id', id)
+      if (error) throw error
+      setEntries(entries.filter((e) => e.id !== id))
+      toast({ title: 'Lançamento removido.' })
+    } catch (e) {
+      toast({ title: 'Erro ao excluir', variant: 'destructive' })
+    }
   }
 
   const receita = entries
@@ -106,9 +179,16 @@ export function CrcFinanceiro() {
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
   const formatPercent = (val: number) => `${val.toFixed(1)}%`
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-32 mt-8">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 animate-fade-in uppercase">
-      {/* Formulário de Lançamento */}
       <Card className="border-slate-200 shadow-sm bg-white">
         <CardHeader className="pb-4 border-b border-slate-100">
           <CardTitle className="text-lg font-black text-nuvia-navy flex items-center gap-2">
@@ -182,7 +262,6 @@ export function CrcFinanceiro() {
         </CardContent>
       </Card>
 
-      {/* Cards de KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card
           className={`border-l-4 shadow-sm ${receitaMet ? 'border-l-green-500' : 'border-l-red-500'}`}
@@ -280,7 +359,6 @@ export function CrcFinanceiro() {
         </Card>
       </div>
 
-      {/* Lista de Lançamentos */}
       <Card className="border-slate-200 shadow-sm bg-white">
         <CardHeader className="pb-2 border-b border-slate-100">
           <CardTitle className="text-lg font-black text-nuvia-navy uppercase flex items-center gap-2">
@@ -304,12 +382,13 @@ export function CrcFinanceiro() {
                   <TableHead className="font-black text-slate-600 text-xs tracking-wider text-right">
                     VALOR
                   </TableHead>
+                  <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {entries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-slate-400 font-bold">
+                    <TableCell colSpan={5} className="text-center py-8 text-slate-400 font-bold">
                       NENHUM LANÇAMENTO REGISTRADO
                     </TableCell>
                   </TableRow>
@@ -335,11 +414,21 @@ export function CrcFinanceiro() {
                         {e.observation || '-'}
                       </TableCell>
                       <TableCell
-                        className={`font-black text-right ${
+                        className={`font-black text-right whitespace-nowrap ${
                           e.type === 'despesa' ? 'text-red-600' : 'text-green-600'
                         }`}
                       >
                         {e.type === 'despesa' ? '-' : '+'} {formatCurrency(e.value)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(e.id)}
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))

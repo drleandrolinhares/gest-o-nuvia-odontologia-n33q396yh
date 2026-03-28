@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
-import { Users, Plus, Target, TrendingUp, DollarSign, Percent } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Users, Plus, Target, TrendingUp, DollarSign, Percent, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -46,33 +47,125 @@ export interface Orcamento {
 }
 
 interface CrmComercialProps {
-  orcamentos: Orcamento[]
-  setOrcamentos: React.Dispatch<React.SetStateAction<Orcamento[]>>
+  cargoId: string
 }
 
-export function CrmComercial({ orcamentos, setOrcamentos }: CrmComercialProps) {
+export function CrmComercial({ cargoId }: CrmComercialProps) {
   const { toast } = useToast()
+  const [orcamentos, setOrcamentos] = useState<Orcamento[]>([])
+  const [configId, setConfigId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [form, setForm] = useState<Partial<Orcamento>>({})
   const [filter, setFilter] = useState<'todos' | 'oportunidades' | 'vendas'>('todos')
 
-  const handleSave = () => {
-    if (!form.paciente || !form.valor || !form.data) return
-    const novo: Orcamento = {
-      id: Math.random().toString(),
-      data: form.data,
-      paciente: form.paciente,
-      valor: form.valor,
-      vendido: form.vendido || false,
+  useEffect(() => {
+    if (cargoId) fetchData()
+  }, [cargoId])
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      // 1. Get or Create Config
+      let { data: config } = await supabase
+        .from('kpis_config')
+        .select('*')
+        .eq('cargo_id', cargoId)
+        .eq('nome_kpi', 'CRM_COMERCIAL')
+        .single()
+
+      if (!config) {
+        const { data: newConfig, error } = await supabase
+          .from('kpis_config')
+          .insert({ cargo_id: cargoId, nome_kpi: 'CRM_COMERCIAL', unidade: 'module' })
+          .select()
+          .single()
+        if (error) throw error
+        config = newConfig
+      }
+      setConfigId(config.id)
+
+      // 2. Fetch Data
+      const { data: dados, error: dadosErr } = await supabase
+        .from('kpis_dados')
+        .select('*')
+        .eq('kpi_id', config.id)
+        .order('data', { ascending: false })
+
+      if (dadosErr) throw dadosErr
+
+      const parsed = (dados || []).map((d) => ({
+        id: d.id,
+        data: d.data,
+        paciente: (d.valores_json as any)?.paciente || '',
+        valor: (d.valores_json as any)?.valor || 0,
+        vendido: (d.valores_json as any)?.vendido || false,
+      }))
+      setOrcamentos(parsed)
+    } catch (e) {
+      console.error('Erro ao buscar dados do CRM:', e)
+    } finally {
+      setLoading(false)
     }
-    setOrcamentos([novo, ...orcamentos])
-    setIsModalOpen(false)
-    setForm({})
-    toast({ title: 'Orçamento lançado com sucesso!' })
   }
 
-  const toggleVendido = (id: string) => {
-    setOrcamentos(orcamentos.map((o) => (o.id === id ? { ...o, vendido: !o.vendido } : o)))
+  const handleSave = async () => {
+    if (!form.paciente || !form.valor || !form.data || !configId) return
+
+    try {
+      const { data, error } = await supabase
+        .from('kpis_dados')
+        .insert({
+          kpi_id: configId,
+          cargo_id: cargoId,
+          data: form.data,
+          valores_json: {
+            paciente: form.paciente,
+            valor: form.valor,
+            vendido: form.vendido || false,
+          },
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      const novo: Orcamento = {
+        id: data.id,
+        data: data.data,
+        paciente: form.paciente,
+        valor: form.valor,
+        vendido: form.vendido || false,
+      }
+
+      setOrcamentos([novo, ...orcamentos])
+      setIsModalOpen(false)
+      setForm({})
+      toast({ title: 'Orçamento lançado com sucesso!' })
+    } catch (e) {
+      toast({ title: 'Erro ao lançar orçamento', variant: 'destructive' })
+    }
+  }
+
+  const toggleVendido = async (id: string) => {
+    const current = orcamentos.find((o) => o.id === id)
+    if (!current) return
+
+    const newVendido = !current.vendido
+    try {
+      const { error } = await supabase
+        .from('kpis_dados')
+        .update({
+          valores_json: { paciente: current.paciente, valor: current.valor, vendido: newVendido },
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
+      setOrcamentos(orcamentos.map((o) => (o.id === id ? { ...o, vendido: newVendido } : o)))
+    } catch (e) {
+      toast({ title: 'Erro ao atualizar status', variant: 'destructive' })
+    }
   }
 
   const kpis = useMemo(() => {
@@ -119,11 +212,10 @@ export function CrmComercial({ orcamentos, setOrcamentos }: CrmComercialProps) {
 
   const getColor = (val: number, format: 'currency' | 'percentage') => {
     if (format === 'percentage') {
-      if (val < 15) return '#ef4444' // vermelho (ruim)
-      if (val < 30) return '#eab308' // amarelo (bom)
-      return '#22c55e' // verde (excelente)
+      if (val < 15) return '#ef4444'
+      if (val < 30) return '#eab308'
+      return '#22c55e'
     }
-    // Para valores monetários
     if (val < 2500) return '#ef4444'
     if (val < 10000) return '#eab308'
     return '#22c55e'
@@ -215,9 +307,16 @@ export function CrmComercial({ orcamentos, setOrcamentos }: CrmComercialProps) {
     oportunidades: { label: 'Oportunidades (R$)', color: '#94a3b8' },
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-32 mt-8">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <div className="mt-8 space-y-6 animate-fade-in-up">
-      {/* KPIs Gauges */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {renderGauge(
           'OPORTUNIDADE DE VENDA',
@@ -249,7 +348,6 @@ export function CrmComercial({ orcamentos, setOrcamentos }: CrmComercialProps) {
         )}
       </div>
 
-      {/* Gráfico de Evolução e Lançamento */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="col-span-1 lg:col-span-2 border-slate-200 shadow-sm">
           <CardHeader>
@@ -309,7 +407,7 @@ export function CrmComercial({ orcamentos, setOrcamentos }: CrmComercialProps) {
                 LANÇAR ORÇAMENTO
               </h3>
               <p className="text-xs font-bold text-slate-500 mt-1">
-                Cadastre novas oportunidades para atualizar seus indicadores em tempo real.
+                Cadastre novas oportunidades para atualizar indicadores.
               </p>
             </div>
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -398,7 +496,6 @@ export function CrmComercial({ orcamentos, setOrcamentos }: CrmComercialProps) {
         </Card>
       </div>
 
-      {/* Lista de Orçamentos com Filtro */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
           <h3 className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2">

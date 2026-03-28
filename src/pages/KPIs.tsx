@@ -30,7 +30,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { CrmComercial, type Orcamento } from '@/components/kpis/CrmComercial'
+import { CrmComercial } from '@/components/kpis/CrmComercial'
 import { CrcLeadAgendamento } from '@/components/kpis/CrcLeadAgendamento'
 import { CrcFinanceiro } from '@/components/kpis/CrcFinanceiro'
 
@@ -51,38 +51,6 @@ interface Cargo {
   nome: string
 }
 
-const generateMockKpis = (cargoName: string): KpiData[] => {
-  if (cargoName.toUpperCase().includes('COMERCIAL')) {
-    return []
-  }
-  if (cargoName.toUpperCase().includes('LEAD') || cargoName.toUpperCase().includes('AGENDAMENTO')) {
-    return []
-  }
-  if (cargoName.toUpperCase().includes('FINANCEIRO')) {
-    return []
-  }
-  return [
-    {
-      id: Math.random().toString(),
-      name: 'PRODUTIVIDADE GERAL',
-      current: 85,
-      target: 100,
-      format: 'percentage',
-      date: '2023-10-01',
-      observacoes: 'Métrica de eficiência.',
-    },
-    {
-      id: Math.random().toString(),
-      name: 'TAREFAS CONCLUÍDAS',
-      current: 120,
-      target: 150,
-      format: 'number',
-      date: '2023-10-01',
-      observacoes: 'Volume de entregas.',
-    },
-  ]
-}
-
 export default function KPIs() {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -91,18 +59,13 @@ export default function KPIs() {
   const [selectedRole, setSelectedRole] = useState('')
   const [period, setPeriod] = useState('mes')
 
-  const [mockedKpisByRole, setMockedKpisByRole] = useState<Record<string, KpiData[]>>({})
-
-  // CRM State for Comercial
-  const [orcamentos, setOrcamentos] = useState<Orcamento[]>([
-    { id: '1', data: '2023-10-01', paciente: 'MOCK PACIENTE A', valor: 5000, vendido: false },
-    { id: '2', data: '2023-10-02', paciente: 'MOCK PACIENTE B', valor: 3500, vendido: true },
-  ])
+  const [generalKpis, setGeneralKpis] = useState<KpiData[]>([])
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState<Partial<KpiData>>({})
 
   const [loading, setLoading] = useState(true)
+  const [loadingKpis, setLoadingKpis] = useState(false)
 
   const currentRoleName = cargos.find((r) => r.id === selectedRole)?.nome || ''
 
@@ -113,8 +76,6 @@ export default function KPIs() {
 
   const isCrcFinanceiro = currentRoleName.toUpperCase().includes('FINANCEIRO')
 
-  const currentKpis = mockedKpisByRole[selectedRole] || []
-
   useEffect(() => {
     if (user) {
       fetchInitialData()
@@ -122,13 +83,10 @@ export default function KPIs() {
   }, [user])
 
   useEffect(() => {
-    if (selectedRole && !mockedKpisByRole[selectedRole]) {
-      setMockedKpisByRole((prev) => ({
-        ...prev,
-        [selectedRole]: generateMockKpis(currentRoleName),
-      }))
+    if (selectedRole) {
+      fetchKpis()
     }
-  }, [selectedRole, currentRoleName, mockedKpisByRole])
+  }, [selectedRole])
 
   const fetchInitialData = async () => {
     setLoading(true)
@@ -147,6 +105,51 @@ export default function KPIs() {
     }
   }
 
+  const fetchKpis = async () => {
+    setLoadingKpis(true)
+    try {
+      // Busca as configurações (kpis_cargos) que não são os módulos dinâmicos
+      const { data: configs } = await supabase
+        .from('kpis_config')
+        .select('*')
+        .eq('cargo_id', selectedRole)
+        .neq('unidade', 'module') // Exclui módulos como CRC Lead, Financeiro
+
+      if (!configs || configs.length === 0) {
+        setGeneralKpis([])
+        return
+      }
+
+      // Busca os últimos valores lançados para cada KPI
+      const kpiDataPromises = configs.map(async (conf) => {
+        const { data: latestData } = await supabase
+          .from('kpis_dados')
+          .select('*')
+          .eq('kpi_id', conf.id)
+          .order('data', { ascending: false })
+          .limit(1)
+          .single()
+
+        return {
+          id: conf.id,
+          name: conf.nome_kpi,
+          target: conf.meta_padrao,
+          current: latestData?.valor_atual || 0,
+          format: conf.unidade as KpiFormat,
+          date: latestData?.data,
+          observacoes: (conf.campos_json as any)?.observacoes || '',
+        }
+      })
+
+      const results = await Promise.all(kpiDataPromises)
+      setGeneralKpis(results)
+    } catch (e) {
+      console.error('Erro ao buscar KPIs:', e)
+    } finally {
+      setLoadingKpis(false)
+    }
+  }
+
   const handleOpenModal = () => {
     setFormData({
       name: '',
@@ -159,26 +162,39 @@ export default function KPIs() {
     setIsModalOpen(true)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedRole || !formData.name) return
 
-    const newKpi: KpiData = {
-      id: Math.random().toString(),
-      name: formData.name,
-      current: formData.current || 0,
-      target: formData.target || 0,
-      format: (formData.format as KpiFormat) || 'number',
-      date: formData.date,
-      observacoes: formData.observacoes,
+    try {
+      const { data: newConfig, error: configErr } = await supabase
+        .from('kpis_config')
+        .insert({
+          cargo_id: selectedRole,
+          nome_kpi: formData.name,
+          unidade: formData.format || 'number',
+          meta_padrao: formData.target || 0,
+          campos_json: { observacoes: formData.observacoes },
+        })
+        .select()
+        .single()
+
+      if (configErr) throw configErr
+
+      if (newConfig) {
+        await supabase.from('kpis_dados').insert({
+          kpi_id: newConfig.id,
+          cargo_id: selectedRole,
+          data: formData.date || new Date().toISOString().split('T')[0],
+          valor_atual: formData.current || 0,
+        })
+      }
+
+      toast({ title: 'KPI adicionado com sucesso!' })
+      setIsModalOpen(false)
+      fetchKpis()
+    } catch (e) {
+      toast({ title: 'Erro ao salvar KPI', variant: 'destructive' })
     }
-
-    setMockedKpisByRole((prev) => ({
-      ...prev,
-      [selectedRole]: [...(prev[selectedRole] || []), newKpi],
-    }))
-
-    toast({ title: 'KPI adicionado com sucesso!' })
-    setIsModalOpen(false)
   }
 
   const formatValue = (val: number, format: KpiFormat) => {
@@ -265,77 +281,82 @@ export default function KPIs() {
               onClick={handleOpenModal}
               className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full sm:w-auto shadow-md"
             >
-              <Plus className="h-4 w-4 mr-2" /> ADICIONAR KPI
+              <Plus className="h-4 w-4 mr-2" /> ADICIONAR KPI GERAL
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentKpis.length > 0
-              ? currentKpis.map((kpi) => {
-                  const progress = kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0
-                  return (
-                    <div
-                      key={kpi.id}
-                      className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow relative overflow-hidden"
-                    >
-                      {kpi.id.startsWith('crc-') && (
+          {loadingKpis ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {generalKpis.length > 0
+                ? generalKpis.map((kpi) => {
+                    const progress =
+                      kpi.target > 0 ? Math.round((kpi.current / kpi.target) * 100) : 0
+                    return (
+                      <div
+                        key={kpi.id}
+                        className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow relative overflow-hidden"
+                      >
                         <div className="absolute top-0 left-0 w-1 h-full bg-[#D4AF37]" />
-                      )}
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-bold text-nuvia-navy truncate max-w-[70%]">
-                          {kpi.name}
-                        </h3>
-                        <Badge
-                          variant="outline"
-                          className={`font-black px-2.5 py-0.5 rounded-full ${getProgressColor(kpi.current, kpi.target)}`}
-                        >
-                          {progress}%
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 font-bold mb-1">VALOR ATUAL</p>
-                        <p className="text-2xl font-black text-nuvia-navy">
-                          {formatValue(kpi.current, kpi.format)}
-                        </p>
-                      </div>
-                      <div className="flex justify-between items-end pt-3 border-t border-slate-100">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-bold text-nuvia-navy truncate max-w-[70%]">
+                            {kpi.name}
+                          </h3>
+                          <Badge
+                            variant="outline"
+                            className={`font-black px-2.5 py-0.5 rounded-full ${getProgressColor(kpi.current, kpi.target)}`}
+                          >
+                            {progress}%
+                          </Badge>
+                        </div>
                         <div>
-                          <p className="text-xs text-slate-400 font-bold mb-0.5">META</p>
-                          <p className="text-sm font-bold text-slate-700">
-                            {formatValue(kpi.target, kpi.format)}
+                          <p className="text-xs text-slate-500 font-bold mb-1">VALOR ATUAL</p>
+                          <p className="text-2xl font-black text-nuvia-navy">
+                            {formatValue(kpi.current, kpi.format)}
                           </p>
                         </div>
-                        {kpi.date && (
-                          <div className="flex items-center text-[10px] text-slate-400 font-bold gap-1 bg-slate-50 px-2 py-1 rounded">
-                            <CalendarIcon className="w-3 h-3" />{' '}
-                            {new Date(kpi.date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                        <div className="flex justify-between items-end pt-3 border-t border-slate-100">
+                          <div>
+                            <p className="text-xs text-slate-400 font-bold mb-0.5">META</p>
+                            <p className="text-sm font-bold text-slate-700">
+                              {formatValue(kpi.target, kpi.format)}
+                            </p>
                           </div>
+                          {kpi.date && (
+                            <div className="flex items-center text-[10px] text-slate-400 font-bold gap-1 bg-slate-50 px-2 py-1 rounded">
+                              <CalendarIcon className="w-3 h-3" />{' '}
+                              {new Date(kpi.date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                            </div>
+                          )}
+                        </div>
+                        {kpi.observacoes && (
+                          <p className="text-[10px] text-slate-500 font-medium italic mt-2 line-clamp-2">
+                            Obs: {kpi.observacoes}
+                          </p>
                         )}
                       </div>
-                      {kpi.observacoes && (
-                        <p className="text-[10px] text-slate-500 font-medium italic mt-2 line-clamp-2">
-                          Obs: {kpi.observacoes}
-                        </p>
-                      )}
+                    )
+                  })
+                : !isCrcComercial &&
+                  !isCrcLeadAgendamento &&
+                  !isCrcFinanceiro && (
+                    <div className="col-span-full flex flex-col items-center justify-center min-h-[20vh] text-center space-y-4 border-2 border-dashed border-slate-200 rounded-xl bg-white p-8">
+                      <BarChart3 className="h-12 w-12 text-slate-300" />
+                      <h3 className="text-lg font-black text-slate-600">NENHUM KPI ENCONTRADO</h3>
+                      <p className="text-sm text-slate-400 font-bold max-w-md">
+                        ESTE CARGO AINDA NÃO POSSUI INDICADORES GERAIS CONFIGURADOS.
+                      </p>
                     </div>
-                  )
-                })
-              : !isCrcComercial &&
-                !isCrcLeadAgendamento &&
-                !isCrcFinanceiro && (
-                  <div className="col-span-full flex flex-col items-center justify-center min-h-[20vh] text-center space-y-4 border-2 border-dashed border-slate-200 rounded-xl bg-white p-8">
-                    <BarChart3 className="h-12 w-12 text-slate-300" />
-                    <h3 className="text-lg font-black text-slate-600">NENHUM KPI ENCONTRADO</h3>
-                    <p className="text-sm text-slate-400 font-bold max-w-md">
-                      ESTE CARGO AINDA NÃO POSSUI INDICADORES CONFIGURADOS.
-                    </p>
-                  </div>
-                )}
-          </div>
+                  )}
+            </div>
+          )}
 
-          {isCrcComercial && <CrmComercial orcamentos={orcamentos} setOrcamentos={setOrcamentos} />}
-          {isCrcLeadAgendamento && <CrcLeadAgendamento />}
-          {isCrcFinanceiro && <CrcFinanceiro />}
+          {isCrcComercial && <CrmComercial cargoId={selectedRole} />}
+          {isCrcLeadAgendamento && <CrcLeadAgendamento cargoId={selectedRole} />}
+          {isCrcFinanceiro && <CrcFinanceiro cargoId={selectedRole} />}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-[30vh] border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 p-8 text-center">
@@ -352,7 +373,7 @@ export default function KPIs() {
         <DialogContent className="uppercase">
           <DialogHeader>
             <DialogTitle className="font-black text-nuvia-navy tracking-widest">
-              ADICIONAR KPI
+              ADICIONAR KPI GERAL
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
