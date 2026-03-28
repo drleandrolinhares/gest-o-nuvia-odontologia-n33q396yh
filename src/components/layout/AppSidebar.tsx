@@ -54,6 +54,12 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         items: [
           { name: 'SAC', href: '/sac', module: 'SAC', badge: pendingSacsCount },
           { name: 'ROTINA DIÁRIA', href: '/rotina-diaria', module: 'ROTINA DIÁRIA' },
+          {
+            name: 'RELATÓRIO DE ROTINAS',
+            href: '/rotina-relatorio',
+            module: 'ROTINA DIÁRIA',
+            adminOnly: true,
+          },
           { name: 'PERFORMANCE', href: '/performance', module: 'PERFORMANCE' },
           { name: 'COMUNICADOS', href: '/comunicados', module: 'COMUNICADOS' },
           { name: 'AVISOS E RECADOS', href: '/avisos-e-recados', module: 'AVISOS E RECADOS' },

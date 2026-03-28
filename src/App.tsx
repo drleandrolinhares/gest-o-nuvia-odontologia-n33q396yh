@@ -33,6 +33,7 @@ import PerformanceInovacao from '@/pages/PerformanceInovacao'
 import PerformanceLeitura from '@/pages/PerformanceLeitura'
 import AvisosRecados from '@/pages/AvisosRecados'
 import EscalaTrabalho from '@/pages/EscalaTrabalho'
+import RotinaRelatorio from '@/pages/RotinaRelatorio'
 
 import { AppProvider } from '@/stores/main'
 import { AuthProvider } from '@/hooks/use-auth'
@@ -100,6 +101,14 @@ export default function App() {
                       element={
                         <PermissionRoute module="ROTINA DIÁRIA">
                           <RotinaDiaria />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="rotina-relatorio"
+                      element={
+                        <PermissionRoute module="ROTINA DIÁRIA" adminOnly>
+                          <RotinaRelatorio />
                         </PermissionRoute>
                       }
                     />
