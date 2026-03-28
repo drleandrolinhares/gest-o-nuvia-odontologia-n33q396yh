@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { CrmComercial, type Orcamento } from '@/components/kpis/CrmComercial'
+import { CrcLeadAgendamento } from '@/components/kpis/CrcLeadAgendamento'
 
 export type KpiFormat = 'currency' | 'number' | 'percentage'
 
@@ -51,6 +52,9 @@ interface Cargo {
 
 const generateMockKpis = (cargoName: string): KpiData[] => {
   if (cargoName.toUpperCase().includes('COMERCIAL')) {
+    return []
+  }
+  if (cargoName.toUpperCase().includes('LEAD') || cargoName.toUpperCase().includes('AGENDAMENTO')) {
     return []
   }
   if (cargoName.toUpperCase().includes('FINANCEIRO')) {
@@ -121,6 +125,9 @@ export default function KPIs() {
   const currentRoleName = cargos.find((r) => r.id === selectedRole)?.nome || ''
 
   const isCrcComercial = currentRoleName.toUpperCase().includes('COMERCIAL')
+  const isCrcLeadAgendamento =
+    currentRoleName.toUpperCase().includes('LEAD') ||
+    currentRoleName.toUpperCase().includes('AGENDAMENTO')
 
   const currentKpis = mockedKpisByRole[selectedRole] || []
 
@@ -329,7 +336,8 @@ export default function KPIs() {
                     </div>
                   )
                 })
-              : !isCrcComercial && (
+              : !isCrcComercial &&
+                !isCrcLeadAgendamento && (
                   <div className="col-span-full flex flex-col items-center justify-center min-h-[20vh] text-center space-y-4 border-2 border-dashed border-slate-200 rounded-xl bg-white p-8">
                     <BarChart3 className="h-12 w-12 text-slate-300" />
                     <h3 className="text-lg font-black text-slate-600">NENHUM KPI ENCONTRADO</h3>
@@ -341,6 +349,7 @@ export default function KPIs() {
           </div>
 
           {isCrcComercial && <CrmComercial orcamentos={orcamentos} setOrcamentos={setOrcamentos} />}
+          {isCrcLeadAgendamento && <CrcLeadAgendamento />}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center min-h-[30vh] border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 p-8 text-center">
