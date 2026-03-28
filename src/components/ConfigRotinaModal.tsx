@@ -28,6 +28,7 @@ export interface Task {
   startDate?: string
   endDate?: string
   completed: boolean
+  completedAt?: string
 }
 
 const WEEKDAYS = [
