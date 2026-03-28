@@ -77,7 +77,7 @@ export function CrcFinanceiro({ cargoId, podeEditar = true }: CrcFinanceiroProps
         .select('*')
         .eq('cargo_id', cargoId)
         .eq('nome_kpi', 'FINANCEIRO')
-        .single()
+        .maybeSingle()
 
       if (!config) {
         const { data: newConfig, error } = await supabase

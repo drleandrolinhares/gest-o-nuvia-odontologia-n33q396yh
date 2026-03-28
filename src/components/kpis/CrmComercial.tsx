@@ -73,7 +73,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
         .select('*')
         .eq('cargo_id', cargoId)
         .eq('nome_kpi', 'CRM_COMERCIAL')
-        .single()
+        .maybeSingle()
 
       if (!config) {
         const { data: newConfig, error } = await supabase

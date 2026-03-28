@@ -115,7 +115,7 @@ export function CrcLeadAgendamento({ cargoId, podeEditar = true }: CrcLeadAgenda
         .select('*')
         .eq('cargo_id', cargoId)
         .eq('nome_kpi', 'CRC_LEAD')
-        .single()
+        .maybeSingle()
 
       if (!config) {
         const { data: newConfig, error } = await supabase
