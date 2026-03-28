@@ -478,6 +478,15 @@ export default function RotinaDiaria() {
                 />
               </div>
 
+              {isToday && (
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg flex items-center justify-center gap-2 shadow-sm animate-in fade-in duration-500">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                  <span className="text-amber-800 text-xs font-bold uppercase tracking-wider text-center">
+                    Você pode marcar tarefas até às 23:59 de hoje
+                  </span>
+                </div>
+              )}
+
               <div className="pt-2">
                 {cargoTasks.length > 0 ? (
                   <div className="space-y-3">
