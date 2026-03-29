@@ -113,9 +113,12 @@ export default function RotinaDiaria() {
 
   const [colaboradores, setColaboradores] = useState<{ id: string; nome: string }[]>([])
   const [selectedColaboradorId, setSelectedColaboradorId] = useState<string>('')
-  const [currentUserProfile, setCurrentUserProfile] = useState<{ id: string; nome: string } | null>(
-    null,
-  )
+  const [currentUserProfile, setCurrentUserProfile] = useState<{
+    id: string
+    nome: string
+    cargo_id?: string
+    cargoNome: string
+  } | null>(null)
 
   const [isAdmin, setIsAdmin] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
@@ -212,22 +215,18 @@ export default function RotinaDiaria() {
     let query = supabase.from('rotinas_config').select('*').eq('cargo_id', selectedCargoId)
 
     let activeUserId = user.id
-    if (isAdmin) {
-      if (selectedColaboradorId && selectedColaboradorId !== 'todos') {
-        query = query.or(`colaborador_id.eq.${selectedColaboradorId},colaborador_id.is.null`)
-        activeUserId = selectedColaboradorId
-      } else {
-        query = query.is('colaborador_id', null)
-      }
+    if (selectedColaboradorId && selectedColaboradorId !== 'todos') {
+      query = query.or(`colaborador_id.eq.${selectedColaboradorId},colaborador_id.is.null`)
+      activeUserId = selectedColaboradorId
     } else {
-      query = query.or(`colaborador_id.eq.${user.id},colaborador_id.is.null`)
+      query = query.is('colaborador_id', null)
     }
 
     const { data: configData } = await query
     if (!configData) return
 
     let execData: any[] = []
-    if (isAdmin && (!selectedColaboradorId || selectedColaboradorId === 'todos')) {
+    if (!selectedColaboradorId || selectedColaboradorId === 'todos') {
       // General view doesn't process specific execution easily per generic task
     } else {
       const { data: ed } = await supabase
@@ -406,9 +405,7 @@ export default function RotinaDiaria() {
     if (!user || !isToday) return
     const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
     const targetUserId =
-      isAdmin && selectedColaboradorId && selectedColaboradorId !== 'todos'
-        ? selectedColaboradorId
-        : user.id
+      selectedColaboradorId && selectedColaboradorId !== 'todos' ? selectedColaboradorId : user.id
 
     const marcadoPorId = user.id
     const tipoMarcacao = targetUserId === user.id ? 'colaborador' : 'admin'
@@ -511,73 +508,73 @@ export default function RotinaDiaria() {
             />
           </div>
 
-          {isAdmin && (
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <div className="w-full sm:w-56">
-                <Select
-                  value={selectedCargoId}
-                  onValueChange={(val) => {
-                    setSelectedCargoId(val)
-                    setSelectedColaboradorId('todos')
-                  }}
-                >
-                  <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
-                    <SelectValue placeholder="CARGO" />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="w-full sm:w-56">
+              <Select
+                value={selectedCargoId}
+                onValueChange={(val) => {
+                  setSelectedCargoId(val)
+                  setSelectedColaboradorId(isAdmin ? 'todos' : user?.id || 'todos')
+                }}
+              >
+                <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
+                  <SelectValue placeholder="CARGO" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cargos.map((cargo) => (
+                    <SelectItem
+                      key={cargo.id}
+                      value={cargo.id}
+                      className="font-bold uppercase tracking-wider"
+                    >
+                      {cargo.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedCargoId && (
+              <div className="w-full sm:w-64 relative">
+                <Select value={selectedColaboradorId} onValueChange={setSelectedColaboradorId}>
+                  <SelectTrigger
+                    className={cn(
+                      'w-full font-black uppercase tracking-wider h-11 transition-all',
+                      selectedColaboradorId && selectedColaboradorId !== 'todos'
+                        ? 'bg-indigo-50 border-indigo-300 text-indigo-800 shadow-sm'
+                        : 'bg-white text-nuvia-navy',
+                    )}
+                  >
+                    <SelectValue
+                      placeholder={isAdmin ? 'SIMULAR COLABORADOR' : 'VISUALIZAR ROTINA'}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {cargos.map((cargo) => (
+                    <SelectItem
+                      value="todos"
+                      className="font-bold uppercase tracking-wider text-slate-500"
+                    >
+                      VISÃO GERAL DO CARGO
+                    </SelectItem>
+                    {colaboradores.map((colab) => (
                       <SelectItem
-                        key={cargo.id}
-                        value={cargo.id}
+                        key={colab.id}
+                        value={colab.id}
                         className="font-bold uppercase tracking-wider"
                       >
-                        {cargo.nome}
+                        {colab.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {selectedColaboradorId && selectedColaboradorId !== 'todos' && (
+                  <div className="absolute -top-2.5 -right-2 bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in duration-300 border border-white">
+                    SIMULANDO
+                  </div>
+                )}
               </div>
-
-              {selectedCargoId && (
-                <div className="w-full sm:w-64 relative">
-                  <Select value={selectedColaboradorId} onValueChange={setSelectedColaboradorId}>
-                    <SelectTrigger
-                      className={cn(
-                        'w-full font-black uppercase tracking-wider h-11 transition-all',
-                        selectedColaboradorId && selectedColaboradorId !== 'todos'
-                          ? 'bg-indigo-50 border-indigo-300 text-indigo-800 shadow-sm'
-                          : 'bg-white text-nuvia-navy',
-                      )}
-                    >
-                      <SelectValue placeholder="SIMULAR COLABORADOR" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem
-                        value="todos"
-                        className="font-bold uppercase tracking-wider text-slate-500"
-                      >
-                        VISÃO GERAL DO CARGO
-                      </SelectItem>
-                      {colaboradores.map((colab) => (
-                        <SelectItem
-                          key={colab.id}
-                          value={colab.id}
-                          className="font-bold uppercase tracking-wider"
-                        >
-                          {colab.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedColaboradorId && selectedColaboradorId !== 'todos' && (
-                    <div className="absolute -top-2.5 -right-2 bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in duration-300 border border-white">
-                      SIMULANDO
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -602,10 +599,10 @@ export default function RotinaDiaria() {
                     ? selectedColaborador?.nome
                     : selectedCargo?.nome || (currentUserProfile as any)?.cargoNome}
                 </h2>
-                {isAdmin && selectedColaboradorId && selectedColaboradorId !== 'todos' && (
+                {selectedColaboradorId && selectedColaboradorId !== 'todos' && (
                   <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-md border border-indigo-200 shadow-sm uppercase tracking-widest flex items-center gap-1 h-6">
                     <ShieldCheck className="h-3 w-3" />
-                    MODO SIMULAÇÃO
+                    {isAdmin ? 'MODO SIMULAÇÃO' : 'MINHA ROTINA'}
                   </span>
                 )}
                 <Button
@@ -760,8 +757,8 @@ export default function RotinaDiaria() {
                                 !isReached ||
                                 task.completed ||
                                 !isToday ||
-                                (isAdmin &&
-                                  (!selectedColaboradorId || selectedColaboradorId === 'todos'))
+                                !selectedColaboradorId ||
+                                selectedColaboradorId === 'todos'
                               }
                               onCheckedChange={(c) => {
                                 if (c && isReached && !task.completed && isToday) {
@@ -775,9 +772,8 @@ export default function RotinaDiaria() {
                                   : '',
                                 (!isReached ||
                                   !isToday ||
-                                  (isAdmin &&
-                                    (!selectedColaboradorId ||
-                                      selectedColaboradorId === 'todos'))) &&
+                                  !selectedColaboradorId ||
+                                  selectedColaboradorId === 'todos') &&
                                   !task.completed &&
                                   'opacity-50 cursor-not-allowed bg-slate-100',
                               )}
