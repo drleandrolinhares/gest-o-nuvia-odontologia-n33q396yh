@@ -110,7 +110,16 @@ import useAppStore from '@/stores/main'
 export default function RotinaDiaria() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const { can } = useAppStore()
+  const appStore = useAppStore() as any
+  const can = useCallback(
+    (...args: any[]) => {
+      if (appStore?.can && typeof appStore.can === 'function') {
+        return appStore.can(...args)
+      }
+      return false
+    },
+    [appStore?.can],
+  )
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [selectedCargoId, setSelectedCargoId] = useState<string>('')
   const [isCEO, setIsCEO] = useState(false)
