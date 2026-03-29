@@ -8,6 +8,7 @@ import {
   Briefcase,
   Plus,
   ArrowLeft,
+  CheckCircle2,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ import { supabase } from '@/lib/supabase/client'
 import { ConfigRotinaModal, Task } from '@/components/ConfigRotinaModal'
 import { useToast } from '@/components/ui/use-toast'
 import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 interface Cargo {
   id: string
@@ -41,6 +43,7 @@ interface Cargo {
 export default function ConfigurarRotina() {
   const { toast } = useToast()
   const [cargos, setCargos] = useState<Cargo[]>([])
+  const [cargosWithRoutines, setCargosWithRoutines] = useState<Set<string>>(new Set())
   const [selectedCargoId, setSelectedCargoId] = useState<string>('')
 
   const [colaboradores, setColaboradores] = useState<{ id: string; nome: string }[]>([])
@@ -52,12 +55,20 @@ export default function ConfigurarRotina() {
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const fetchCargosWithRoutinesStatus = async () => {
+    const { data } = await supabase.from('rotinas_config').select('cargo_id')
+    if (data) {
+      setCargosWithRoutines(new Set(data.map((r: any) => r.cargo_id)))
+    }
+  }
+
   useEffect(() => {
     const fetchCargos = async () => {
       const { data } = await supabase.from('cargos').select('id, nome').order('nome')
       if (data) setCargos(data.filter((c) => c.nome.toUpperCase() !== 'CEO'))
     }
     fetchCargos()
+    fetchCargosWithRoutinesStatus()
   }, [])
 
   useEffect(() => {
@@ -135,6 +146,7 @@ export default function ConfigurarRotina() {
       toast({ title: 'Sucesso', description: 'Rotina removida com sucesso.' })
       setTaskToDelete(null)
       fetchTasks()
+      fetchCargosWithRoutinesStatus()
     }
   }
 
@@ -161,64 +173,75 @@ export default function ConfigurarRotina() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-6">
-        <div className="flex flex-col md:flex-row gap-4 border-b border-slate-100 pb-6">
-          <div className="w-full md:w-1/3 space-y-2">
-            <label className="text-xs font-black text-slate-500 flex items-center gap-2">
-              <Briefcase className="h-4 w-4" /> 1. SELECIONE O CARGO
-            </label>
-            <Select
-              value={selectedCargoId}
-              onValueChange={(val) => {
-                setSelectedCargoId(val)
-                setSelectedColaboradorId('')
-              }}
-            >
-              <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
-                <SelectValue placeholder="CARGO" />
-              </SelectTrigger>
-              <SelectContent>
-                {cargos.map((cargo) => (
-                  <SelectItem
-                    key={cargo.id}
-                    value={cargo.id}
-                    className="font-bold uppercase tracking-wider"
-                  >
+        <div className="w-full md:w-1/3 space-y-2">
+          <label className="text-xs font-black text-slate-500 flex items-center gap-2">
+            <Briefcase className="h-4 w-4" /> 1. SELECIONE O CARGO
+          </label>
+          <Select
+            value={selectedCargoId}
+            onValueChange={(val) => {
+              setSelectedCargoId(val)
+              setSelectedColaboradorId('')
+            }}
+          >
+            <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
+              <SelectValue placeholder="SELECIONE UM CARGO" />
+            </SelectTrigger>
+            <SelectContent>
+              {cargos.map((cargo) => (
+                <SelectItem
+                  key={cargo.id}
+                  value={cargo.id}
+                  className="font-bold uppercase tracking-wider"
+                >
+                  <div className="flex items-center gap-2">
                     {cargo.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                    {cargosWithRoutines.has(cargo.id) && (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div className="w-full md:w-1/3 space-y-2">
+        {selectedCargoId && (
+          <div className="space-y-4 pt-6 border-t border-slate-100 animate-in fade-in duration-300">
             <label className="text-xs font-black text-slate-500 flex items-center gap-2">
               <User className="h-4 w-4" /> 2. SELECIONE O COLABORADOR
             </label>
-            <Select
-              value={selectedColaboradorId}
-              onValueChange={setSelectedColaboradorId}
-              disabled={!selectedCargoId}
-            >
-              <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
-                <SelectValue placeholder="COLABORADOR" />
-              </SelectTrigger>
-              <SelectContent>
-                {colaboradores.map((colab) => (
-                  <SelectItem
-                    key={colab.id}
-                    value={colab.id}
-                    className="font-bold uppercase tracking-wider"
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {colaboradores.map((colab) => (
+                <button
+                  key={colab.id}
+                  onClick={() => setSelectedColaboradorId(colab.id)}
+                  className={cn(
+                    'flex flex-col items-start p-4 rounded-xl border transition-all text-left focus:outline-none',
+                    selectedColaboradorId === colab.id
+                      ? 'border-[#D4AF37] bg-[#D4AF37]/10 shadow-sm ring-1 ring-[#D4AF37]/50'
+                      : 'border-slate-200 hover:border-[#D4AF37]/40 hover:bg-slate-50 bg-white',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'font-bold uppercase tracking-wide',
+                      selectedColaboradorId === colab.id ? 'text-nuvia-navy' : 'text-nuvia-navy/80',
+                    )}
                   >
                     {colab.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1 font-bold">
+                    {colab.id === 'todos' ? 'TAREFAS GERAIS DO CARGO' : 'TAREFAS INDIVIDUAIS'}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {selectedColaboradorId ? (
-          <div className="space-y-6 animate-in fade-in duration-300">
+        {selectedColaboradorId && (
+          <div className="space-y-6 pt-6 border-t border-slate-100 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <h2 className="text-xl font-black text-nuvia-navy tracking-wider">
                 ROTINAS {isGeral ? 'GERAIS DO CARGO' : 'ESPECÍFICAS'}:{' '}
@@ -248,8 +271,10 @@ export default function ConfigurarRotina() {
                     <div className="flex-1">
                       <p className="font-bold text-nuvia-navy tracking-wide">{task.action}</p>
                       <div className="flex flex-wrap gap-2 mt-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        <span className="bg-slate-100 px-2 py-0.5 rounded">⏰ {task.time}</span>
-                        <span className="bg-slate-100 px-2 py-0.5 rounded">
+                        <span className="bg-slate-100 px-2 py-0.5 rounded flex items-center gap-1">
+                          ⏰ {task.time}
+                        </span>
+                        <span className="bg-slate-100 px-2 py-0.5 rounded flex items-center gap-1">
                           🔄 {task.frequency}
                         </span>
                         {task.dataInicio && (
@@ -289,19 +314,22 @@ export default function ConfigurarRotina() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+              <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
                 <CalendarDays className="h-10 w-10 text-slate-300 mb-3" />
                 <p className="text-sm font-bold text-slate-400 tracking-wider text-center">
-                  ESTE COLABORADOR NÃO POSSUI ROTINAS CONFIGURADAS.
+                  NENHUMA ROTINA CONFIGURADA.
                 </p>
               </div>
             )}
           </div>
-        ) : (
+        )}
+
+        {!selectedCargoId && (
           <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
             <User className="h-10 w-10 text-slate-300 mb-3" />
-            <p className="text-sm font-bold text-slate-400 tracking-wider text-center">
-              SELECIONE UM CARGO E UM COLABORADOR ACIMA PARA CONFIGURAR AS ROTINAS.
+            <p className="text-sm font-bold text-slate-400 tracking-wider text-center max-w-md">
+              SELECIONE UM CARGO ACIMA PARA VISUALIZAR A LISTA DE COLABORADORES E GERENCIAR SUAS
+              ROTINAS.
             </p>
           </div>
         )}
@@ -314,7 +342,10 @@ export default function ConfigurarRotina() {
           setTaskToEdit(null)
         }}
         cargos={cargos}
-        onSave={() => fetchTasks()}
+        onSave={() => {
+          fetchTasks()
+          fetchCargosWithRoutinesStatus()
+        }}
         defaultCargoId={selectedCargoId}
         defaultColaboradorId={isGeral ? undefined : selectedColaboradorId}
         colaboradorNome={selectedColaboradorNome}
