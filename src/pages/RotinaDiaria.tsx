@@ -523,14 +523,36 @@ export default function RotinaDiaria() {
         </div>
 
         <div className="flex flex-col items-end gap-3 w-full md:w-auto">
-          {isAdmin && (
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-widest text-[10px] h-7 px-3 shadow-sm w-full sm:w-auto"
-            >
-              + ADICIONAR ROTINA
-            </Button>
-          )}
+          <Button
+            onClick={async () => {
+              if (isAdmin || can('ROTINA DIÁRIA', 'criar') || can('ROTINA DIÁRIA', 'editar')) {
+                setIsCreateModalOpen(true)
+                return
+              }
+
+              if (user) {
+                const { data: isAdminData } = await supabase.rpc('is_admin_user', {
+                  user_uuid: user.id,
+                })
+                const { data: isMasterData } = await supabase.rpc('is_master_user', {
+                  user_uuid: user.id,
+                })
+                if (isAdminData || isMasterData) {
+                  setIsCreateModalOpen(true)
+                  return
+                }
+              }
+
+              toast({
+                title: 'Acesso Restrito',
+                description: 'Apenas administradores podem adicionar rotinas.',
+                variant: 'destructive',
+              })
+            }}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-widest text-[10px] h-7 px-3 shadow-sm w-full sm:w-auto"
+          >
+            + ADICIONAR ROTINA
+          </Button>
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <div className="relative">
               <input
