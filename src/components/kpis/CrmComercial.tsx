@@ -82,6 +82,18 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
   const [filter, setFilter] = useState<'todos' | 'oportunidades' | 'vendas'>('todos')
   const [dentistas, setDentistas] = useState<{ id: string; nome: string }[]>([])
   const [crcComercialNome, setCrcComercialNome] = useState('')
+  const [indGoals, setIndGoals] = useState({
+    vendasTotais: 0,
+    ticketMedio: 0,
+    conversao: 0,
+    mediaEntrada: 0,
+  })
+  const [compGoals, setCompGoals] = useState({
+    vendasTotais: 0,
+    ticketMedio: 0,
+    conversao: 0,
+    mediaEntrada: 0,
+  })
 
   useEffect(() => {
     if (user) {
@@ -96,32 +108,26 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
     }
 
     const fetchDentistas = async () => {
-      const { data: cargos } = await supabase
-        .from('cargos')
-        .select('id')
-        .ilike('nome', '%dentista%')
-      if (cargos && cargos.length > 0) {
-        const ids = cargos.map((c) => c.id)
-        const { data: profs } = await supabase
-          .from('profiles')
-          .select('id, nome')
-          .in('cargo_id', ids)
-        if (profs && profs.length > 0) {
-          setDentistas(profs.map((p) => ({ id: p.id, nome: p.nome || '' })))
-          return
-        }
+      const { data } = await supabase
+        .from('dentistas_avaliadores')
+        .select('usuario_id, profiles!inner(nome)')
+      if (data && data.length > 0) {
+        setDentistas(
+          data.map((d: any) => ({ id: d.usuario_id, nome: d.profiles?.nome || 'Sem Nome' })),
+        )
+      } else {
+        setDentistas([
+          { id: 'mock-1', nome: 'Dra. Ana Silva' },
+          { id: 'mock-2', nome: 'Dr. Carlos Mendes' },
+        ])
       }
-      setDentistas([
-        { id: 'mock-1', nome: 'Dra. Ana Silva' },
-        { id: 'mock-2', nome: 'Dr. Carlos Mendes' },
-      ])
     }
     fetchDentistas()
   }, [user])
 
   useEffect(() => {
     if (cargoId) fetchData()
-  }, [cargoId])
+  }, [cargoId, colaboradorId])
 
   const fetchData = async () => {
     setLoading(true)
@@ -134,7 +140,7 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
         .eq('nome_kpi', 'CRM_COMERCIAL')
         .maybeSingle()
 
-      if (!config) {
+      if (!config && cargoId && !cargoId.startsWith('mock-')) {
         const { data: newConfig, error } = await supabase
           .from('kpis_config')
           .insert({ cargo_id: cargoId, nome_kpi: 'CRM_COMERCIAL', unidade: 'module' })
@@ -153,7 +159,45 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
           { onConflict: 'cargo_id,kpi_id' },
         )
       }
-      setConfigId(config.id)
+      if (config) setConfigId(config.id)
+
+      // Fetch Goals
+      const now = new Date()
+      const mes = now.getMonth() + 1
+      const ano = now.getFullYear()
+      const targetId = colaboradorId || user?.id
+
+      const [cgRes, igRes] = await Promise.all([
+        supabase
+          .from('metas_comerciais_empresa')
+          .select('*')
+          .eq('mes', mes)
+          .eq('ano', ano)
+          .maybeSingle(),
+        targetId && !targetId.startsWith('mock-')
+          ? supabase
+              .from('metas_comerciais_individual')
+              .select('*')
+              .eq('mes', mes)
+              .eq('ano', ano)
+              .eq('usuario_id', targetId)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ])
+
+      setCompGoals({
+        vendasTotais: cgRes.data?.meta_vendas || 200000,
+        ticketMedio: cgRes.data?.meta_ticket || 6000,
+        conversao: cgRes.data?.meta_conversao || 35,
+        mediaEntrada: cgRes.data?.meta_entrada || 40,
+      })
+
+      setIndGoals({
+        vendasTotais: igRes.data?.meta_vendas || 50000,
+        ticketMedio: igRes.data?.meta_ticket || 5000,
+        conversao: igRes.data?.meta_conversao || 30,
+        mediaEntrada: igRes.data?.meta_entrada || 30,
+      })
 
       // 2. Fetch Data
       const { data: dados, error: dadosErr } = await supabase
@@ -324,12 +368,20 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
 
   const targetUserId = colaboradorId || user?.id
 
+  const currentMonthOrcamentos = useMemo(() => {
+    const now = new Date()
+    const mesStr = String(now.getMonth() + 1).padStart(2, '0')
+    const anoStr = String(now.getFullYear())
+    const prefix = `${anoStr}-${mesStr}`
+    return orcamentos.filter((o) => o.data.startsWith(prefix))
+  }, [orcamentos])
+
   const individualOrcamentos = useMemo(() => {
     if (!targetUserId) return []
-    return orcamentos.filter((o) => o.crc_comercial_id === targetUserId)
-  }, [orcamentos, targetUserId])
+    return currentMonthOrcamentos.filter((o) => o.crc_comercial_id === targetUserId)
+  }, [currentMonthOrcamentos, targetUserId])
 
-  const companyOrcamentos = orcamentos
+  const companyOrcamentos = currentMonthOrcamentos
 
   const calculateKpis = (data: Orcamento[]) => {
     const totalOportunidades = data.length
@@ -360,23 +412,14 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
   const indKpis = calculateKpis(individualOrcamentos)
   const compKpis = calculateKpis(companyOrcamentos)
 
-  // Mocked Goals
-  const indGoals = {
-    vendasTotais: 50000,
-    ticketMedio: 5000,
-    conversao: 30,
-    mediaEntrada: 30,
-  }
-
-  const compGoals = {
-    vendasTotais: 200000,
-    ticketMedio: 6000,
-    conversao: 35,
-    mediaEntrada: 40,
-  }
+  // Only for list and charts
+  const userAllOrcamentos = useMemo(() => {
+    if (!targetUserId) return []
+    return orcamentos.filter((o) => o.crc_comercial_id === targetUserId)
+  }, [orcamentos, targetUserId])
 
   const monthlyData = useMemo(() => {
-    const data = individualOrcamentos.reduce(
+    const data = userAllOrcamentos.reduce(
       (acc, curr) => {
         const month = new Date(curr.data + 'T00:00:00')
           .toLocaleString('pt-BR', { month: 'short' })
@@ -389,13 +432,13 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
       {} as Record<string, any>,
     )
     return Object.values(data)
-  }, [individualOrcamentos])
+  }, [userAllOrcamentos])
 
   const filteredOrcamentos = useMemo(() => {
-    if (filter === 'oportunidades') return individualOrcamentos.filter((o) => !o.vendido)
-    if (filter === 'vendas') return individualOrcamentos.filter((o) => o.vendido)
-    return individualOrcamentos
-  }, [individualOrcamentos, filter])
+    if (filter === 'oportunidades') return userAllOrcamentos.filter((o) => !o.vendido)
+    if (filter === 'vendas') return userAllOrcamentos.filter((o) => o.vendido)
+    return userAllOrcamentos
+  }, [userAllOrcamentos, filter])
 
   const getProgressColor = (percent: number) => {
     if (percent < 80) return '#ef4444' // red
@@ -877,7 +920,7 @@ export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmC
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
           <h3 className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" /> REGISTROS (INDIVIDUAL)
+            <Users className="h-4 w-4 text-primary" /> HISTÓRICO DE REGISTROS (INDIVIDUAL)
           </h3>
           <Tabs
             value={filter}

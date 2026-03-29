@@ -28,7 +28,8 @@ interface UserProfile {
 }
 interface DentistaAvaliador {
   id: string
-  user_id: string
+  usuario_id: string
+  cargo: string | null
   profile?: UserProfile
 }
 
@@ -41,12 +42,14 @@ export default function KpiConfiguracoes() {
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // Goals State
-  const [period, setPeriod] = useState(new Date().toISOString().slice(0, 7))
+  const [mes, setMes] = useState(new Date().getMonth() + 1)
+  const [ano, setAno] = useState(new Date().getFullYear())
+
   const [companyGoals, setCompanyGoals] = useState({
-    sales_total_target: 100000,
-    average_ticket_target: 5000,
-    conversion_target_percent: 30,
-    entry_target_percent: 40,
+    meta_vendas: 100000,
+    meta_ticket: 5000,
+    meta_conversao: 30,
+    meta_entrada: 40,
   })
   const [isEditingCompany, setIsEditingCompany] = useState(false)
   const [individualGoals, setIndividualGoals] = useState<any[]>([])
@@ -56,16 +59,21 @@ export default function KpiConfiguracoes() {
 
   useEffect(() => {
     fetchData()
-  }, [period])
+  }, [mes, ano])
 
   const fetchData = async () => {
     setLoading(true)
     try {
       const [pRes, dRes, cgRes, igRes] = await Promise.all([
         supabase.from('profiles').select('id, nome, cargos(nome)').order('nome'),
-        supabase.from('kpis_dentistas_avaliadores').select('*'),
-        supabase.from('kpi_company_goals').select('*').eq('period', period).maybeSingle(),
-        supabase.from('kpi_individual_goals').select('*').eq('period', period),
+        supabase.from('dentistas_avaliadores').select('*'),
+        supabase
+          .from('metas_comerciais_empresa')
+          .select('*')
+          .eq('mes', mes)
+          .eq('ano', ano)
+          .maybeSingle(),
+        supabase.from('metas_comerciais_individual').select('*').eq('mes', mes).eq('ano', ano),
       ])
       if (pRes.error) throw pRes.error
 
@@ -74,31 +82,39 @@ export default function KpiConfiguracoes() {
       setDentistas(
         (dRes.data || []).map((d: any) => ({
           id: d.id,
-          user_id: d.user_id,
-          profile: pData.find((p) => p.id === d.user_id),
+          usuario_id: d.usuario_id,
+          cargo: d.cargo,
+          profile: pData.find((p) => p.id === d.usuario_id),
         })),
       )
 
       if (cgRes.data) {
         setCompanyGoals({
-          sales_total_target: cgRes.data.sales_total_target,
-          average_ticket_target: cgRes.data.average_ticket_target,
-          conversion_target_percent: cgRes.data.conversion_target_percent,
-          entry_target_percent: cgRes.data.entry_target_percent,
+          meta_vendas: cgRes.data.meta_vendas,
+          meta_ticket: cgRes.data.meta_ticket,
+          meta_conversao: cgRes.data.meta_conversao,
+          meta_entrada: cgRes.data.meta_entrada,
+        })
+      } else {
+        setCompanyGoals({
+          meta_vendas: 100000,
+          meta_ticket: 5000,
+          meta_conversao: 30,
+          meta_entrada: 40,
         })
       }
 
       setIndividualGoals(
         pData.map((p) => {
-          const ex = igRes.data?.find((g: any) => g.user_id === p.id)
+          const ex = igRes.data?.find((g: any) => g.usuario_id === p.id)
           return {
-            user_id: p.id,
+            usuario_id: p.id,
             nome: p.nome || 'Sem Nome',
             cargo: p.cargos?.nome || '-',
-            sales_target: ex?.sales_target || 20000,
-            average_ticket_target: ex?.average_ticket_target || 3000,
-            conversion_target_percent: ex?.conversion_target_percent || 20,
-            entry_target_percent: ex?.entry_target_percent || 30,
+            meta_vendas: ex?.meta_vendas || 20000,
+            meta_ticket: ex?.meta_ticket || 3000,
+            meta_conversao: ex?.meta_conversao || 20,
+            meta_entrada: ex?.meta_entrada || 30,
           }
         }),
       )
@@ -111,7 +127,7 @@ export default function KpiConfiguracoes() {
 
   const handleOpenModal = (dentista?: DentistaAvaliador) => {
     setEditingId(dentista ? dentista.id : null)
-    setSelectedUserId(dentista ? dentista.user_id : '')
+    setSelectedUserId(dentista ? dentista.usuario_id : '')
     setIsModalOpen(true)
   }
 
@@ -123,12 +139,17 @@ export default function KpiConfiguracoes() {
         variant: 'destructive',
       })
     try {
+      const userProfile = users.find((u) => u.id === selectedUserId)
+      const cargo = userProfile?.cargos?.nome || null
+
       const { error } = editingId
         ? await supabase
-            .from('kpis_dentistas_avaliadores')
-            .update({ user_id: selectedUserId })
+            .from('dentistas_avaliadores')
+            .update({ usuario_id: selectedUserId, cargo })
             .eq('id', editingId)
-        : await supabase.from('kpis_dentistas_avaliadores').insert([{ user_id: selectedUserId }])
+        : await supabase
+            .from('dentistas_avaliadores')
+            .insert([{ usuario_id: selectedUserId, cargo }])
       if (error && error.code === '23505') throw new Error('Este usuário já é avaliador.')
       if (error) throw error
       toast({ title: 'Sucesso', description: 'Salvo com sucesso.' })
@@ -142,7 +163,7 @@ export default function KpiConfiguracoes() {
   const handleDelete = async (id: string) => {
     if (!confirm('Remover dentista avaliador?')) return
     try {
-      await supabase.from('kpis_dentistas_avaliadores').delete().eq('id', id)
+      await supabase.from('dentistas_avaliadores').delete().eq('id', id)
       toast({ title: 'Sucesso', description: 'Removido.' })
       fetchData()
     } catch (error: any) {
@@ -153,8 +174,8 @@ export default function KpiConfiguracoes() {
   const handleSaveCompanyGoals = async () => {
     try {
       const { error } = await supabase
-        .from('kpi_company_goals')
-        .upsert({ period, ...companyGoals }, { onConflict: 'period' })
+        .from('metas_comerciais_empresa')
+        .upsert({ mes, ano, ...companyGoals }, { onConflict: 'mes,ano' })
       if (error) throw error
       toast({ title: 'Sucesso', description: 'Metas da empresa salvas.' })
       setIsEditingCompany(false)
@@ -165,16 +186,17 @@ export default function KpiConfiguracoes() {
 
   const handleSaveIndGoal = async () => {
     try {
-      const { error } = await supabase.from('kpi_individual_goals').upsert(
+      const { error } = await supabase.from('metas_comerciais_individual').upsert(
         {
-          user_id: editingInd.user_id,
-          period,
-          sales_target: editingInd.sales_target,
-          average_ticket_target: editingInd.average_ticket_target,
-          conversion_target_percent: editingInd.conversion_target_percent,
-          entry_target_percent: editingInd.entry_target_percent,
+          usuario_id: editingInd.usuario_id,
+          mes,
+          ano,
+          meta_vendas: editingInd.meta_vendas,
+          meta_ticket: editingInd.meta_ticket,
+          meta_conversao: editingInd.meta_conversao,
+          meta_entrada: editingInd.meta_entrada,
         },
-        { onConflict: 'user_id,period' },
+        { onConflict: 'usuario_id,mes,ano' },
       )
       if (error) throw error
       toast({ title: 'Sucesso', description: 'Metas salvas.' })
@@ -207,8 +229,12 @@ export default function KpiConfiguracoes() {
             <Label className="font-bold">PERÍODO:</Label>
             <input
               type="month"
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
+              value={`${ano}-${String(mes).padStart(2, '0')}`}
+              onChange={(e) => {
+                const [y, m] = e.target.value.split('-')
+                setAno(Number(y))
+                setMes(Number(m))
+              }}
               className="h-10 rounded-md border px-3"
             />
           </div>
@@ -224,12 +250,7 @@ export default function KpiConfiguracoes() {
           </TabsList>
           <TabsContent value="empresa" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                'sales_total_target',
-                'average_ticket_target',
-                'conversion_target_percent',
-                'entry_target_percent',
-              ].map((k, i) => (
+              {['meta_vendas', 'meta_ticket', 'meta_conversao', 'meta_entrada'].map((k, i) => (
                 <div key={k} className="space-y-2">
                   <Label>
                     {
@@ -284,12 +305,12 @@ export default function KpiConfiguracoes() {
                 </TableHeader>
                 <TableBody>
                   {individualGoals.map((ind) => (
-                    <TableRow key={ind.user_id} className="hover:bg-slate-50/50">
+                    <TableRow key={ind.usuario_id} className="hover:bg-slate-50/50">
                       <TableCell className="font-bold">{ind.nome}</TableCell>
-                      <TableCell>R$ {ind.sales_target}</TableCell>
-                      <TableCell>R$ {ind.average_ticket_target}</TableCell>
-                      <TableCell>{ind.conversion_target_percent}%</TableCell>
-                      <TableCell>{ind.entry_target_percent}%</TableCell>
+                      <TableCell>R$ {ind.meta_vendas}</TableCell>
+                      <TableCell>R$ {ind.meta_ticket}</TableCell>
+                      <TableCell>{ind.meta_conversao}%</TableCell>
+                      <TableCell>{ind.meta_entrada}%</TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
@@ -338,7 +359,7 @@ export default function KpiConfiguracoes() {
                 dentistas.map((d) => (
                   <TableRow key={d.id} className="hover:bg-slate-50/50">
                     <TableCell className="font-bold">{d.profile?.nome || '-'}</TableCell>
-                    <TableCell>{d.profile?.cargos?.nome || '-'}</TableCell>
+                    <TableCell>{d.cargo || d.profile?.cargos?.nome || '-'}</TableCell>
                     <TableCell className="text-center">
                       <Button variant="ghost" size="icon" onClick={() => handleOpenModal(d)}>
                         <Pencil className="h-4 w-4 text-blue-600" />
@@ -392,12 +413,7 @@ export default function KpiConfiguracoes() {
             <DialogTitle>EDITAR METAS INDIVIDUAIS - {editingInd?.nome}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4 grid grid-cols-2 gap-4">
-            {[
-              'sales_target',
-              'average_ticket_target',
-              'conversion_target_percent',
-              'entry_target_percent',
-            ].map((k, i) => (
+            {['meta_vendas', 'meta_ticket', 'meta_conversao', 'meta_entrada'].map((k, i) => (
               <div key={k} className="space-y-2 col-span-2 sm:col-span-1">
                 <Label>
                   {['Meta Vendas (R$)', 'Meta Ticket (R$)', 'Conversão (%)', 'Entrada (%)'][i]}
