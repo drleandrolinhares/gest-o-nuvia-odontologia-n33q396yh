@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { parseISO, format, subDays } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/use-auth'
 import {
   Select,
   SelectTrigger,
@@ -56,6 +58,9 @@ interface Execucao {
 }
 
 export default function RotinaRelatorio() {
+  const navigate = useNavigate()
+  const { user } = useAuth()
+
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('7d')
   const [selectedCargo, setSelectedCargo] = useState('all')
@@ -68,8 +73,32 @@ export default function RotinaRelatorio() {
   const [hasAnyRoutine, setHasAnyRoutine] = useState(true)
 
   const fetchData = async () => {
+    if (!user) return
+
     setLoading(true)
     try {
+      // 1. Validar permissões (Cargo = CEO ou role = ADMIN/MASTER)
+      const [{ data: profileData }, { data: roleData }] = await Promise.all([
+        supabase.from('profiles').select('cargos(nome)').eq('id', user.id).single(),
+        supabase.from('user_roles').select('roles(name)').eq('user_id', user.id),
+      ])
+
+      const cargoNome = (profileData?.cargos as any)?.nome?.toUpperCase() || ''
+      const roles = roleData?.map((r: any) => r.roles?.name?.toUpperCase()) || []
+
+      const isCEO = cargoNome.includes('CEO')
+      const isAdmin = roles.includes('ADMIN') || roles.includes('MASTER')
+
+      if (!isCEO && !isAdmin) {
+        toast({
+          title: 'Acesso restrito',
+          description: 'Acesso restrito - apenas administrador',
+          variant: 'destructive',
+        })
+        navigate(-1)
+        return
+      }
+
       const endDate = new Date()
       let startDate = new Date()
       if (period === '7d') startDate = subDays(endDate, 7)
@@ -159,7 +188,7 @@ export default function RotinaRelatorio() {
 
   useEffect(() => {
     fetchData()
-  }, [period])
+  }, [period, user])
 
   const filteredUsers = useMemo(() => {
     if (selectedCargo === 'all') return profiles
