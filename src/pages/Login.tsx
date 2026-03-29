@@ -54,19 +54,23 @@ export default function Login() {
         return
       }
 
-      // Validação inicial do perfil após login - Atualizado para usar user_cargos e evitar erro 400
+      // Validação inicial do perfil após login - Atualizado para usar user_cargos e evitar erro 400 / 42703
       const {
         data: { user },
       } = await supabase.auth.getUser()
       if (user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .select('id,nome,user_cargos(cargo_id,cargo)')
+          .select('id,nome,email,user_cargos(cargo_id,cargo,is_principal)')
           .eq('id', user.id)
           .single()
 
         if (profileError) {
           console.error('Falha ao carregar perfil:', profileError.message)
+          if ((profileError as any).code === '42703' || (profileError as any).code === '400') {
+            localStorage.clear()
+            sessionStorage.clear()
+          }
         }
       }
 

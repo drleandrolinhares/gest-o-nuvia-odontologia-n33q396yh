@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth'
 export interface UserProfile {
   id: string
   nome: string | null
+  email: string | null
   cargo_id: string | null
   cargo_nome: string | null
   departamento_id: string | null
@@ -41,12 +42,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // CORREÇÃO: Substituído 'cargo_id' e 'cargos(nome)' para utilizar a nova estrutura 'user_cargos'
+      // CORREÇÃO: Utilizando nova query e evitando 'cargo_id' solto em profiles para previnir erro 42703
       const { data, error } = await supabase
         .from('profiles')
         .select(`
           id, 
           nome, 
+          email,
           departamento_id,
           user_cargos(cargo_id, cargo, is_principal)
         `)
@@ -64,14 +66,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setProfile({
         id: data.id,
         nome: data.nome,
+        email: data.email,
         cargo_id: principalCargo?.cargo_id || null,
         cargo_nome: principalCargo?.cargo || null,
         departamento_id: data.departamento_id,
         is_admin: !!isAdmin,
         is_master: !!isMaster,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error)
+      if (error?.code === '42703' || error?.status === 400) {
+        console.warn('Erro de schema detectado (42703/400). Limpando cache e forçando logout.')
+        localStorage.clear()
+        sessionStorage.clear()
+        await supabase.auth.signOut()
+        window.location.replace('/login?clear=1')
+      }
     } finally {
       setLoading(false)
     }

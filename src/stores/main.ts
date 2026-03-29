@@ -19,10 +19,10 @@ const useMainStore = create<AppState>((set, get) => ({
   fetchProfile: async (userId: string) => {
     set({ loading: true })
     try {
-      // FIX: Consulta ajustada para usar 'user_cargos(cargo)' e remover a tabela 'cargos' obsoleta
+      // FIX: Consulta ajustada para usar 'user_cargos'
       const { data, error } = await supabase
         .from('profiles')
-        .select('id,nome,user_cargos(cargo_id,cargo)')
+        .select('id,nome,email,user_cargos(cargo_id,cargo,is_principal)')
         .eq('id', userId)
         .single()
 
@@ -35,9 +35,11 @@ const useMainStore = create<AppState>((set, get) => ({
         ) || false
 
       // Extraindo cargo_id principal para manter compatibilidade
-      const cargo_id = p?.user_cargos?.[0]?.cargo_id || null
+      const principalCargo = p?.user_cargos?.find((c: any) => c.is_principal) || p?.user_cargos?.[0]
+      const cargo_id = principalCargo?.cargo_id || null
+      const cargo_nome = principalCargo?.cargo || null
 
-      set({ profile: { ...p, cargo_id, isAdmin } })
+      set({ profile: { ...p, cargo_id, cargo_nome, isAdmin } })
 
       const res = await supabase.functions.invoke('get_user_permissions', {
         body: { userId },
@@ -46,8 +48,15 @@ const useMainStore = create<AppState>((set, get) => ({
       if (res.data?.permissions) {
         set({ permissions: res.data.permissions })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile', error)
+      if (error?.code === '42703' || error?.status === 400) {
+        console.warn('Erro de schema detectado (42703/400). Limpando cache e forçando logout.')
+        localStorage.clear()
+        sessionStorage.clear()
+        await supabase.auth.signOut()
+        window.location.replace('/login?clear=1')
+      }
     } finally {
       set({ loading: false })
     }
@@ -57,7 +66,8 @@ const useMainStore = create<AppState>((set, get) => ({
     if (!profile) return false
     if (profile.isAdmin) return true
 
-    const perm = permissions.find((p: any) => p.nome?.toUpperCase() === module.toUpperCase())
+    const safePermissions = permissions?.filter?.((p: any) => p) || []
+    const perm = safePermissions.find((p: any) => p?.nome?.toUpperCase() === module.toUpperCase())
     if (!perm) return false
 
     switch (action) {
