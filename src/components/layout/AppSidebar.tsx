@@ -43,7 +43,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const { sacRecords, can, userPermissions } = useAppStore()
 
   const pendingSacsCount = useMemo(() => {
-    if (!sacRecords || !Array.isArray(sacRecords)) return 0
     return sacRecords.filter((r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO').length
   }, [sacRecords])
 
@@ -87,8 +86,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   }, [user])
 
   const navigationSections = useMemo(() => {
-    if (typeof can !== 'function') return []
-
     const sections = [
       {
         title: 'OPERACIONAL',
@@ -162,14 +159,9 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       },
     ]
 
-    if (!Array.isArray(sections)) return []
-
     return sections
       .map((section) => {
-        if (!section || !Array.isArray(section.items)) return { ...section, items: [] }
-
         const visibleItems = section.items.filter((item) => {
-          if (!item) return false
           if (
             item.adminOnly &&
             user?.email !== 'drleandrolinhares@gmail.com' &&
@@ -180,11 +172,11 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
             return false
           }
-          return typeof can === 'function' ? can(item.module, 'view') : false
+          return can(item.module, 'view')
         })
         return { ...section, items: visibleItems }
       })
-      .filter((section) => section && Array.isArray(section.items) && section.items.length > 0)
+      .filter((section) => section.items.length > 0)
   }, [pendingSacsCount, can, user?.email, userPermissions, isUserAdmin, hasRotina])
 
   const toggleSection = (title: string) => {
@@ -200,9 +192,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       let hasChanges = false
       const next = { ...prev }
       navigationSections.forEach((section) => {
-        const isAnySubActive = Array.isArray(section.items)
-          ? section.items.some((item) => location.pathname.startsWith(item.href))
-          : false
+        const isAnySubActive = section.items.some((item) => location.pathname.startsWith(item.href))
         if (isAnySubActive && !next[section.title]) {
           next[section.title] = true
           hasChanges = true
@@ -268,7 +258,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                 </CollapsibleTrigger>
                 {(!isCollapsed || isMobile) && (
                   <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
-                    {(Array.isArray(section.items) ? section.items : []).map((item) => {
+                    {section.items.map((item) => {
                       const isActive =
                         item.href === '/rotina-diaria'
                           ? location.pathname === '/rotina-diaria' ||
