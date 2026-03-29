@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { parseISO, format, subDays } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import {
   Select,
   SelectTrigger,
@@ -65,6 +64,7 @@ export default function RotinaRelatorio() {
   const [profiles, setProfiles] = useState<UserProfile[]>([])
   const [rotinasPontos, setRotinasPontos] = useState<RotinaPonto[]>([])
   const [execucoes, setExecucoes] = useState<Execucao[]>([])
+  const [rotinasConfig, setRotinasConfig] = useState<any[]>([])
   const [hasAnyRoutine, setHasAnyRoutine] = useState(true)
 
   const fetchData = async () => {
@@ -103,14 +103,27 @@ export default function RotinaRelatorio() {
       ])
 
       if (pontosData) setRotinasPontos(pontosData)
+      if (rotinasConfigData) setRotinasConfig(rotinasConfigData)
 
       if (profilesData && rotinasConfigData) {
-        const activeProfiles = profilesData.filter((user) =>
-          rotinasConfigData.some(
+        const ceoCargos = cargosData
+          ? cargosData
+              .filter(
+                (c) =>
+                  c.nome.toUpperCase().includes('CEO') || c.nome.toUpperCase().includes('ADMIN'),
+              )
+              .map((c) => c.id)
+          : []
+
+        const activeProfiles = profilesData.filter((user) => {
+          if (ceoCargos.includes(user.cargo_id)) return false
+
+          return rotinasConfigData.some(
             (r) =>
               r.colaborador_id === user.id || (!r.colaborador_id && r.cargo_id === user.cargo_id),
-          ),
-        )
+          )
+        })
+
         setProfiles(activeProfiles)
         setHasAnyRoutine(activeProfiles.length > 0)
 
@@ -204,6 +217,12 @@ export default function RotinaRelatorio() {
     const suggestions: { user: string; text: string; type: 'warning' | 'info' }[] = []
 
     filteredUsers.forEach((user) => {
+      // Garantir explicitamente que usuários sem rotina não gerem insights (redundância por segurança e consistência)
+      const hasRoutine = rotinasConfig.some(
+        (r) => r.colaborador_id === user.id || (!r.colaborador_id && r.cargo_id === user.cargo_id),
+      )
+      if (!hasRoutine) return
+
       const userPoints = rotinasPontos.filter((rp) => rp.usuario_id === user.id)
       if (userPoints.length > 0) {
         const avg = userPoints.reduce((acc, curr) => acc + curr.percentual, 0) / userPoints.length
@@ -263,7 +282,7 @@ export default function RotinaRelatorio() {
     })
 
     return suggestions
-  }, [filteredUsers, rotinasPontos, execucoes])
+  }, [filteredUsers, rotinasPontos, execucoes, rotinasConfig])
 
   const exportToCsv = () => {
     const headers = ['Data', 'Colaborador', 'Cargo', 'Percentual', 'Pontos']
@@ -357,8 +376,7 @@ export default function RotinaRelatorio() {
           </div>
           <h2 className="text-xl font-medium text-white">Nenhuma rotina cadastrada no sistema</h2>
           <p className="text-slate-400 max-w-md">
-            Você ainda não possui rotinas configuradas. Acesse a página de Rotina Diária para
-            configurar a primeira rotina para sua equipe.
+            Você ainda não possui rotinas configuradas para serem analisadas no relatório.
           </p>
         </div>
       ) : (
