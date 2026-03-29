@@ -105,9 +105,12 @@ const isTaskActiveOnDate = (task: Task | any, targetDate: Date) => {
   }
 }
 
+import useAppStore from '@/stores/main'
+
 export default function RotinaDiaria() {
   const { user } = useAuth()
   const { toast } = useToast()
+  const { can } = useAppStore()
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [selectedCargoId, setSelectedCargoId] = useState<string>('')
   const [isCEO, setIsCEO] = useState(false)
@@ -139,61 +142,69 @@ export default function RotinaDiaria() {
     return () => clearInterval(timer)
   }, [])
 
-  const fetchFilteredCargos = useCallback(async () => {
-    const { data: rotinas } = await supabase.from('rotinas_config').select('cargo_id')
-    const rotinaCargoIds = new Set(rotinas?.map((r) => r.cargo_id) || [])
+  const fetchInitialData = useCallback(async () => {
+    if (!user) return
+    const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
+    const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
+    const isAdm =
+      !!isAdminData ||
+      !!isMasterData ||
+      can('ROTINA DIÁRIA', 'editar') ||
+      can('ROTINA DIÁRIA', 'criar')
+    setIsAdmin(isAdm)
 
-    const { data } = await supabase.from('cargos').select('id, nome').order('nome')
-    if (data) {
-      setCargos(data.filter((c) => c.nome.toUpperCase() !== 'CEO' && rotinaCargoIds.has(c.id)))
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        nome,
+        cargo_id,
+        cargos (
+          nome
+        )
+      `)
+      .eq('id', user.id)
+      .single()
+
+    const cargoNome = (profile?.cargos as any)?.nome?.toUpperCase() || ''
+    if (profile) {
+      setCurrentUserProfile({ id: profile.id, nome: profile.nome || 'Admin', cargoNome } as any)
     }
-  }, [])
 
-  useEffect(() => {
-    fetchFilteredCargos()
-  }, [fetchFilteredCargos])
+    const userIsCEO = cargoNome === 'CEO'
+    setIsCEO(userIsCEO)
 
-  useEffect(() => {
-    const checkAdminAndUser = async () => {
-      if (!user) return
-      const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
-      const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
-      const isAdm = !!isAdminData || !!isMasterData
-      setIsAdmin(isAdm)
+    // Cargos
+    const { data: allCargosData } = await supabase.from('cargos').select('id, nome').order('nome')
+    const allCargos = allCargosData || []
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          nome,
-          cargo_id,
-          cargos (
-            nome
-          )
-        `)
-        .eq('id', user.id)
-        .single()
+    if (isAdm) {
+      setCargos(allCargos.filter((c) => c.nome.toUpperCase() !== 'CEO'))
+      setSelectedCargoId((prev) => prev || (userIsCEO ? '' : profile?.cargo_id) || '')
+      if (!selectedColaboradorId) setSelectedColaboradorId('todos')
+    } else {
+      const { data: rotinas } = await supabase.from('rotinas_config').select('cargo_id')
+      const rotinaCargoIds = new Set(rotinas?.map((r) => r.cargo_id) || [])
 
-      const cargoNome = (profile?.cargos as any)?.nome?.toUpperCase() || ''
-      if (profile)
-        setCurrentUserProfile({ id: profile.id, nome: profile.nome || 'Admin', cargoNome } as any)
-
-      const userIsCEO = cargoNome === 'CEO'
-      setIsCEO(userIsCEO)
-
-      if (profile?.cargo_id) {
-        if (!isAdm) {
-          setSelectedCargoId(userIsCEO ? '' : profile.cargo_id)
-        } else {
-          setSelectedCargoId((prev) => prev || (userIsCEO ? '' : profile.cargo_id))
-        }
+      const filtered = allCargos.filter(
+        (c) => c.id === profile?.cargo_id && rotinaCargoIds.has(c.id),
+      )
+      setCargos(filtered)
+      if (filtered.length > 0) {
+        setSelectedCargoId(filtered[0].id)
+      } else {
+        setSelectedCargoId('')
       }
+      setSelectedColaboradorId(user.id)
     }
-    checkAdminAndUser()
-  }, [user])
+  }, [user, can])
 
   useEffect(() => {
-    if (!isAdmin || !selectedCargoId) return
+    fetchInitialData()
+  }, [fetchInitialData])
+
+  useEffect(() => {
+    if (!selectedCargoId) return
     const fetchColabs = async () => {
       const { data } = await supabase
         .from('profiles')
@@ -202,14 +213,31 @@ export default function RotinaDiaria() {
         .order('nome')
 
       if (data) {
-        setColaboradores(data)
+        // Filtra colaboradores que realmente têm rotina (geral ou específica)
+        const { data: rotinas } = await supabase
+          .from('rotinas_config')
+          .select('colaborador_id')
+          .eq('cargo_id', selectedCargoId)
+
+        const hasGeneral = rotinas?.some((r) => r.colaborador_id === null)
+        const specificIds = new Set(
+          rotinas?.filter((r) => r.colaborador_id).map((r) => r.colaborador_id) || [],
+        )
+
+        const filteredData = data.filter(
+          (colab) => hasGeneral || specificIds.has(colab.id) || colab.id === user?.id,
+        )
+
+        setColaboradores(filteredData)
         if (!selectedColaboradorId || selectedColaboradorId === 'todos') {
-          setSelectedColaboradorId('todos')
+          setSelectedColaboradorId(isAdmin ? 'todos' : user?.id || 'todos')
         }
       }
     }
     fetchColabs()
-  }, [isAdmin, selectedCargoId])
+  }, [selectedCargoId, isAdmin, user])
+
+  const fetchFilteredCargos = fetchInitialData // For compatibility with CreateRoutineModal onSave
 
   const fetchTasks = useCallback(async () => {
     if (!selectedCargoId || !user) return
@@ -557,9 +585,7 @@ export default function RotinaDiaria() {
                           : 'bg-white text-nuvia-navy',
                       )}
                     >
-                      <SelectValue
-                        placeholder={isAdmin ? 'SIMULAR COLABORADOR' : 'VISUALIZAR ROTINA'}
-                      />
+                      <SelectValue placeholder={isAdmin ? 'SIMULAR COLABORADOR' : 'MINHA ROTINA'} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem
@@ -568,20 +594,22 @@ export default function RotinaDiaria() {
                       >
                         VISÃO GERAL DO CARGO
                       </SelectItem>
-                      {colaboradores.map((colab) => (
-                        <SelectItem
-                          key={colab.id}
-                          value={colab.id}
-                          className="font-bold uppercase tracking-wider"
-                        >
-                          {colab.nome}
-                        </SelectItem>
-                      ))}
+                      {colaboradores
+                        .filter((colab) => isAdmin || colab.id === user?.id)
+                        .map((colab) => (
+                          <SelectItem
+                            key={colab.id}
+                            value={colab.id}
+                            className="font-bold uppercase tracking-wider"
+                          >
+                            {colab.nome} {colab.id === user?.id && !isAdmin ? '(MINHA ROTINA)' : ''}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   {selectedColaboradorId && selectedColaboradorId !== 'todos' && (
                     <div className="absolute -top-2.5 -right-2 bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in duration-300 border border-white">
-                      SIMULANDO
+                      {isAdmin ? 'SIMULANDO' : 'MINHA ROTINA'}
                     </div>
                   )}
                 </div>
@@ -771,7 +799,8 @@ export default function RotinaDiaria() {
                                 task.completed ||
                                 !isToday ||
                                 !selectedColaboradorId ||
-                                selectedColaboradorId === 'todos'
+                                selectedColaboradorId === 'todos' ||
+                                (!isAdmin && selectedColaboradorId !== user?.id)
                               }
                               onCheckedChange={(c) => {
                                 if (c && isReached && !task.completed && isToday) {
@@ -786,7 +815,8 @@ export default function RotinaDiaria() {
                                 (!isReached ||
                                   !isToday ||
                                   !selectedColaboradorId ||
-                                  selectedColaboradorId === 'todos') &&
+                                  selectedColaboradorId === 'todos' ||
+                                  (!isAdmin && selectedColaboradorId !== user?.id)) &&
                                   !task.completed &&
                                   'opacity-50 cursor-not-allowed bg-slate-100',
                               )}
