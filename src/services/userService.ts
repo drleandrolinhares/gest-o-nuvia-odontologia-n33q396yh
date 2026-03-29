@@ -44,9 +44,7 @@ export const userService = {
   fetchProfiles: async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select(
-        '*, user_cargos(cargo, cargo_id, is_principal), departamentos(nome), user_roles(role_id, roles(name))',
-      )
+      .select('*, user_cargos(cargo, cargo_id, is_principal), departamentos(nome)')
       .order('nome')
     if (error) {
       console.error(error)
@@ -62,8 +60,8 @@ export const userService = {
         cargos: principalCargo ? { nome: principalCargo.cargo } : null,
         user_cargos: p.user_cargos || [],
         isAdmin:
-          p.user_roles?.some((ur: any) =>
-            ['ADMIN', 'MASTER', 'DIRETORIA'].includes(ur.roles?.name?.toUpperCase()),
+          p.user_cargos?.some((c: any) =>
+            ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(c.cargo?.toUpperCase()),
           ) || false,
       }
     })
