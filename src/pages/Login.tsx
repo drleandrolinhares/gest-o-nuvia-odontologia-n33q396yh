@@ -48,7 +48,7 @@ export default function Login() {
       if (user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .select('id,nome,cargo_id,user_cargos(cargo)')
+          .select('id,nome,user_cargos(cargo_id,cargo)')
           .eq('id', user.id)
           .single()
 

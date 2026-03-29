@@ -22,7 +22,7 @@ const useMainStore = create<AppState>((set, get) => ({
       // FIX: Consulta ajustada para usar 'user_cargos(cargo)' e remover a tabela 'cargos' obsoleta
       const { data, error } = await supabase
         .from('profiles')
-        .select('id,nome,cargo_id,user_cargos(cargo)')
+        .select('id,nome,user_cargos(cargo_id,cargo)')
         .eq('id', userId)
         .single()
 
@@ -34,7 +34,10 @@ const useMainStore = create<AppState>((set, get) => ({
           ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(c.cargo?.toUpperCase()),
         ) || false
 
-      set({ profile: { ...p, isAdmin } })
+      // Extraindo cargo_id principal para manter compatibilidade
+      const cargo_id = p?.user_cargos?.[0]?.cargo_id || null
+
+      set({ profile: { ...p, cargo_id, isAdmin } })
 
       const res = await supabase.functions.invoke('get_user_permissions', {
         body: { userId },
