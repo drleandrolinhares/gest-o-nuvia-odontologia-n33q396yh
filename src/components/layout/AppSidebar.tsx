@@ -18,6 +18,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
 import useAppStore from '@/stores/main'
 import { NuviaLogo } from './NuviaLogo'
+import { supabase } from '@/lib/supabase/client'
 
 interface AppSidebarProps {
   isCollapsed: boolean
@@ -46,6 +47,45 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     [sacRecords],
   )
 
+  const [hasRotina, setHasRotina] = useState<boolean | null>(null)
+  const [isUserAdmin, setIsUserAdmin] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+
+    const checkAccess = async () => {
+      const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
+      const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
+      const isAdm = !!isAdminData || !!isMasterData
+      setIsUserAdmin(isAdm)
+
+      if (isAdm) {
+        setHasRotina(true)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('cargo_id')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.cargo_id) {
+        const { data: rotinas } = await supabase
+          .from('rotinas_config')
+          .select('id')
+          .or(`cargo_id.eq.${profile.cargo_id},colaborador_id.eq.${user.id}`)
+          .limit(1)
+
+        setHasRotina((rotinas && rotinas.length > 0) || false)
+      } else {
+        setHasRotina(false)
+      }
+    }
+
+    checkAccess()
+  }, [user])
+
   const navigationSections = useMemo(() => {
     const sections = [
       {
@@ -53,7 +93,12 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         icon: Activity,
         items: [
           { name: 'SAC', href: '/sac', module: 'SAC', badge: pendingSacsCount },
-          { name: 'ROTINA DIÁRIA', href: '/rotina-diaria', module: 'ROTINA DIÁRIA' },
+          {
+            name: 'ROTINA DIÁRIA',
+            href: '/rotina-diaria',
+            module: 'ROTINA DIÁRIA',
+            hideIfNoRoutine: true,
+          },
           {
             name: 'RELATÓRIO DE ROTINAS',
             href: '/rotina-relatorio',
@@ -125,12 +170,15 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           ) {
             return false
           }
+          if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
+            return false
+          }
           return can(item.module, 'view')
         })
         return { ...section, items: visibleItems }
       })
       .filter((section) => section.items.length > 0)
-  }, [pendingSacsCount, can, user?.email, userPermissions])
+  }, [pendingSacsCount, can, user?.email, userPermissions, isUserAdmin, hasRotina])
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => {

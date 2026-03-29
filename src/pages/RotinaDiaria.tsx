@@ -134,9 +134,12 @@ export default function RotinaDiaria() {
 
   useEffect(() => {
     const fetchCargos = async () => {
+      const { data: rotinas } = await supabase.from('rotinas_config').select('cargo_id')
+      const rotinaCargoIds = new Set(rotinas?.map((r) => r.cargo_id) || [])
+
       const { data } = await supabase.from('cargos').select('id, nome').order('nome')
       if (data) {
-        setCargos(data.filter((c) => c.nome.toUpperCase() !== 'CEO'))
+        setCargos(data.filter((c) => c.nome.toUpperCase() !== 'CEO' && rotinaCargoIds.has(c.id)))
       }
     }
     fetchCargos()
@@ -163,9 +166,10 @@ export default function RotinaDiaria() {
         .eq('id', user.id)
         .single()
 
-      if (profile) setCurrentUserProfile({ id: profile.id, nome: profile.nome || 'Admin' })
-
       const cargoNome = (profile?.cargos as any)?.nome?.toUpperCase() || ''
+      if (profile)
+        setCurrentUserProfile({ id: profile.id, nome: profile.nome || 'Admin', cargoNome } as any)
+
       const userIsCEO = cargoNome === 'CEO'
       setIsCEO(userIsCEO)
 
@@ -593,7 +597,7 @@ export default function RotinaDiaria() {
                 ROTINA DIÁRIA -{' '}
                 {selectedColaboradorId && selectedColaboradorId !== 'todos'
                   ? selectedColaborador?.nome
-                  : selectedCargo?.nome}
+                  : selectedCargo?.nome || (currentUserProfile as any)?.cargoNome}
                 {isAdmin && selectedColaboradorId && selectedColaboradorId !== 'todos' && (
                   <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-md border border-indigo-200 ml-2 shadow-sm uppercase tracking-widest flex items-center gap-1">
                     <ShieldCheck className="h-3.5 w-3.5" />
