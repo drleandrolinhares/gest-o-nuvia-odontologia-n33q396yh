@@ -2,12 +2,42 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
 import useAppStore from '@/stores/main'
+import { useAuth } from '@/hooks/use-auth'
+import { useToast } from '@/components/ui/use-toast'
+import { supabase } from '@/lib/supabase/client'
 import { formatCurrency, cn } from '@/lib/utils'
-import { Calculator, Percent, DollarSign, ListOrdered, AlertCircle } from 'lucide-react'
+import {
+  Calculator,
+  Percent,
+  DollarSign,
+  ListOrdered,
+  AlertCircle,
+  Check,
+  Info,
+} from 'lucide-react'
 
 export function NegotiationSimulator() {
   const { appSettings } = useAppStore()
+  const { user } = useAuth()
+  const { toast } = useToast()
 
   const settings = appSettings?.negotiation_settings
   const defaultPercentage = settings?.defaultEntryPercentage ?? 30
@@ -15,6 +45,44 @@ export function NegotiationSimulator() {
 
   const [totalValueText, setTotalValueText] = useState<string>('')
   const [entryPercentageText, setEntryPercentageText] = useState<string>('')
+
+  // Dialog & Sales State
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [selectedOption, setSelectedOption] = useState<any>(null)
+  const [dentistaId, setDentistaId] = useState('')
+  const [saleType, setSaleType] = useState<'AVALIACAO' | 'COMERCIAL' | null>(null)
+
+  // Tooltip State
+  const [tooltipAvaliacao, setTooltipAvaliacao] = useState(
+    'Comissão apenas para dentista, aplicável quando a venda é fechada na mesma data da avaliação.',
+  )
+  const [tooltipComercial, setTooltipComercial] = useState(
+    'Comissão para dentista + CRC, aplicável quando a venda é fechada na mesma data da avaliação com intervenção do comercial.',
+  )
+  const [isEditingTooltip, setIsEditingTooltip] = useState<'avaliacao' | 'comercial' | null>(null)
+  const [editTooltipValue, setEditTooltipValue] = useState('')
+
+  const mockDentists = [
+    { id: 'd1', name: 'Dr. Leandro Linhares' },
+    { id: 'd2', name: 'Dra. Ana Costa' },
+    { id: 'd3', name: 'Dr. Carlos Mendes' },
+  ]
+
+  useEffect(() => {
+    if (user?.id) {
+      supabase.rpc('is_admin_user', { user_uuid: user.id }).then(({ data }) => {
+        if (data) setIsAdmin(true)
+      })
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (settings?.tooltips) {
+      if (settings.tooltips.avaliacao) setTooltipAvaliacao(settings.tooltips.avaliacao)
+      if (settings.tooltips.comercial) setTooltipComercial(settings.tooltips.comercial)
+    }
+  }, [settings])
 
   useEffect(() => {
     setEntryPercentageText(defaultPercentage.toString())
@@ -144,6 +212,56 @@ export function NegotiationSimulator() {
       })
     }
     setTotalValueText(value)
+  }
+
+  const handleOpenConfirm = (option: any) => {
+    setSelectedOption(option)
+    setIsConfirmModalOpen(true)
+    setDentistaId('')
+    setSaleType(null)
+  }
+
+  const handleSaveSale = () => {
+    console.log('Venda confirmada (mock):', {
+      option: selectedOption,
+      dentistaId,
+      crcComercialId: user?.id,
+      saleType,
+      dataVenda: new Date().toISOString(),
+    })
+
+    toast({
+      title: 'Venda registrada com sucesso!',
+      description: `Orçamento salvo como fechado no(a) ${saleType === 'AVALIACAO' ? 'AVALIAÇÃO' : 'COMERCIAL'}.`,
+    })
+    setIsConfirmModalOpen(false)
+  }
+
+  const startEditingTooltip = (type: 'avaliacao' | 'comercial') => {
+    setEditTooltipValue(type === 'avaliacao' ? tooltipAvaliacao : tooltipComercial)
+    setIsEditingTooltip(type)
+  }
+
+  const saveTooltip = async (type: 'avaliacao' | 'comercial') => {
+    if (type === 'avaliacao') setTooltipAvaliacao(editTooltipValue)
+    else setTooltipComercial(editTooltipValue)
+
+    setIsEditingTooltip(null)
+
+    if (appSettings?.id) {
+      const currentSettings = (appSettings.negotiation_settings as any) || {}
+      const updatedSettings = {
+        ...currentSettings,
+        tooltips: {
+          ...(currentSettings.tooltips || {}),
+          [type]: editTooltipValue,
+        },
+      }
+      await supabase
+        .from('app_settings')
+        .update({ negotiation_settings: updatedSettings })
+        .eq('id', appSettings.id)
+    }
   }
 
   const levelColors = {
@@ -285,7 +403,7 @@ export function NegotiationSimulator() {
             </p>
           </div>
         ) : (
-          <div className="w-full max-w-lg mx-auto font-sans shadow-2xl rounded-sm overflow-hidden border border-slate-300 mb-10 animate-fade-in-up">
+          <div className="w-full max-w-2xl mx-auto font-sans shadow-2xl rounded-sm overflow-hidden border border-slate-300 mb-10 animate-fade-in-up">
             <div className="flex w-full items-stretch">
               <div className="w-[30%] bg-[#F6C85F] text-black font-black text-center flex items-center justify-center p-3 text-lg uppercase tracking-wider border-b border-r border-[#e5ba55]">
                 Entre
@@ -302,10 +420,11 @@ export function NegotiationSimulator() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[1fr_1.3fr_1fr] bg-[#0A1F54] text-white font-black text-center py-3.5 text-sm tracking-widest border-y-[6px] border-white uppercase">
-              <div>Forma</div>
+            <div className="grid grid-cols-[1fr_1.3fr_1fr_110px] bg-[#0A1F54] text-white font-black text-center py-3.5 text-sm tracking-widest border-y-[6px] border-white uppercase items-center px-4 gap-4">
+              <div className="text-left">Forma</div>
               <div>Parcela</div>
               <div>Desconto</div>
+              <div>Ação</div>
             </div>
 
             {results.options
@@ -314,43 +433,312 @@ export function NegotiationSimulator() {
                 <div
                   key="avista"
                   className={cn(
-                    'grid grid-cols-[1fr_1.3fr_1fr] font-bold text-center py-3 text-base border-b border-white/20',
+                    'grid grid-cols-[1fr_1.3fr_1fr_110px] font-bold text-center py-3 text-base border-b border-white/20 items-center px-4 gap-4',
                     levelColors[1],
                   )}
                 >
-                  <div className="font-black">À VISTA</div>
+                  <div className="font-black text-left">À VISTA</div>
                   <div>{formatCurrency(r.finalVal)}</div>
                   <div>{formatCurrency(r.discountVal)}</div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 bg-white/20 hover:bg-white/30 text-white border-0 w-full"
+                    onClick={() => handleOpenConfirm(r)}
+                  >
+                    <Check className="h-4 w-4 mr-1" /> Registrar
+                  </Button>
                 </div>
               ))}
 
-            <div className="grid grid-cols-[1fr_1.3fr_1fr] bg-black text-white font-bold text-center py-3 text-base border-b border-white/20">
-              <div className="font-black text-white/90">ENTRADA</div>
+            <div className="grid grid-cols-[1fr_1.3fr_1fr_110px] bg-black text-white font-bold text-center py-3 text-base border-b border-white/20 items-center px-4 gap-4">
+              <div className="font-black text-white/90 text-left">ENTRADA</div>
               <div>{formatCurrency(results.entryVal)}</div>
               <div>-</div>
+              <div></div>
             </div>
 
             {results.options
               .filter((r) => r.installments > 0)
               .map((r) => {
                 const colors = levelColors[r.level as keyof typeof levelColors] || levelColors[4]
+                const isLight = r.level === 4
                 return (
                   <div
                     key={r.installments}
                     className={cn(
-                      'grid grid-cols-[1fr_1.3fr_1fr] font-bold text-center py-2 text-base transition-colors border-b border-black/5',
+                      'grid grid-cols-[1fr_1.3fr_1fr_110px] font-bold text-center py-2 text-base transition-colors border-b border-black/5 items-center px-4 gap-4',
                       colors,
                     )}
                   >
-                    <div className="font-black">{r.installments}x</div>
+                    <div className="font-black text-left">{r.installments}x</div>
                     <div>{formatCurrency(r.installmentVal)}</div>
                     <div>{r.discountVal > 0 ? formatCurrency(r.discountVal) : '-'}</div>
+                    <Button
+                      size="sm"
+                      variant={isLight ? 'default' : 'secondary'}
+                      className={cn(
+                        'h-8 w-full',
+                        !isLight && 'bg-white/20 hover:bg-white/30 text-white border-0',
+                      )}
+                      onClick={() => handleOpenConfirm(r)}
+                    >
+                      <Check className="h-4 w-4 mr-1" /> Registrar
+                    </Button>
                   </div>
                 )
               })}
           </div>
         )}
       </div>
+
+      <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
+        <DialogContent className="max-w-md border-0 shadow-2xl overflow-hidden p-0">
+          <DialogHeader className="bg-slate-50 p-6 border-b">
+            <DialogTitle className="text-xl font-black uppercase text-slate-800">
+              Confirmar Venda
+            </DialogTitle>
+            <DialogDescription className="font-bold text-primary mt-1">
+              {selectedOption?.label === 'À VISTA'
+                ? 'PAGAMENTO À VISTA'
+                : `${selectedOption?.installments}X COM ENTRADA`}{' '}
+              - VALOR FINAL: {formatCurrency(selectedOption?.finalVal || 0)}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 p-6">
+            <div className="space-y-2">
+              <Label className="text-xs font-black text-slate-500 uppercase flex items-center gap-1">
+                Dentista Avaliador
+              </Label>
+              <Select value={dentistaId} onValueChange={setDentistaId}>
+                <SelectTrigger className="h-12 font-bold bg-white border-slate-200">
+                  <SelectValue placeholder="Selecione o dentista..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockDentists.map((d) => (
+                    <SelectItem key={d.id} value={d.id} className="font-bold cursor-pointer">
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-black text-slate-500 uppercase flex items-center gap-1">
+                CRC Comercial
+              </Label>
+              <Input
+                value={user?.user_metadata?.name || user?.email || 'Usuário Logado'}
+                disabled
+                className="h-12 font-bold bg-slate-50 text-slate-500 border-slate-200 opacity-80"
+              />
+            </div>
+
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <Label className="text-xs font-black text-slate-500 uppercase">
+                Origem do Fechamento
+              </Label>
+              <div className="grid grid-cols-1 gap-3">
+                {/* Option 1 */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={saleType === 'AVALIACAO' ? 'default' : 'outline'}
+                    className={cn(
+                      'flex-1 justify-start h-12 font-bold transition-all border-slate-200',
+                      saleType === 'AVALIACAO' &&
+                        'bg-[#0A1F54] text-white border-[#0A1F54] shadow-md hover:bg-[#0A1F54]/90',
+                    )}
+                    onClick={() => setSaleType('AVALIACAO')}
+                  >
+                    <div className="flex items-center w-full">
+                      <span className="flex-1 text-left">VENDA FECHADA NA AVALIAÇÃO</span>
+                      {saleType === 'AVALIACAO' && <Check className="h-4 w-4 shrink-0" />}
+                    </div>
+                  </Button>
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-12 w-12 shrink-0 border-slate-200 hover:bg-slate-50"
+                        >
+                          <Info className="h-5 w-5 text-slate-400" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="w-80 p-4 bg-slate-800 text-white border-slate-700 shadow-xl"
+                        side="left"
+                        sideOffset={10}
+                      >
+                        {isAdmin && isEditingTooltip === 'avaliacao' ? (
+                          <div className="space-y-3 animate-fade-in">
+                            <p className="text-xs font-bold text-slate-300 uppercase">
+                              Editando Explicação
+                            </p>
+                            <textarea
+                              className="w-full min-h-[80px] p-2 text-sm bg-slate-900 text-white border border-slate-600 rounded-md outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+                              value={editTooltipValue}
+                              onChange={(e) => setEditTooltipValue(e.target.value)}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-slate-300 hover:text-white hover:bg-slate-700"
+                                onClick={() => setIsEditingTooltip(null)}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-primary text-white"
+                                onClick={() => saveTooltip('avaliacao')}
+                              >
+                                Salvar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-2">
+                              <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                              <p className="text-sm font-medium leading-relaxed text-slate-200">
+                                {tooltipAvaliacao}
+                              </p>
+                            </div>
+                            {isAdmin && (
+                              <div className="flex justify-end pt-2 mt-2 border-t border-slate-700/50">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 text-xs text-slate-400 hover:text-white hover:bg-slate-700"
+                                  onClick={() => startEditingTooltip('avaliacao')}
+                                >
+                                  Editar Texto
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+
+                {/* Option 2 */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={saleType === 'COMERCIAL' ? 'default' : 'outline'}
+                    className={cn(
+                      'flex-1 justify-start h-12 font-bold transition-all border-slate-200',
+                      saleType === 'COMERCIAL' &&
+                        'bg-[#0A1F54] text-white border-[#0A1F54] shadow-md hover:bg-[#0A1F54]/90',
+                    )}
+                    onClick={() => setSaleType('COMERCIAL')}
+                  >
+                    <div className="flex items-center w-full">
+                      <span className="flex-1 text-left">VENDA FECHADA NO COMERCIAL</span>
+                      {saleType === 'COMERCIAL' && <Check className="h-4 w-4 shrink-0" />}
+                    </div>
+                  </Button>
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-12 w-12 shrink-0 border-slate-200 hover:bg-slate-50"
+                        >
+                          <Info className="h-5 w-5 text-slate-400" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        className="w-80 p-4 bg-slate-800 text-white border-slate-700 shadow-xl"
+                        side="left"
+                        sideOffset={10}
+                      >
+                        {isAdmin && isEditingTooltip === 'comercial' ? (
+                          <div className="space-y-3 animate-fade-in">
+                            <p className="text-xs font-bold text-slate-300 uppercase">
+                              Editando Explicação
+                            </p>
+                            <textarea
+                              className="w-full min-h-[80px] p-2 text-sm bg-slate-900 text-white border border-slate-600 rounded-md outline-none focus:ring-1 focus:ring-primary/50 resize-none"
+                              value={editTooltipValue}
+                              onChange={(e) => setEditTooltipValue(e.target.value)}
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-slate-300 hover:text-white hover:bg-slate-700"
+                                onClick={() => setIsEditingTooltip(null)}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-primary text-white"
+                                onClick={() => saveTooltip('comercial')}
+                              >
+                                Salvar
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-2">
+                              <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                              <p className="text-sm font-medium leading-relaxed text-slate-200">
+                                {tooltipComercial}
+                              </p>
+                            </div>
+                            {isAdmin && (
+                              <div className="flex justify-end pt-2 mt-2 border-t border-slate-700/50">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 text-xs text-slate-400 hover:text-white hover:bg-slate-700"
+                                  onClick={() => startEditingTooltip('comercial')}
+                                >
+                                  Editar Texto
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 pt-0 sm:justify-between items-center border-t border-slate-100 bg-slate-50/50">
+            <Button
+              variant="ghost"
+              onClick={() => setIsConfirmModalOpen(false)}
+              className="text-slate-500 font-bold"
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white font-bold h-11 px-6"
+              onClick={handleSaveSale}
+              disabled={!dentistaId || !saleType}
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Registrar Venda
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
