@@ -87,6 +87,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         items: [
           { name: 'DASHBOARD', href: '/dashboard', module: 'DASHBOARD' },
           { name: 'KPIS', href: '/kpis', module: 'KPIS' },
+          { name: 'BONIFICAÇÕES', href: '/kpis/bonificacoes', module: 'KPIS', adminOnly: true },
           { name: 'USUÁRIOS', href: '/usuarios', module: 'USUÁRIOS', icon: Users },
           {
             name: 'ESCALA DE TRABALHO',
