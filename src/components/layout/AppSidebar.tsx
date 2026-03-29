@@ -69,6 +69,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         title: 'COMERCIAL',
         icon: Handshake,
         items: [
+          { name: 'GESTÃO DE VENDAS', href: '/gestao-de-vendas', module: 'GESTÃO DE VENDAS' },
           { name: 'NEGOCIAÇÃO', href: '/negociacao', module: 'NEGOCIAÇÃO' },
           { name: 'GESTÃO FISCAL', href: '/gestao-fiscal', module: 'GESTÃO FISCAL' },
         ],

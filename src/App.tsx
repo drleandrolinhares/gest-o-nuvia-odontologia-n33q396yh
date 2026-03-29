@@ -14,6 +14,7 @@ import AcessoManual from '@/pages/AcessoManual'
 import Login from '@/pages/Login'
 import SAC from '@/pages/SAC'
 import GestaoFiscal from '@/pages/GestaoFiscal'
+import GestaoVendas from '@/pages/GestaoVendas'
 import KPIs from '@/pages/KPIs'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import PermissionRoute from '@/components/PermissionRoute'
@@ -181,6 +182,14 @@ export default function App() {
                     />
 
                     {/* COMERCIAL */}
+                    <Route
+                      path="gestao-de-vendas"
+                      element={
+                        <PermissionRoute module="GESTÃO DE VENDAS">
+                          <GestaoVendas />
+                        </PermissionRoute>
+                      }
+                    />
                     <Route
                       path="negociacao"
                       element={
