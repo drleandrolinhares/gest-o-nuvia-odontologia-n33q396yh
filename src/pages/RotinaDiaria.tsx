@@ -41,6 +41,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { Task } from '@/components/ConfigRotinaModal'
+import { AllRoutinesModal } from '@/components/AllRoutinesModal'
 import { useToast } from '@/components/ui/use-toast'
 
 interface Cargo {
@@ -122,6 +123,7 @@ export default function RotinaDiaria() {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [rankingPeriod, setRankingPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
+  const [isAllRoutinesModalOpen, setIsAllRoutinesModalOpen] = useState(false)
 
   const isToday = useMemo(() => {
     return format(selectedDate, 'yyyy-MM-dd') === format(currentTime, 'yyyy-MM-dd')
@@ -593,18 +595,29 @@ export default function RotinaDiaria() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 space-y-8 animate-in fade-in duration-300">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-6 mb-2">
             <div>
-              <h2 className="text-2xl md:text-3xl font-black text-nuvia-navy tracking-wider flex items-center flex-wrap gap-2">
-                ROTINA DIÁRIA -{' '}
-                {selectedColaboradorId && selectedColaboradorId !== 'todos'
-                  ? selectedColaborador?.nome
-                  : selectedCargo?.nome || (currentUserProfile as any)?.cargoNome}
+              <div className="flex items-center flex-wrap gap-2">
+                <h2 className="text-2xl md:text-3xl font-black text-nuvia-navy tracking-wider flex items-center gap-2">
+                  ROTINA DIÁRIA -{' '}
+                  {selectedColaboradorId && selectedColaboradorId !== 'todos'
+                    ? selectedColaborador?.nome
+                    : selectedCargo?.nome || (currentUserProfile as any)?.cargoNome}
+                </h2>
                 {isAdmin && selectedColaboradorId && selectedColaboradorId !== 'todos' && (
-                  <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-md border border-indigo-200 ml-2 shadow-sm uppercase tracking-widest flex items-center gap-1">
-                    <ShieldCheck className="h-3.5 w-3.5" />
+                  <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-md border border-indigo-200 shadow-sm uppercase tracking-widest flex items-center gap-1 h-6">
+                    <ShieldCheck className="h-3 w-3" />
                     MODO SIMULAÇÃO
                   </span>
                 )}
-              </h2>
+                <Button
+                  onClick={() => setIsAllRoutinesModalOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 font-bold uppercase tracking-widest text-[10px] h-6 px-2 shadow-sm flex items-center gap-1"
+                >
+                  <ListTodo className="h-3 w-3" />
+                  TODAS AS ROTINAS
+                </Button>
+              </div>
               <div className="mt-3 flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md">
                   <CalendarDays className="h-4 w-4 text-slate-500" />
@@ -999,6 +1012,20 @@ export default function RotinaDiaria() {
           </p>
         </div>
       )}
+
+      <AllRoutinesModal
+        isOpen={isAllRoutinesModalOpen}
+        onClose={() => setIsAllRoutinesModalOpen(false)}
+        cargoId={selectedCargoId}
+        colaboradorId={selectedColaboradorId}
+        colaboradorNome={selectedColaborador?.nome}
+        isAdmin={isAdmin}
+        cargos={cargos}
+        onRoutinesChanged={() => {
+          fetchTasks()
+          fetchRanking()
+        }}
+      />
     </div>
   )
 }
