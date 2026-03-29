@@ -81,10 +81,12 @@ export default function UsuariosPermissoes() {
   }, [])
 
   const filteredProfiles = useMemo(() => {
+    if (!profiles || !Array.isArray(profiles)) return []
     return profiles.filter(
       (p) =>
-        p?.nome?.toLowerCase().includes(search.toLowerCase()) ||
-        p?.email?.toLowerCase().includes(search.toLowerCase()),
+        p &&
+        (p.nome?.toLowerCase().includes((search || '').toLowerCase()) ||
+          p.email?.toLowerCase().includes((search || '').toLowerCase())),
     )
   }, [profiles, search])
 

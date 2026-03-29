@@ -160,29 +160,37 @@ export function CrmComercial({ cargoId, colaboradorId }: CrmComercialProps) {
   const targetUserId = colaboradorId || user?.id
 
   const currentMonthOrcamentos = useMemo(() => {
+    if (!orcamentos || !Array.isArray(orcamentos)) return []
     const now = new Date()
     const mesStr = String(now.getMonth() + 1).padStart(2, '0')
     const anoStr = String(now.getFullYear())
     const prefix = `${anoStr}-${mesStr}`
-    return orcamentos.filter((o) => o.data.startsWith(prefix))
+    return orcamentos.filter((o) => o?.data?.startsWith(prefix))
   }, [orcamentos])
 
   const individualOrcamentos = useMemo(() => {
+    if (!currentMonthOrcamentos || !Array.isArray(currentMonthOrcamentos)) return []
     if (!targetUserId) return []
-    return currentMonthOrcamentos.filter((o) => o.crc_comercial_id === targetUserId)
+    return currentMonthOrcamentos.filter((o) => o?.crc_comercial_id === targetUserId)
   }, [currentMonthOrcamentos, targetUserId])
 
-  const companyOrcamentos = currentMonthOrcamentos
+  const companyOrcamentos = currentMonthOrcamentos || []
 
   const calculateKpis = (data: Orcamento[]) => {
+    if (!data || !Array.isArray(data)) {
+      return { vendasTotais: 0, ticketMedio: 0, conversao: 0, mediaEntrada: 0 }
+    }
     const totalOportunidades = data.length
-    const valorTotalOportunidades = data.reduce((acc, curr) => acc + curr.valor, 0)
-    const vendas = data.filter((o) => o.vendido)
+    const valorTotalOportunidades = data.reduce((acc, curr) => acc + (curr?.valor || 0), 0)
+    const vendas = data.filter((o) => o?.vendido)
     const totalVendas = vendas.length
-    const valorTotalVendas = vendas.reduce((acc, curr) => acc + (curr.valor_venda || curr.valor), 0)
+    const valorTotalVendas = vendas.reduce(
+      (acc, curr) => acc + (curr?.valor_venda || curr?.valor || 0),
+      0,
+    )
 
     const totalPercentualEntrada = vendas.reduce(
-      (acc, curr) => acc + (curr.percentual_entrada || 0),
+      (acc, curr) => acc + (curr?.percentual_entrada || 0),
       0,
     )
     const mediaEntrada = totalVendas > 0 ? totalPercentualEntrada / totalVendas : 0
@@ -204,19 +212,22 @@ export function CrmComercial({ cargoId, colaboradorId }: CrmComercialProps) {
   const compKpis = calculateKpis(companyOrcamentos)
 
   const userAllOrcamentos = useMemo(() => {
+    if (!orcamentos || !Array.isArray(orcamentos)) return []
     if (!targetUserId) return []
-    return orcamentos.filter((o) => o.crc_comercial_id === targetUserId)
+    return orcamentos.filter((o) => o?.crc_comercial_id === targetUserId)
   }, [orcamentos, targetUserId])
 
   const monthlyData = useMemo(() => {
+    if (!userAllOrcamentos || !Array.isArray(userAllOrcamentos)) return []
     const data = userAllOrcamentos.reduce(
       (acc, curr) => {
+        if (!curr || !curr.data) return acc
         const month = new Date(curr.data + 'T00:00:00')
           .toLocaleString('pt-BR', { month: 'short' })
           .toUpperCase()
         if (!acc[month]) acc[month] = { name: month, oportunidades: 0, vendas: 0 }
-        acc[month].oportunidades += curr.valor
-        if (curr.vendido) acc[month].vendas += curr.valor_venda || curr.valor
+        acc[month].oportunidades += curr.valor || 0
+        if (curr.vendido) acc[month].vendas += curr.valor_venda || curr.valor || 0
         return acc
       },
       {} as Record<string, any>,

@@ -20,14 +20,13 @@ export function MobileNav() {
     [unreadCounts],
   )
 
-  const pendingSacsCount = useMemo(
-    () =>
-      (Array.isArray(sacRecords) ? sacRecords : []).filter(
-        (r) =>
-          r?.status === 'OPORTUNIDADE DE SOLUÇÃO' && r?.responsible_employee_id === currentUserId,
-      ).length,
-    [sacRecords, currentUserId],
-  )
+  const pendingSacsCount = useMemo(() => {
+    if (!sacRecords || !Array.isArray(sacRecords)) return 0
+    return sacRecords.filter(
+      (r) =>
+        r?.status === 'OPORTUNIDADE DE SOLUÇÃO' && r?.responsible_employee_id === currentUserId,
+    ).length
+  }, [sacRecords, currentUserId])
 
   return (
     <div className="md:hidden flex items-center justify-between p-4 bg-[#0A192F] border-b border-[#D4AF37]/20">

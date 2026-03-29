@@ -19,7 +19,7 @@ export default function PermissionRoute({ children, module, adminOnly }: Props) 
     user?.email === 'drleandrolinhares@gmail.com' || user?.email === 'master@nuvia.com.br'
 
   // Aguardar resposta de permissões antes de avaliar e liberar a tela
-  if (isDataLoading && !isMaster && userPermissions.length === 0) {
+  if (isDataLoading && !isMaster && (!userPermissions || userPermissions.length === 0)) {
     return (
       <div className="flex h-full min-h-[50vh] w-full flex-col items-center justify-center gap-4">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -34,7 +34,9 @@ export default function PermissionRoute({ children, module, adminOnly }: Props) 
     hasAccess = true
   } else if (adminOnly) {
     hasAccess = false
-  } else if (module && !can(module, 'view')) {
+  } else if (module && typeof can === 'function' && !can(module, 'view')) {
+    hasAccess = false
+  } else if (module && typeof can !== 'function') {
     hasAccess = false
   }
 

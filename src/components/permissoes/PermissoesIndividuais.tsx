@@ -98,11 +98,15 @@ export function PermissoesIndividuais() {
 
       if (isParent) {
         // Herança: se alterar o pai, propaga para os filhos do mesmo grupo
-        menus
-          .filter((m) => m.menu_pai === parentName && m.id !== menuId)
-          .forEach((child) => {
-            next[child.id] = { ...next[child.id], [field]: newValue }
-          })
+        if (menus && Array.isArray(menus)) {
+          menus
+            .filter((m) => m?.menu_pai === parentName && m?.id !== menuId)
+            .forEach((child) => {
+              if (child && child.id) {
+                next[child.id] = { ...next[child.id], [field]: newValue }
+              }
+            })
+        }
       } else {
         // Validação de hierarquia: se ativou um filho, ativa o pai
         if (newValue === true) {
@@ -160,15 +164,17 @@ export function PermissoesIndividuais() {
     }
   }
 
-  const menusByPai = menus.reduce(
-    (acc, m) => {
-      if (!m.menu_pai) return acc // Ignora módulos sem pai na nova estrutura
-      if (!acc[m.menu_pai]) acc[m.menu_pai] = []
-      acc[m.menu_pai].push(m)
-      return acc
-    },
-    {} as Record<string, any[]>,
-  )
+  const menusByPai = Array.isArray(menus)
+    ? menus.reduce(
+        (acc, m) => {
+          if (!m || !m.menu_pai) return acc // Ignora módulos sem pai na nova estrutura
+          if (!acc[m.menu_pai]) acc[m.menu_pai] = []
+          acc[m.menu_pai].push(m)
+          return acc
+        },
+        {} as Record<string, any[]>,
+      )
+    : {}
 
   const parentOrder = ['OPERACIONAL', 'COMERCIAL', 'FINANCEIRO', 'ADMINISTRATIVO', 'SISTEMA']
   const sortedPais = Object.keys(menusByPai).sort((a, b) => {

@@ -42,13 +42,10 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   // Destructure can to force reactivity when permissions change
   const { sacRecords, can, userPermissions } = useAppStore()
 
-  const pendingSacsCount = useMemo(
-    () =>
-      (Array.isArray(sacRecords) ? sacRecords : []).filter(
-        (r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO',
-      ).length,
-    [sacRecords],
-  )
+  const pendingSacsCount = useMemo(() => {
+    if (!sacRecords || !Array.isArray(sacRecords)) return 0
+    return sacRecords.filter((r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO').length
+  }, [sacRecords])
 
   const [hasRotina, setHasRotina] = useState<boolean | null>(null)
   const [isUserAdmin, setIsUserAdmin] = useState<boolean | null>(null)
@@ -90,6 +87,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   }, [user])
 
   const navigationSections = useMemo(() => {
+    if (typeof can !== 'function') return []
+
     const sections = [
       {
         title: 'OPERACIONAL',
@@ -163,26 +162,29 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       },
     ]
 
+    if (!Array.isArray(sections)) return []
+
     return sections
       .map((section) => {
-        const visibleItems = Array.isArray(section.items)
-          ? section.items.filter((item) => {
-              if (
-                item.adminOnly &&
-                user?.email !== 'drleandrolinhares@gmail.com' &&
-                user?.email !== 'master@nuvia.com.br'
-              ) {
-                return false
-              }
-              if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
-                return false
-              }
-              return typeof can === 'function' ? can(item.module, 'view') : false
-            })
-          : []
+        if (!section || !Array.isArray(section.items)) return { ...section, items: [] }
+
+        const visibleItems = section.items.filter((item) => {
+          if (!item) return false
+          if (
+            item.adminOnly &&
+            user?.email !== 'drleandrolinhares@gmail.com' &&
+            user?.email !== 'master@nuvia.com.br'
+          ) {
+            return false
+          }
+          if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
+            return false
+          }
+          return typeof can === 'function' ? can(item.module, 'view') : false
+        })
         return { ...section, items: visibleItems }
       })
-      .filter((section) => Array.isArray(section.items) && section.items.length > 0)
+      .filter((section) => section && Array.isArray(section.items) && section.items.length > 0)
   }, [pendingSacsCount, can, user?.email, userPermissions, isUserAdmin, hasRotina])
 
   const toggleSection = (title: string) => {

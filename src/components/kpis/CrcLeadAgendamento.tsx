@@ -229,28 +229,36 @@ export function CrcLeadAgendamento({ cargoId, podeEditar = true }: CrcLeadAgenda
     try {
       const { error } = await supabase.from('kpis_dados').delete().eq('id', id)
       if (error) throw error
-      setEntries(entries.filter((e) => e.id !== id))
+      setEntries(Array.isArray(entries) ? entries.filter((e) => e?.id !== id) : [])
       toast({ title: 'Registro excluído.' })
     } catch (e) {
       toast({ title: 'Erro ao excluir', variant: 'destructive' })
     }
   }
 
-  const totals = useMemo(
-    () =>
-      entries.reduce(
-        (acc, curr) => ({
-          investment: acc.investment + curr.investment,
-          newLeads: acc.newLeads + curr.newLeads,
-          scheduled: acc.scheduled + curr.scheduled,
-          attended: acc.attended + curr.attended,
-          followUpContacts: acc.followUpContacts + curr.followUpContacts,
-          rescued: acc.rescued + curr.rescued,
-        }),
-        { investment: 0, newLeads: 0, scheduled: 0, attended: 0, followUpContacts: 0, rescued: 0 },
-      ),
-    [entries],
-  )
+  const totals = useMemo(() => {
+    if (!entries || !Array.isArray(entries)) {
+      return {
+        investment: 0,
+        newLeads: 0,
+        scheduled: 0,
+        attended: 0,
+        followUpContacts: 0,
+        rescued: 0,
+      }
+    }
+    return entries.reduce(
+      (acc, curr) => ({
+        investment: acc.investment + (curr?.investment || 0),
+        newLeads: acc.newLeads + (curr?.newLeads || 0),
+        scheduled: acc.scheduled + (curr?.scheduled || 0),
+        attended: acc.attended + (curr?.attended || 0),
+        followUpContacts: acc.followUpContacts + (curr?.followUpContacts || 0),
+        rescued: acc.rescued + (curr?.rescued || 0),
+      }),
+      { investment: 0, newLeads: 0, scheduled: 0, attended: 0, followUpContacts: 0, rescued: 0 },
+    )
+  }, [entries])
 
   const agendamentosPerc = totals.newLeads > 0 ? (totals.scheduled / totals.newLeads) * 100 : 0
   const comparecimentosPerc = totals.scheduled > 0 ? (totals.attended / totals.scheduled) * 100 : 0
@@ -259,11 +267,13 @@ export function CrcLeadAgendamento({ cargoId, podeEditar = true }: CrcLeadAgenda
   const cpl = totals.newLeads > 0 ? totals.investment / totals.newLeads : 0
 
   const channelData = useMemo(() => {
+    if (!entries || !Array.isArray(entries)) return []
     const map: Record<string, { channel: string; investment: number; leads: number }> = {}
     entries.forEach((e) => {
+      if (!e) return
       if (!map[e.channel]) map[e.channel] = { channel: e.channel, investment: 0, leads: 0 }
-      map[e.channel].investment += e.investment
-      map[e.channel].leads += e.newLeads
+      map[e.channel].investment += e.investment || 0
+      map[e.channel].leads += e.newLeads || 0
     })
     return Object.values(map).map((d) => ({ ...d, cpl: d.leads > 0 ? d.investment / d.leads : 0 }))
   }, [entries])

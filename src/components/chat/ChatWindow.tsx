@@ -28,11 +28,16 @@ export function ChatWindow() {
   const { employees, currentUserId } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const activeRoom = useMemo(() => rooms.find((r) => r.id === activeRoomId), [rooms, activeRoomId])
-  const roomMsgs = useMemo(
-    () => (activeRoomId ? messages[activeRoomId] || [] : []),
-    [messages, activeRoomId],
-  )
+  const activeRoom = useMemo(() => {
+    if (!rooms || !Array.isArray(rooms)) return undefined
+    return rooms.find((r) => r?.id === activeRoomId)
+  }, [rooms, activeRoomId])
+
+  const roomMsgs = useMemo(() => {
+    if (!activeRoomId || !messages || !messages[activeRoomId]) return []
+    const msgs = messages[activeRoomId]
+    return Array.isArray(msgs) ? msgs : []
+  }, [messages, activeRoomId])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -90,7 +95,10 @@ export function ChatWindow() {
   }
 
   const isGroup = activeRoom.type === 'group'
-  const targetUser = !isGroup ? employees.find((e) => e.user_id === activeRoom.other_user_id) : null
+  const targetUser =
+    !isGroup && employees && Array.isArray(employees)
+      ? employees.find((e) => e?.user_id === activeRoom.other_user_id)
+      : null
   const isOnline = targetUser ? onlineUsers.includes(targetUser.user_id!) : false
   const displayName = isGroup
     ? activeRoom.name || activeRoom.department || 'GRUPO'

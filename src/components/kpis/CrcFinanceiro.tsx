@@ -174,12 +174,19 @@ export function CrcFinanceiro({ cargoId, podeEditar = true }: CrcFinanceiroProps
     }
   }
 
-  const receita = entries
-    .filter((e) => e.type.startsWith('receita_'))
-    .reduce((acc, curr) => acc + curr.value, 0)
-  const despesa = entries
-    .filter((e) => e.type === 'despesa')
-    .reduce((acc, curr) => acc + curr.value, 0)
+  const receita = useMemo(() => {
+    if (!entries || !Array.isArray(entries)) return 0
+    return entries
+      .filter((e) => e?.type?.startsWith('receita_'))
+      .reduce((acc, curr) => acc + (curr?.value || 0), 0)
+  }, [entries])
+
+  const despesa = useMemo(() => {
+    if (!entries || !Array.isArray(entries)) return 0
+    return entries
+      .filter((e) => e?.type === 'despesa')
+      .reduce((acc, curr) => acc + (curr?.value || 0), 0)
+  }, [entries])
   const lucro = receita - despesa
   const lucratividade = receita > 0 ? (lucro / receita) * 100 : 0
 

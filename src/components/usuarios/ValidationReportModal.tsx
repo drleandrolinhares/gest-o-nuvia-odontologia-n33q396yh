@@ -32,12 +32,15 @@ export function ValidationReportModal({ open, onOpenChange }: any) {
       const { data: userPerms } = await supabase.from('permissoes_usuario').select('user_id')
       const { data: cargoPerms } = await supabase.from('permissoes_cargo').select('cargo_id')
 
-      const report = (profiles || []).map((p: any) => {
+      const report = (profiles || []).filter(Boolean).map((p: any) => {
         const hasCargo = !!p.cargo_id
-        const userPermsCount = (userPerms || []).filter((up: any) => up.user_id === p.id).length
-        const cargoPermsCount = hasCargo
-          ? (cargoPerms || []).filter((cp: any) => cp.cargo_id === p.cargo_id).length
+        const userPermsCount = Array.isArray(userPerms)
+          ? userPerms.filter((up: any) => up?.user_id === p.id).length
           : 0
+        const cargoPermsCount =
+          hasCargo && Array.isArray(cargoPerms)
+            ? cargoPerms.filter((cp: any) => cp?.cargo_id === p.cargo_id).length
+            : 0
 
         // Validação: Se tem cargo, deve ter ao menos a mesma quantidade de permissões do cargo na tabela de usuário (herança)
         const isInherited = hasCargo && userPermsCount > 0 && userPermsCount >= cargoPermsCount

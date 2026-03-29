@@ -213,24 +213,31 @@ export default function RotinaRelatorio() {
 
   const chartConfig = useMemo(() => {
     const config: Record<string, any> = {}
-    filteredUsers.forEach((user, index) => {
-      config[safeId(user.id)] = {
-        label: user.nome || user.email,
-        color: `hsl(var(--chart-${(index % 5) + 1}))`,
-      }
-    })
+    if (filteredUsers && Array.isArray(filteredUsers)) {
+      filteredUsers.forEach((user, index) => {
+        if (!user) return
+        config[safeId(user.id)] = {
+          label: user.nome || user.email,
+          color: `hsl(var(--chart-${(index % 5) + 1}))`,
+        }
+      })
+    }
     return config
   }, [filteredUsers])
 
   const tableData = useMemo(() => {
+    if (!filteredUsers || !Array.isArray(filteredUsers)) return []
     return filteredUsers
+      .filter(Boolean)
       .map((user) => {
-        const userPoints = rotinasPontos.filter((rp) => rp.usuario_id === user.id)
+        const userPoints = Array.isArray(rotinasPontos)
+          ? rotinasPontos.filter((rp) => rp?.usuario_id === user.id)
+          : []
         const avg =
           userPoints.length > 0
-            ? userPoints.reduce((acc, curr) => acc + curr.percentual, 0) / userPoints.length
+            ? userPoints.reduce((acc, curr) => acc + (curr?.percentual || 0), 0) / userPoints.length
             : 0
-        const cargo = cargos.find((c) => c.id === user.cargo_id)
+        const cargo = Array.isArray(cargos) ? cargos.find((c) => c?.id === user.cargo_id) : null
         return {
           id: user.id,
           nome: user.nome || user.email,
@@ -245,16 +252,24 @@ export default function RotinaRelatorio() {
   const insights = useMemo(() => {
     const suggestions: { user: string; text: string; type: 'warning' | 'info' }[] = []
 
-    filteredUsers.forEach((user) => {
-      // Garantir explicitamente que usuários sem rotina não gerem insights (redundância por segurança e consistência)
-      const hasRoutine = rotinasConfig.some(
-        (r) => r.colaborador_id === user.id || (!r.colaborador_id && r.cargo_id === user.cargo_id),
-      )
+    if (!filteredUsers || !Array.isArray(filteredUsers)) return suggestions
+
+    filteredUsers.filter(Boolean).forEach((user) => {
+      const hasRoutine = Array.isArray(rotinasConfig)
+        ? rotinasConfig.some(
+            (r) =>
+              r &&
+              (r.colaborador_id === user.id || (!r.colaborador_id && r.cargo_id === user.cargo_id)),
+          )
+        : false
       if (!hasRoutine) return
 
-      const userPoints = rotinasPontos.filter((rp) => rp.usuario_id === user.id)
+      const userPoints = Array.isArray(rotinasPontos)
+        ? rotinasPontos.filter((rp) => rp?.usuario_id === user.id)
+        : []
       if (userPoints.length > 0) {
-        const avg = userPoints.reduce((acc, curr) => acc + curr.percentual, 0) / userPoints.length
+        const avg =
+          userPoints.reduce((acc, curr) => acc + (curr?.percentual || 0), 0) / userPoints.length
         if (avg < 70) {
           suggestions.push({
             user: user.nome || user.email || 'Colaborador',
@@ -270,7 +285,9 @@ export default function RotinaRelatorio() {
         }
       }
 
-      const userExecs = execucoes.filter((ex) => ex.usuario_id === user.id)
+      const userExecs = Array.isArray(execucoes)
+        ? execucoes.filter((ex) => ex?.usuario_id === user.id)
+        : []
       if (userExecs.length > 0) {
         const missed = userExecs.filter((ex) => !ex.concluido)
 
@@ -280,7 +297,7 @@ export default function RotinaRelatorio() {
         let totalAfternoon = 0
 
         userExecs.forEach((ex) => {
-          if (!ex.rotinas_config || !ex.rotinas_config.horario) return
+          if (!ex || !ex.rotinas_config || !ex.rotinas_config.horario) return
           const hour = parseInt(ex.rotinas_config.horario.split(':')[0])
           if (isNaN(hour)) return
 

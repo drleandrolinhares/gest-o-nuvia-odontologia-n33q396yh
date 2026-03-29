@@ -20,7 +20,10 @@ export function SuppliersManagement() {
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null)
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
 
-  const sortedSuppliers = [...suppliers].sort((a, b) => a.name.localeCompare(b.name))
+  const sortedSuppliers = useMemo(() => {
+    if (!suppliers || !Array.isArray(suppliers)) return []
+    return [...suppliers].sort((a, b) => (a?.name || '').localeCompare(b?.name || ''))
+  }, [suppliers])
 
   const handleOpenForm = (item?: Supplier) => {
     setEditingSupplier(item || null)

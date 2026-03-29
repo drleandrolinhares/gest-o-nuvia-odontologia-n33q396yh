@@ -59,21 +59,31 @@ export function ChatSidebar() {
   }, [unreadCounts, activeRoomId])
 
   const validEmployees = useMemo(() => {
-    return employees.filter((e) => e.user_id !== currentUserId && e.status !== 'Desligado')
+    if (!employees || !Array.isArray(employees)) return []
+    return employees.filter((e) => e && e.user_id !== currentUserId && e.status !== 'Desligado')
   }, [employees, currentUserId])
 
   const groupRooms = useMemo(() => {
-    return rooms.filter((r) => r.type === 'group')
+    if (!rooms || !Array.isArray(rooms)) return []
+    return rooms.filter((r) => r && r.type === 'group')
   }, [rooms])
 
-  const filteredEmployees = validEmployees.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()),
-  )
-  const filteredGroups = groupRooms.filter((r) =>
-    (r.name || r.department || '').toLowerCase().includes(search.toLowerCase()),
-  )
+  const filteredEmployees = useMemo(() => {
+    if (!validEmployees || !Array.isArray(validEmployees)) return []
+    return validEmployees.filter((e) =>
+      (e?.name || '').toLowerCase().includes((search || '').toLowerCase()),
+    )
+  }, [validEmployees, search])
+
+  const filteredGroups = useMemo(() => {
+    if (!groupRooms || !Array.isArray(groupRooms)) return []
+    return groupRooms.filter((r) =>
+      (r?.name || r?.department || '').toLowerCase().includes((search || '').toLowerCase()),
+    )
+  }, [groupRooms, search])
 
   const sortedGroups = useMemo(() => {
+    if (!filteredGroups || !Array.isArray(filteredGroups)) return []
     return [...filteredGroups].sort((a, b) => {
       const unreadA = unreadCounts[a.id] || 0
       const unreadB = unreadCounts[b.id] || 0
@@ -93,6 +103,7 @@ export function ChatSidebar() {
   }, [filteredGroups, unreadCounts])
 
   const sortedEmployees = useMemo(() => {
+    if (!filteredEmployees || !Array.isArray(filteredEmployees)) return []
     return [...filteredEmployees].sort((a, b) => {
       const roomA = a.user_id
         ? rooms.find((r) => r.type === 'individual' && r.other_user_id === a.user_id)

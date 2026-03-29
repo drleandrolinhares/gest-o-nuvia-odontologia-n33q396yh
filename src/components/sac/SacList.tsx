@@ -105,17 +105,21 @@ export function SacList({ onEdit }: { onEdit?: (record: SacRecord) => void }) {
     return employees.find((e) => e.id === id)?.name || 'SISTEMA'
   }
 
-  const filteredRecords = sacRecords
-    .filter((r) => {
-      if (view === 'TUDO') return true
-      if (view === 'PARA MIM') return r.responsible_employee_id === currentUserId
-      if (view === 'DELEGADOS') return r.receiving_employee_id === currentUserId
-      return true
-    })
-    .filter((r) => {
-      if (hideResolved && r.status === 'RESOLVIDO') return false
-      return true
-    })
+  const filteredRecords = useMemo(() => {
+    if (!sacRecords || !Array.isArray(sacRecords)) return []
+    return sacRecords
+      .filter((r) => {
+        if (!r) return false
+        if (view === 'TUDO') return true
+        if (view === 'PARA MIM') return r.responsible_employee_id === currentUserId
+        if (view === 'DELEGADOS') return r.receiving_employee_id === currentUserId
+        return true
+      })
+      .filter((r) => {
+        if (hideResolved && r.status === 'RESOLVIDO') return false
+        return true
+      })
+  }, [sacRecords, view, currentUserId, hideResolved])
 
   return (
     <>

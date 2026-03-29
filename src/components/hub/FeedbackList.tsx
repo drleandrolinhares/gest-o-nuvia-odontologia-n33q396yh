@@ -47,7 +47,7 @@ export function FeedbackList({
     setIsDeleting(null)
 
     if (success) {
-      setLocalItems((prev) => prev.filter((item) => item.id !== id))
+      setLocalItems((prev) => (Array.isArray(prev) ? prev.filter((item) => item?.id !== id) : []))
       toast({
         title: 'Sucesso',
         description: 'Envio apagado com sucesso.',
