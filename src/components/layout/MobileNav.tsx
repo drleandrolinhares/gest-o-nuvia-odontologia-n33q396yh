@@ -21,7 +21,7 @@ export function MobileNav() {
   )
 
   const pendingSacsCount = useMemo(() => {
-    return sacRecords.filter(
+    return (sacRecords || []).filter(
       (r) =>
         r?.status === 'OPORTUNIDADE DE SOLUÇÃO' && r?.responsible_employee_id === currentUserId,
     ).length

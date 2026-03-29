@@ -1,55 +1,15 @@
-import { useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import useAppStore from '@/stores/main'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase/client'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, authError } = useAuth()
   const { isDataLoading } = useAppStore()
   const location = useLocation()
-  const [strictLoading, setStrictLoading] = useState(true)
 
-  useEffect(() => {
-    if (loading) return
-
-    if (!user) {
-      setStrictLoading(false)
-      return
-    }
-
-    let isMounted = true
-
-    const loadCriticalData = async () => {
-      setStrictLoading(true)
-      try {
-        // Estado de carregamento rigoroso: Aguarda TODAS as queries cruciais simultaneamente
-        await Promise.all([
-          supabase.from('profiles').select('id').eq('id', user.id).single(),
-          supabase.rpc('is_admin_user', { user_uuid: user.id }),
-          supabase.rpc('is_master_user', { user_uuid: user.id }),
-          supabase.from('rotinas_config').select('id').limit(1),
-          supabase.functions.invoke('get_user_permissions', { body: { userId: user.id } }),
-        ])
-      } catch (error) {
-        console.error('Erro no carregamento rigoroso:', error)
-      } finally {
-        if (isMounted) {
-          setStrictLoading(false)
-        }
-      }
-    }
-
-    loadCriticalData()
-
-    return () => {
-      isMounted = false
-    }
-  }, [user, loading])
-
-  if (loading || strictLoading || isDataLoading) {
+  if (loading || isDataLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
         <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>

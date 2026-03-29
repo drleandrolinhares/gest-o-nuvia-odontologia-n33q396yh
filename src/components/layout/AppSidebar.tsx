@@ -43,7 +43,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const { sacRecords, can, userPermissions } = useAppStore()
 
   const pendingSacsCount = useMemo(() => {
-    return sacRecords.filter((r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO').length
+    return (sacRecords || []).filter((r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO').length
   }, [sacRecords])
 
   const [hasRotina, setHasRotina] = useState<boolean | null>(null)
@@ -53,31 +53,37 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     if (!user) return
 
     const checkAccess = async () => {
-      const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
-      const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
-      const isAdm = !!isAdminData || !!isMasterData
-      setIsUserAdmin(isAdm)
+      try {
+        const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
+        const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
+        const isAdm = !!isAdminData || !!isMasterData
+        setIsUserAdmin(isAdm)
 
-      if (isAdm) {
-        setHasRotina(true)
-        return
-      }
+        if (isAdm) {
+          setHasRotina(true)
+          return
+        }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('cargo_id')
-        .eq('id', user.id)
-        .single()
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('cargo_id')
+          .eq('id', user.id)
+          .maybeSingle()
 
-      if (profile?.cargo_id) {
-        const { data: rotinas } = await supabase
-          .from('rotinas_config')
-          .select('id')
-          .or(`cargo_id.eq.${profile.cargo_id},colaborador_id.eq.${user.id}`)
-          .limit(1)
+        if (profile?.cargo_id) {
+          const { data: rotinas } = await supabase
+            .from('rotinas_config')
+            .select('id')
+            .or(`cargo_id.eq.${profile.cargo_id},colaborador_id.eq.${user.id}`)
+            .limit(1)
 
-        setHasRotina((rotinas && rotinas.length > 0) || false)
-      } else {
+          setHasRotina((rotinas && rotinas.length > 0) || false)
+        } else {
+          setHasRotina(false)
+        }
+      } catch (err) {
+        console.error('Error checking access:', err)
+        setIsUserAdmin(false)
         setHasRotina(false)
       }
     }
@@ -172,7 +178,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
             return false
           }
-          return can(item.module, 'view')
+          return can ? can(item.module, 'view') : false
         })
         return { ...section, items: visibleItems }
       })
