@@ -7,6 +7,7 @@ import {
   Filter,
   Loader2,
   CalendarIcon,
+  Pencil,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
@@ -48,6 +49,18 @@ export interface KpiData {
   owner_cargo_nome?: string
 }
 
+interface Departamento {
+  id: string
+  nome: string
+}
+
+interface Colaborador {
+  id: string
+  nome: string
+  cargo_id: string
+  cargo_nome: string
+}
+
 interface Cargo {
   id: string
   nome: string
@@ -63,7 +76,13 @@ export default function KPIs() {
   const [userCargoId, setUserCargoId] = useState<string | null>(null)
 
   const [activeTab, setActiveTab] = useState<'MEUS' | 'ADMIN'>('MEUS')
-  const [selectedRole, setSelectedRole] = useState('')
+
+  // Novos estados para Departamentos e Colaboradores
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([])
+  const [selectedDepartment, setSelectedDepartment] = useState('')
+  const [colaboradores, setColaboradores] = useState<Colaborador[]>([])
+  const [selectedColaborador, setSelectedColaborador] = useState('')
+
   const [period, setPeriod] = useState('mes')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
@@ -78,7 +97,10 @@ export default function KPIs() {
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false) // Adicionar Novo
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false) // Atualizar Valor
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false) // Editar Configuração do KPI
+
   const [formData, setFormData] = useState<Partial<KpiData>>({})
+  const [editFormData, setEditFormData] = useState<Partial<KpiData>>({})
   const [updateFormData, setUpdateFormData] = useState({
     kpi_id: '',
     name: '',
@@ -89,13 +111,17 @@ export default function KPIs() {
   const [loading, setLoading] = useState(true)
   const [loadingKpis, setLoadingKpis] = useState(false)
 
-  // Derived
-  const currentRoleName = cargos.find((r) => r.id === selectedRole)?.nome || ''
-  const isCrcComercialAdmin = currentRoleName.toUpperCase().includes('COMERCIAL')
+  // Derived Admin Info
+  const selectedColab = colaboradores.find((c) => c.id === selectedColaborador)
+  const selectedColabName = selectedColab?.nome || ''
+  const selectedColabCargoId = selectedColab?.cargo_id || ''
+  const selectedColabCargoName = selectedColab?.cargo_nome || ''
+
+  const isCrcComercialAdmin = selectedColabCargoName.toUpperCase().includes('COMERCIAL')
   const isCrcLeadAdmin =
-    currentRoleName.toUpperCase().includes('LEAD') ||
-    currentRoleName.toUpperCase().includes('AGENDAMENTO')
-  const isCrcFinanceiroAdmin = currentRoleName.toUpperCase().includes('FINANCEIRO')
+    selectedColabCargoName.toUpperCase().includes('LEAD') ||
+    selectedColabCargoName.toUpperCase().includes('AGENDAMENTO')
+  const isCrcFinanceiroAdmin = selectedColabCargoName.toUpperCase().includes('FINANCEIRO')
 
   useEffect(() => {
     if (user) {
@@ -104,12 +130,77 @@ export default function KPIs() {
   }, [user])
 
   useEffect(() => {
+    if (activeTab !== 'ADMIN') return
+    if (selectedDepartment) {
+      const fetchColabs = async () => {
+        setLoadingKpis(true)
+        try {
+          if (selectedDepartment.startsWith('mock-')) {
+            const mockColabs =
+              selectedDepartment === 'mock-dept-1'
+                ? [
+                    {
+                      id: 'mock-colab-1',
+                      nome: 'João Silva',
+                      cargo_id: 'mock-cargo-crc',
+                      cargo_nome: 'CRC COMERCIAL',
+                    },
+                    {
+                      id: 'mock-colab-2',
+                      nome: 'Dra. Maria',
+                      cargo_id: 'mock-cargo-dentista',
+                      cargo_nome: 'DENTISTA AVALIADOR',
+                    },
+                  ]
+                : [
+                    {
+                      id: 'mock-colab-3',
+                      nome: 'Ana Costa',
+                      cargo_id: 'mock-cargo-fin',
+                      cargo_nome: 'FINANCEIRO',
+                    },
+                  ]
+            setColaboradores(mockColabs)
+            if (mockColabs.length > 0) setSelectedColaborador(mockColabs[0].id)
+            return
+          }
+
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, nome, cargo_id, cargos(nome)')
+            .eq('departamento_id', selectedDepartment)
+            .order('nome')
+
+          const mapped = (data || []).map((p: any) => ({
+            id: p.id,
+            nome: p.nome || 'Sem Nome',
+            cargo_id: p.cargo_id,
+            cargo_nome: p.cargos?.nome || '',
+          }))
+          setColaboradores(mapped)
+          if (mapped.length > 0) {
+            setSelectedColaborador(mapped[0].id)
+          } else {
+            setSelectedColaborador('')
+          }
+        } finally {
+          setLoadingKpis(false)
+        }
+      }
+      fetchColabs()
+    } else {
+      setColaboradores([])
+      setSelectedColaborador('')
+    }
+  }, [selectedDepartment, activeTab])
+
+  useEffect(() => {
     if (activeTab === 'MEUS' && userCargoId) {
       fetchMyKpis()
-    } else if (activeTab === 'ADMIN' && selectedRole) {
+    } else if (activeTab === 'ADMIN' && selectedColaborador) {
       fetchAdminKpis()
     }
-  }, [activeTab, userCargoId, selectedRole, period, customStartDate, customEndDate])
+  }, [activeTab, userCargoId, selectedColaborador, period, customStartDate, customEndDate])
 
   const fetchInitialData = async () => {
     setLoading(true)
@@ -132,17 +223,26 @@ export default function KPIs() {
       setIsCeo(userIsCeo)
       setUserCargoId(profile?.cargo_id || null)
 
+      const { data: deptos } = await supabase.from('departamentos').select('id, nome').order('nome')
+      const defaultDeptos = [
+        { id: 'mock-dept-1', nome: 'DEPARTAMENTO COMERCIAL' },
+        { id: 'mock-dept-2', nome: 'DEPARTAMENTO FINANCEIRO' },
+      ]
+
+      if (deptos && deptos.length > 0) {
+        setDepartamentos(deptos)
+        if (admin && !selectedDepartment) setSelectedDepartment(deptos[0].id)
+      } else {
+        setDepartamentos(defaultDeptos)
+        if (admin && !selectedDepartment) setSelectedDepartment(defaultDeptos[0].id)
+      }
+
       const { data: cargosRes } = await supabase.from('cargos').select('id, nome').order('nome')
-      // Filtrar cargos para remover 'CEO' da lista de análise
       const filteredCargos = (cargosRes || []).filter((r) => !r.nome.toUpperCase().includes('CEO'))
       setCargos(filteredCargos)
 
       if (userIsCeo) {
         setActiveTab('ADMIN')
-      }
-
-      if (admin && filteredCargos.length > 0 && !selectedRole) {
-        setSelectedRole(filteredCargos[0].id)
       }
     } catch (e) {
       console.error('Erro ao inicializar:', e)
@@ -177,6 +277,7 @@ export default function KPIs() {
           .from('kpis_dados')
           .select('*')
           .eq('kpi_id', conf.id)
+          .or(`usuario_id.eq.${user?.id},usuario_id.is.null`)
           .order('data', { ascending: false })
           .limit(1)
           .maybeSingle()
@@ -215,7 +316,6 @@ export default function KPIs() {
         })
       })
 
-      // Add self-owned modules if they don't exist yet in config to allow creation
       if (
         iAmCrcComercial &&
         !modules.some((m) => m.type === 'CRM_COMERCIAL' && m.cargoId === userCargoId)
@@ -259,56 +359,103 @@ export default function KPIs() {
   }
 
   const fetchAdminKpis = async () => {
-    if (!selectedRole) return
+    if (!selectedColaborador || !selectedColabCargoId) {
+      setAdminGeneralKpis([])
+      return
+    }
+
     setLoadingKpis(true)
     try {
-      const { data: configs } = await supabase
-        .from('kpis_config')
-        .select('*, cargos(nome)')
-        .eq('cargo_id', selectedRole)
-        .neq('unidade', 'module')
+      let kpiConfigs: any[] = []
 
-      const kpiDataPromises = (configs || []).map(async (conf) => {
-        let query = supabase.from('kpis_dados').select('*').eq('kpi_id', conf.id)
+      if (!selectedColabCargoId.startsWith('mock-')) {
+        const { data: configs } = await supabase
+          .from('kpis_config')
+          .select('*, cargos(nome)')
+          .eq('cargo_id', selectedColabCargoId)
+          .neq('unidade', 'module')
+        kpiConfigs = configs || []
+      }
 
-        // Filtro de período dinâmico
-        const now = new Date()
-        if (period === 'dia') {
-          const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-            .toISOString()
-            .split('T')[0]
-          query = query.eq('data', todayStr)
-        } else if (period === 'semana') {
-          const startOfWeek = new Date(now)
-          startOfWeek.setDate(now.getDate() - now.getDay())
-          const startStr = new Date(startOfWeek.getTime() - startOfWeek.getTimezoneOffset() * 60000)
-            .toISOString()
-            .split('T')[0]
-          query = query.gte('data', startStr)
-        } else if (period === 'mes') {
-          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-          const startStr = new Date(
-            startOfMonth.getTime() - startOfMonth.getTimezoneOffset() * 60000,
-          )
-            .toISOString()
-            .split('T')[0]
-          query = query.gte('data', startStr)
-        } else if (period === 'custom' && customStartDate && customEndDate) {
-          query = query.gte('data', customStartDate).lte('data', customEndDate)
+      if (kpiConfigs.length === 0) {
+        kpiConfigs = [
+          {
+            id: 'mock-kpi-1',
+            nome_kpi: 'Taxa de Conversão (%)',
+            meta_padrao: 80,
+            unidade: 'percentage',
+            campos_json: { observacoes: 'Dados mockados de conversão.' },
+            cargos: { nome: selectedColabCargoName || 'CARGO' },
+          },
+          {
+            id: 'mock-kpi-2',
+            nome_kpi: 'Vendas Fechadas',
+            meta_padrao: 50000,
+            unidade: 'currency',
+            campos_json: { observacoes: 'Total em vendas no período.' },
+            cargos: { nome: selectedColabCargoName || 'CARGO' },
+          },
+        ]
+      }
+
+      const kpiDataPromises = kpiConfigs.map(async (conf) => {
+        let currentVal = 0
+        let latestDate = new Date().toISOString().split('T')[0]
+
+        if (!conf.id.startsWith('mock-')) {
+          let query = supabase
+            .from('kpis_dados')
+            .select('*')
+            .eq('kpi_id', conf.id)
+            .or(`usuario_id.eq.${selectedColaborador},usuario_id.is.null`)
+
+          const now = new Date()
+          if (period === 'dia') {
+            const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+              .toISOString()
+              .split('T')[0]
+            query = query.eq('data', todayStr)
+          } else if (period === 'semana') {
+            const startOfWeek = new Date(now)
+            startOfWeek.setDate(now.getDate() - now.getDay())
+            const startStr = new Date(
+              startOfWeek.getTime() - startOfWeek.getTimezoneOffset() * 60000,
+            )
+              .toISOString()
+              .split('T')[0]
+            query = query.gte('data', startStr)
+          } else if (period === 'mes') {
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+            const startStr = new Date(
+              startOfMonth.getTime() - startOfMonth.getTimezoneOffset() * 60000,
+            )
+              .toISOString()
+              .split('T')[0]
+            query = query.gte('data', startStr)
+          } else if (period === 'custom' && customStartDate && customEndDate) {
+            query = query.gte('data', customStartDate).lte('data', customEndDate)
+          }
+
+          const { data: latestData } = await query
+            .order('data', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          currentVal = latestData?.valor_atual || 0
+          if (latestData?.data) latestDate = latestData.data
+        } else {
+          currentVal =
+            conf.unidade === 'percentage'
+              ? Math.floor(Math.random() * 50) + 40
+              : Math.floor(Math.random() * 60000) + 5000
         }
-
-        const { data: latestData } = await query
-          .order('data', { ascending: false })
-          .limit(1)
-          .maybeSingle()
 
         return {
           id: conf.id,
           name: conf.nome_kpi,
           target: conf.meta_padrao,
-          current: latestData?.valor_atual || 0,
+          current: currentVal,
           format: conf.unidade as KpiFormat,
-          date: latestData?.data,
+          date: latestDate,
           observacoes: (conf.campos_json as any)?.observacoes || '',
           pode_editar: true,
           owner_cargo_nome: conf.cargos?.nome,
@@ -346,9 +493,28 @@ export default function KPIs() {
     setIsUpdateModalOpen(true)
   }
 
+  const handleOpenEditModal = (kpi: KpiData) => {
+    setEditFormData({
+      id: kpi.id,
+      name: kpi.name,
+      target: kpi.target,
+      format: kpi.format,
+      observacoes: kpi.observacoes,
+    })
+    setIsEditModalOpen(true)
+  }
+
   const handleSaveNewKpi = async () => {
-    const targetCargoId = activeTab === 'MEUS' ? userCargoId : selectedRole
-    if (!targetCargoId || !formData.name) return
+    const targetCargoId = activeTab === 'MEUS' ? userCargoId : selectedColabCargoId
+    const targetUserId = activeTab === 'MEUS' ? user?.id : selectedColaborador
+
+    if (!targetCargoId || targetCargoId.startsWith('mock-') || !formData.name) {
+      if (targetCargoId?.startsWith('mock-')) {
+        toast({ title: 'Ação não permitida em dados mockados.', variant: 'destructive' })
+        setIsModalOpen(false)
+      }
+      return
+    }
 
     try {
       const { data: newConfig, error: configErr } = await supabase
@@ -376,6 +542,7 @@ export default function KPIs() {
         await supabase.from('kpis_dados').insert({
           kpi_id: newConfig.id,
           cargo_id: targetCargoId,
+          usuario_id: targetUserId,
           data: formData.date || new Date().toISOString().split('T')[0],
           valor_atual: formData.current || 0,
         })
@@ -391,13 +558,27 @@ export default function KPIs() {
   }
 
   const handleUpdateKpi = async () => {
-    const targetCargoId = activeTab === 'MEUS' ? userCargoId : selectedRole
-    if (!updateFormData.kpi_id || !updateFormData.current || !targetCargoId) return
+    const targetCargoId = activeTab === 'MEUS' ? userCargoId : selectedColabCargoId
+    const targetUserId = activeTab === 'MEUS' ? user?.id : selectedColaborador
+
+    if (
+      !updateFormData.kpi_id ||
+      updateFormData.kpi_id.startsWith('mock-') ||
+      !updateFormData.current ||
+      !targetCargoId
+    ) {
+      if (updateFormData.kpi_id?.startsWith('mock-')) {
+        toast({ title: 'Ação não permitida em dados mockados.', variant: 'destructive' })
+        setIsUpdateModalOpen(false)
+      }
+      return
+    }
 
     try {
       await supabase.from('kpis_dados').insert({
         kpi_id: updateFormData.kpi_id,
         cargo_id: targetCargoId,
+        usuario_id: targetUserId,
         data: updateFormData.date,
         valor_atual: Number(updateFormData.current),
       })
@@ -407,6 +588,35 @@ export default function KPIs() {
       else fetchAdminKpis()
     } catch (e) {
       toast({ title: 'Erro ao atualizar', variant: 'destructive' })
+    }
+  }
+
+  const handleSaveEditKpi = async () => {
+    if (!editFormData.id || editFormData.id.startsWith('mock-')) {
+      toast({ title: 'Ação não permitida em dados mockados.', variant: 'destructive' })
+      setIsEditModalOpen(false)
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('kpis_config')
+        .update({
+          nome_kpi: editFormData.name,
+          meta_padrao: editFormData.target,
+          unidade: editFormData.format,
+          campos_json: { observacoes: editFormData.observacoes },
+        })
+        .eq('id', editFormData.id)
+
+      if (error) throw error
+
+      toast({ title: 'KPI atualizado com sucesso!' })
+      setIsEditModalOpen(false)
+      if (activeTab === 'MEUS') fetchMyKpis()
+      else fetchAdminKpis()
+    } catch (e) {
+      toast({ title: 'Erro ao atualizar KPI', variant: 'destructive' })
     }
   }
 
@@ -452,12 +662,23 @@ export default function KPIs() {
               </p>
             )}
           </div>
-          <Badge
-            variant="outline"
-            className={`font-black px-2.5 py-0.5 rounded-full ${getProgressColor(kpi.current, kpi.target)}`}
-          >
-            {progress}%
-          </Badge>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                onClick={() => handleOpenEditModal(kpi)}
+                className="text-slate-400 hover:text-nuvia-navy transition-colors bg-slate-50 hover:bg-slate-100 p-1.5 rounded-md"
+                title="Editar Configuração do KPI"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <Badge
+              variant="outline"
+              className={`font-black px-2.5 py-0.5 rounded-full ${getProgressColor(kpi.current, kpi.target)}`}
+            >
+              {progress}%
+            </Badge>
+          </div>
         </div>
         <div>
           <p className="text-xs text-slate-500 font-bold mb-1">VALOR ATUAL</p>
@@ -514,8 +735,8 @@ export default function KPIs() {
           value={activeTab}
           onValueChange={(v) => {
             setActiveTab(v as any)
-            if (v === 'ADMIN' && cargos.length > 0 && !selectedRole) {
-              setSelectedRole(cargos[0].id)
+            if (v === 'ADMIN' && departamentos.length > 0 && !selectedDepartment) {
+              setSelectedDepartment(departamentos[0].id)
             }
           }}
           className="w-full"
@@ -542,21 +763,44 @@ export default function KPIs() {
         <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
           <div className="flex-1 space-y-1.5">
             <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-              <Target className="w-3.5 h-3.5" /> SELECIONAR CARGO
+              <Target className="w-3.5 h-3.5" /> SELECIONAR DEPARTAMENTO
             </label>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger className="w-full font-bold text-nuvia-navy">
-                <SelectValue placeholder="ESCOLHA UM CARGO..." />
+                <SelectValue placeholder="ESCOLHA UM DEPARTAMENTO..." />
               </SelectTrigger>
               <SelectContent>
-                {cargos.map((r) => (
-                  <SelectItem key={r.id} value={r.id} className="font-bold">
-                    {r.nome}
+                {departamentos.map((d) => (
+                  <SelectItem key={d.id} value={d.id} className="font-bold">
+                    {d.nome}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+
+          <div className="flex-1 space-y-1.5">
+            <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5" /> SELECIONAR COLABORADOR
+            </label>
+            <Select
+              value={selectedColaborador}
+              onValueChange={setSelectedColaborador}
+              disabled={colaboradores.length === 0}
+            >
+              <SelectTrigger className="w-full font-bold text-nuvia-navy">
+                <SelectValue placeholder="ESCOLHA UM COLABORADOR..." />
+              </SelectTrigger>
+              <SelectContent>
+                {colaboradores.map((c) => (
+                  <SelectItem key={c.id} value={c.id} className="font-bold">
+                    {c.nome} - {c.cargo_nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="sm:w-80 space-y-1.5">
             <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
               <Filter className="w-3.5 h-3.5" /> PERÍODO
@@ -608,13 +852,18 @@ export default function KPIs() {
           <div>
             <h2 className="text-xl font-black text-nuvia-navy tracking-widest flex items-center gap-2">
               <BarChart3 className="h-6 w-6 text-primary" />{' '}
-              {activeTab === 'MEUS' ? 'INDICADORES PERMITIDOS' : `KPIs - ${currentRoleName}`}
+              {activeTab === 'MEUS'
+                ? 'INDICADORES PERMITIDOS'
+                : selectedColaborador
+                  ? `KPIs - ${selectedColabName} (${selectedColabCargoName})`
+                  : 'ANÁLISE EXECUTIVA'}
             </h2>
           </div>
           {(activeTab === 'ADMIN' || userCargoId) && (
             <Button
               onClick={handleOpenModal}
               className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full sm:w-auto shadow-md"
+              disabled={activeTab === 'ADMIN' && !selectedColabCargoId}
             >
               <Plus className="h-4 w-4 mr-2" /> ADICIONAR KPI GERAL
             </Button>
@@ -647,13 +896,21 @@ export default function KPIs() {
                 return null
               })}
 
-            {activeTab === 'ADMIN' && selectedRole && (
-              <>
-                {isCrcComercialAdmin && <CrmComercial cargoId={selectedRole} podeEditar={true} />}
-                {isCrcLeadAdmin && <CrcLeadAgendamento cargoId={selectedRole} podeEditar={true} />}
-                {isCrcFinanceiroAdmin && <CrcFinanceiro cargoId={selectedRole} podeEditar={true} />}
-              </>
-            )}
+            {activeTab === 'ADMIN' &&
+              selectedColabCargoId &&
+              !selectedColabCargoId.startsWith('mock-') && (
+                <>
+                  {isCrcComercialAdmin && (
+                    <CrmComercial cargoId={selectedColabCargoId} podeEditar={true} />
+                  )}
+                  {isCrcLeadAdmin && (
+                    <CrcLeadAgendamento cargoId={selectedColabCargoId} podeEditar={true} />
+                  )}
+                  {isCrcFinanceiroAdmin && (
+                    <CrcFinanceiro cargoId={selectedColabCargoId} podeEditar={true} />
+                  )}
+                </>
+              )}
 
             {activeTab === 'MEUS' &&
               myGeneralKpis.length === 0 &&
@@ -663,6 +920,21 @@ export default function KPIs() {
                   <h3 className="text-lg font-black text-slate-500">NENHUM KPI DISPONÍVEL</h3>
                   <p className="text-sm font-bold text-slate-400 max-w-sm mt-2">
                     Você não possui indicadores configurados ou não tem permissão para visualizar.
+                  </p>
+                </div>
+              )}
+
+            {activeTab === 'ADMIN' &&
+              adminGeneralKpis.length === 0 &&
+              !isCrcComercialAdmin &&
+              !isCrcLeadAdmin &&
+              !isCrcFinanceiroAdmin &&
+              selectedColaborador && (
+                <div className="flex flex-col items-center justify-center min-h-[30vh] border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 p-8 text-center">
+                  <Target className="h-12 w-12 text-slate-300 mb-2" />
+                  <h3 className="text-lg font-black text-slate-500">NENHUM KPI CONFIGURADO</h3>
+                  <p className="text-sm font-bold text-slate-400 max-w-sm mt-2">
+                    Não existem indicadores ou módulos ativados para este colaborador.
                   </p>
                 </div>
               )}
@@ -764,6 +1036,87 @@ export default function KPIs() {
               onClick={handleSaveNewKpi}
             >
               SALVAR
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDITAR KPI MODAL */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="uppercase">
+          <DialogHeader>
+            <DialogTitle className="font-black text-nuvia-navy tracking-widest">
+              EDITAR CONFIGURAÇÃO DO KPI
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label className="font-bold text-xs text-slate-500 tracking-wider">NOME DO KPI</Label>
+              <Input
+                className="font-bold uppercase"
+                value={editFormData.name || ''}
+                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label className="font-bold text-xs text-slate-500 tracking-wider">META</Label>
+                <Input
+                  className="font-bold"
+                  type="number"
+                  value={editFormData.target ?? ''}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, target: Number(e.target.value) })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label className="font-bold text-xs text-slate-500 tracking-wider">UNIDADE</Label>
+                <Select
+                  value={editFormData.format || 'number'}
+                  onValueChange={(v) =>
+                    setEditFormData({ ...editFormData, format: v as KpiFormat })
+                  }
+                >
+                  <SelectTrigger className="font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="font-bold" value="percentage">
+                      % (PORCENTAGEM)
+                    </SelectItem>
+                    <SelectItem className="font-bold" value="currency">
+                      R$ (MOEDA)
+                    </SelectItem>
+                    <SelectItem className="font-bold" value="number">
+                      UNIDADES
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label className="font-bold text-xs text-slate-500 tracking-wider">OBSERVAÇÕES</Label>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 font-bold resize-none uppercase"
+                value={editFormData.observacoes || ''}
+                onChange={(e) => setEditFormData({ ...editFormData, observacoes: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="font-bold tracking-widest"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              CANCELAR
+            </Button>
+            <Button
+              className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest"
+              onClick={handleSaveEditKpi}
+            >
+              SALVAR ALTERAÇÕES
             </Button>
           </DialogFooter>
         </DialogContent>
