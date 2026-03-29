@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 interface UserProfile {
   id: string
   nome: string | null
-  cargos: { nome: string } | null
+  user_cargos: { cargo: string; is_principal: boolean }[] | null
 }
 interface DentistaAvaliador {
   id: string
@@ -65,7 +65,10 @@ export default function KpiConfiguracoes() {
     setLoading(true)
     try {
       const [pRes, dRes, cgRes, igRes] = await Promise.all([
-        supabase.from('profiles').select('id, nome, cargos(nome)').order('nome'),
+        supabase
+          .from('profiles')
+          .select('id, nome, user_cargos(cargo, is_principal)')
+          .order('nome'),
         supabase.from('dentistas_avaliadores').select('*'),
         supabase
           .from('metas_comerciais_empresa')
@@ -110,7 +113,7 @@ export default function KpiConfiguracoes() {
           return {
             usuario_id: p.id,
             nome: p.nome || 'Sem Nome',
-            cargo: p.cargos?.nome || '-',
+            cargo: p.user_cargos?.find((c: any) => c.is_principal)?.cargo || '-',
             meta_vendas: ex?.meta_vendas || 20000,
             meta_ticket: ex?.meta_ticket || 3000,
             meta_conversao: ex?.meta_conversao || 20,
@@ -140,7 +143,7 @@ export default function KpiConfiguracoes() {
       })
     try {
       const userProfile = users.find((u) => u.id === selectedUserId)
-      const cargo = userProfile?.cargos?.nome || null
+      const cargo = userProfile?.user_cargos?.find((c) => c.is_principal)?.cargo || null
 
       const { error } = editingId
         ? await supabase
@@ -359,7 +362,14 @@ export default function KpiConfiguracoes() {
                 dentistas.map((d) => (
                   <TableRow key={d.id} className="hover:bg-slate-50/50">
                     <TableCell className="font-bold">{d.profile?.nome || '-'}</TableCell>
-                    <TableCell>{d.cargo || d.profile?.cargos?.nome || '-'}</TableCell>
+                    <TableCell>
+                      {d.profile?.user_cargos && d.profile.user_cargos.length > 0
+                        ? d.profile.user_cargos
+                            .map((c) => c.cargo)
+                            .filter(Boolean)
+                            .join(', ')
+                        : d.cargo || '-'}
+                    </TableCell>
                     <TableCell className="text-center">
                       <Button variant="ghost" size="icon" onClick={() => handleOpenModal(d)}>
                         <Pencil className="h-4 w-4 text-blue-600" />
@@ -391,11 +401,17 @@ export default function KpiConfiguracoes() {
               <option value="" disabled>
                 SELECIONE...
               </option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.nome || u.id}
-                </option>
-              ))}
+              {users
+                .filter((u) =>
+                  u.user_cargos?.some(
+                    (c) => c.cargo?.trim().toUpperCase() === 'DENTISTA AVALIADOR',
+                  ),
+                )
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nome || u.id}
+                  </option>
+                ))}
             </select>
           </div>
           <DialogFooter>
