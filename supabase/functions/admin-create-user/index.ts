@@ -4,7 +4,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -15,7 +16,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     // Create an admin client using the service role key to bypass RLS and use Admin API
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
@@ -27,9 +28,12 @@ Deno.serve(async (req: Request) => {
     // Verify the user making the request is authenticated
     const authHeader = req.headers.get('Authorization')!
     if (!authHeader) throw new Error('Missing Authorization header')
-    
+
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       throw new Error('Unauthorized')
@@ -45,12 +49,14 @@ Deno.serve(async (req: Request) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, cargo_id }
+      user_metadata: { name, cargo_id },
     })
 
     if (createError) {
-      const isAlreadyRegistered = createError.message.includes('already been registered') || createError.message.includes('already exists')
-      
+      const isAlreadyRegistered =
+        createError.message.includes('already been registered') ||
+        createError.message.includes('already exists')
+
       if (isAlreadyRegistered) {
         // Since the profiles table has been deleted, we cannot check for orphaned accounts easily.
         // If an email exists, we just return the error.
