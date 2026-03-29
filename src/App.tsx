@@ -8,6 +8,7 @@ import AgendaSegmentation from '@/pages/AgendaSegmentation'
 import Settings from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
 import RotinaDiaria from '@/pages/RotinaDiaria'
+import ConfigurarRotina from '@/pages/ConfigurarRotina'
 import Acessos from '@/pages/Acessos'
 import AcessoManual from '@/pages/AcessoManual'
 import Login from '@/pages/Login'
@@ -101,6 +102,14 @@ export default function App() {
                       element={
                         <PermissionRoute module="ROTINA DIÁRIA">
                           <RotinaDiaria />
+                        </PermissionRoute>
+                      }
+                    />
+                    <Route
+                      path="rotina-diaria/configurar-rotina"
+                      element={
+                        <PermissionRoute module="ROTINA DIÁRIA" adminOnly>
+                          <ConfigurarRotina />
                         </PermissionRoute>
                       }
                     />

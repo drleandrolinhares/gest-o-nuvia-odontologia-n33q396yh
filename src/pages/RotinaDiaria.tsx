@@ -11,10 +11,9 @@ import {
   Percent,
   Trophy,
   Star,
-  Pencil,
-  Trash2,
   ShieldCheck,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import {
   format,
   startOfWeek,
@@ -38,20 +37,10 @@ import { Progress } from '@/components/ui/progress'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
-import { ConfigRotinaModal, Task } from '@/components/ConfigRotinaModal'
+import { Task } from '@/components/ConfigRotinaModal'
 import { useToast } from '@/components/ui/use-toast'
 
 interface Cargo {
@@ -77,6 +66,12 @@ const isTaskActiveOnDate = (task: Task | any, targetDate: Date) => {
   const baseDate = baseDateStr ? startOfDay(parseISO(baseDateStr)) : target
 
   if (target < baseDate) return false
+
+  const endDateStr = task.dataFim || task.data_fim
+  if (endDateStr) {
+    const endDate = startOfDay(parseISO(endDateStr))
+    if (target > endDate) return false
+  }
 
   const taskDays = task.days || task.dias_semana || []
   const WEEKDAYS_MAP = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
@@ -124,10 +119,6 @@ export default function RotinaDiaria() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
   const [rankings, setRankings] = useState<RankingData[]>([])
-  const [isConfigOpen, setIsConfigOpen] = useState(false)
-  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
-  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [rankingPeriod, setRankingPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
@@ -252,6 +243,7 @@ export default function RotinaDiaria() {
         days: c.dias_semana || [],
         frequency: c.frequencia,
         dataInicio: c.data_inicio,
+        dataFim: c.data_fim,
         intervaloDias: c.intervalo_dias,
         completed: !!exec?.concluido,
         completedAt: exec?.timestamp_conclusao,
@@ -402,24 +394,6 @@ export default function RotinaDiaria() {
     if (p < 50) return 'bg-red-500'
     if (p <= 80) return 'bg-amber-500'
     return 'bg-emerald-500'
-  }
-
-  const handleDeleteTask = async () => {
-    if (!taskToDelete) return
-    setIsDeleting(true)
-    const { error } = await supabase.from('rotinas_config').delete().eq('id', taskToDelete.id)
-    setIsDeleting(false)
-    if (error) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível remover a rotina.',
-        variant: 'destructive',
-      })
-    } else {
-      toast({ title: 'Sucesso', description: 'Rotina removida com sucesso.' })
-      setTaskToDelete(null)
-      fetchTasks()
-    }
   }
 
   const handleTaskComplete = async (taskId: string) => {
@@ -643,16 +617,13 @@ export default function RotinaDiaria() {
             </div>
             {isAdmin && (
               <Button
-                onClick={() => {
-                  setTaskToEdit(null)
-                  setIsConfigOpen(true)
-                }}
-                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md shrink-0 h-11 px-4 sm:px-6 text-xs sm:text-sm"
+                asChild
+                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md shrink-0 h-11 px-4 sm:px-6 text-xs sm:text-sm cursor-pointer"
               >
-                <Settings className="h-4 w-4 mr-2" />
-                {selectedColaboradorId && selectedColaboradorId !== 'todos'
-                  ? `+ TAREFA: ${colaboradores.find((c) => c.id === selectedColaboradorId)?.nome?.split(' ')[0]}`
-                  : 'CONFIGURAR ROTINA GERAL'}
+                <Link to="/rotina-diaria/configurar-rotina">
+                  <Settings className="h-4 w-4 mr-2" />
+                  CONFIGURAR ROTINAS
+                </Link>
               </Button>
             )}
           </div>
@@ -869,30 +840,6 @@ export default function RotinaDiaria() {
                                 )}
                               </div>
                             </div>
-
-                            {isAdmin && (
-                              <div className="flex items-center gap-1 shrink-0 ml-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-slate-400 hover:text-[#D4AF37] hover:bg-[#D4AF37]/10"
-                                  onClick={() => {
-                                    setTaskToEdit(task)
-                                    setIsConfigOpen(true)
-                                  }}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                                  onClick={() => setTaskToDelete(task)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
                           </div>
                         </div>
                       )
@@ -1048,54 +995,6 @@ export default function RotinaDiaria() {
           </p>
         </div>
       )}
-
-      {isAdmin && (
-        <ConfigRotinaModal
-          isOpen={isConfigOpen}
-          onClose={() => {
-            setIsConfigOpen(false)
-            setTaskToEdit(null)
-          }}
-          cargos={cargos}
-          onSave={() => fetchTasks()}
-          defaultCargoId={selectedCargoId}
-          defaultColaboradorId={
-            selectedColaboradorId === 'todos' ? undefined : selectedColaboradorId
-          }
-          colaboradorNome={
-            selectedColaboradorId && selectedColaboradorId !== 'todos'
-              ? colaboradores.find((c) => c.id === selectedColaboradorId)?.nome
-              : undefined
-          }
-          taskToEdit={taskToEdit}
-        />
-      )}
-
-      <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="uppercase font-black text-nuvia-navy">
-              Confirmar Exclusão
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-bold text-slate-500">
-              Tem certeza que deseja remover esta rotina? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault()
-                handleDeleteTask()
-              }}
-              disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isDeleting ? 'Removendo...' : 'Remover'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

@@ -29,6 +29,7 @@ export interface Task {
   days: string[]
   frequency: string
   dataInicio?: string
+  dataFim?: string
   intervaloDias?: number
   completed: boolean
   completedAt?: string
@@ -70,6 +71,8 @@ export function ConfigRotinaModal({
   const [frequencia, setFrequencia] = useState('diario')
   const [intervaloDias, setIntervaloDias] = useState('1')
   const [diasSemana, setDiasSemana] = useState<string[]>(['seg', 'ter', 'qua', 'qui', 'sex'])
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
@@ -80,12 +83,16 @@ export function ConfigRotinaModal({
       setFrequencia(taskToEdit.frequency)
       setDiasSemana(taskToEdit.days || [])
       setIntervaloDias(taskToEdit.intervaloDias ? String(taskToEdit.intervaloDias) : '1')
+      setDataInicio(taskToEdit.dataInicio || '')
+      setDataFim(taskToEdit.dataFim || '')
     } else {
       setAcao('')
       setHorario('')
       setFrequencia('diario')
       setIntervaloDias('1')
       setDiasSemana(['seg', 'ter', 'qua', 'qui', 'sex'])
+      setDataInicio(new Date().toISOString().split('T')[0])
+      setDataFim('')
     }
   }, [taskToEdit, isOpen])
 
@@ -110,7 +117,8 @@ export function ConfigRotinaModal({
       cargo_id: defaultCargoId,
       colaborador_id: targetColaboradorId,
       intervalo_dias: frequencia === 'customizado' ? parseInt(intervaloDias) || 1 : null,
-      data_inicio: taskToEdit?.dataInicio || new Date().toISOString().split('T')[0],
+      data_inicio: dataInicio || new Date().toISOString().split('T')[0],
+      data_fim: dataFim || null,
     }
 
     let error
@@ -197,6 +205,23 @@ export function ConfigRotinaModal({
               />
             </div>
           )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-500 uppercase">DATA INÍCIO</Label>
+              <Input
+                type="date"
+                value={dataInicio}
+                onChange={(e) => setDataInicio(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-500 uppercase">
+                DATA FIM (OPCIONAL)
+              </Label>
+              <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
+            </div>
+          </div>
 
           {frequencia !== 'mensal' && frequencia !== 'customizado' && (
             <div className="space-y-2 animate-in fade-in">
