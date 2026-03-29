@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import useAppStore from '@/stores/main'
 import { userService } from '@/services/userService'
+import { supabase } from '@/lib/supabase/client'
 
 export function GeneralSettings() {
   const {
@@ -51,6 +52,32 @@ export function GeneralSettings() {
   const [isDeptLoading, setIsDeptLoading] = useState(false)
   const [removingCargo, setRemovingCargo] = useState<string | null>(null)
   const [removingDept, setRemovingDept] = useState<string | null>(null)
+
+  // Dentistas Avaliadores state
+  const [users, setUsers] = useState<any[]>([])
+  const [selectedUser, setSelectedUser] = useState('')
+  const [avaliadores, setAvaliadores] = useState<any[]>([
+    { id: 'mock-1', nome: 'Dra. Ana Silva', cargo: 'DENTISTA CLÍNICA' },
+    { id: 'mock-2', nome: 'Dr. Carlos Santos', cargo: 'ORTODONTISTA' },
+  ])
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, nome, email, cargos(nome)')
+        if (!error && data) {
+          // Filtrar CEO
+          const filtered = data.filter((u) => u.cargos?.nome?.toUpperCase() !== 'CEO')
+          setUsers(filtered)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadUsers()
+  }, [])
 
   useEffect(() => {
     const loadData = async () => {
@@ -164,6 +191,33 @@ export function GeneralSettings() {
     } finally {
       setRemovingDept(null)
     }
+  }
+
+  const handleAddAvaliador = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedUser) return
+
+    const userToAdd = users.find((u) => u.id === selectedUser)
+    if (!userToAdd) return
+
+    if (avaliadores.some((a) => a.id === userToAdd.id)) {
+      setSelectedUser('')
+      return
+    }
+
+    setAvaliadores((prev) => [
+      ...prev,
+      {
+        id: userToAdd.id,
+        nome: userToAdd.nome || userToAdd.email,
+        cargo: userToAdd.cargos?.nome || 'Sem Cargo',
+      },
+    ])
+    setSelectedUser('')
+  }
+
+  const handleRemoveAvaliador = (id: string) => {
+    setAvaliadores((prev) => prev.filter((a) => a.id !== id))
   }
 
   return (
@@ -478,6 +532,71 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-nuvia-navy">
+            <Stethoscope className="h-5 w-5 text-[#D4AF37]" /> DENTISTAS AVALIADORES
+          </CardTitle>
+          <CardDescription>
+            SELECIONE USUÁRIOS PARA ATUAR COMO DENTISTAS AVALIADORES.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleAddAvaliador} className="flex gap-2">
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="" disabled>
+                Selecionar Usuário
+              </option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.nome || u.email} {u.cargos?.nome ? `- ${u.cargos.nome}` : ''}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="submit"
+              disabled={!selectedUser}
+              className="w-24 bg-[#D4AF37] hover:bg-[#B3932F] text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" /> ADD
+            </Button>
+          </form>
+          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+            {avaliadores.map((avaliador) => (
+              <div
+                key={avaliador.id}
+                className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+              >
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm text-nuvia-navy uppercase">
+                    {avaliador.nome}
+                  </span>
+                  <span className="text-xs text-muted-foreground uppercase">{avaliador.cargo}</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive h-8 w-8"
+                  onClick={() => handleRemoveAvaliador(avaliador.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            {avaliadores.length === 0 && (
+              <div className="text-center p-4 text-sm text-muted-foreground">
+                Nenhum dentista avaliador selecionado.
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
