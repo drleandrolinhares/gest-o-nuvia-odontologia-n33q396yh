@@ -178,14 +178,23 @@ export default function RotinaDiaria() {
     const { data: allCargosData } = await supabase.from('cargos').select('id, nome').order('nome')
     const allCargos = allCargosData || []
 
+    const { data: rotinas } = await supabase.from('rotinas_config').select('cargo_id')
+    const rotinaCargoIds = new Set(rotinas?.map((r) => r.cargo_id) || [])
+
     if (isAdm) {
-      setCargos(allCargos.filter((c) => c.nome.toUpperCase() !== 'CEO'))
-      setSelectedCargoId((prev) => prev || (userIsCEO ? '' : profile?.cargo_id) || '')
+      const filtered = allCargos.filter(
+        (c) => c.nome.toUpperCase() !== 'CEO' && rotinaCargoIds.has(c.id),
+      )
+      setCargos(filtered)
+      setSelectedCargoId((prev) => {
+        if (prev && filtered.some((f) => f.id === prev)) return prev
+        if (userIsCEO) return ''
+        if (profile?.cargo_id && filtered.some((f) => f.id === profile.cargo_id))
+          return profile.cargo_id
+        return filtered.length > 0 ? filtered[0].id : ''
+      })
       if (!selectedColaboradorId) setSelectedColaboradorId('todos')
     } else {
-      const { data: rotinas } = await supabase.from('rotinas_config').select('cargo_id')
-      const rotinaCargoIds = new Set(rotinas?.map((r) => r.cargo_id) || [])
-
       const filtered = allCargos.filter(
         (c) => c.id === profile?.cargo_id && rotinaCargoIds.has(c.id),
       )
