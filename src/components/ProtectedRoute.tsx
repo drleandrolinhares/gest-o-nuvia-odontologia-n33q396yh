@@ -15,7 +15,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   // Estamos pendentes se a auth ou a store estiver carregando, OU se temos usuário logado mas sem perfil carregado
   const isLoading = authLoading || storeLoading
-  const missingProfile = user && !appStore?.profile
+
+  // Refatoração Atômica: Garantir que o profile e as funções vitais (como can) existam antes de liberar a interface
+  // Isso elimina a corrida de renderização que causa travamentos na aplicação.
+  const missingProfile = user && (!appStore?.profile || typeof appStore?.can !== 'function')
   const isPending = isLoading || missingProfile
 
   useEffect(() => {

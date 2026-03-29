@@ -71,19 +71,20 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           return
         }
 
-        const { data: profile } = await supabase
-          .from('profiles')
+        const { data: profileCargo } = await supabase
+          .from('user_cargos')
           .select('cargo_id')
-          .eq('id', user.id)
+          .eq('user_id', user.id)
+          .eq('is_principal', true)
           .maybeSingle()
 
         if (!isMounted) return
 
-        if (profile?.cargo_id) {
+        if (profileCargo?.cargo_id) {
           const { data: rotinas } = await supabase
             .from('rotinas_config')
             .select('id')
-            .or(`cargo_id.eq.${profile.cargo_id},colaborador_id.eq.${user.id}`)
+            .or(`cargo_id.eq.${profileCargo.cargo_id},colaborador_id.eq.${user.id}`)
             .limit(1)
 
           if (isMounted) setHasRotina((rotinas && rotinas.length > 0) || false)
