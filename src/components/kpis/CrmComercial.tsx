@@ -1,5 +1,15 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Users, Plus, Target, TrendingUp, DollarSign, Percent, Loader2 } from 'lucide-react'
+import {
+  Users,
+  Plus,
+  Target,
+  TrendingUp,
+  DollarSign,
+  Percent,
+  Loader2,
+  HelpCircle,
+} from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -47,6 +57,10 @@ export interface Orcamento {
   vendido: boolean
   dentista_id?: string
   crc_comercial_id?: string
+  valor_venda?: number
+  valor_entrada?: number
+  percentual_entrada?: number
+  origem_venda?: 'AVALIACAO' | 'COMERCIAL'
 }
 
 interface CrmComercialProps {
@@ -61,6 +75,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
   const [configId, setConfigId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [confirmVendaItem, setConfirmVendaItem] = useState<Orcamento | null>(null)
   const [form, setForm] = useState<Partial<Orcamento>>({})
   const [filter, setFilter] = useState<'todos' | 'oportunidades' | 'vendas'>('todos')
   const [dentistas, setDentistas] = useState<{ id: string; nome: string }[]>([])
@@ -155,6 +170,10 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
         vendido: (d.valores_json as any)?.vendido || false,
         dentista_id: (d.valores_json as any)?.dentista_id || '',
         crc_comercial_id: (d.valores_json as any)?.crc_comercial_id || '',
+        valor_venda: (d.valores_json as any)?.valor_venda,
+        valor_entrada: (d.valores_json as any)?.valor_entrada,
+        percentual_entrada: (d.valores_json as any)?.percentual_entrada,
+        origem_venda: (d.valores_json as any)?.origem_venda,
       }))
       setOrcamentos(parsed)
     } catch (e) {
@@ -180,6 +199,10 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
             vendido: form.vendido || false,
             dentista_id: form.dentista_id,
             crc_comercial_id: form.crc_comercial_id,
+            valor_venda: form.vendido ? form.valor_venda : undefined,
+            valor_entrada: form.vendido ? form.valor_entrada : undefined,
+            percentual_entrada: form.vendido ? form.percentual_entrada : undefined,
+            origem_venda: form.vendido ? form.origem_venda : undefined,
           },
         })
         .select()
@@ -195,6 +218,10 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
         vendido: form.vendido || false,
         dentista_id: form.dentista_id,
         crc_comercial_id: form.crc_comercial_id,
+        valor_venda: form.vendido ? form.valor_venda : undefined,
+        valor_entrada: form.vendido ? form.valor_entrada : undefined,
+        percentual_entrada: form.vendido ? form.percentual_entrada : undefined,
+        origem_venda: form.vendido ? form.origem_venda : undefined,
       }
 
       setOrcamentos([novo, ...orcamentos])
@@ -211,7 +238,17 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
     const current = orcamentos.find((o) => o.id === id)
     if (!current) return
 
-    const newVendido = !current.vendido
+    if (!current.vendido) {
+      setConfirmVendaItem(current)
+      setForm({
+        valor_venda: current.valor,
+        valor_entrada: 0,
+        percentual_entrada: 0,
+        origem_venda: 'COMERCIAL',
+      })
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('kpis_dados')
@@ -219,7 +256,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
           valores_json: {
             paciente: current.paciente,
             valor: current.valor,
-            vendido: newVendido,
+            vendido: false,
             dentista_id: current.dentista_id,
             crc_comercial_id: current.crc_comercial_id,
           },
@@ -228,9 +265,67 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
 
       if (error) throw error
 
-      setOrcamentos(orcamentos.map((o) => (o.id === id ? { ...o, vendido: newVendido } : o)))
+      setOrcamentos(
+        orcamentos.map((o) =>
+          o.id === id
+            ? {
+                ...o,
+                vendido: false,
+                valor_venda: undefined,
+                valor_entrada: undefined,
+                percentual_entrada: undefined,
+                origem_venda: undefined,
+              }
+            : o,
+        ),
+      )
     } catch (e) {
-      toast({ title: 'Erro ao atualizar status', variant: 'destructive' })
+      toast({ title: 'Erro ao reverter status', variant: 'destructive' })
+    }
+  }
+
+  const handleConfirmVendaSubmit = async () => {
+    if (!confirmVendaItem || !configId || !podeEditar) return
+
+    try {
+      const { error } = await supabase
+        .from('kpis_dados')
+        .update({
+          valores_json: {
+            paciente: confirmVendaItem.paciente,
+            valor: confirmVendaItem.valor,
+            vendido: true,
+            dentista_id: confirmVendaItem.dentista_id,
+            crc_comercial_id: confirmVendaItem.crc_comercial_id,
+            valor_venda: form.valor_venda,
+            valor_entrada: form.valor_entrada,
+            percentual_entrada: form.percentual_entrada,
+            origem_venda: form.origem_venda,
+          },
+        })
+        .eq('id', confirmVendaItem.id)
+
+      if (error) throw error
+
+      setOrcamentos(
+        orcamentos.map((o) =>
+          o.id === confirmVendaItem.id
+            ? {
+                ...o,
+                vendido: true,
+                valor_venda: form.valor_venda,
+                valor_entrada: form.valor_entrada,
+                percentual_entrada: form.percentual_entrada,
+                origem_venda: form.origem_venda,
+              }
+            : o,
+        ),
+      )
+      setConfirmVendaItem(null)
+      setForm({})
+      toast({ title: 'Venda confirmada com sucesso!' })
+    } catch (e) {
+      toast({ title: 'Erro ao confirmar venda', variant: 'destructive' })
     }
   }
 
@@ -239,7 +334,13 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
     const valorTotalOportunidades = orcamentos.reduce((acc, curr) => acc + curr.valor, 0)
     const vendas = orcamentos.filter((o) => o.vendido)
     const totalVendas = vendas.length
-    const valorTotalVendas = vendas.reduce((acc, curr) => acc + curr.valor, 0)
+    const valorTotalVendas = vendas.reduce((acc, curr) => acc + (curr.valor_venda || curr.valor), 0)
+
+    const totalPercentualEntrada = vendas.reduce(
+      (acc, curr) => acc + (curr.percentual_entrada || 0),
+      0,
+    )
+    const mediaEntrada = totalVendas > 0 ? totalPercentualEntrada / totalVendas : 0
 
     const ticketMedioOportunidade =
       totalOportunidades > 0 ? valorTotalOportunidades / totalOportunidades : 0
@@ -251,6 +352,8 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
       ticketMedioOportunidade: { valor: ticketMedioOportunidade, meta: 5000 },
       conversao: { valor: conversao, meta: 30 },
       ticketMedioVenda: { valor: ticketMedioVenda, meta: 6000 },
+      valorTotalVendido: { valor: valorTotalVendas, meta: 80000 },
+      mediaEntrada: { valor: mediaEntrada, meta: 30 },
     }
   }, [orcamentos])
 
@@ -383,7 +486,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
 
   return (
     <div className="mt-8 space-y-6 animate-fade-in-up">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {renderGauge(
           'OPORTUNIDADE DE VENDA',
           kpis.oportunidadeVenda.valor,
@@ -406,11 +509,25 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
           <Percent className="w-4 h-4" />,
         )}
         {renderGauge(
+          'VALOR TOTAL VENDIDO',
+          kpis.valorTotalVendido.valor,
+          kpis.valorTotalVendido.meta,
+          'currency',
+          <TrendingUp className="w-4 h-4" />,
+        )}
+        {renderGauge(
           'TICKET MÉDIO VENDA',
           kpis.ticketMedioVenda.valor,
           kpis.ticketMedioVenda.meta,
           'currency',
-          <TrendingUp className="w-4 h-4" />,
+          <DollarSign className="w-4 h-4" />,
+        )}
+        {renderGauge(
+          '% ENTRADA MÉDIA',
+          kpis.mediaEntrada.valor,
+          kpis.mediaEntrada.meta,
+          'percentage',
+          <Percent className="w-4 h-4" />,
         )}
       </div>
 
@@ -568,7 +685,14 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                       <Switch
                         id="vendido-switch"
                         checked={form.vendido || false}
-                        onCheckedChange={(c) => setForm({ ...form, vendido: c })}
+                        onCheckedChange={(c) =>
+                          setForm({
+                            ...form,
+                            vendido: c,
+                            valor_venda: c ? form.valor : undefined,
+                            origem_venda: c ? 'AVALIACAO' : undefined,
+                          })
+                        }
                         className="data-[state=checked]:bg-green-500"
                       />
                       <Label
@@ -578,6 +702,92 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                         JÁ FOI VENDIDO?
                       </Label>
                     </div>
+
+                    {form.vendido && (
+                      <div className="grid gap-4 p-4 border border-slate-200 rounded-lg bg-slate-50">
+                        <div className="grid gap-2">
+                          <Label className="font-bold text-[10px] text-slate-500 tracking-wider flex items-center gap-1">
+                            ORIGEM DA VENDA
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <HelpCircle className="w-3 h-3 text-slate-400 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs max-w-xs">
+                                    <b>NA AVALIAÇÃO:</b> Comissão apenas para dentista.
+                                    <br />
+                                    <b>NO COMERCIAL:</b> Comissão para dentista + CRC.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </Label>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant={form.origem_venda === 'AVALIACAO' ? 'default' : 'outline'}
+                              onClick={() => setForm({ ...form, origem_venda: 'AVALIACAO' })}
+                              className={`flex-1 text-[9px] font-bold px-2 ${form.origem_venda === 'AVALIACAO' ? 'bg-primary text-white' : ''}`}
+                            >
+                              FECHADA NA AVALIAÇÃO
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={form.origem_venda === 'COMERCIAL' ? 'default' : 'outline'}
+                              onClick={() => setForm({ ...form, origem_venda: 'COMERCIAL' })}
+                              className={`flex-1 text-[9px] font-bold px-2 ${form.origem_venda === 'COMERCIAL' ? 'bg-primary text-white' : ''}`}
+                            >
+                              FECHADA NO COMERCIAL
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                            <Label className="font-bold text-[10px] text-slate-500 tracking-wider">
+                              VALOR DA VENDA (R$)
+                            </Label>
+                            <Input
+                              type="number"
+                              className="h-8 text-xs font-bold"
+                              value={form.valor_venda ?? form.valor ?? ''}
+                              onChange={(e) => {
+                                const v = Number(e.target.value)
+                                const p = form.valor_entrada ? (form.valor_entrada / v) * 100 : 0
+                                setForm({ ...form, valor_venda: v, percentual_entrada: p || 0 })
+                              }}
+                            />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="font-bold text-[10px] text-slate-500 tracking-wider">
+                              ENTRADA (R$)
+                            </Label>
+                            <Input
+                              type="number"
+                              className="h-8 text-xs font-bold"
+                              value={form.valor_entrada ?? ''}
+                              onChange={(e) => {
+                                const ent = Number(e.target.value)
+                                const ven = form.valor_venda || form.valor || 1
+                                const p = (ent / ven) * 100
+                                setForm({ ...form, valor_entrada: ent, percentual_entrada: p })
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="font-bold text-[10px] text-slate-500 tracking-wider">
+                            % DE ENTRADA
+                          </Label>
+                          <Input
+                            type="number"
+                            className="h-8 text-xs font-bold bg-slate-100"
+                            value={form.percentual_entrada?.toFixed(2) ?? '0.00'}
+                            disabled
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <Button
@@ -630,9 +840,14 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
               <TableRow>
                 <TableHead className="font-black text-slate-500 text-xs">DATA</TableHead>
                 <TableHead className="font-black text-slate-500 text-xs">PACIENTE</TableHead>
-                <TableHead className="font-black text-slate-500 text-xs">DENTISTA</TableHead>
+                <TableHead className="font-black text-slate-500 text-xs hidden sm:table-cell">
+                  DENTISTA
+                </TableHead>
                 <TableHead className="font-black text-slate-500 text-xs text-right">
                   VALOR
+                </TableHead>
+                <TableHead className="font-black text-slate-500 text-xs text-right hidden md:table-cell">
+                  % ENTR.
                 </TableHead>
                 <TableHead className="font-black text-slate-500 text-xs text-center w-32">
                   VENDIDO?
@@ -649,14 +864,17 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                     <TableCell className="font-bold text-nuvia-navy uppercase text-xs">
                       {orc.paciente}
                     </TableCell>
-                    <TableCell className="font-bold text-slate-500 uppercase text-xs">
+                    <TableCell className="font-bold text-slate-500 uppercase text-xs hidden sm:table-cell">
                       {dentistas.find((d) => d.id === orc.dentista_id)?.nome || '-'}
                     </TableCell>
                     <TableCell className="font-black text-nuvia-navy text-right text-xs whitespace-nowrap">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
-                      }).format(orc.valor)}
+                      }).format(orc.vendido ? orc.valor_venda || orc.valor : orc.valor)}
+                    </TableCell>
+                    <TableCell className="font-bold text-slate-500 text-right text-xs hidden md:table-cell">
+                      {orc.vendido ? `${(orc.percentual_entrada || 0).toFixed(1)}%` : '-'}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center items-center">
@@ -684,6 +902,122 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
           </Table>
         </div>
       </div>
+
+      <Dialog open={!!confirmVendaItem} onOpenChange={(open) => !open && setConfirmVendaItem(null)}>
+        <DialogContent className="uppercase">
+          <DialogHeader>
+            <DialogTitle className="font-black text-nuvia-navy tracking-widest">
+              CONFIRMAR VENDA
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label className="font-bold text-xs text-slate-500 tracking-wider">PACIENTE</Label>
+              <Input
+                className="font-bold uppercase bg-slate-50"
+                value={confirmVendaItem?.paciente || ''}
+                disabled
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label className="font-bold text-xs text-slate-500 tracking-wider flex items-center gap-1">
+                ORIGEM DA VENDA
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-xs normal-case">
+                        <b>NA AVALIAÇÃO:</b> Comissão apenas para dentista.
+                        <br />
+                        <b>NO COMERCIAL:</b> Comissão para dentista + CRC.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={form.origem_venda === 'AVALIACAO' ? 'default' : 'outline'}
+                  onClick={() => setForm({ ...form, origem_venda: 'AVALIACAO' })}
+                  className={`flex-1 text-[10px] font-bold ${form.origem_venda === 'AVALIACAO' ? 'bg-primary text-white' : ''}`}
+                >
+                  FECHADA NA AVALIAÇÃO
+                </Button>
+                <Button
+                  type="button"
+                  variant={form.origem_venda === 'COMERCIAL' ? 'default' : 'outline'}
+                  onClick={() => setForm({ ...form, origem_venda: 'COMERCIAL' })}
+                  className={`flex-1 text-[10px] font-bold ${form.origem_venda === 'COMERCIAL' ? 'bg-primary text-white' : ''}`}
+                >
+                  FECHADA NO COMERCIAL
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                  VALOR DA VENDA (R$)
+                </Label>
+                <Input
+                  type="number"
+                  value={form.valor_venda ?? ''}
+                  onChange={(e) => {
+                    const v = Number(e.target.value)
+                    const p = form.valor_entrada ? (form.valor_entrada / v) * 100 : 0
+                    setForm({ ...form, valor_venda: v, percentual_entrada: p || 0 })
+                  }}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                  VALOR DA ENTRADA (R$)
+                </Label>
+                <Input
+                  type="number"
+                  value={form.valor_entrada ?? ''}
+                  onChange={(e) => {
+                    const ent = Number(e.target.value)
+                    const ven = form.valor_venda || 1
+                    const p = (ent / ven) * 100
+                    setForm({ ...form, valor_entrada: ent, percentual_entrada: p })
+                  }}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                % DE ENTRADA
+              </Label>
+              <Input
+                type="number"
+                value={form.percentual_entrada?.toFixed(2) ?? '0.00'}
+                disabled
+                className="bg-slate-50 font-bold"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="font-bold tracking-widest"
+              onClick={() => setConfirmVendaItem(null)}
+            >
+              CANCELAR
+            </Button>
+            <Button
+              className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest"
+              onClick={handleConfirmVendaSubmit}
+            >
+              CONFIRMAR
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
