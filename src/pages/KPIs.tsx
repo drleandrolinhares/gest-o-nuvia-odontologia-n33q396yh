@@ -59,11 +59,14 @@ export default function KPIs() {
 
   const [cargos, setCargos] = useState<Cargo[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isCeo, setIsCeo] = useState(false)
   const [userCargoId, setUserCargoId] = useState<string | null>(null)
 
   const [activeTab, setActiveTab] = useState<'MEUS' | 'ADMIN'>('MEUS')
   const [selectedRole, setSelectedRole] = useState('')
   const [period, setPeriod] = useState('mes')
+  const [customStartDate, setCustomStartDate] = useState('')
+  const [customEndDate, setCustomEndDate] = useState('')
 
   // Meus KPIs
   const [myGeneralKpis, setMyGeneralKpis] = useState<KpiData[]>([])
@@ -106,7 +109,7 @@ export default function KPIs() {
     } else if (activeTab === 'ADMIN' && selectedRole) {
       fetchAdminKpis()
     }
-  }, [activeTab, userCargoId, selectedRole])
+  }, [activeTab, userCargoId, selectedRole, period, customStartDate, customEndDate])
 
   const fetchInitialData = async () => {
     setLoading(true)
@@ -117,21 +120,29 @@ export default function KPIs() {
         .eq('id', user?.id)
         .single()
 
+      const profileCargoName = profile?.cargos?.nome?.toUpperCase() || ''
+      const userIsCeo = profileCargoName.includes('CEO')
+
       const { data: isAdm } = await supabase.rpc('is_admin_user', { user_uuid: user?.id })
       const isManager =
-        profile?.cargos?.nome?.toUpperCase().includes('CEO') ||
-        profile?.cargos?.nome?.toUpperCase().includes('GERENTE') ||
-        profile?.cargos?.nome?.toUpperCase().includes('DIRETORIA')
+        userIsCeo || profileCargoName.includes('GERENTE') || profileCargoName.includes('DIRETORIA')
 
       const admin = !!isAdm || isManager
       setIsAdmin(admin)
+      setIsCeo(userIsCeo)
       setUserCargoId(profile?.cargo_id || null)
 
       const { data: cargosRes } = await supabase.from('cargos').select('id, nome').order('nome')
-      setCargos(cargosRes || [])
+      // Filtrar cargos para remover 'CEO' da lista de análise
+      const filteredCargos = (cargosRes || []).filter((r) => !r.nome.toUpperCase().includes('CEO'))
+      setCargos(filteredCargos)
 
-      if (admin && cargosRes && cargosRes.length > 0) {
-        setSelectedRole(cargosRes[0].id)
+      if (userIsCeo) {
+        setActiveTab('ADMIN')
+      }
+
+      if (admin && filteredCargos.length > 0 && !selectedRole) {
+        setSelectedRole(filteredCargos[0].id)
       }
     } catch (e) {
       console.error('Erro ao inicializar:', e)
@@ -168,7 +179,7 @@ export default function KPIs() {
           .eq('kpi_id', conf.id)
           .order('data', { ascending: false })
           .limit(1)
-          .single()
+          .maybeSingle()
 
         return {
           id: conf.id,
@@ -258,13 +269,38 @@ export default function KPIs() {
         .neq('unidade', 'module')
 
       const kpiDataPromises = (configs || []).map(async (conf) => {
-        const { data: latestData } = await supabase
-          .from('kpis_dados')
-          .select('*')
-          .eq('kpi_id', conf.id)
+        let query = supabase.from('kpis_dados').select('*').eq('kpi_id', conf.id)
+
+        // Filtro de período dinâmico
+        const now = new Date()
+        if (period === 'dia') {
+          const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+            .toISOString()
+            .split('T')[0]
+          query = query.eq('data', todayStr)
+        } else if (period === 'semana') {
+          const startOfWeek = new Date(now)
+          startOfWeek.setDate(now.getDate() - now.getDay())
+          const startStr = new Date(startOfWeek.getTime() - startOfWeek.getTimezoneOffset() * 60000)
+            .toISOString()
+            .split('T')[0]
+          query = query.gte('data', startStr)
+        } else if (period === 'mes') {
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+          const startStr = new Date(
+            startOfMonth.getTime() - startOfMonth.getTimezoneOffset() * 60000,
+          )
+            .toISOString()
+            .split('T')[0]
+          query = query.gte('data', startStr)
+        } else if (period === 'custom' && customStartDate && customEndDate) {
+          query = query.gte('data', customStartDate).lte('data', customEndDate)
+        }
+
+        const { data: latestData } = await query
           .order('data', { ascending: false })
           .limit(1)
-          .single()
+          .maybeSingle()
 
         return {
           id: conf.id,
@@ -473,7 +509,7 @@ export default function KPIs() {
         </p>
       </div>
 
-      {isAdmin && (
+      {isAdmin && !isCeo && (
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
@@ -489,10 +525,17 @@ export default function KPIs() {
               MEUS KPIs
             </TabsTrigger>
             <TabsTrigger value="ADMIN" className="font-bold tracking-widest text-xs">
-              VISÃO ADMIN
+              ANÁLISE EXECUTIVA
             </TabsTrigger>
           </TabsList>
         </Tabs>
+      )}
+
+      {isAdmin && isCeo && (
+        <div className="bg-nuvia-navy text-white inline-flex px-4 py-2 rounded-lg items-center gap-2 mb-2 shadow-sm">
+          <Target className="w-4 h-4 text-primary" />
+          <span className="font-bold tracking-widest text-xs">ANÁLISE EXECUTIVA</span>
+        </div>
       )}
 
       {activeTab === 'ADMIN' && (
@@ -519,18 +562,43 @@ export default function KPIs() {
               <Filter className="w-3.5 h-3.5" /> PERÍODO
             </label>
             <Tabs value={period} onValueChange={setPeriod} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="dia" className="font-bold text-xs">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="dia" className="font-bold text-[10px] px-1 sm:text-xs">
                   DIA
                 </TabsTrigger>
-                <TabsTrigger value="semana" className="font-bold text-xs">
-                  SEMANA
+                <TabsTrigger value="semana" className="font-bold text-[10px] px-1 sm:text-xs">
+                  SEM
                 </TabsTrigger>
-                <TabsTrigger value="mes" className="font-bold text-xs">
+                <TabsTrigger value="mes" className="font-bold text-[10px] px-1 sm:text-xs">
                   MÊS
+                </TabsTrigger>
+                <TabsTrigger value="custom" className="font-bold text-[10px] px-1 sm:text-xs">
+                  CUST
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+            {period === 'custom' && (
+              <div className="flex items-center gap-2 mt-2 pt-1 animate-fade-in">
+                <div className="flex-1 flex flex-col gap-1">
+                  <span className="text-[9px] font-bold text-slate-400">INÍCIO</span>
+                  <Input
+                    type="date"
+                    className="h-8 text-xs font-bold px-2"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-1">
+                  <span className="text-[9px] font-bold text-slate-400">FIM</span>
+                  <Input
+                    type="date"
+                    className="h-8 text-xs font-bold px-2"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
