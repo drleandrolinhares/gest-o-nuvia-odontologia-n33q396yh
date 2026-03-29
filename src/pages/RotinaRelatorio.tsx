@@ -65,6 +65,7 @@ export default function RotinaRelatorio() {
   const [profiles, setProfiles] = useState<UserProfile[]>([])
   const [rotinasPontos, setRotinasPontos] = useState<RotinaPonto[]>([])
   const [execucoes, setExecucoes] = useState<Execucao[]>([])
+  const [hasAnyRoutine, setHasAnyRoutine] = useState(true)
 
   const fetchData = async () => {
     setLoading(true)
@@ -83,6 +84,7 @@ export default function RotinaRelatorio() {
         { data: profilesData },
         { data: pontosData },
         { data: execData },
+        { data: rotinasConfigData },
       ] = await Promise.all([
         supabase.from('cargos').select('*'),
         supabase.from('profiles').select('id, nome, email, cargo_id'),
@@ -97,11 +99,29 @@ export default function RotinaRelatorio() {
           `)
           .gte('data', startStr)
           .lte('data', endStr),
+        supabase.from('rotinas_config').select('cargo_id, colaborador_id'),
       ])
 
-      if (cargosData) setCargos(cargosData)
-      if (profilesData) setProfiles(profilesData)
       if (pontosData) setRotinasPontos(pontosData)
+
+      if (profilesData && rotinasConfigData) {
+        const activeProfiles = profilesData.filter((user) =>
+          rotinasConfigData.some(
+            (r) =>
+              r.colaborador_id === user.id || (!r.colaborador_id && r.cargo_id === user.cargo_id),
+          ),
+        )
+        setProfiles(activeProfiles)
+        setHasAnyRoutine(activeProfiles.length > 0)
+
+        if (cargosData) {
+          const activeCargoIds = new Set(activeProfiles.map((p) => p.cargo_id))
+          setCargos(cargosData.filter((c) => activeCargoIds.has(c.id)))
+        }
+      } else {
+        if (profilesData) setProfiles(profilesData)
+        if (cargosData) setCargos(cargosData)
+      }
 
       if (execData) {
         const normalized = execData.map((ex: any) => ({
@@ -329,6 +349,17 @@ export default function RotinaRelatorio() {
         <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
           <Skeleton className="h-[400px] lg:col-span-2 bg-white/5 rounded-xl" />
           <Skeleton className="h-[400px] bg-white/5 rounded-xl" />
+        </div>
+      ) : !hasAnyRoutine ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-2">
+            <FileText className="h-8 w-8 text-slate-500" />
+          </div>
+          <h2 className="text-xl font-medium text-white">Nenhuma rotina cadastrada no sistema</h2>
+          <p className="text-slate-400 max-w-md">
+            Você ainda não possui rotinas configuradas. Acesse a página de Rotina Diária para
+            configurar a primeira rotina para sua equipe.
+          </p>
         </div>
       ) : (
         <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
