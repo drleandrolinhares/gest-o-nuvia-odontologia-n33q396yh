@@ -15,15 +15,16 @@ export function MobileNav() {
   const { sacRecords, currentUserId } = useAppStore()
 
   const totalUnread = useMemo(
-    () => Object.values(unreadCounts || {}).reduce((a, b) => a + b, 0),
+    () =>
+      Object.values(unreadCounts || {}).reduce((a, b) => a + (typeof b === 'number' ? b : 0), 0),
     [unreadCounts],
   )
 
   const pendingSacsCount = useMemo(
     () =>
-      (sacRecords || []).filter(
+      (Array.isArray(sacRecords) ? sacRecords : []).filter(
         (r) =>
-          r.status === 'OPORTUNIDADE DE SOLUÇÃO' && r.responsible_employee_id === currentUserId,
+          r?.status === 'OPORTUNIDADE DE SOLUÇÃO' && r?.responsible_employee_id === currentUserId,
       ).length,
     [sacRecords, currentUserId],
   )

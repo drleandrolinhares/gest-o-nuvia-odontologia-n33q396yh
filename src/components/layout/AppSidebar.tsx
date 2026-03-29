@@ -43,7 +43,10 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const { sacRecords, can, userPermissions } = useAppStore()
 
   const pendingSacsCount = useMemo(
-    () => (sacRecords || []).filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
+    () =>
+      (Array.isArray(sacRecords) ? sacRecords : []).filter(
+        (r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO',
+      ).length,
     [sacRecords],
   )
 
@@ -162,22 +165,24 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
 
     return sections
       .map((section) => {
-        const visibleItems = section.items.filter((item) => {
-          if (
-            item.adminOnly &&
-            user?.email !== 'drleandrolinhares@gmail.com' &&
-            user?.email !== 'master@nuvia.com.br'
-          ) {
-            return false
-          }
-          if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
-            return false
-          }
-          return typeof can === 'function' ? can(item.module, 'view') : false
-        })
+        const visibleItems = Array.isArray(section.items)
+          ? section.items.filter((item) => {
+              if (
+                item.adminOnly &&
+                user?.email !== 'drleandrolinhares@gmail.com' &&
+                user?.email !== 'master@nuvia.com.br'
+              ) {
+                return false
+              }
+              if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
+                return false
+              }
+              return typeof can === 'function' ? can(item.module, 'view') : false
+            })
+          : []
         return { ...section, items: visibleItems }
       })
-      .filter((section) => section.items.length > 0)
+      .filter((section) => Array.isArray(section.items) && section.items.length > 0)
   }, [pendingSacsCount, can, user?.email, userPermissions, isUserAdmin, hasRotina])
 
   const toggleSection = (title: string) => {
@@ -193,7 +198,9 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       let hasChanges = false
       const next = { ...prev }
       navigationSections.forEach((section) => {
-        const isAnySubActive = section.items.some((item) => location.pathname.startsWith(item.href))
+        const isAnySubActive = Array.isArray(section.items)
+          ? section.items.some((item) => location.pathname.startsWith(item.href))
+          : false
         if (isAnySubActive && !next[section.title]) {
           next[section.title] = true
           hasChanges = true
@@ -259,7 +266,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                 </CollapsibleTrigger>
                 {(!isCollapsed || isMobile) && (
                   <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
-                    {section.items.map((item) => {
+                    {(Array.isArray(section.items) ? section.items : []).map((item) => {
                       const isActive =
                         item.href === '/rotina-diaria'
                           ? location.pathname === '/rotina-diaria' ||
