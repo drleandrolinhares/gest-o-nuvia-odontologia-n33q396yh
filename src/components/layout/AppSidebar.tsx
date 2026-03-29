@@ -351,4 +351,6 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           {(!isCollapsed || isMobile) && 'SAIR DO SISTEMA'}
         </Button>
       </div>
-    </div
+    </div>
+  )
+}
