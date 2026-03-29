@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
 import { userService } from '@/services/userService'
-import { Loader2, UserCircle } from 'lucide-react'
+import { Loader2, UserCircle, Star, Trash2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 export function MyProfileModal({
   open,
@@ -31,6 +32,12 @@ export function MyProfileModal({
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
+  const isAdmin =
+    profile?.isAdmin === true ||
+    profile?.user_roles?.some((ur: any) =>
+      ['ADMIN', 'MASTER', 'DIRETORIA'].includes(ur?.roles?.name?.toUpperCase()),
+    ) === true
+
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -39,8 +46,8 @@ export function MyProfileModal({
     pix_numero: '',
     pix_banco: '',
     data_admissao: '',
-    cargo_id: 'none',
     departamento_id: 'none',
+    cargos_list: [] as { cargo_id: string; cargo_nome: string; is_principal: boolean }[],
   })
 
   useEffect(() => {
@@ -53,11 +60,65 @@ export function MyProfileModal({
         pix_numero: profile?.pix_numero || '',
         pix_banco: profile?.pix_banco || '',
         data_admissao: profile?.data_admissao || '',
-        cargo_id: profile?.cargo_id || 'none',
         departamento_id: profile?.departamento_id || 'none',
+        cargos_list:
+          profile?.user_cargos?.map((c: any) => ({
+            cargo_id: c.cargo_id,
+            cargo_nome: c.cargo,
+            is_principal: c.is_principal,
+          })) ||
+          (profile?.cargo_id && profile?.cargo_id !== 'none'
+            ? [
+                {
+                  cargo_id: profile.cargo_id,
+                  cargo_nome: cargos?.find((c: any) => c.id === profile.cargo_id)?.nome || '',
+                  is_principal: true,
+                },
+              ]
+            : []),
       })
     }
-  }, [open, profile])
+  }, [open, profile, cargos])
+
+  const addCargo = (cargoId: string) => {
+    if (cargoId === 'none' || !cargoId) return
+    const cargoObj = cargos.find((c: any) => c.id === cargoId)
+    if (!cargoObj) return
+
+    const isFirst = formData.cargos_list.length === 0
+
+    setFormData((prev) => ({
+      ...prev,
+      cargos_list: [
+        ...prev.cargos_list,
+        {
+          cargo_id: cargoId,
+          cargo_nome: cargoObj.nome,
+          is_principal: isFirst,
+        },
+      ],
+    }))
+  }
+
+  const removeCargo = (cargoId: string) => {
+    setFormData((prev) => {
+      const newList = prev.cargos_list.filter((c) => c.cargo_id !== cargoId)
+      if (newList.length > 0 && !newList.some((c) => c.is_principal)) {
+        newList[0].is_principal = true
+      }
+      return { ...prev, cargos_list: newList }
+    })
+  }
+
+  const setPrincipalCargo = (cargoId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      cargos_list: prev.cargos_list.map((c) => ({
+        ...c,
+        is_principal: c.cargo_id === cargoId,
+      })),
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,7 +171,7 @@ export function MyProfileModal({
         pix_numero: formData.pix_numero || null,
         pix_banco: formData.pix_banco || null,
         data_admissao: formData.data_admissao || null,
-        cargo_id: formData.cargo_id !== 'none' ? formData.cargo_id : null,
+        cargos_list: formData.cargos_list,
         departamento_id: formData.departamento_id !== 'none' ? formData.departamento_id : null,
       })
 
@@ -195,27 +256,6 @@ export function MyProfileModal({
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-bold tracking-widest text-muted-foreground">
-                CARGO
-              </Label>
-              <Select
-                value={formData.cargo_id}
-                onValueChange={(v) => setFormData({ ...formData, cargo_id: v })}
-              >
-                <SelectTrigger className="font-bold">
-                  <SelectValue placeholder="SELECIONE..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">NENHUM</SelectItem>
-                  {(cargos || []).map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold tracking-widest text-muted-foreground">
                 DEPARTAMENTO
               </Label>
               <Select
@@ -234,6 +274,82 @@ export function MyProfileModal({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2 md:col-span-2 mt-2">
+              <Label className="text-xs font-bold tracking-widest text-muted-foreground">
+                CARGOS
+              </Label>
+              <div className="space-y-2">
+                {formData.cargos_list.length === 0 && (
+                  <div className="text-xs text-muted-foreground italic p-2 border rounded-md bg-muted/10">
+                    Nenhum cargo atribuído.
+                  </div>
+                )}
+                {formData.cargos_list.map((c, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-2 border rounded-md bg-muted/30"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm uppercase">{c.cargo_nome}</span>
+                      {c.is_principal && (
+                        <Badge variant="default" className="text-[10px]">
+                          PRINCIPAL
+                        </Badge>
+                      )}
+                    </div>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1">
+                        {!c.is_principal && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100"
+                            onClick={() => setPrincipalCargo(c.cargo_id)}
+                            title="Tornar Principal"
+                          >
+                            <Star className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => removeCargo(c.cargo_id)}
+                          title="Remover Cargo"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {isAdmin && (
+                  <Select value="none" onValueChange={addCargo}>
+                    <SelectTrigger className="font-bold border-dashed text-muted-foreground">
+                      <SelectValue placeholder="+ ADICIONAR CARGO" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none" className="hidden">
+                        SELECIONE...
+                      </SelectItem>
+                      {cargos
+                        .filter(
+                          (c: any) => !formData.cargos_list.some((fc) => fc.cargo_id === c.id),
+                        )
+                        .map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
 
             <div className="space-y-3 md:col-span-2 mt-4">

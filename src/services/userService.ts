@@ -44,7 +44,9 @@ export const userService = {
   fetchProfiles: async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*, user_cargos(cargo, cargo_id, is_principal), departamentos(nome)')
+      .select(
+        '*, user_cargos(cargo, cargo_id, is_principal), departamentos(nome), user_roles(role_id, roles(name))',
+      )
       .order('nome')
     if (error) {
       console.error(error)
@@ -58,19 +60,35 @@ export const userService = {
         ...p,
         cargo_id: principalCargo?.cargo_id || null,
         cargos: principalCargo ? { nome: principalCargo.cargo } : null,
-        user_cargos: undefined,
+        user_cargos: p.user_cargos || [],
+        isAdmin:
+          p.user_roles?.some((ur: any) =>
+            ['ADMIN', 'MASTER', 'DIRETORIA'].includes(ur.roles?.name?.toUpperCase()),
+          ) || false,
       }
     })
   },
   updateProfile: async (id: string, data: any) => {
-    const { cargo_id, ...profileData } = data
+    const { cargo_id, cargos_list, ...profileData } = data
 
     if (Object.keys(profileData).length > 0) {
       const { error } = await supabase.from('profiles').update(profileData).eq('id', id)
       if (error) throw error
     }
 
-    if (cargo_id !== undefined) {
+    if (cargos_list !== undefined) {
+      await supabase.from('user_cargos').delete().eq('user_id', id)
+      if (cargos_list.length > 0) {
+        await supabase.from('user_cargos').insert(
+          cargos_list.map((c: any) => ({
+            user_id: id,
+            cargo_id: c.cargo_id,
+            cargo: c.cargo_nome,
+            is_principal: c.is_principal,
+          })),
+        )
+      }
+    } else if (cargo_id !== undefined) {
       await supabase.from('user_cargos').delete().eq('user_id', id)
 
       if (cargo_id) {
