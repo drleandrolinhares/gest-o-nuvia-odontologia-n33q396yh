@@ -43,7 +43,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const { sacRecords, can, userPermissions } = useAppStore()
 
   const pendingSacsCount = useMemo(
-    () => sacRecords.filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
+    () => (sacRecords || []).filter((r) => r.status === 'OPORTUNIDADE DE SOLUÇÃO').length,
     [sacRecords],
   )
 
