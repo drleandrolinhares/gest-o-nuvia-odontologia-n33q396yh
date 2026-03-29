@@ -16,10 +16,13 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   // seja renderizada após o perfil estar totalmente carregado do banco.
   const perfil = (appStore as any)?.currentProfile || (appStore as any)?.profile
 
+  // Guarda de segurança (Array Guard) para user_cargos
+  const safeUserCargos = perfil?.user_cargos?.filter((item: any) => item) || []
+
   useEffect(() => {
     let timeout: NodeJS.Timeout
     // Se temos usuário mas o perfil não chegou após 5 segundos, exibimos a opção de limpeza
-    if (user && !perfil && !loading && !storeLoading) {
+    if (user && (!perfil || !perfil.user_cargos) && !loading && !storeLoading) {
       timeout = setTimeout(() => {
         setIsStuck(true)
       }, 5000)
@@ -46,11 +49,11 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   // Garantindo que a sidebar (layout e childrens) NUNCA seja renderizada
   // sem as permissões e o perfil adequadamente carregados no AppStore.
-  if (user && !perfil) {
+  if (user && (!perfil || !perfil.user_cargos)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6 px-4 text-center">
         <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
-        <p className="text-sm opacity-80 animate-pulse">Carregando perfil...</p>
+        <p className="text-sm opacity-80 animate-pulse">Carregando perfil e permissões...</p>
 
         {isStuck && (
           <div className="mt-8 flex flex-col items-center space-y-4 animate-fade-in">

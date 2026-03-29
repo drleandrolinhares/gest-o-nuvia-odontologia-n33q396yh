@@ -59,11 +59,14 @@ export default function Login() {
         data: { user },
       } = await supabase.auth.getUser()
       if (user) {
-        const { error: profileError } = await supabase
+        const { data: perfilData, error: profileError } = await supabase
           .from('profiles')
           .select('id,nome,email,user_cargos(cargo_id,cargo,is_principal)')
           .eq('id', user.id)
           .single()
+
+        // Guarda de segurança para o array de cargos, prevenindo ".filter undefined" futuro
+        const safeUserCargos = perfilData?.user_cargos?.filter((item: any) => item) || []
 
         if (profileError) {
           console.error('Falha ao carregar perfil:', profileError.message)
