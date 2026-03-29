@@ -173,7 +173,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
             return false
           }
-          return can(item.module, 'view')
+          return typeof can === 'function' ? can(item.module, 'view') : false
         })
         return { ...section, items: visibleItems }
       })
