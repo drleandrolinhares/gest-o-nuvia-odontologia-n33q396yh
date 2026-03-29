@@ -15,9 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Edit, Trash2, Plus } from 'lucide-react'
+import { Edit, Trash2, Plus, Copy } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { ConfigRotinaModal, Task } from './ConfigRotinaModal'
+import { MirrorRoutinesModal } from './MirrorRoutinesModal'
 import { useToast } from '@/components/ui/use-toast'
 import {
   AlertDialog,
@@ -56,6 +57,7 @@ export function AllRoutinesModal({
   const { toast } = useToast()
 
   const [isConfigOpen, setIsConfigOpen] = useState(false)
+  const [isMirrorOpen, setIsMirrorOpen] = useState(false)
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
 
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null)
@@ -157,13 +159,23 @@ export function AllRoutinesModal({
                 </DialogDescription>
               </div>
               {isAdmin && (
-                <Button
-                  onClick={handleAddNew}
-                  size="sm"
-                  className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-bold tracking-widest shrink-0"
-                >
-                  <Plus className="h-4 w-4 mr-2" /> ADICIONAR ROTINA
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setIsMirrorOpen(true)}
+                    size="sm"
+                    variant="outline"
+                    className="border-[#D4AF37] text-[#D4AF37] hover:bg-slate-50 font-bold tracking-widest shrink-0 bg-transparent"
+                  >
+                    <Copy className="h-4 w-4 mr-2" /> ESPELHAR ROTINAS
+                  </Button>
+                  <Button
+                    onClick={handleAddNew}
+                    size="sm"
+                    className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-bold tracking-widest shrink-0"
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> ADICIONAR ROTINA
+                  </Button>
+                </div>
               )}
             </div>
           </DialogHeader>
@@ -275,6 +287,12 @@ export function AllRoutinesModal({
         defaultColaboradorId={colaboradorId !== 'todos' ? colaboradorId : undefined}
         colaboradorNome={colaboradorNome}
         taskToEdit={taskToEdit}
+      />
+
+      <MirrorRoutinesModal
+        isOpen={isMirrorOpen}
+        onClose={() => setIsMirrorOpen(false)}
+        onSuccess={handleConfigSaved}
       />
 
       <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
