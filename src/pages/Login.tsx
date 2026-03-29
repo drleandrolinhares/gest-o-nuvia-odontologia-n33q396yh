@@ -13,17 +13,30 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn, session } = useAuth()
+  const { signIn, session, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
   const from = (location.state as any)?.from?.pathname || '/'
 
+  // Segurança extra: Limpar cache residual se a URL contiver '?clear=1'
   useEffect(() => {
-    if (session) {
+    const searchParams = new URLSearchParams(location.search)
+    if (searchParams.get('clear') === '1') {
+      localStorage.clear()
+      sessionStorage.clear()
+      signOut().then(() => {
+        window.location.replace('/login')
+      })
+    }
+  }, [location, signOut])
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    if (session && searchParams.get('clear') !== '1') {
       navigate(from, { replace: true })
     }
-  }, [session, navigate, from])
+  }, [session, navigate, from, location.search])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
