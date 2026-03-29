@@ -35,8 +35,12 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     window.location.replace('/login?clear=1')
   }
 
+  if (!user && !authLoading) {
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  }
+
   // Garantimos que a aplicação aguarde todas as stores resolverem seus estados iniciais
-  if (isLoading) {
+  if (isLoading || (user && !appStore?.profile && !isStuck)) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6 px-4 text-center">
         <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
@@ -46,15 +50,24 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           <div className="mt-8 flex flex-col items-center space-y-4 animate-fade-in">
             <p className="text-xs text-slate-400 max-w-sm">
               O carregamento está demorando mais do que o normal. Se o problema persistir, você pode
-              limpar o cache do sistema.
+              limpar o cache do sistema e recarregar a página.
             </p>
-            <Button
-              onClick={handleClearCache}
-              variant="outline"
-              className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0A192F]"
-            >
-              <LogOut className="mr-2 h-4 w-4" /> Limpar Cache e Sair
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#0A192F]"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" /> Tentar Novamente
+              </Button>
+              <Button
+                onClick={handleClearCache}
+                variant="outline"
+                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Limpar e Sair
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -79,10 +92,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         </Button>
       </div>
     )
-  }
-
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />
   }
 
   return <>{children}</>

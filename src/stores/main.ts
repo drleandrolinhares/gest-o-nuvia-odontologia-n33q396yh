@@ -33,7 +33,7 @@ const useMainStore = create<AppState>((set, get) => ({
   fetchProfile: async (userId: string) => {
     set({ loading: true })
     try {
-      // Utilizando a query robusta para previnir erros de schema e trazer os relacionamentos
+      // 1. Otimização e Segurança: Fazemos a busca de perfil
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nome, email, departamento_id, user_cargos(cargo_id, cargo, is_principal)')
@@ -41,10 +41,17 @@ const useMainStore = create<AppState>((set, get) => ({
         .single()
 
       if (error && error.code !== 'PGRST116') {
-        throw error
+        console.warn(
+          'Erro ao buscar profile, prosseguindo com dados vazios para evitar bloqueio.',
+          error,
+        )
       }
 
-      // Resolvendo as permissões de admin/master (RPC > Fallback Cargos)
+      // 2. Proteção rigorosa no array de cargos
+      const rawCargos = data?.user_cargos
+      const cargos = Array.isArray(rawCargos) ? rawCargos : rawCargos ? [rawCargos] : []
+
+      // 3. Verificações de Admin via RPC e Fallback
       let is_admin = false
       let is_master = false
 
@@ -54,22 +61,22 @@ const useMainStore = create<AppState>((set, get) => ({
         is_admin = !!isAdminData
         is_master = !!isMasterData
       } catch (e) {
-        console.warn('Aviso: RPC não encontrada ou erro, avaliando permissão por string de cargo.')
+        console.warn('Aviso: RPC não encontrada, avaliando permissões via array de cargos.', e)
       }
-
-      const cargos = data?.user_cargos || []
 
       if (!is_admin) {
         is_admin = cargos.some((c: any) =>
-          ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(c.cargo?.toUpperCase()),
+          ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(String(c?.cargo || '').toUpperCase()),
         )
       }
 
       if (!is_master) {
-        is_master = cargos.some((c: any) => ['MASTER', 'ADMIN'].includes(c.cargo?.toUpperCase()))
+        is_master = cargos.some((c: any) =>
+          ['MASTER', 'ADMIN'].includes(String(c?.cargo || '').toUpperCase()),
+        )
       }
 
-      const principalCargo = cargos.find((c: any) => c.is_principal) || cargos[0]
+      const principalCargo = cargos.find((c: any) => c?.is_principal) || cargos[0] || null
       const cargo_id = principalCargo?.cargo_id || null
       const cargo_nome = principalCargo?.cargo || null
 
@@ -82,32 +89,47 @@ const useMainStore = create<AppState>((set, get) => ({
         departamento_id: data?.departamento_id || null,
         is_admin,
         is_master,
-        isAdmin: is_admin, // Retrocompatibilidade para chamadas antigas
+        isAdmin: is_admin, // Alias de retrocompatibilidade
         user_cargos: cargos,
       }
 
+      // 4. Carrega permissões paralelamente para não bloquear o set de profile
       set({ profile: profileData })
 
-      // Carregando permissões finas via Edge Function
       try {
         const res = await supabase.functions.invoke('get_user_permissions', {
           body: { userId },
         })
-        if (res.data?.permissions) {
-          set({ permissions: res.data.permissions })
-        }
+        const perms = res.data?.permissions
+        set({ permissions: Array.isArray(perms) ? perms : [] })
       } catch (permError) {
         console.warn('Aviso: Falha ao carregar permissoes detalhadas:', permError)
+        set({ permissions: [] })
       }
     } catch (error: any) {
-      console.error('Error fetching profile:', error)
+      console.error('Error fetching profile na store:', error)
       if (error?.code === '42703' || error?.status === 400) {
         console.warn('Erro de schema detectado (42703/400). Limpando cache e forçando logout.')
         localStorage.clear()
         sessionStorage.clear()
-        await supabase.auth.signOut()
         window.location.replace('/login?clear=1')
       }
+      // Garante que a aplicação não fique travada
+      set({
+        profile: {
+          id: userId,
+          nome: 'Erro',
+          email: '',
+          cargo_id: null,
+          cargo_nome: null,
+          departamento_id: null,
+          is_admin: false,
+          is_master: false,
+          isAdmin: false,
+          user_cargos: [],
+        },
+        permissions: [],
+      })
     } finally {
       set({ loading: false })
     }
@@ -123,7 +145,8 @@ const useMainStore = create<AppState>((set, get) => ({
     if (!profile) return false
     if (profile.is_admin || profile.is_master || profile.isAdmin) return true
 
-    const safePermissions = permissions?.filter?.((p: any) => p) || []
+    // Garantia absoluta de array para evitar "Cannot read properties of undefined (reading 'filter')"
+    const safePermissions = Array.isArray(permissions) ? permissions : []
     const perm = safePermissions.find((p: any) => p?.nome?.toUpperCase() === module.toUpperCase())
     if (!perm) return false
 

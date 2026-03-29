@@ -39,13 +39,15 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     }
   })
 
-  // Destructure can to force reactivity when permissions change
-  const { sacRecords, can, userPermissions } = useAppStore()
+  // Acessando store garantindo defaults para evitar erros de undefined
+  const appStore = useAppStore()
+  const can = appStore?.can
+  // Prevenindo undefined property reading de sacRecords
+  const rawSacRecords = (appStore as any)?.sacRecords
+  const sacRecords = Array.isArray(rawSacRecords) ? rawSacRecords : []
 
   const pendingSacsCount = useMemo(() => {
-    return (sacRecords?.filter((item) => item) || []).filter(
-      (r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO',
-    ).length
+    return sacRecords.filter((r: any) => r && r.status === 'OPORTUNIDADE DE SOLUÇÃO').length
   }, [sacRecords])
 
   const [hasRotina, setHasRotina] = useState<boolean | null>(null)
@@ -169,7 +171,9 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
 
     return sections
       .map((section) => {
-        const visibleItems = (section.items?.filter((item) => item) || []).filter((item) => {
+        const items = Array.isArray(section.items) ? section.items : []
+        const visibleItems = items.filter((item) => {
+          if (!item) return false
           if (
             item.adminOnly &&
             user?.email !== 'drleandrolinhares@gmail.com' &&
@@ -184,8 +188,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         })
         return { ...section, items: visibleItems }
       })
-      .filter((section) => section && section.items && section.items.length > 0)
-  }, [pendingSacsCount, can, user?.email, userPermissions, isUserAdmin, hasRotina])
+      .filter((section) => section && Array.isArray(section.items) && section.items.length > 0)
+  }, [pendingSacsCount, can, user?.email, isUserAdmin, hasRotina])
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => {
@@ -199,9 +203,13 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     setOpenSections((prev) => {
       let hasChanges = false
       const next = { ...prev }
-      ;(navigationSections?.filter((item) => item) || []).forEach((section) => {
-        const isAnySubActive = (section.items?.filter((item) => item) || []).some((item) =>
-          location.pathname.startsWith(item.href),
+      const safeNavSections = Array.isArray(navigationSections) ? navigationSections : []
+
+      safeNavSections.forEach((section) => {
+        if (!section) return
+        const safeItems = Array.isArray(section.items) ? section.items : []
+        const isAnySubActive = safeItems.some(
+          (item) => item && location.pathname.startsWith(item.href),
         )
         if (isAnySubActive && !next[section.title]) {
           next[section.title] = true
@@ -232,7 +240,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-3 overflow-x-hidden custom-scrollbar">
-        {(navigationSections?.filter((item) => item) || []).map((section) => {
+        {(Array.isArray(navigationSections) ? navigationSections : []).map((section) => {
+          if (!section) return null
           return (
             <div key={section.title} className="mb-2">
               <Collapsible
@@ -268,7 +277,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                 </CollapsibleTrigger>
                 {(!isCollapsed || isMobile) && (
                   <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
-                    {(section.items?.filter((item) => item) || []).map((item) => {
+                    {(Array.isArray(section.items) ? section.items : []).map((item) => {
+                      if (!item) return null
                       const isActive =
                         item.href === '/rotina-diaria'
                           ? location.pathname === '/rotina-diaria' ||
