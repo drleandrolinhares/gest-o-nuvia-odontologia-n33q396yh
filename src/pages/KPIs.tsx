@@ -886,7 +886,14 @@ export default function KPIs() {
             {activeTab === 'MEUS' &&
               myModulesToRender.map((m) => {
                 if (m.type === 'CRM_COMERCIAL')
-                  return <CrmComercial key={m.key} cargoId={m.cargoId} podeEditar={m.podeEditar} />
+                  return (
+                    <CrmComercial
+                      key={m.key}
+                      cargoId={m.cargoId}
+                      colaboradorId={user?.id}
+                      podeEditar={m.podeEditar}
+                    />
+                  )
                 if (m.type === 'CRC_LEAD')
                   return (
                     <CrcLeadAgendamento key={m.key} cargoId={m.cargoId} podeEditar={m.podeEditar} />
@@ -901,7 +908,11 @@ export default function KPIs() {
               !selectedColabCargoId.startsWith('mock-') && (
                 <>
                   {isCrcComercialAdmin && (
-                    <CrmComercial cargoId={selectedColabCargoId} podeEditar={true} />
+                    <CrmComercial
+                      cargoId={selectedColabCargoId}
+                      colaboradorId={selectedColaborador}
+                      podeEditar={true}
+                    />
                   )}
                   {isCrcLeadAdmin && (
                     <CrcLeadAgendamento cargoId={selectedColabCargoId} podeEditar={true} />

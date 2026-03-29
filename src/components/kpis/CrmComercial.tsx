@@ -8,6 +8,7 @@ import {
   Percent,
   Loader2,
   HelpCircle,
+  Building2,
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { supabase } from '@/lib/supabase/client'
@@ -65,10 +66,11 @@ export interface Orcamento {
 
 interface CrmComercialProps {
   cargoId: string
+  colaboradorId?: string
   podeEditar?: boolean
 }
 
-export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) {
+export function CrmComercial({ cargoId, colaboradorId, podeEditar = true }: CrmComercialProps) {
   const { user } = useAuth()
   const { toast } = useToast()
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([])
@@ -320,10 +322,19 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
     }
   }
 
-  const kpis = useMemo(() => {
-    const totalOportunidades = orcamentos.length
-    const valorTotalOportunidades = orcamentos.reduce((acc, curr) => acc + curr.valor, 0)
-    const vendas = orcamentos.filter((o) => o.vendido)
+  const targetUserId = colaboradorId || user?.id
+
+  const individualOrcamentos = useMemo(() => {
+    if (!targetUserId) return []
+    return orcamentos.filter((o) => o.crc_comercial_id === targetUserId)
+  }, [orcamentos, targetUserId])
+
+  const companyOrcamentos = orcamentos
+
+  const calculateKpis = (data: Orcamento[]) => {
+    const totalOportunidades = data.length
+    const valorTotalOportunidades = data.reduce((acc, curr) => acc + curr.valor, 0)
+    const vendas = data.filter((o) => o.vendido)
     const totalVendas = vendas.length
     const valorTotalVendas = vendas.reduce((acc, curr) => acc + (curr.valor_venda || curr.valor), 0)
 
@@ -339,46 +350,83 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
     const ticketMedioVenda = totalVendas > 0 ? valorTotalVendas / totalVendas : 0
 
     return {
-      oportunidadeVenda: { valor: valorTotalOportunidades, meta: 100000, qtd: totalOportunidades },
-      ticketMedioOportunidade: { valor: ticketMedioOportunidade, meta: 5000 },
-      conversao: { valor: conversao, meta: 30 },
-      ticketMedioVenda: { valor: ticketMedioVenda, meta: 6000 },
-      valorTotalVendido: { valor: valorTotalVendas, meta: 80000 },
-      mediaEntrada: { valor: mediaEntrada, meta: 30 },
+      vendasTotais: valorTotalVendas,
+      ticketMedio: ticketMedioVenda,
+      conversao,
+      mediaEntrada,
     }
-  }, [orcamentos])
+  }
+
+  const indKpis = calculateKpis(individualOrcamentos)
+  const compKpis = calculateKpis(companyOrcamentos)
+
+  // Mocked Goals
+  const indGoals = {
+    vendasTotais: 50000,
+    ticketMedio: 5000,
+    conversao: 30,
+    mediaEntrada: 30,
+  }
+
+  const compGoals = {
+    vendasTotais: 200000,
+    ticketMedio: 6000,
+    conversao: 35,
+    mediaEntrada: 40,
+  }
 
   const monthlyData = useMemo(() => {
-    const data = orcamentos.reduce(
+    const data = individualOrcamentos.reduce(
       (acc, curr) => {
         const month = new Date(curr.data + 'T00:00:00')
           .toLocaleString('pt-BR', { month: 'short' })
           .toUpperCase()
         if (!acc[month]) acc[month] = { name: month, oportunidades: 0, vendas: 0 }
         acc[month].oportunidades += curr.valor
-        if (curr.vendido) acc[month].vendas += curr.valor
+        if (curr.vendido) acc[month].vendas += curr.valor_venda || curr.valor
         return acc
       },
       {} as Record<string, any>,
     )
     return Object.values(data)
-  }, [orcamentos])
+  }, [individualOrcamentos])
 
   const filteredOrcamentos = useMemo(() => {
-    if (filter === 'oportunidades') return orcamentos.filter((o) => !o.vendido)
-    if (filter === 'vendas') return orcamentos.filter((o) => o.vendido)
-    return orcamentos
-  }, [orcamentos, filter])
+    if (filter === 'oportunidades') return individualOrcamentos.filter((o) => !o.vendido)
+    if (filter === 'vendas') return individualOrcamentos.filter((o) => o.vendido)
+    return individualOrcamentos
+  }, [individualOrcamentos, filter])
 
-  const getColor = (val: number, format: 'currency' | 'percentage') => {
-    if (format === 'percentage') {
-      if (val < 15) return '#ef4444'
-      if (val < 30) return '#eab308'
-      return '#22c55e'
-    }
-    if (val < 2500) return '#ef4444'
-    if (val < 10000) return '#eab308'
-    return '#22c55e'
+  const getProgressColor = (percent: number) => {
+    if (percent < 80) return '#ef4444' // red
+    if (percent < 100) return '#eab308' // yellow
+    return '#22c55e' // green
+  }
+
+  const renderSimpleCard = (
+    label: string,
+    value: number,
+    format: 'currency' | 'percentage',
+    icon: React.ReactNode,
+  ) => {
+    const formattedValue =
+      format === 'currency'
+        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+        : `${value.toFixed(1)}%`
+
+    return (
+      <Card className="border-slate-200 shadow-sm relative overflow-hidden group">
+        <CardHeader className="pb-2 pt-4 flex flex-row items-center justify-between">
+          <CardTitle className="text-[11px] font-black text-slate-500 tracking-widest uppercase">
+            {label}
+          </CardTitle>
+          <div className="text-primary bg-primary/10 p-2 rounded-lg shrink-0">{icon}</div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-xl sm:text-2xl font-black text-nuvia-navy">{formattedValue}</div>
+        </CardContent>
+      </Card>
+    )
   }
 
   const renderGauge = (
@@ -386,13 +434,13 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
     value: number,
     meta: number,
     format: 'currency' | 'percentage',
-    icon: React.ReactNode,
   ) => {
-    const percentage = meta > 0 ? Math.min(Math.round((value / meta) * 100), 100) : 0
-    const color = getColor(value, format)
+    const percentage = meta > 0 ? (value / meta) * 100 : 0
+    const displayPercentage = Math.min(Math.round(percentage), 100) // For pie chart
+    const color = getProgressColor(percentage)
     const data = [
-      { name: 'Atual', value: percentage },
-      { name: 'Restante', value: 100 - percentage },
+      { name: 'Atual', value: displayPercentage },
+      { name: 'Restante', value: Math.max(100 - displayPercentage, 0) },
     ]
 
     const formattedValue =
@@ -406,7 +454,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
         : `${meta.toFixed(1)}%`
 
     return (
-      <Card className="border-slate-200 shadow-sm relative overflow-hidden group">
+      <Card className="border-slate-200 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: color }} />
         <CardHeader className="pb-0 pt-4 flex flex-row items-center justify-between">
           <CardTitle
@@ -415,7 +463,6 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
           >
             {label}
           </CardTitle>
-          <div className="text-slate-400 bg-slate-50 p-1.5 rounded-md shrink-0">{icon}</div>
         </CardHeader>
         <CardContent className="pt-2 pb-4">
           <div className="flex flex-col items-center justify-center relative h-28 w-full">
@@ -439,13 +486,13 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
             </ResponsiveContainer>
             <div className="absolute bottom-0 flex flex-col items-center">
               <span className="text-xl font-black leading-none" style={{ color }}>
-                {percentage}%
+                {Math.round(percentage)}%
               </span>
             </div>
           </div>
           <div className="flex justify-between items-end mt-4">
             <div>
-              <span className="text-[10px] text-slate-400 font-bold block">ATUAL</span>
+              <span className="text-[10px] text-slate-400 font-bold block">REALIZADO</span>
               <span className="text-xs sm:text-sm font-black text-nuvia-navy">
                 {formattedValue}
               </span>
@@ -476,59 +523,84 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
   }
 
   return (
-    <div className="mt-8 space-y-6 animate-fade-in-up">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {renderGauge(
-          'OPORTUNIDADE DE VENDA',
-          kpis.oportunidadeVenda.valor,
-          kpis.oportunidadeVenda.meta,
-          'currency',
-          <Target className="w-4 h-4" />,
-        )}
-        {renderGauge(
-          'TICKET MÉDIO OPORT.',
-          kpis.ticketMedioOportunidade.valor,
-          kpis.ticketMedioOportunidade.meta,
-          'currency',
-          <DollarSign className="w-4 h-4" />,
-        )}
-        {renderGauge(
-          'CONVERSÃO DE VENDA',
-          kpis.conversao.valor,
-          kpis.conversao.meta,
-          'percentage',
-          <Percent className="w-4 h-4" />,
-        )}
-        {renderGauge(
-          'VALOR TOTAL VENDIDO',
-          kpis.valorTotalVendido.valor,
-          kpis.valorTotalVendido.meta,
-          'currency',
-          <TrendingUp className="w-4 h-4" />,
-        )}
-        {renderGauge(
-          'TICKET MÉDIO VENDA',
-          kpis.ticketMedioVenda.valor,
-          kpis.ticketMedioVenda.meta,
-          'currency',
-          <DollarSign className="w-4 h-4" />,
-        )}
-        {renderGauge(
-          '% ENTRADA MÉDIA',
-          kpis.mediaEntrada.valor,
-          kpis.mediaEntrada.meta,
-          'percentage',
-          <Percent className="w-4 h-4" />,
-        )}
+    <div className="mt-8 space-y-8 animate-fade-in-up">
+      {/* 1. KPIs Individuais */}
+      <div>
+        <h3 className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2 mb-4">
+          <Users className="h-4 w-4 text-primary" /> KPIs INDIVIDUAIS (ATUAL)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {renderSimpleCard(
+            'VALOR VENDIDO',
+            indKpis.vendasTotais,
+            'currency',
+            <TrendingUp className="w-4 h-4" />,
+          )}
+          {renderSimpleCard(
+            'TICKET MÉDIO',
+            indKpis.ticketMedio,
+            'currency',
+            <DollarSign className="w-4 h-4" />,
+          )}
+          {renderSimpleCard(
+            'CONVERSÃO',
+            indKpis.conversao,
+            'percentage',
+            <Percent className="w-4 h-4" />,
+          )}
+          {renderSimpleCard(
+            'ENTRADA MÉDIA',
+            indKpis.mediaEntrada,
+            'percentage',
+            <Percent className="w-4 h-4" />,
+          )}
+        </div>
       </div>
 
+      {/* 2. Metas Individuais */}
+      <div>
+        <h3 className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2 mb-4">
+          <Target className="h-4 w-4 text-primary" /> METAS INDIVIDUAIS
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {renderGauge('META DE VENDAS', indKpis.vendasTotais, indGoals.vendasTotais, 'currency')}
+          {renderGauge('META DE TICKET', indKpis.ticketMedio, indGoals.ticketMedio, 'currency')}
+          {renderGauge('META DE CONVERSÃO', indKpis.conversao, indGoals.conversao, 'percentage')}
+          {renderGauge(
+            'META DE ENTRADA',
+            indKpis.mediaEntrada,
+            indGoals.mediaEntrada,
+            'percentage',
+          )}
+        </div>
+      </div>
+
+      {/* 3. Metas da Empresa */}
+      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+        <h3 className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2 mb-4">
+          <Building2 className="h-4 w-4 text-primary" /> METAS DA EMPRESA (CONSOLIDADO)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {renderGauge('META DE VENDAS', compKpis.vendasTotais, compGoals.vendasTotais, 'currency')}
+          {renderGauge('META DE TICKET', compKpis.ticketMedio, compGoals.ticketMedio, 'currency')}
+          {renderGauge('META DE CONVERSÃO', compKpis.conversao, compGoals.conversao, 'percentage')}
+          {renderGauge(
+            'META DE ENTRADA',
+            compKpis.mediaEntrada,
+            compGoals.mediaEntrada,
+            'percentage',
+          )}
+        </div>
+      </div>
+
+      {/* Evolução Mensal e Formulário de Orçamento */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card
           className={`border-slate-200 shadow-sm ${podeEditar ? 'col-span-1 lg:col-span-2' : 'col-span-1 lg:col-span-3'}`}
         >
           <CardHeader>
             <CardTitle className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" /> EVOLUÇÃO MENSAL
+              <TrendingUp className="h-4 w-4 text-primary" /> EVOLUÇÃO MENSAL (INDIVIDUAL)
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
@@ -594,7 +666,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                       setForm({
                         data: new Date().toISOString().split('T')[0],
                         vendido: false,
-                        crc_comercial_id: user?.id,
+                        crc_comercial_id: targetUserId,
                       })
                     }
                     className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full shadow-md"
@@ -805,7 +877,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
           <h3 className="text-sm font-black text-nuvia-navy tracking-widest flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" /> REGISTROS
+            <Users className="h-4 w-4 text-primary" /> REGISTROS (INDIVIDUAL)
           </h3>
           <Tabs
             value={filter}
@@ -882,7 +954,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="h-24 text-center font-bold text-slate-400 text-xs"
                   >
                     NENHUM REGISTRO ENCONTRADO PARA ESTE FILTRO.
