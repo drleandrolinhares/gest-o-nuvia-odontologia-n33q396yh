@@ -42,6 +42,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { Task } from '@/components/ConfigRotinaModal'
 import { AllRoutinesModal } from '@/components/AllRoutinesModal'
+import { CreateRoutineModal } from '@/components/CreateRoutineModal'
 import { useToast } from '@/components/ui/use-toast'
 
 interface Cargo {
@@ -127,6 +128,7 @@ export default function RotinaDiaria() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [rankingPeriod, setRankingPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily')
   const [isAllRoutinesModalOpen, setIsAllRoutinesModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const isToday = useMemo(() => {
     return format(selectedDate, 'yyyy-MM-dd') === format(currentTime, 'yyyy-MM-dd')
@@ -137,18 +139,19 @@ export default function RotinaDiaria() {
     return () => clearInterval(timer)
   }, [])
 
-  useEffect(() => {
-    const fetchCargos = async () => {
-      const { data: rotinas } = await supabase.from('rotinas_config').select('cargo_id')
-      const rotinaCargoIds = new Set(rotinas?.map((r) => r.cargo_id) || [])
+  const fetchFilteredCargos = useCallback(async () => {
+    const { data: rotinas } = await supabase.from('rotinas_config').select('cargo_id')
+    const rotinaCargoIds = new Set(rotinas?.map((r) => r.cargo_id) || [])
 
-      const { data } = await supabase.from('cargos').select('id, nome').order('nome')
-      if (data) {
-        setCargos(data.filter((c) => c.nome.toUpperCase() !== 'CEO' && rotinaCargoIds.has(c.id)))
-      }
+    const { data } = await supabase.from('cargos').select('id, nome').order('nome')
+    if (data) {
+      setCargos(data.filter((c) => c.nome.toUpperCase() !== 'CEO' && rotinaCargoIds.has(c.id)))
     }
-    fetchCargos()
   }, [])
+
+  useEffect(() => {
+    fetchFilteredCargos()
+  }, [fetchFilteredCargos])
 
   useEffect(() => {
     const checkAdminAndUser = async () => {
@@ -491,89 +494,99 @@ export default function RotinaDiaria() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <div className="relative">
-            <input
-              type="date"
-              value={format(selectedDate, 'yyyy-MM-dd')}
-              max={format(currentTime, 'yyyy-MM-dd')}
-              onChange={(e) => {
-                const parts = e.target.value.split('-')
-                if (parts.length === 3) {
-                  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
-                  setSelectedDate(date)
-                }
-              }}
-              className="h-11 px-4 py-2 bg-white border border-slate-200 rounded-md font-bold text-nuvia-navy uppercase tracking-wider text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-full sm:w-44 cursor-pointer"
-            />
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <div className="w-full sm:w-56">
-              <Select
-                value={selectedCargoId}
-                onValueChange={(val) => {
-                  setSelectedCargoId(val)
-                  setSelectedColaboradorId(isAdmin ? 'todos' : user?.id || 'todos')
+        <div className="flex flex-col items-end gap-3 w-full md:w-auto">
+          {isAdmin && (
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-widest text-[10px] h-7 px-3 shadow-sm w-full sm:w-auto"
+            >
+              + ADICIONAR ROTINA
+            </Button>
+          )}
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className="relative">
+              <input
+                type="date"
+                value={format(selectedDate, 'yyyy-MM-dd')}
+                max={format(currentTime, 'yyyy-MM-dd')}
+                onChange={(e) => {
+                  const parts = e.target.value.split('-')
+                  if (parts.length === 3) {
+                    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+                    setSelectedDate(date)
+                  }
                 }}
-              >
-                <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
-                  <SelectValue placeholder="CARGO" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cargos.map((cargo) => (
-                    <SelectItem
-                      key={cargo.id}
-                      value={cargo.id}
-                      className="font-bold uppercase tracking-wider"
-                    >
-                      {cargo.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                className="h-11 px-4 py-2 bg-white border border-slate-200 rounded-md font-bold text-nuvia-navy uppercase tracking-wider text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 w-full sm:w-44 cursor-pointer"
+              />
             </div>
 
-            {selectedCargoId && (
-              <div className="w-full sm:w-64 relative">
-                <Select value={selectedColaboradorId} onValueChange={setSelectedColaboradorId}>
-                  <SelectTrigger
-                    className={cn(
-                      'w-full font-black uppercase tracking-wider h-11 transition-all',
-                      selectedColaboradorId && selectedColaboradorId !== 'todos'
-                        ? 'bg-indigo-50 border-indigo-300 text-indigo-800 shadow-sm'
-                        : 'bg-white text-nuvia-navy',
-                    )}
-                  >
-                    <SelectValue
-                      placeholder={isAdmin ? 'SIMULAR COLABORADOR' : 'VISUALIZAR ROTINA'}
-                    />
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="w-full sm:w-56">
+                <Select
+                  value={selectedCargoId}
+                  onValueChange={(val) => {
+                    setSelectedCargoId(val)
+                    setSelectedColaboradorId(isAdmin ? 'todos' : user?.id || 'todos')
+                  }}
+                >
+                  <SelectTrigger className="w-full bg-white font-bold text-nuvia-navy uppercase tracking-wider h-11">
+                    <SelectValue placeholder="CARGO" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem
-                      value="todos"
-                      className="font-bold uppercase tracking-wider text-slate-500"
-                    >
-                      VISÃO GERAL DO CARGO
-                    </SelectItem>
-                    {colaboradores.map((colab) => (
+                    {cargos.map((cargo) => (
                       <SelectItem
-                        key={colab.id}
-                        value={colab.id}
+                        key={cargo.id}
+                        value={cargo.id}
                         className="font-bold uppercase tracking-wider"
                       >
-                        {colab.nome}
+                        {cargo.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {selectedColaboradorId && selectedColaboradorId !== 'todos' && (
-                  <div className="absolute -top-2.5 -right-2 bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in duration-300 border border-white">
-                    SIMULANDO
-                  </div>
-                )}
               </div>
-            )}
+
+              {selectedCargoId && (
+                <div className="w-full sm:w-64 relative">
+                  <Select value={selectedColaboradorId} onValueChange={setSelectedColaboradorId}>
+                    <SelectTrigger
+                      className={cn(
+                        'w-full font-black uppercase tracking-wider h-11 transition-all',
+                        selectedColaboradorId && selectedColaboradorId !== 'todos'
+                          ? 'bg-indigo-50 border-indigo-300 text-indigo-800 shadow-sm'
+                          : 'bg-white text-nuvia-navy',
+                      )}
+                    >
+                      <SelectValue
+                        placeholder={isAdmin ? 'SIMULAR COLABORADOR' : 'VISUALIZAR ROTINA'}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        value="todos"
+                        className="font-bold uppercase tracking-wider text-slate-500"
+                      >
+                        VISÃO GERAL DO CARGO
+                      </SelectItem>
+                      {colaboradores.map((colab) => (
+                        <SelectItem
+                          key={colab.id}
+                          value={colab.id}
+                          className="font-bold uppercase tracking-wider"
+                        >
+                          {colab.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedColaboradorId && selectedColaboradorId !== 'todos' && (
+                    <div className="absolute -top-2.5 -right-2 bg-indigo-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in duration-300 border border-white">
+                      SIMULANDO
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1008,6 +1021,16 @@ export default function RotinaDiaria() {
           </p>
         </div>
       )}
+
+      <CreateRoutineModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={() => {
+          fetchFilteredCargos()
+          fetchTasks()
+          fetchRanking()
+        }}
+      />
 
       <AllRoutinesModal
         isOpen={isAllRoutinesModalOpen}
