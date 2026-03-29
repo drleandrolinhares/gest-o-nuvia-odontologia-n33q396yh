@@ -47,13 +47,23 @@ export default function GestaoVendas() {
     }
 
     const fetchDentistas = async () => {
-      const { data } = await supabase
-        .from('dentistas_avaliadores')
-        .select('usuario_id, profiles!inner(nome)')
+      const { data } = await supabase.from('dentistas_avaliadores').select('usuario_id')
+
       if (data && data.length > 0) {
-        setDentistas(
-          data.map((d: any) => ({ id: d.usuario_id, nome: d.profiles?.nome || 'Sem Nome' })),
-        )
+        const ids = data.map((d) => d.usuario_id)
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, nome')
+          .in('id', ids)
+
+        if (profilesData && profilesData.length > 0) {
+          setDentistas(profilesData.map((p) => ({ id: p.id, nome: p.nome || 'Sem Nome' })))
+        } else {
+          setDentistas([
+            { id: 'mock-1', nome: 'Dra. Ana Silva' },
+            { id: 'mock-2', nome: 'Dr. Carlos Mendes' },
+          ])
+        }
       } else {
         setDentistas([
           { id: 'mock-1', nome: 'Dra. Ana Silva' },
