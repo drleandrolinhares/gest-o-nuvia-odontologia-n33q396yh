@@ -44,17 +44,49 @@ export const userService = {
   fetchProfiles: async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*, cargos(nome), departamentos(nome)')
+      .select('*, user_cargos(cargo, cargo_id, is_principal), departamentos(nome)')
       .order('nome')
     if (error) {
       console.error(error)
       return []
     }
-    return data || []
+
+    return (data || []).map((p: any) => {
+      const principalCargo =
+        p.user_cargos?.find((c: any) => c.is_principal) || p.user_cargos?.[0] || null
+      return {
+        ...p,
+        cargo_id: principalCargo?.cargo_id || null,
+        cargos: principalCargo ? { nome: principalCargo.cargo } : null,
+        user_cargos: undefined,
+      }
+    })
   },
   updateProfile: async (id: string, data: any) => {
-    const { error } = await supabase.from('profiles').update(data).eq('id', id)
-    if (error) throw error
+    const { cargo_id, ...profileData } = data
+
+    if (Object.keys(profileData).length > 0) {
+      const { error } = await supabase.from('profiles').update(profileData).eq('id', id)
+      if (error) throw error
+    }
+
+    if (cargo_id !== undefined) {
+      await supabase.from('user_cargos').delete().eq('user_id', id)
+
+      if (cargo_id) {
+        const { data: cargoData } = await supabase
+          .from('cargos')
+          .select('nome')
+          .eq('id', cargo_id)
+          .single()
+        await supabase.from('user_cargos').insert({
+          user_id: id,
+          cargo_id: cargo_id,
+          cargo: cargoData?.nome || '',
+          is_principal: true,
+        })
+      }
+    }
     return true
   },
   deleteUser: async (id: string) => {

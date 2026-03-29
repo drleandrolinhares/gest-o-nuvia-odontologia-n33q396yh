@@ -62,17 +62,18 @@ Deno.serve(async (req: Request) => {
     }
 
     // Buscar perfil para obter cargo_id garantindo que consultamos a tabela vinculada ao auth.users
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+    const { data: userCargo, error: cargoError } = await supabaseAdmin
+      .from('user_cargos')
       .select('cargo_id')
-      .eq('id', targetUserId)
-      .single()
+      .eq('user_id', targetUserId)
+      .eq('is_principal', true)
+      .maybeSingle()
 
-    if (profileError && profileError.code !== 'PGRST116') {
-      throw profileError
+    if (cargoError && cargoError.code !== 'PGRST116') {
+      throw cargoError
     }
 
-    const cargoId = profile?.cargo_id
+    const cargoId = userCargo?.cargo_id
 
     // 3. Buscar todos os menus/submenus do sistema com suporte a hierarquia
     const { data: menus, error: menusError } = await supabaseAdmin
