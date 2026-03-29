@@ -6,31 +6,28 @@ import { AlertTriangle, RefreshCw, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, authError } = useAuth()
+  const { user, loading: authLoading, authError } = useAuth()
   const appStore = useAppStore()
   const storeLoading = appStore?.loading
   const location = useLocation()
   const [isStuck, setIsStuck] = useState(false)
 
-  // Remove o fallback de `|| user` para garantir que a sidebar só
-  // seja renderizada após o perfil estar totalmente carregado do banco.
-  const perfil = (appStore as any)?.currentProfile || (appStore as any)?.profile
-
-  // Guarda de segurança (Array Guard) para user_cargos
-  const safeUserCargos = perfil?.user_cargos?.filter((item: any) => item) || []
+  const isLoading = authLoading || storeLoading
 
   useEffect(() => {
     let timeout: NodeJS.Timeout
-    // Se temos usuário mas o perfil não chegou após 5 segundos, exibimos a opção de limpeza
-    if (user && (!perfil || !perfil.user_cargos) && !loading && !storeLoading) {
+    // Se o sistema continuar carregando por mais de 5 segundos, exibimos a opção de limpeza
+    if (isLoading) {
       timeout = setTimeout(() => {
         setIsStuck(true)
       }, 5000)
+    } else {
+      setIsStuck(false)
     }
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [user, perfil, loading, storeLoading])
+  }, [isLoading])
 
   const handleClearCache = () => {
     localStorage.clear()
@@ -38,22 +35,12 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     window.location.replace('/login?clear=1')
   }
 
-  if (loading || storeLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
-        <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
-        <p className="text-sm opacity-80 animate-pulse">Carregando dados do sistema...</p>
-      </div>
-    )
-  }
-
-  // Garantindo que a sidebar (layout e childrens) NUNCA seja renderizada
-  // sem as permissões e o perfil adequadamente carregados no AppStore.
-  if (user && (!perfil || !perfil.user_cargos)) {
+  // Garantimos que a aplicação aguarde todas as stores resolverem seus estados iniciais
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6 px-4 text-center">
         <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
-        <p className="text-sm opacity-80 animate-pulse">Carregando perfil e permissões...</p>
+        <p className="text-sm opacity-80 animate-pulse">Carregando dados do sistema...</p>
 
         {isStuck && (
           <div className="mt-8 flex flex-col items-center space-y-4 animate-fade-in">

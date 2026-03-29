@@ -54,22 +54,20 @@ export default function Login() {
         return
       }
 
-      // Validação inicial do perfil após login - Atualizado para usar user_cargos e evitar erro 400 / 42703
+      // Validação inicial do perfil após login
       const {
         data: { user },
       } = await supabase.auth.getUser()
+
       if (user) {
-        const { data: perfilData, error: profileError } = await supabase
+        const { error: profileError } = await supabase
           .from('profiles')
           .select('id,nome,email,user_cargos(cargo_id,cargo,is_principal)')
           .eq('id', user.id)
           .single()
 
-        // Guarda de segurança para o array de cargos, prevenindo ".filter undefined" futuro
-        const safeUserCargos = perfilData?.user_cargos?.filter((item: any) => item) || []
-
-        if (profileError) {
-          console.error('Falha ao carregar perfil:', profileError.message)
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Falha ao validar perfil:', profileError.message)
           if ((profileError as any).code === '42703' || (profileError as any).code === '400') {
             localStorage.clear()
             sessionStorage.clear()

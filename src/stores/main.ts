@@ -3,11 +3,25 @@ import { supabase } from '@/lib/supabase/client'
 import React, { useEffect } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 
+export interface UserProfile {
+  id: string
+  nome: string | null
+  email: string | null
+  cargo_id: string | null
+  cargo_nome: string | null
+  departamento_id: string | null
+  is_admin: boolean
+  is_master: boolean
+  user_cargos?: any[]
+  isAdmin?: boolean // Alias for backwards compatibility
+}
+
 interface AppState {
-  profile: any | null
+  profile: UserProfile | null
   permissions: any[]
   loading: boolean
   fetchProfile: (userId: string) => Promise<void>
+  refreshProfile: () => Promise<void>
   can: (module: string, action?: 'ver' | 'criar' | 'editar' | 'deletar') => boolean
   clear: () => void
 }
@@ -19,37 +33,74 @@ const useMainStore = create<AppState>((set, get) => ({
   fetchProfile: async (userId: string) => {
     set({ loading: true })
     try {
-      // FIX: Consulta ajustada para usar 'user_cargos'
+      // Utilizando a query robusta para previnir erros de schema e trazer os relacionamentos
       const { data, error } = await supabase
         .from('profiles')
-        .select('id,nome,email,user_cargos(cargo_id,cargo,is_principal)')
+        .select('id, nome, email, departamento_id, user_cargos(cargo_id, cargo, is_principal)')
         .eq('id', userId)
         .single()
 
-      if (error) throw error
+      if (error && error.code !== 'PGRST116') {
+        throw error
+      }
 
-      const p = data as any
-      const isAdmin =
-        p?.user_cargos?.some((c: any) =>
+      // Resolvendo as permissões de admin/master (RPC > Fallback Cargos)
+      let is_admin = false
+      let is_master = false
+
+      try {
+        const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: userId })
+        const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: userId })
+        is_admin = !!isAdminData
+        is_master = !!isMasterData
+      } catch (e) {
+        console.warn('Aviso: RPC não encontrada ou erro, avaliando permissão por string de cargo.')
+      }
+
+      const cargos = data?.user_cargos || []
+
+      if (!is_admin) {
+        is_admin = cargos.some((c: any) =>
           ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(c.cargo?.toUpperCase()),
-        ) || false
+        )
+      }
 
-      // Extraindo cargo_id principal para manter compatibilidade
-      const principalCargo = p?.user_cargos?.find((c: any) => c.is_principal) || p?.user_cargos?.[0]
+      if (!is_master) {
+        is_master = cargos.some((c: any) => ['MASTER', 'ADMIN'].includes(c.cargo?.toUpperCase()))
+      }
+
+      const principalCargo = cargos.find((c: any) => c.is_principal) || cargos[0]
       const cargo_id = principalCargo?.cargo_id || null
       const cargo_nome = principalCargo?.cargo || null
 
-      set({ profile: { ...p, cargo_id, cargo_nome, isAdmin } })
+      const profileData: UserProfile = {
+        id: userId,
+        nome: data?.nome || null,
+        email: data?.email || null,
+        cargo_id,
+        cargo_nome,
+        departamento_id: data?.departamento_id || null,
+        is_admin,
+        is_master,
+        isAdmin: is_admin, // Retrocompatibilidade para chamadas antigas
+        user_cargos: cargos,
+      }
 
-      const res = await supabase.functions.invoke('get_user_permissions', {
-        body: { userId },
-      })
+      set({ profile: profileData })
 
-      if (res.data?.permissions) {
-        set({ permissions: res.data.permissions })
+      // Carregando permissões finas via Edge Function
+      try {
+        const res = await supabase.functions.invoke('get_user_permissions', {
+          body: { userId },
+        })
+        if (res.data?.permissions) {
+          set({ permissions: res.data.permissions })
+        }
+      } catch (permError) {
+        console.warn('Aviso: Falha ao carregar permissoes detalhadas:', permError)
       }
     } catch (error: any) {
-      console.error('Error fetching profile', error)
+      console.error('Error fetching profile:', error)
       if (error?.code === '42703' || error?.status === 400) {
         console.warn('Erro de schema detectado (42703/400). Limpando cache e forçando logout.')
         localStorage.clear()
@@ -61,10 +112,16 @@ const useMainStore = create<AppState>((set, get) => ({
       set({ loading: false })
     }
   },
+  refreshProfile: async () => {
+    const { profile } = get()
+    if (profile?.id) {
+      await get().fetchProfile(profile.id)
+    }
+  },
   can: (module: string, action = 'ver') => {
     const { profile, permissions } = get()
     if (!profile) return false
-    if (profile.isAdmin) return true
+    if (profile.is_admin || profile.is_master || profile.isAdmin) return true
 
     const safePermissions = permissions?.filter?.((p: any) => p) || []
     const perm = safePermissions.find((p: any) => p?.nome?.toUpperCase() === module.toUpperCase())
@@ -88,12 +145,12 @@ const useMainStore = create<AppState>((set, get) => ({
 
 export default useMainStore
 
-// Export aliases for backwards compatibility
+// Exportando aliases universais
 export const useAppStore = useMainStore
 export const useApp = useMainStore
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user, session, loading: authLoading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const fetchProfile = useMainStore((state) => state.fetchProfile)
   const clear = useMainStore((state) => state.clear)
 
