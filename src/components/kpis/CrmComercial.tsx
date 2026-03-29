@@ -155,25 +155,24 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
 
       // 2. Fetch Data
       const { data: dados, error: dadosErr } = await supabase
-        .from('kpis_dados')
+        .from('vendas' as any)
         .select('*')
-        .eq('kpi_id', config.id)
-        .order('data', { ascending: false })
+        .order('data_venda', { ascending: false })
 
       if (dadosErr) throw dadosErr
 
-      const parsed = (dados || []).map((d) => ({
+      const parsed = (dados || []).map((d: any) => ({
         id: d.id,
-        data: d.data,
-        paciente: (d.valores_json as any)?.paciente || '',
-        valor: (d.valores_json as any)?.valor || 0,
-        vendido: (d.valores_json as any)?.vendido || false,
-        dentista_id: (d.valores_json as any)?.dentista_id || '',
-        crc_comercial_id: (d.valores_json as any)?.crc_comercial_id || '',
-        valor_venda: (d.valores_json as any)?.valor_venda,
-        valor_entrada: (d.valores_json as any)?.valor_entrada,
-        percentual_entrada: (d.valores_json as any)?.percentual_entrada,
-        origem_venda: (d.valores_json as any)?.origem_venda,
+        data: d.data_venda,
+        paciente: d.paciente || '',
+        valor: d.valor_orcamento || 0,
+        vendido: d.status === 'VENDIDO',
+        dentista_id: d.dentista_id || '',
+        crc_comercial_id: d.crc_comercial_id || '',
+        valor_venda: d.valor_venda,
+        valor_entrada: d.valor_entrada,
+        percentual_entrada: d.percentual_entrada,
+        origem_venda: d.tipo_venda,
       }))
       setOrcamentos(parsed)
     } catch (e) {
@@ -184,27 +183,25 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
   }
 
   const handleSave = async () => {
-    if (!form.paciente || !form.valor || !form.data || !configId || !podeEditar) return
+    if (!form.paciente || !form.valor || !form.data || !podeEditar) return
 
     try {
+      const payload = {
+        data_venda: form.data,
+        paciente: form.paciente,
+        valor_orcamento: form.valor,
+        status: form.vendido ? 'VENDIDO' : 'ORÇAMENTO',
+        dentista_id: form.dentista_id || null,
+        crc_comercial_id: form.crc_comercial_id || null,
+        valor_venda: form.vendido ? form.valor_venda || 0 : 0,
+        valor_entrada: form.vendido ? form.valor_entrada || 0 : 0,
+        percentual_entrada: form.vendido ? form.percentual_entrada || 0 : 0,
+        tipo_venda: form.vendido ? form.origem_venda : null,
+      }
+
       const { data, error } = await supabase
-        .from('kpis_dados')
-        .insert({
-          kpi_id: configId,
-          cargo_id: cargoId,
-          data: form.data,
-          valores_json: {
-            paciente: form.paciente,
-            valor: form.valor,
-            vendido: form.vendido || false,
-            dentista_id: form.dentista_id,
-            crc_comercial_id: form.crc_comercial_id,
-            valor_venda: form.vendido ? form.valor_venda : undefined,
-            valor_entrada: form.vendido ? form.valor_entrada : undefined,
-            percentual_entrada: form.vendido ? form.percentual_entrada : undefined,
-            origem_venda: form.vendido ? form.origem_venda : undefined,
-          },
-        })
+        .from('vendas' as any)
+        .insert(payload)
         .select()
         .single()
 
@@ -212,16 +209,16 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
 
       const novo: Orcamento = {
         id: data.id,
-        data: data.data,
-        paciente: form.paciente,
-        valor: form.valor,
-        vendido: form.vendido || false,
-        dentista_id: form.dentista_id,
-        crc_comercial_id: form.crc_comercial_id,
-        valor_venda: form.vendido ? form.valor_venda : undefined,
-        valor_entrada: form.vendido ? form.valor_entrada : undefined,
-        percentual_entrada: form.vendido ? form.percentual_entrada : undefined,
-        origem_venda: form.vendido ? form.origem_venda : undefined,
+        data: data.data_venda,
+        paciente: data.paciente,
+        valor: data.valor_orcamento,
+        vendido: data.status === 'VENDIDO',
+        dentista_id: data.dentista_id,
+        crc_comercial_id: data.crc_comercial_id,
+        valor_venda: data.valor_venda,
+        valor_entrada: data.valor_entrada,
+        percentual_entrada: data.percentual_entrada,
+        origem_venda: data.tipo_venda,
       }
 
       setOrcamentos([novo, ...orcamentos])
@@ -251,15 +248,13 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
 
     try {
       const { error } = await supabase
-        .from('kpis_dados')
+        .from('vendas' as any)
         .update({
-          valores_json: {
-            paciente: current.paciente,
-            valor: current.valor,
-            vendido: false,
-            dentista_id: current.dentista_id,
-            crc_comercial_id: current.crc_comercial_id,
-          },
+          status: 'ORÇAMENTO',
+          valor_venda: 0,
+          valor_entrada: 0,
+          percentual_entrada: 0,
+          tipo_venda: null,
         })
         .eq('id', id)
 
@@ -285,24 +280,20 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
   }
 
   const handleConfirmVendaSubmit = async () => {
-    if (!confirmVendaItem || !configId || !podeEditar) return
+    if (!confirmVendaItem || !podeEditar) return
 
     try {
+      const payload = {
+        status: 'VENDIDO',
+        valor_venda: form.valor_venda || 0,
+        valor_entrada: form.valor_entrada || 0,
+        percentual_entrada: form.percentual_entrada || 0,
+        tipo_venda: form.origem_venda || null,
+      }
+
       const { error } = await supabase
-        .from('kpis_dados')
-        .update({
-          valores_json: {
-            paciente: confirmVendaItem.paciente,
-            valor: confirmVendaItem.valor,
-            vendido: true,
-            dentista_id: confirmVendaItem.dentista_id,
-            crc_comercial_id: confirmVendaItem.crc_comercial_id,
-            valor_venda: form.valor_venda,
-            valor_entrada: form.valor_entrada,
-            percentual_entrada: form.percentual_entrada,
-            origem_venda: form.origem_venda,
-          },
-        })
+        .from('vendas' as any)
+        .update(payload)
         .eq('id', confirmVendaItem.id)
 
       if (error) throw error
@@ -316,7 +307,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                 valor_venda: form.valor_venda,
                 valor_entrada: form.valor_entrada,
                 percentual_entrada: form.percentual_entrada,
-                origem_venda: form.origem_venda,
+                origem_venda: form.origem_venda as any,
               }
             : o,
         ),
