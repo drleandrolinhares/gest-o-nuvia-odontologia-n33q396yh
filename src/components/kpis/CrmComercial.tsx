@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { Users, Plus, Target, TrendingUp, DollarSign, Percent, Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/use-auth'
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,8 @@ export interface Orcamento {
   paciente: string
   valor: number
   vendido: boolean
+  dentista_id?: string
+  crc_comercial_id?: string
 }
 
 interface CrmComercialProps {
@@ -52,6 +55,7 @@ interface CrmComercialProps {
 }
 
 export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) {
+  const { user } = useAuth()
   const { toast } = useToast()
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([])
   const [configId, setConfigId] = useState<string | null>(null)
@@ -59,6 +63,44 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [form, setForm] = useState<Partial<Orcamento>>({})
   const [filter, setFilter] = useState<'todos' | 'oportunidades' | 'vendas'>('todos')
+  const [dentistas, setDentistas] = useState<{ id: string; nome: string }[]>([])
+  const [crcComercialNome, setCrcComercialNome] = useState('')
+
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('id, nome')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) setCrcComercialNome(data.nome || user.email || '')
+        })
+    }
+
+    const fetchDentistas = async () => {
+      const { data: cargos } = await supabase
+        .from('cargos')
+        .select('id')
+        .ilike('nome', '%dentista%')
+      if (cargos && cargos.length > 0) {
+        const ids = cargos.map((c) => c.id)
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('id, nome')
+          .in('cargo_id', ids)
+        if (profs && profs.length > 0) {
+          setDentistas(profs.map((p) => ({ id: p.id, nome: p.nome || '' })))
+          return
+        }
+      }
+      setDentistas([
+        { id: 'mock-1', nome: 'Dra. Ana Silva' },
+        { id: 'mock-2', nome: 'Dr. Carlos Mendes' },
+      ])
+    }
+    fetchDentistas()
+  }, [user])
 
   useEffect(() => {
     if (cargoId) fetchData()
@@ -111,6 +153,8 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
         paciente: (d.valores_json as any)?.paciente || '',
         valor: (d.valores_json as any)?.valor || 0,
         vendido: (d.valores_json as any)?.vendido || false,
+        dentista_id: (d.valores_json as any)?.dentista_id || '',
+        crc_comercial_id: (d.valores_json as any)?.crc_comercial_id || '',
       }))
       setOrcamentos(parsed)
     } catch (e) {
@@ -134,6 +178,8 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
             paciente: form.paciente,
             valor: form.valor,
             vendido: form.vendido || false,
+            dentista_id: form.dentista_id,
+            crc_comercial_id: form.crc_comercial_id,
           },
         })
         .select()
@@ -147,6 +193,8 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
         paciente: form.paciente,
         valor: form.valor,
         vendido: form.vendido || false,
+        dentista_id: form.dentista_id,
+        crc_comercial_id: form.crc_comercial_id,
       }
 
       setOrcamentos([novo, ...orcamentos])
@@ -168,7 +216,13 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
       const { error } = await supabase
         .from('kpis_dados')
         .update({
-          valores_json: { paciente: current.paciente, valor: current.valor, vendido: newVendido },
+          valores_json: {
+            paciente: current.paciente,
+            valor: current.valor,
+            vendido: newVendido,
+            dentista_id: current.dentista_id,
+            crc_comercial_id: current.crc_comercial_id,
+          },
         })
         .eq('id', id)
 
@@ -429,7 +483,11 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                 <DialogTrigger asChild>
                   <Button
                     onClick={() =>
-                      setForm({ data: new Date().toISOString().split('T')[0], vendido: false })
+                      setForm({
+                        data: new Date().toISOString().split('T')[0],
+                        vendido: false,
+                        crc_comercial_id: user?.id,
+                      })
                     }
                     className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black w-full shadow-md"
                   >
@@ -475,6 +533,35 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                         placeholder="0,00"
                         value={form.valor ?? ''}
                         onChange={(e) => setForm({ ...form, valor: Number(e.target.value) })}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                        DENTISTA AVALIADOR
+                      </Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-bold uppercase"
+                        value={form.dentista_id || ''}
+                        onChange={(e) => setForm({ ...form, dentista_id: e.target.value })}
+                      >
+                        <option value="" disabled>
+                          SELECIONE O DENTISTA
+                        </option>
+                        {dentistas.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="font-bold text-xs text-slate-500 tracking-wider">
+                        CRC COMERCIAL
+                      </Label>
+                      <Input
+                        className="font-bold uppercase bg-slate-100"
+                        value={crcComercialNome}
+                        disabled
                       />
                     </div>
                     <div className="flex items-center space-x-2 pt-2">
@@ -543,6 +630,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
               <TableRow>
                 <TableHead className="font-black text-slate-500 text-xs">DATA</TableHead>
                 <TableHead className="font-black text-slate-500 text-xs">PACIENTE</TableHead>
+                <TableHead className="font-black text-slate-500 text-xs">DENTISTA</TableHead>
                 <TableHead className="font-black text-slate-500 text-xs text-right">
                   VALOR
                 </TableHead>
@@ -560,6 +648,9 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
                     </TableCell>
                     <TableCell className="font-bold text-nuvia-navy uppercase text-xs">
                       {orc.paciente}
+                    </TableCell>
+                    <TableCell className="font-bold text-slate-500 uppercase text-xs">
+                      {dentistas.find((d) => d.id === orc.dentista_id)?.nome || '-'}
                     </TableCell>
                     <TableCell className="font-black text-nuvia-navy text-right text-xs whitespace-nowrap">
                       {new Intl.NumberFormat('pt-BR', {
@@ -582,7 +673,7 @@ export function CrmComercial({ cargoId, podeEditar = true }: CrmComercialProps) 
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="h-24 text-center font-bold text-slate-400 text-xs"
                   >
                     NENHUM REGISTRO ENCONTRADO PARA ESTE FILTRO.
