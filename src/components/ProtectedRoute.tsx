@@ -6,14 +6,26 @@ import { Button } from '@/components/ui/button'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, authError } = useAuth()
-  const { loading: storeLoading } = useAppStore()
+  const appStore = useAppStore()
+  const storeLoading = appStore?.loading
   const location = useLocation()
+
+  const perfil = (appStore as any)?.currentProfile || (appStore as any)?.profile || user
 
   if (loading || storeLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
         <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
         <p className="text-sm opacity-80 animate-pulse">Carregando dados do sistema...</p>
+      </div>
+    )
+  }
+
+  if (user && !perfil) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0A192F] text-[#D4AF37] font-bold tracking-widest uppercase space-y-6">
+        <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(212,175,55,0.3)]"></div>
+        <p className="text-sm opacity-80 animate-pulse">Carregando perfil...</p>
       </div>
     )
   }

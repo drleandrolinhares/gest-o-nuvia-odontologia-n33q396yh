@@ -43,7 +43,9 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const { sacRecords, can, userPermissions } = useAppStore()
 
   const pendingSacsCount = useMemo(() => {
-    return (sacRecords || []).filter((r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO').length
+    return (sacRecords?.filter((item) => item) || []).filter(
+      (r) => r?.status === 'OPORTUNIDADE DE SOLUÇÃO',
+    ).length
   }, [sacRecords])
 
   const [hasRotina, setHasRotina] = useState<boolean | null>(null)
@@ -167,7 +169,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
 
     return sections
       .map((section) => {
-        const visibleItems = section.items.filter((item) => {
+        const visibleItems = (section.items?.filter((item) => item) || []).filter((item) => {
           if (
             item.adminOnly &&
             user?.email !== 'drleandrolinhares@gmail.com' &&
@@ -182,7 +184,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         })
         return { ...section, items: visibleItems }
       })
-      .filter((section) => section.items.length > 0)
+      .filter((section) => section && section.items && section.items.length > 0)
   }, [pendingSacsCount, can, user?.email, userPermissions, isUserAdmin, hasRotina])
 
   const toggleSection = (title: string) => {
@@ -197,8 +199,10 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     setOpenSections((prev) => {
       let hasChanges = false
       const next = { ...prev }
-      navigationSections.forEach((section) => {
-        const isAnySubActive = section.items.some((item) => location.pathname.startsWith(item.href))
+      ;(navigationSections?.filter((item) => item) || []).forEach((section) => {
+        const isAnySubActive = (section.items?.filter((item) => item) || []).some((item) =>
+          location.pathname.startsWith(item.href),
+        )
         if (isAnySubActive && !next[section.title]) {
           next[section.title] = true
           hasChanges = true
@@ -228,7 +232,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-3 overflow-x-hidden custom-scrollbar">
-        {navigationSections.map((section) => {
+        {(navigationSections?.filter((item) => item) || []).map((section) => {
           return (
             <div key={section.title} className="mb-2">
               <Collapsible
@@ -264,7 +268,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
                 </CollapsibleTrigger>
                 {(!isCollapsed || isMobile) && (
                   <CollapsibleContent className="space-y-1 mt-1 pl-11 pr-2 pb-2">
-                    {section.items.map((item) => {
+                    {(section.items?.filter((item) => item) || []).map((item) => {
                       const isActive =
                         item.href === '/rotina-diaria'
                           ? location.pathname === '/rotina-diaria' ||
