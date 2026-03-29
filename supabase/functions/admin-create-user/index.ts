@@ -4,8 +4,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -16,7 +15,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-
+    
     // Create an admin client using the service role key to bypass RLS and use Admin API
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
@@ -28,12 +27,9 @@ Deno.serve(async (req: Request) => {
     // Verify the user making the request is authenticated
     const authHeader = req.headers.get('Authorization')!
     if (!authHeader) throw new Error('Missing Authorization header')
-
+    
     const token = authHeader.replace('Bearer ', '')
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseAdmin.auth.getUser(token)
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
       throw new Error('Unauthorized')
@@ -49,14 +45,12 @@ Deno.serve(async (req: Request) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, cargo_id },
+      user_metadata: { name, cargo_id }
     })
 
     if (createError) {
-      const isAlreadyRegistered =
-        createError.message.includes('already been registered') ||
-        createError.message.includes('already exists')
-
+      const isAlreadyRegistered = createError.message.includes('already been registered') || createError.message.includes('already exists')
+      
       if (isAlreadyRegistered) {
         // Since the profiles table has been deleted, we cannot check for orphaned accounts easily.
         // If an email exists, we just return the error.
@@ -80,19 +74,15 @@ Deno.serve(async (req: Request) => {
     if (data && data.user) {
       // Call RPC to enforce auth.users strict requirements (empty string instead of NULL)
       await supabaseAdmin.rpc('fix_auth_user_tokens', { user_id: data.user.id })
-
+      
       if (cargo_id) {
-        const { data: cargoData } = await supabaseAdmin
-          .from('cargos')
-          .select('nome')
-          .eq('id', cargo_id)
-          .single()
-        await supabaseAdmin.from('user_cargos').insert({
-          user_id: data.user.id,
-          cargo_id: cargo_id,
-          cargo: cargoData?.nome || '',
-          is_principal: true,
-        })
+         const { data: cargoData } = await supabaseAdmin.from('cargos').select('nome').eq('id', cargo_id).single();
+         await supabaseAdmin.from('user_cargos').insert({
+            user_id: data.user.id,
+            cargo_id: cargo_id,
+            cargo: cargoData?.nome || '',
+            is_principal: true
+         });
       }
 
       return new Response(JSON.stringify({ id: data.user.id }), {
