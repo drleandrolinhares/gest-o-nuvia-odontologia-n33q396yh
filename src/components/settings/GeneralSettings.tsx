@@ -12,7 +12,17 @@ import {
   Palette,
   Briefcase,
   Building2,
+  CircleDollarSign,
+  Edit2,
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import useAppStore from '@/stores/main'
 import { userService } from '@/services/userService'
 import { supabase } from '@/lib/supabase/client'
@@ -60,6 +70,18 @@ export function GeneralSettings() {
     { id: 'mock-1', nome: 'Dra. Ana Silva', cargo: 'DENTISTA CLÍNICA' },
     { id: 'mock-2', nome: 'Dr. Carlos Santos', cargo: 'ORTODONTISTA' },
   ])
+
+  // Critérios de Bonificação state
+  const [criterios, setCriterios] = useState<any[]>([
+    { id: '1', cargo: 'DENTISTA CLÍNICA', criterio: 'AVALIAÇÃO', valorRef: 100, valorRem: 10 },
+    { id: '2', cargo: 'RECEPCIONISTA', criterio: 'META MENSAL', valorRef: 50000, valorRem: 500 },
+  ])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingCriterio, setEditingCriterio] = useState<string | null>(null)
+  const [formCargo, setFormCargo] = useState('')
+  const [formCriterio, setFormCriterio] = useState('')
+  const [formValRef, setFormValRef] = useState('')
+  const [formValRem, setFormValRem] = useState('')
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -218,6 +240,59 @@ export function GeneralSettings() {
 
   const handleRemoveAvaliador = (id: string) => {
     setAvaliadores((prev) => prev.filter((a) => a.id !== id))
+  }
+
+  const handleOpenModal = (criterio?: any) => {
+    if (criterio) {
+      setEditingCriterio(criterio.id)
+      setFormCargo(criterio.cargo)
+      setFormCriterio(criterio.criterio)
+      setFormValRef(criterio.valorRef.toString())
+      setFormValRem(criterio.valorRem.toString())
+    } else {
+      setEditingCriterio(null)
+      setFormCargo('')
+      setFormCriterio('')
+      setFormValRef('')
+      setFormValRem('')
+    }
+    setIsModalOpen(true)
+  }
+
+  const handleSaveCriterio = () => {
+    if (!formCargo || !formCriterio) return
+
+    if (editingCriterio) {
+      setCriterios((prev) =>
+        prev.map((c) =>
+          c.id === editingCriterio
+            ? {
+                ...c,
+                cargo: formCargo,
+                criterio: formCriterio,
+                valorRef: Number(formValRef) || 0,
+                valorRem: Number(formValRem) || 0,
+              }
+            : c,
+        ),
+      )
+    } else {
+      setCriterios((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(36).substr(2, 9),
+          cargo: formCargo,
+          criterio: formCriterio,
+          valorRef: Number(formValRef) || 0,
+          valorRem: Number(formValRem) || 0,
+        },
+      ])
+    }
+    setIsModalOpen(false)
+  }
+
+  const handleDeleteCriterio = (id: string) => {
+    setCriterios((prev) => prev.filter((c) => c.id !== id))
   }
 
   return (
@@ -600,6 +675,171 @@ export function GeneralSettings() {
           </div>
         </CardContent>
       </Card>
+
+      <Card className="md:col-span-2 lg:col-span-3">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-nuvia-navy">
+              <CircleDollarSign className="h-5 w-5 text-[#D4AF37]" /> CRITÉRIOS DE BONIFICAÇÃO
+            </CardTitle>
+            <CardDescription>CONFIGURE CRITÉRIOS DE BONIFICAÇÃO POR CARGO.</CardDescription>
+          </div>
+          <Button
+            onClick={() => handleOpenModal()}
+            className="bg-[#D4AF37] hover:bg-[#B3932F] text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" /> Adicionar Critério
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                <tr>
+                  <th className="px-4 py-3 rounded-tl-md">CARGO</th>
+                  <th className="px-4 py-3">CRITÉRIO</th>
+                  <th className="px-4 py-3 text-right">VALOR REFERÊNCIA</th>
+                  <th className="px-4 py-3 text-right">VALOR REMUNERAÇÃO</th>
+                  <th className="px-4 py-3 text-right rounded-tr-md">AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {criterios.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="border-b last:border-0 hover:bg-muted/30 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-medium text-nuvia-navy">{c.cargo}</td>
+                    <td className="px-4 py-3">{c.criterio}</td>
+                    <td className="px-4 py-3 text-right text-muted-foreground">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(c.valorRef)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-emerald-600 font-medium">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(c.valorRem)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => handleOpenModal(c)}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteCriterio(c.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {criterios.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      Nenhum critério configurado.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-nuvia-navy">
+              {editingCriterio ? 'Editar Critério' : 'Novo Critério'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="cargo" className="text-xs uppercase text-muted-foreground">
+                Cargo
+              </Label>
+              <select
+                id="cargo"
+                value={formCargo}
+                onChange={(e) => setFormCargo(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="" disabled>
+                  Selecione um cargo
+                </option>
+                {cargos.map((c) => (
+                  <option key={c.id} value={c.nome}>
+                    {c.nome}
+                  </option>
+                ))}
+                {cargos.length === 0 && (
+                  <option value="DENTISTA CLÍNICA">DENTISTA CLÍNICA (mock)</option>
+                )}
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="criterio" className="text-xs uppercase text-muted-foreground">
+                Critério
+              </Label>
+              <Input
+                id="criterio"
+                placeholder="Ex: AVALIAÇÃO"
+                value={formCriterio}
+                onChange={(e) => setFormCriterio(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="valRef" className="text-xs uppercase text-muted-foreground">
+                  Valor Referência (R$)
+                </Label>
+                <Input
+                  id="valRef"
+                  type="number"
+                  placeholder="0.00"
+                  value={formValRef}
+                  onChange={(e) => setFormValRef(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="valRem" className="text-xs uppercase text-muted-foreground">
+                  Valor Remuneração (R$)
+                </Label>
+                <Input
+                  id="valRem"
+                  type="number"
+                  placeholder="0.00"
+                  value={formValRem}
+                  onChange={(e) => setFormValRem(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveCriterio}
+              className="bg-[#D4AF37] hover:bg-[#B3932F] text-white"
+            >
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
