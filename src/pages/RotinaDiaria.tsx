@@ -146,13 +146,6 @@ export default function RotinaDiaria() {
     if (!user) return
     const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
     const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
-    const isAdm =
-      !!isAdminData ||
-      !!isMasterData ||
-      can('ROTINA DIÁRIA', 'editar') ||
-      can('ROTINA DIÁRIA', 'criar')
-    setIsAdmin(isAdm)
-
     const { data: profile } = await supabase
       .from('profiles')
       .select(`
@@ -173,6 +166,14 @@ export default function RotinaDiaria() {
 
     const userIsCEO = cargoNome === 'CEO'
     setIsCEO(userIsCEO)
+
+    const isAdm =
+      !!isAdminData ||
+      !!isMasterData ||
+      userIsCEO ||
+      can('ROTINA DIÁRIA', 'editar') ||
+      can('ROTINA DIÁRIA', 'criar')
+    setIsAdmin(isAdm)
 
     // Cargos
     const { data: allCargosData } = await supabase.from('cargos').select('id, nome').order('nome')
@@ -441,7 +442,7 @@ export default function RotinaDiaria() {
     return 'bg-emerald-500'
   }
 
-  const handleTaskComplete = async (taskId: string) => {
+  const handleTaskToggle = async (taskId: string, checked: boolean) => {
     if (!user || !isToday) return
     const targetDateStr = format(selectedDate, 'yyyy-MM-dd')
     const targetUserId =
@@ -460,10 +461,10 @@ export default function RotinaDiaria() {
         t.id === taskId
           ? ({
               ...t,
-              completed: true,
-              completedAt: nowStr,
-              marcadoPorNome: currentUserProfile?.nome,
-              tipoMarcacao,
+              completed: checked,
+              completedAt: checked ? nowStr : undefined,
+              marcadoPorNome: checked ? currentUserProfile?.nome : undefined,
+              tipoMarcacao: checked ? tipoMarcacao : undefined,
             } as any)
           : t,
       )
@@ -496,26 +497,60 @@ export default function RotinaDiaria() {
       )
     })
 
-    // Comunica Backend com nova RPC
-    const { error } = await supabase.rpc('registrar_execucao_rotina', {
-      p_rotina_id: taskId,
-      p_usuario_id: targetUserId,
-      p_data: targetDateStr,
-      p_percentual: newProgress,
-      p_pontos: newPoints,
-      p_marcado_por_id: marcadoPorId,
-      p_tipo_marcacao: tipoMarcacao,
-    })
-
-    if (error) {
-      console.error(error)
-      toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível registrar a conclusão da tarefa.',
-        variant: 'destructive',
+    if (checked) {
+      // Comunica Backend com nova RPC
+      const { error } = await supabase.rpc('registrar_execucao_rotina', {
+        p_rotina_id: taskId,
+        p_usuario_id: targetUserId,
+        p_data: targetDateStr,
+        p_percentual: newProgress,
+        p_pontos: newPoints,
+        p_marcado_por_id: marcadoPorId,
+        p_tipo_marcacao: tipoMarcacao,
       })
-      fetchTasks()
-      fetchRanking()
+
+      if (error) {
+        console.error(error)
+        toast({
+          title: 'Erro ao salvar',
+          description: 'Não foi possível registrar a conclusão da tarefa.',
+          variant: 'destructive',
+        })
+        fetchTasks()
+        fetchRanking()
+      }
+    } else {
+      // Desmarcar - deletar a execução e atualizar pontos
+      const { error: delError } = await supabase
+        .from('rotinas_execucao')
+        .delete()
+        .match({ rotina_id: taskId, usuario_id: targetUserId, data: targetDateStr })
+
+      if (delError) {
+        console.error(delError)
+        toast({
+          title: 'Erro ao desmarcar',
+          description: 'Não foi possível desmarcar a tarefa.',
+          variant: 'destructive',
+        })
+        fetchTasks()
+        fetchRanking()
+        return
+      }
+
+      const { error: ptsError } = await supabase.from('rotinas_pontos').upsert(
+        {
+          usuario_id: targetUserId,
+          data: targetDateStr,
+          percentual: newProgress,
+          pontos: newPoints,
+        },
+        { onConflict: 'usuario_id, data' },
+      )
+
+      if (ptsError) {
+        console.error(ptsError)
+      }
     }
   }
 
@@ -533,32 +568,25 @@ export default function RotinaDiaria() {
 
         <div className="flex flex-col items-end gap-3 w-full md:w-auto">
           <Button
-            onClick={async () => {
-              if (isAdmin || can('ROTINA DIÁRIA', 'criar') || can('ROTINA DIÁRIA', 'editar')) {
-                setIsCreateModalOpen(true)
+            onClick={(e) => {
+              if (!isAdmin && !can('ROTINA DIÁRIA', 'criar') && !can('ROTINA DIÁRIA', 'editar')) {
+                e.preventDefault()
+                toast({
+                  title: 'Acesso Restrito',
+                  description: 'Apenas administrador pode realizar esta ação.',
+                  variant: 'destructive',
+                })
                 return
               }
-
-              if (user) {
-                const { data: isAdminData } = await supabase.rpc('is_admin_user', {
-                  user_uuid: user.id,
-                })
-                const { data: isMasterData } = await supabase.rpc('is_master_user', {
-                  user_uuid: user.id,
-                })
-                if (isAdminData || isMasterData) {
-                  setIsCreateModalOpen(true)
-                  return
-                }
-              }
-
-              toast({
-                title: 'Acesso Restrito',
-                description: 'Apenas administradores podem adicionar rotinas.',
-                variant: 'destructive',
-              })
+              setIsCreateModalOpen(true)
             }}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-widest text-[10px] h-7 px-3 shadow-sm w-full sm:w-auto"
+            className={cn(
+              'bg-emerald-600 hover:bg-emerald-700 text-white font-bold tracking-widest text-[10px] h-7 px-3 shadow-sm w-full sm:w-auto transition-opacity',
+              !isAdmin &&
+                !can('ROTINA DIÁRIA', 'criar') &&
+                !can('ROTINA DIÁRIA', 'editar') &&
+                'opacity-50 cursor-not-allowed hover:bg-emerald-600',
+            )}
           >
             + ADICIONAR ROTINA
           </Button>
@@ -650,14 +678,14 @@ export default function RotinaDiaria() {
         </div>
       </div>
 
-      {isCEO && !isAdmin && !selectedCargoId ? (
+      {isCEO && !selectedCargoId ? (
         <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-6 border-2 border-dashed border-slate-200 rounded-xl bg-white/50 p-8 animate-in fade-in duration-500">
           <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-2 shadow-sm">
             <CheckCircle2 className="h-10 w-10 text-slate-400" />
           </div>
-          <h2 className="text-2xl font-black text-slate-400 tracking-widest">PERFIL CEO</h2>
+          <h2 className="text-2xl font-black text-slate-400 tracking-widest">PERFIL DE GESTÃO</h2>
           <p className="text-sm font-bold text-slate-400 max-w-md leading-relaxed">
-            O PERFIL CEO NÃO POSSUI ROTINA DIÁRIA CONFIGURADA PARA ACOMPANHAMENTO NO SISTEMA.
+            SELECIONE UM CARGO NO MENU ACIMA PARA VISUALIZAR OU GERENCIAR ROTINAS.
           </p>
         </div>
       ) : selectedCargoId ? (
@@ -701,17 +729,35 @@ export default function RotinaDiaria() {
                 )}
               </div>
             </div>
-            {isAdmin && (
-              <Button
-                asChild
-                className="bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md shrink-0 h-11 px-4 sm:px-6 text-xs sm:text-sm cursor-pointer"
-              >
+            <Button
+              asChild={isAdmin}
+              onClick={(e) => {
+                if (!isAdmin) {
+                  e.preventDefault()
+                  toast({
+                    title: 'Acesso Restrito',
+                    description: 'Apenas administrador pode realizar esta ação.',
+                    variant: 'destructive',
+                  })
+                }
+              }}
+              className={cn(
+                'bg-[#0A192F] hover:bg-[#112240] text-[#D4AF37] font-black tracking-widest shadow-md shrink-0 h-11 px-4 sm:px-6 text-xs sm:text-sm cursor-pointer transition-opacity',
+                !isAdmin && 'opacity-50 cursor-not-allowed hover:bg-[#0A192F]',
+              )}
+            >
+              {isAdmin ? (
                 <Link to="/rotina-diaria/configurar-rotina">
                   <Settings className="h-4 w-4 mr-2" />
                   CONFIGURAR ROTINAS
                 </Link>
-              </Button>
-            )}
+              ) : (
+                <span className="flex items-center">
+                  <Settings className="h-4 w-4 mr-2" />
+                  CONFIGURAR ROTINAS
+                </span>
+              )}
+            </Button>
           </div>
 
           <Tabs defaultValue="minhas-tarefas" className="w-full">
@@ -827,15 +873,22 @@ export default function RotinaDiaria() {
                               checked={task.completed}
                               disabled={
                                 !isReached ||
-                                task.completed ||
                                 !isToday ||
                                 !selectedColaboradorId ||
                                 selectedColaboradorId === 'todos' ||
                                 (!isAdmin && selectedColaboradorId !== user?.id)
                               }
                               onCheckedChange={(c) => {
-                                if (c && isReached && !task.completed && isToday) {
-                                  handleTaskComplete(task.id)
+                                if (c === false && !isAdmin) {
+                                  toast({
+                                    title: 'Ação Restrita',
+                                    description: 'Apenas administrador pode realizar esta ação.',
+                                    variant: 'destructive',
+                                  })
+                                  return
+                                }
+                                if (isReached && isToday) {
+                                  handleTaskToggle(task.id, !!c)
                                 }
                               }}
                               className={cn(
@@ -848,7 +901,6 @@ export default function RotinaDiaria() {
                                   !selectedColaboradorId ||
                                   selectedColaboradorId === 'todos' ||
                                   (!isAdmin && selectedColaboradorId !== user?.id)) &&
-                                  !task.completed &&
                                   'opacity-50 cursor-not-allowed bg-slate-100',
                               )}
                             />
