@@ -39,10 +39,10 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
     }
   })
 
-  // Acessando store garantindo defaults para evitar erros de undefined
   const appStore = useAppStore()
   const can = appStore?.can
-  // Prevenindo undefined property reading de sacRecords
+
+  // Garantia estrutural de array para evitar "Cannot read properties of undefined (reading 'filter')"
   const rawSacRecords = (appStore as any)?.sacRecords
   const sacRecords = Array.isArray(rawSacRecords) ? rawSacRecords : []
 
@@ -55,11 +55,14 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
 
   useEffect(() => {
     if (!user) return
+    let isMounted = true
 
     const checkAccess = async () => {
       try {
         const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: user.id })
         const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
+        if (!isMounted) return
+
         const isAdm = !!isAdminData || !!isMasterData
         setIsUserAdmin(isAdm)
 
@@ -74,6 +77,8 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           .eq('id', user.id)
           .maybeSingle()
 
+        if (!isMounted) return
+
         if (profile?.cargo_id) {
           const { data: rotinas } = await supabase
             .from('rotinas_config')
@@ -81,18 +86,24 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
             .or(`cargo_id.eq.${profile.cargo_id},colaborador_id.eq.${user.id}`)
             .limit(1)
 
-          setHasRotina((rotinas && rotinas.length > 0) || false)
+          if (isMounted) setHasRotina((rotinas && rotinas.length > 0) || false)
         } else {
-          setHasRotina(false)
+          if (isMounted) setHasRotina(false)
         }
       } catch (err) {
         console.error('Error checking access:', err)
-        setIsUserAdmin(false)
-        setHasRotina(false)
+        if (isMounted) {
+          setIsUserAdmin(false)
+          setHasRotina(false)
+        }
       }
     }
 
     checkAccess()
+
+    return () => {
+      isMounted = false
+    }
   }, [user])
 
   const navigationSections = useMemo(() => {
@@ -184,7 +195,7 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
           if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
             return false
           }
-          return can ? can(item.module, 'view') : false
+          return can ? can(item.module, 'ver') : false
         })
         return { ...section, items: visibleItems }
       })

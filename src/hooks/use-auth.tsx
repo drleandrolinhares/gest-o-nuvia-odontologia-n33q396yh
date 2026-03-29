@@ -28,14 +28,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true
 
-    // Fallback de segurança para evitar loading infinito caso a API não responda
-    // Reduzido para 1.5s para garantir carregamento super rápido (< 2s)
+    // Aumentado ligeiramente para 3s para dar tempo à rede e evitar loopings infinitos
     const timeout = setTimeout(() => {
       if (isMounted && loading) {
         console.warn('Timeout na verificação de sessão. Forçando carregamento para concluir.')
         setLoading(false)
       }
-    }, 1500)
+    }, 3000)
 
     // Otimização: callback 100% síncrono para evitar deadlocks e atrasos de renderização
     const {

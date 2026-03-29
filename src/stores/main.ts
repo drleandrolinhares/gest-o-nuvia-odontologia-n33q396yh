@@ -26,6 +26,17 @@ interface AppState {
   clear: () => void
 }
 
+const fetchWithTimeout = async <T>(promise: Promise<T>, ms: number = 6000): Promise<T> => {
+  let timeoutId: NodeJS.Timeout
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(
+      () => reject(new Error('Timeout de comunicação com o banco de dados')),
+      ms,
+    )
+  })
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId))
+}
+
 const useMainStore = create<AppState>((set, get) => ({
   profile: null,
   permissions: [],
@@ -33,35 +44,39 @@ const useMainStore = create<AppState>((set, get) => ({
   fetchProfile: async (userId: string) => {
     set({ loading: true })
     try {
-      // 1. Otimização e Segurança: Fazemos a busca de perfil
-      const { data, error } = await supabase
+      // 1. Busca de perfil com proteção de Timeout
+      const profilePromise = supabase
         .from('profiles')
         .select('id, nome, email, departamento_id, user_cargos(cargo_id, cargo, is_principal)')
         .eq('id', userId)
         .single()
 
+      const { data, error } = (await fetchWithTimeout(profilePromise, 7000)) as any
+
       if (error && error.code !== 'PGRST116') {
-        console.warn(
-          'Erro ao buscar profile, prosseguindo com dados vazios para evitar bloqueio.',
-          error,
-        )
+        console.warn('Erro ao buscar profile, prosseguindo com dados de contingência.', error)
       }
 
-      // 2. Proteção rigorosa no array de cargos
+      // 2. Proteção rigorosa de null safety
       const rawCargos = data?.user_cargos
       const cargos = Array.isArray(rawCargos) ? rawCargos : rawCargos ? [rawCargos] : []
 
-      // 3. Verificações de Admin via RPC e Fallback
       let is_admin = false
       let is_master = false
 
       try {
-        const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: userId })
-        const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: userId })
-        is_admin = !!isAdminData
-        is_master = !!isMasterData
+        const isAdminData = await fetchWithTimeout(
+          supabase.rpc('is_admin_user', { user_uuid: userId }),
+          3000,
+        )
+        const isMasterData = await fetchWithTimeout(
+          supabase.rpc('is_master_user', { user_uuid: userId }),
+          3000,
+        )
+        is_admin = !!isAdminData?.data
+        is_master = !!isMasterData?.data
       } catch (e) {
-        console.warn('Aviso: RPC não encontrada, avaliando permissões via array de cargos.', e)
+        console.warn('Aviso: RPC de validação falhou, usando fallback de cargos locais.', e)
       }
 
       if (!is_admin) {
@@ -77,29 +92,28 @@ const useMainStore = create<AppState>((set, get) => ({
       }
 
       const principalCargo = cargos.find((c: any) => c?.is_principal) || cargos[0] || null
-      const cargo_id = principalCargo?.cargo_id || null
-      const cargo_nome = principalCargo?.cargo || null
 
       const profileData: UserProfile = {
         id: userId,
-        nome: data?.nome || null,
+        nome: data?.nome || 'Usuário',
         email: data?.email || null,
-        cargo_id,
-        cargo_nome,
+        cargo_id: principalCargo?.cargo_id || null,
+        cargo_nome: principalCargo?.cargo || null,
         departamento_id: data?.departamento_id || null,
         is_admin,
         is_master,
-        isAdmin: is_admin, // Alias de retrocompatibilidade
+        isAdmin: is_admin,
         user_cargos: cargos,
       }
 
-      // 4. Carrega permissões paralelamente para não bloquear o set de profile
       set({ profile: profileData })
 
+      // 3. Busca permissões assincronamente sem travar o estado principal
       try {
-        const res = await supabase.functions.invoke('get_user_permissions', {
+        const permPromise = supabase.functions.invoke('get_user_permissions', {
           body: { userId },
         })
+        const res = await fetchWithTimeout(permPromise, 5000)
         const perms = res.data?.permissions
         set({ permissions: Array.isArray(perms) ? perms : [] })
       } catch (permError) {
@@ -109,16 +123,17 @@ const useMainStore = create<AppState>((set, get) => ({
     } catch (error: any) {
       console.error('Error fetching profile na store:', error)
       if (error?.code === '42703' || error?.status === 400) {
-        console.warn('Erro de schema detectado (42703/400). Limpando cache e forçando logout.')
+        console.warn('Erro de schema detectado (42703/400). Forçando limpeza de cache.')
         localStorage.clear()
         sessionStorage.clear()
         window.location.replace('/login?clear=1')
       }
-      // Garante que a aplicação não fique travada
+
+      // Fallback seguro para evitar tela de loading infinito
       set({
         profile: {
           id: userId,
-          nome: 'Erro',
+          nome: 'Usuário Offline',
           email: '',
           cargo_id: null,
           cargo_nome: null,
@@ -145,7 +160,6 @@ const useMainStore = create<AppState>((set, get) => ({
     if (!profile) return false
     if (profile.is_admin || profile.is_master || profile.isAdmin) return true
 
-    // Garantia absoluta de array para evitar "Cannot read properties of undefined (reading 'filter')"
     const safePermissions = Array.isArray(permissions) ? permissions : []
     const perm = safePermissions.find((p: any) => p?.nome?.toUpperCase() === module.toUpperCase())
     if (!perm) return false
@@ -167,8 +181,6 @@ const useMainStore = create<AppState>((set, get) => ({
 }))
 
 export default useMainStore
-
-// Exportando aliases universais
 export const useAppStore = useMainStore
 export const useApp = useMainStore
 
