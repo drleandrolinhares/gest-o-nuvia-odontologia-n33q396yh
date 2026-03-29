@@ -26,6 +26,8 @@ export const useApp = () => {
   return context
 }
 
+export default useApp
+
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { user, loading: authLoading } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
