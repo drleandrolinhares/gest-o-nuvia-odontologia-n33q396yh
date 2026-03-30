@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import useAppStore, { SacRecord } from '@/stores/main'
 import { Card } from '@/components/ui/card'
 import {
