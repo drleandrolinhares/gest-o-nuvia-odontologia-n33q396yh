@@ -63,7 +63,11 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: user.id })
         if (!isMounted) return
 
-        const isAdm = !!isAdminData || !!isMasterData
+        const isAdm =
+          !!isAdminData ||
+          !!isMasterData ||
+          user.email === 'drleandrolinhares@gmail.com' ||
+          user.email === 'master@nuvia.com.br'
         setIsUserAdmin(isAdm)
 
         if (isAdm) {
@@ -94,7 +98,10 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
       } catch (err) {
         console.error('Error checking access:', err)
         if (isMounted) {
-          setIsUserAdmin(false)
+          // Graceful Degradation: não trava a interface se houver falha no banco
+          setIsUserAdmin(
+            user.email === 'drleandrolinhares@gmail.com' || user.email === 'master@nuvia.com.br',
+          )
           setHasRotina(false)
         }
       }
@@ -186,17 +193,30 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
         const items = Array.isArray(section.items) ? section.items : []
         const visibleItems = items.filter((item) => {
           if (!item) return false
-          if (
-            item.adminOnly &&
-            user?.email !== 'drleandrolinhares@gmail.com' &&
-            user?.email !== 'master@nuvia.com.br'
-          ) {
+
+          const isSuperAdmin =
+            isUserAdmin ||
+            user?.email === 'drleandrolinhares@gmail.com' ||
+            user?.email === 'master@nuvia.com.br'
+
+          if (item.adminOnly && !isSuperAdmin) {
             return false
           }
           if ((item as any).hideIfNoRoutine && isUserAdmin === false && hasRotina === false) {
             return false
           }
-          return can ? can(item.module, 'ver') : false
+
+          // Admins sempre veem tudo
+          if (isSuperAdmin) return true
+
+          // Se `can` existir, verifica a permissão normalmente
+          if (typeof can === 'function') {
+            return can(item.module, 'ver')
+          }
+
+          // Fallback resiliente: se `can` ainda não carregou, exibe os itens para não quebrar a UI
+          // A proteção real será feita pela PermissionRoute na navegação
+          return true
         })
         return { ...section, items: visibleItems }
       })

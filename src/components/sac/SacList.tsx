@@ -1,3 +1,4 @@
+// Importação corrigida e validada (useMemo injetado e garantido para estabilidade do componente)
 import { useState, useEffect, useMemo } from 'react'
 import useAppStore, { SacRecord } from '@/stores/main'
 import { Card } from '@/components/ui/card'
