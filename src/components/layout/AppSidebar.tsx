@@ -47,7 +47,11 @@ export function AppSidebar({ isCollapsed, isMobile = false, onLinkClick }: AppSi
   const sacRecords = Array.isArray(rawSacRecords) ? rawSacRecords : []
 
   const pendingSacsCount = useMemo(() => {
-    return sacRecords.filter((r: any) => r && r.status === 'OPORTUNIDADE DE SOLUÇÃO').length
+    try {
+      return sacRecords.filter((r: any) => r && r.status === 'OPORTUNIDADE DE SOLUÇÃO').length
+    } catch {
+      return 0
+    }
   }, [sacRecords])
 
   const [hasRotina, setHasRotina] = useState<boolean | null>(null)

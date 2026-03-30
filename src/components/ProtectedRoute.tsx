@@ -49,7 +49,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     return <Navigate to="/login" state={{ from: location.pathname }} replace />
   }
 
-  // Desacoplamento do Perfil: Liberamos a interface imediatamente, sem depender da store
+  // Desacoplamento do Perfil (Boot em Safe Mode): Liberamos a interface imediatamente, sem depender da store
   // Isso impede o ciclo infinito de bloqueio caso os dados do usuário falhem em carregar
   return <>{children}</>
 }

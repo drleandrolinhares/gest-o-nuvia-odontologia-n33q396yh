@@ -60,7 +60,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (isMounted) {
         if (error) {
           console.error('Error fetching session:', error)
-          setAuthError('Não foi possível verificar a sessão. Verifique sua conexão de rede.')
+          // Se falhar a verificação da sessão, limpamos o estado para forçar novo login (Handshake limpo)
+          setSession(null)
+          setUser(null)
+          setAuthError(
+            'Não foi possível verificar a sessão de forma segura. Por favor, acesse novamente e limpe o cache.',
+          )
         } else {
           setSession(session)
           setUser(session?.user ?? null)

@@ -20,7 +20,7 @@ interface AppState {
   profile: UserProfile | null
   permissions: any[]
   loading: boolean
-  fetchProfile: (userId: string) => Promise<void>
+  fetchProfile: (user: any) => Promise<void>
   refreshProfile: () => Promise<void>
   can: (module: string, action?: 'ver' | 'criar' | 'editar' | 'deletar') => boolean
   clear: () => void
@@ -41,8 +41,11 @@ const useMainStore = create<AppState>((set, get) => ({
   profile: null,
   permissions: [],
   loading: true,
-  fetchProfile: async (userId: string) => {
+  fetchProfile: async (userParam: any) => {
     set({ loading: true })
+    const userId = typeof userParam === 'string' ? userParam : userParam?.id
+    const userEmail = typeof userParam === 'string' ? '' : userParam?.email
+
     try {
       // 1. Busca de perfil com proteção de Timeout
       const profilePromise = supabase
@@ -64,39 +67,45 @@ const useMainStore = create<AppState>((set, get) => ({
       let is_admin = false
       let is_master = false
 
-      try {
-        const isAdminData = await fetchWithTimeout(
-          supabase.rpc('is_admin_user', { user_uuid: userId }),
-          3000,
-        )
-        const isMasterData = await fetchWithTimeout(
-          supabase.rpc('is_master_user', { user_uuid: userId }),
-          3000,
-        )
-        is_admin = !!isAdminData?.data
-        is_master = !!isMasterData?.data
-      } catch (e) {
-        console.warn('Aviso: RPC de validação falhou, usando fallback de cargos locais.', e)
-      }
+      // Hardcoded Bypass de Emergência para acesso garantido
+      if (userEmail === 'drleandrolinhares@gmail.com' || userEmail === 'master@nuvia.com.br') {
+        is_admin = true
+        is_master = true
+      } else {
+        try {
+          const isAdminData = await fetchWithTimeout(
+            supabase.rpc('is_admin_user', { user_uuid: userId }),
+            3000,
+          )
+          const isMasterData = await fetchWithTimeout(
+            supabase.rpc('is_master_user', { user_uuid: userId }),
+            3000,
+          )
+          is_admin = !!isAdminData?.data
+          is_master = !!isMasterData?.data
+        } catch (e) {
+          console.warn('Aviso: RPC de validação falhou, usando fallback de cargos locais.', e)
+        }
 
-      if (!is_admin) {
-        is_admin = cargos.some((c: any) =>
-          ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(String(c?.cargo || '').toUpperCase()),
-        )
-      }
+        if (!is_admin) {
+          is_admin = cargos.some((c: any) =>
+            ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(String(c?.cargo || '').toUpperCase()),
+          )
+        }
 
-      if (!is_master) {
-        is_master = cargos.some((c: any) =>
-          ['MASTER', 'ADMIN'].includes(String(c?.cargo || '').toUpperCase()),
-        )
+        if (!is_master) {
+          is_master = cargos.some((c: any) =>
+            ['MASTER', 'ADMIN'].includes(String(c?.cargo || '').toUpperCase()),
+          )
+        }
       }
 
       const principalCargo = cargos.find((c: any) => c?.is_principal) || cargos[0] || null
 
       const profileData: UserProfile = {
         id: userId,
-        nome: data?.nome || 'Usuário',
-        email: data?.email || null,
+        nome: data?.nome || (is_admin ? 'Administrador' : 'Usuário'),
+        email: data?.email || userEmail || null,
         cargo_id: principalCargo?.cargo_id || null,
         cargo_nome: principalCargo?.cargo || null,
         departamento_id: data?.departamento_id || null,
@@ -122,25 +131,29 @@ const useMainStore = create<AppState>((set, get) => ({
       }
     } catch (error: any) {
       console.error('Error fetching profile na store:', error)
+
+      // BYPASS DE EMERGÊNCIA: Remoção do redirecionamento forçado (loop infinito)
       if (error?.code === '42703' || error?.status === 400) {
-        console.warn('Erro de schema detectado (42703/400). Forçando limpeza de cache.')
-        localStorage.clear()
-        sessionStorage.clear()
-        window.location.replace('/login?clear=1')
+        console.warn(
+          'Erro de schema detectado (42703/400). Ignorando erro para evitar loop de boot e ativando Safe Mode.',
+        )
       }
 
-      // Fallback seguro para evitar tela de loading infinito
+      const isSuperUser =
+        userEmail === 'drleandrolinhares@gmail.com' || userEmail === 'master@nuvia.com.br'
+
+      // Fallback seguro (Safe Mode) para evitar tela de loading infinito
       set({
         profile: {
           id: userId,
-          nome: 'Usuário Offline',
-          email: '',
+          nome: isSuperUser ? 'Administrador (Safe Mode)' : 'Usuário (Safe Mode)',
+          email: userEmail || '',
           cargo_id: null,
           cargo_nome: null,
           departamento_id: null,
-          is_admin: false,
-          is_master: false,
-          isAdmin: false,
+          is_admin: isSuperUser,
+          is_master: isSuperUser,
+          isAdmin: isSuperUser,
           user_cargos: [],
         },
         permissions: [],
@@ -152,7 +165,7 @@ const useMainStore = create<AppState>((set, get) => ({
   refreshProfile: async () => {
     const { profile } = get()
     if (profile?.id) {
-      await get().fetchProfile(profile.id)
+      await get().fetchProfile({ id: profile.id, email: profile.email })
     }
   },
   can: (module: string, action = 'ver') => {
@@ -192,7 +205,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!authLoading) {
       if (user) {
-        fetchProfile(user.id)
+        fetchProfile(user)
       } else {
         clear()
       }
