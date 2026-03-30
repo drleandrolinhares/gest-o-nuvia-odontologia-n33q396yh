@@ -19,6 +19,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   // Redirecionamento direto para o login caso o estado do usuário seja efetivamente nulo
   if (!user) {
+    if (location.pathname === '/login') {
+      return <>{children}</>
+    }
     return <Navigate to="/login" state={{ from: location.pathname }} replace />
   }
 

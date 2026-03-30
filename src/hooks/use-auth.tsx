@@ -26,27 +26,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
+    let mounted = true
+
     // Sincronização síncrona sem timers que causam loopings
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
-      setSession(newSession)
-      setUser(newSession?.user ?? null)
-      setLoading(false)
+      if (mounted) {
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+        setLoading(false)
+      }
     })
 
     // Busca de sessão inicial com tratamento seguro
     supabase.auth.getSession().then(({ data: { session: initialSession }, error }) => {
-      if (error) {
-        console.error('Error fetching session:', error)
-        setAuthError(error.message)
+      if (mounted) {
+        if (error) {
+          console.error('Error fetching session:', error)
+          setAuthError(error.message)
+        }
+        setSession(initialSession)
+        setUser(initialSession?.user ?? null)
+        setLoading(false)
       }
-      setSession(initialSession)
-      setUser(initialSession?.user ?? null)
-      setLoading(false)
     })
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
     }
   }, [])
