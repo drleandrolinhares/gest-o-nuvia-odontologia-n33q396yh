@@ -26,17 +26,6 @@ interface AppState {
   clear: () => void
 }
 
-const fetchWithTimeout = async <T>(promise: Promise<T>, ms: number = 6000): Promise<T> => {
-  let timeoutId: NodeJS.Timeout
-  const timeoutPromise = new Promise<T>((_, reject) => {
-    timeoutId = setTimeout(
-      () => reject(new Error('Timeout de comunicação com o banco de dados')),
-      ms,
-    )
-  })
-  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId))
-}
-
 const useMainStore = create<AppState>((set, get) => ({
   profile: null,
   permissions: [],
@@ -46,54 +35,53 @@ const useMainStore = create<AppState>((set, get) => ({
     const userId = typeof userParam === 'string' ? userParam : userParam?.id
     const userEmail = typeof userParam === 'string' ? '' : userParam?.email
 
+    // Hardcoded Bypass de Emergência
+    const isSuperUser =
+      userEmail === 'drleandrolinhares@gmail.com' || userEmail === 'master@nuvia.com.br'
+
     try {
-      // 1. Busca de perfil com proteção de Timeout
-      const profilePromise = supabase
-        .from('profiles')
-        .select('id, nome, email, departamento_id, user_cargos(cargo_id, cargo, is_principal)')
-        .eq('id', userId)
-        .single()
-
-      const { data, error } = (await fetchWithTimeout(profilePromise, 7000)) as any
-
-      if (error && error.code !== 'PGRST116') {
-        console.warn('Erro ao buscar profile, prosseguindo com dados de contingência.', error)
+      // 1. Busca do Perfil Principal - Try/Catch Isolado para não quebrar a execução geral
+      let profileData = null
+      try {
+        const res = await supabase
+          .from('profiles')
+          .select('id, nome, email, departamento_id')
+          .eq('id', userId)
+          .single()
+        profileData = res.data
+      } catch (e) {
+        console.warn('Fallback: Erro ao buscar perfil no Supabase', e)
       }
 
-      // 2. Proteção rigorosa de null safety
-      const rawCargos = data?.user_cargos
-      const cargos = Array.isArray(rawCargos) ? rawCargos : rawCargos ? [rawCargos] : []
+      // 2. Busca de Cargos
+      let cargosData: any[] = []
+      try {
+        const res = await supabase
+          .from('user_cargos')
+          .select('cargo_id, cargo, is_principal')
+          .eq('user_id', userId)
+        if (res.data) cargosData = res.data
+      } catch (e) {
+        console.warn('Fallback: Erro ao buscar cargos no Supabase', e)
+      }
 
-      let is_admin = false
-      let is_master = false
+      const cargos = Array.isArray(cargosData) ? cargosData : []
 
-      // Hardcoded Bypass de Emergência para acesso garantido
-      if (userEmail === 'drleandrolinhares@gmail.com' || userEmail === 'master@nuvia.com.br') {
-        is_admin = true
-        is_master = true
-      } else {
+      let is_admin = isSuperUser
+      let is_master = isSuperUser
+
+      // 3. Verificação de Acesso - Fallback seguro caso as funções RPC falhem
+      if (!isSuperUser) {
         try {
-          const isAdminData = await fetchWithTimeout(
-            supabase.rpc('is_admin_user', { user_uuid: userId }),
-            3000,
-          )
-          const isMasterData = await fetchWithTimeout(
-            supabase.rpc('is_master_user', { user_uuid: userId }),
-            3000,
-          )
-          is_admin = !!isAdminData?.data
-          is_master = !!isMasterData?.data
+          const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: userId })
+          const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: userId })
+          is_admin = !!isAdminData
+          is_master = !!isMasterData
         } catch (e) {
           console.warn('Aviso: RPC de validação falhou, usando fallback de cargos locais.', e)
-        }
-
-        if (!is_admin) {
           is_admin = cargos.some((c: any) =>
             ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(String(c?.cargo || '').toUpperCase()),
           )
-        }
-
-        if (!is_master) {
           is_master = cargos.some((c: any) =>
             ['MASTER', 'ADMIN'].includes(String(c?.cargo || '').toUpperCase()),
           )
@@ -102,47 +90,36 @@ const useMainStore = create<AppState>((set, get) => ({
 
       const principalCargo = cargos.find((c: any) => c?.is_principal) || cargos[0] || null
 
-      const profileData: UserProfile = {
-        id: userId,
-        nome: data?.nome || (is_admin ? 'Administrador' : 'Usuário'),
-        email: data?.email || userEmail || null,
-        cargo_id: principalCargo?.cargo_id || null,
-        cargo_nome: principalCargo?.cargo || null,
-        departamento_id: data?.departamento_id || null,
-        is_admin,
-        is_master,
-        isAdmin: is_admin,
-        user_cargos: cargos,
-      }
+      set({
+        profile: {
+          id: userId,
+          nome: profileData?.nome || (is_admin ? 'Administrador' : 'Usuário'),
+          email: profileData?.email || userEmail || null,
+          cargo_id: principalCargo?.cargo_id || null,
+          cargo_nome: principalCargo?.cargo || null,
+          departamento_id: profileData?.departamento_id || null,
+          is_admin,
+          is_master,
+          isAdmin: is_admin,
+          user_cargos: cargos,
+        },
+      })
 
-      set({ profile: profileData })
-
-      // 3. Busca permissões assincronamente sem travar o estado principal
-      try {
-        const permPromise = supabase.functions.invoke('get_user_permissions', {
+      // 4. Busca de Permissões (Assíncrono, não-bloqueante)
+      supabase.functions
+        .invoke('get_user_permissions', {
           body: { userId },
         })
-        const res = await fetchWithTimeout(permPromise, 5000)
-        const perms = res.data?.permissions
-        set({ permissions: Array.isArray(perms) ? perms : [] })
-      } catch (permError) {
-        console.warn('Aviso: Falha ao carregar permissoes detalhadas:', permError)
-        set({ permissions: [] })
-      }
+        .then(({ data, error }) => {
+          if (!error && data?.permissions) {
+            set({ permissions: Array.isArray(data.permissions) ? data.permissions : [] })
+          }
+        })
+        .catch(console.warn)
     } catch (error: any) {
-      console.error('Error fetching profile na store:', error)
+      console.error('Erro crítico no fetchProfile da store:', error)
 
-      // BYPASS DE EMERGÊNCIA: Remoção do redirecionamento forçado (loop infinito)
-      if (error?.code === '42703' || error?.status === 400) {
-        console.warn(
-          'Erro de schema detectado (42703/400). Ignorando erro para evitar loop de boot e ativando Safe Mode.',
-        )
-      }
-
-      const isSuperUser =
-        userEmail === 'drleandrolinhares@gmail.com' || userEmail === 'master@nuvia.com.br'
-
-      // Fallback seguro (Safe Mode) para evitar tela de loading infinito
+      // Modo de Segurança Extremo garantido
       set({
         profile: {
           id: userId,
@@ -171,6 +148,8 @@ const useMainStore = create<AppState>((set, get) => ({
   can: (module: string, action = 'ver') => {
     const { profile, permissions } = get()
     if (!profile) return false
+
+    // Libera 100% o acesso para Admin/Master
     if (profile.is_admin || profile.is_master || profile.isAdmin) return true
 
     const safePermissions = Array.isArray(permissions) ? permissions : []

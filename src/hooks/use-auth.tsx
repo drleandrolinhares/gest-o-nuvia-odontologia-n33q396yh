@@ -26,65 +26,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authError, setAuthError] = useState<string | null>(null)
 
   useEffect(() => {
-    let isMounted = true
-
-    // Aumentado ligeiramente para 3s para dar tempo à rede e evitar loopings infinitos
-    const timeout = setTimeout(() => {
-      if (isMounted && loading) {
-        console.warn('Timeout na verificação de sessão. Forçando carregamento para concluir.')
-        setLoading(false)
-      }
-    }, 3000)
-
-    // Otimização: callback 100% síncrono para evitar deadlocks e atrasos de renderização
+    // Sincronização síncrona sem timers que causam loopings
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (isMounted) {
-        setSession((prevSession) => {
-          if (prevSession?.access_token === newSession?.access_token) return prevSession
-          return newSession
-        })
-
-        setUser((prevUser) => {
-          if (prevUser?.id === newSession?.user?.id) return prevUser
-          return newSession?.user ?? null
-        })
-
-        setLoading(false)
-        clearTimeout(timeout)
-      }
+      setSession(newSession)
+      setUser(newSession?.user ?? null)
+      setLoading(false)
     })
 
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (isMounted) {
-        if (error) {
-          console.error('Error fetching session:', error)
-          // Se falhar a verificação da sessão, limpamos o estado para forçar novo login (Handshake limpo)
-          setSession(null)
-          setUser(null)
-          setAuthError(
-            'Não foi possível verificar a sessão de forma segura. Por favor, acesse novamente e limpe o cache.',
-          )
-        } else {
-          setSession(session)
-          setUser(session?.user ?? null)
-        }
-        setLoading(false)
-        clearTimeout(timeout)
+    // Busca de sessão inicial com tratamento seguro
+    supabase.auth.getSession().then(({ data: { session: initialSession }, error }) => {
+      if (error) {
+        console.error('Error fetching session:', error)
+        setAuthError(error.message)
       }
+      setSession(initialSession)
+      setUser(initialSession?.user ?? null)
+      setLoading(false)
     })
 
     return () => {
-      isMounted = false
-      clearTimeout(timeout)
       subscription.unsubscribe()
     }
   }, [])
 
   const signIn = async (email: string, password: string, keepSignedIn: boolean = false) => {
     try {
-      localStorage.setItem('keepSignedIn', keepSignedIn ? 'true' : 'false')
+      if (keepSignedIn) {
+        localStorage.setItem('keepSignedIn', 'true')
+      } else {
+        localStorage.removeItem('keepSignedIn')
+      }
+
       const res = await supabase.auth.signInWithPassword({ email, password })
 
       if (res.error) {

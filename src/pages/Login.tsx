@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,6 +30,7 @@ export default function Login() {
     }
   }, [location, signOut])
 
+  // Redireciona para o sistema caso a sessão já exista
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
     if (session && searchParams.get('clear') !== '1') {
@@ -54,32 +54,12 @@ export default function Login() {
         return
       }
 
-      // Validação inicial do perfil após login
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .select('id,nome,email,user_cargos(cargo_id,cargo,is_principal)')
-          .eq('id', user.id)
-          .single()
-
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error('Falha ao validar perfil:', profileError.message)
-          if ((profileError as any).code === '42703' || (profileError as any).code === '400') {
-            localStorage.clear()
-            sessionStorage.clear()
-          }
-        }
-      }
-
       toast({
         title: 'Bem-vindo!',
         description: 'Login realizado com sucesso.',
       })
 
+      // O login agora apenas redireciona. A validação de perfil ocorre na AppStore (main.ts).
       navigate(from, { replace: true })
     } catch (error: any) {
       toast({
@@ -124,7 +104,11 @@ export default function Login() {
                 disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full bg-[#D4AF37] hover:bg-[#B3932D] text-[#0A192F] font-bold"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
