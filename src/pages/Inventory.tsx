@@ -57,7 +57,18 @@ import {
 } from '@/components/ui/alert-dialog'
 
 export default function Inventory() {
-  const { inventory, specialties, isAdmin, deleteInventoryItem, temporaryOutflows } = useAppStore()
+  const {
+    inventory: _inventory,
+    specialties: _specialties,
+    isAdmin,
+    deleteInventoryItem,
+    temporaryOutflows: _temporaryOutflows,
+  } = useAppStore()
+
+  const inventory = _inventory || []
+  const specialties = _specialties || []
+  const temporaryOutflows = _temporaryOutflows || []
+
   const { toast } = useToast()
 
   const [isAdding, setIsAdding] = useState(false)
