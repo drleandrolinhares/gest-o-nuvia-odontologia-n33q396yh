@@ -47,24 +47,36 @@ export default function GestaoVendas() {
     }
 
     const fetchDentistas = async () => {
-      const { data } = await supabase.from('dentistas_avaliadores').select('usuario_id')
+      try {
+        const { data, error } = await supabase.from('dentistas_avaliadores').select('usuario_id')
 
-      if (data && data.length > 0) {
-        const ids = data.map((d) => d.usuario_id)
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, nome')
-          .in('id', ids)
+        if (error) throw error
 
-        if (profilesData && profilesData.length > 0) {
-          setDentistas(profilesData.map((p) => ({ id: p.id, nome: p.nome || 'Sem Nome' })))
+        if (data && data.length > 0) {
+          const ids = data.map((d) => d.usuario_id)
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, nome')
+            .in('id', ids)
+
+          if (profilesError) throw profilesError
+
+          if (profilesData && profilesData.length > 0) {
+            setDentistas(profilesData.map((p) => ({ id: p.id, nome: p.nome || 'Sem Nome' })))
+          } else {
+            setDentistas([
+              { id: 'mock-1', nome: 'Dra. Ana Silva' },
+              { id: 'mock-2', nome: 'Dr. Carlos Mendes' },
+            ])
+          }
         } else {
           setDentistas([
             { id: 'mock-1', nome: 'Dra. Ana Silva' },
             { id: 'mock-2', nome: 'Dr. Carlos Mendes' },
           ])
         }
-      } else {
+      } catch (err) {
+        console.error('Erro ao buscar dentistas:', err)
         setDentistas([
           { id: 'mock-1', nome: 'Dra. Ana Silva' },
           { id: 'mock-2', nome: 'Dr. Carlos Mendes' },
