@@ -10,10 +10,13 @@ export default function Index() {
   const { alerts, inventory } = useAppStore()
   const navigate = useNavigate()
 
-  const lowStockItems = inventory.filter((i) => i.quantity <= (i.minStock || 0)).length
-  const totalItemsInStock = inventory.reduce((acc, item) => acc + item.quantity, 0)
-  const investedCapital = inventory.reduce(
-    (acc, item) => acc + (item.quantity / (item.itemsPerBox || 1)) * (item.packageCost || 0),
+  const safeInventory = inventory || []
+  const safeAlerts = alerts || []
+
+  const lowStockItems = safeInventory.filter((i) => (i.quantity || 0) <= (i.minStock || 0)).length
+  const totalItemsInStock = safeInventory.reduce((acc, item) => acc + (item.quantity || 0), 0)
+  const investedCapital = safeInventory.reduce(
+    (acc, item) => acc + ((item.quantity || 0) / (item.itemsPerBox || 1)) * (item.packageCost || 0),
     0,
   )
 
@@ -21,14 +24,14 @@ export default function Index() {
   const sixtyDays = new Date()
   sixtyDays.setDate(now.getDate() + 60)
 
-  const expiringItems = inventory.filter((i) => {
-    if (!i.expirationDate || i.quantity <= 0) return false
+  const expiringItems = safeInventory.filter((i) => {
+    if (!i.expirationDate || (i.quantity || 0) <= 0) return false
     const exp = new Date(i.expirationDate)
     return exp <= sixtyDays && exp >= now
   })
 
-  const expiredItems = inventory.filter((i) => {
-    if (!i.expirationDate || i.quantity <= 0) return false
+  const expiredItems = safeInventory.filter((i) => {
+    if (!i.expirationDate || (i.quantity || 0) <= 0) return false
     const exp = new Date(i.expirationDate)
     return exp < now
   })
@@ -99,7 +102,7 @@ export default function Index() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {alerts.map((alert, idx) => (
+            {safeAlerts.map((alert, idx) => (
               <div key={idx} className="cursor-pointer transition-transform hover:scale-[1.01]">
                 <Alert
                   variant={idx === 0 ? 'destructive' : 'default'}
@@ -162,7 +165,7 @@ export default function Index() {
               </div>
             )}
 
-            {alerts.length === 0 &&
+            {safeAlerts.length === 0 &&
               expiredItems.length === 0 &&
               expiringItems.length === 0 &&
               lowStockItems === 0 && (

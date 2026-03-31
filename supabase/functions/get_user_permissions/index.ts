@@ -4,7 +4,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 // In-memory cache for the edge function isolate
@@ -67,7 +68,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // Check se usuário tem full access (Admin ou Master)
-    const { data: isMaster } = await supabaseAdmin.rpc('is_master_user', { user_uuid: targetUserId })
+    const { data: isMaster } = await supabaseAdmin.rpc('is_master_user', {
+      user_uuid: targetUserId,
+    })
     const { data: isAdmin } = await supabaseAdmin.rpc('is_admin_user', { user_uuid: targetUserId })
     const hasFullAccess = isMaster || isAdmin
 
@@ -133,7 +136,7 @@ Deno.serve(async (req: Request) => {
 
       const resolvePerm = (field: string) => {
         // Master/Admin tem acesso total
-        if (hasFullAccess) return true;
+        if (hasFullAccess) return true
 
         // Se temos permissões de cargo mapeadas, aplicamos apenas regras atreladas ao cargo
         if (cargoPerms.length > 0) {
