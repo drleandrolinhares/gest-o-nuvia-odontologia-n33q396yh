@@ -1,11 +1,11 @@
 {
   "_versions": {
-    "update-user-password": 8,
-    "admin-create-user": 8,
-    "admin-delete-user": 1,
-    "restore-admin-permissions": 2,
-    "get_user_permissions": 15,
-    "admin-update-user": 1,
-    "admin-reset-password": 2
+    "update-user-password": 9,
+    "admin-create-user": 9,
+    "admin-delete-user": 2,
+    "restore-admin-permissions": 3,
+    "get_user_permissions": 16,
+    "admin-update-user": 2,
+    "admin-reset-password": 3
   }
 }

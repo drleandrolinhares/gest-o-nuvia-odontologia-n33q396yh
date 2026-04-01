@@ -117,22 +117,27 @@ export default function Inventory() {
   sixtyDays.setDate(now.getDate() + 60)
 
   useEffect(() => {
-    if (showActiveOutflows) {
+    if (showActiveOutflows && Array.isArray(inventory) && Array.isArray(temporaryOutflows)) {
       const groupsWithOutflows = inventory
-        .filter((item) => temporaryOutflows.some((t) => t.inventory_id === item.id))
-        .map((item) => item.name.toUpperCase())
+        .filter((item) => item && temporaryOutflows.some((t) => t && t.inventory_id === item.id))
+        .map((item) => item?.name?.toUpperCase())
+        .filter(Boolean) as string[]
 
       setExpandedGroups((prev) => [...new Set([...prev, ...groupsWithOutflows])])
     }
   }, [showActiveOutflows, inventory, temporaryOutflows])
 
   const filteredInventory = useMemo(() => {
+    if (!Array.isArray(inventory)) return []
+
     return inventory.filter((item) => {
+      if (!item) return false
+
       const matchSpecialty = selectedSpecialty === 'all' || item.specialty === selectedSpecialty
       const searchLower = searchQuery.toLowerCase()
 
       const matchSearch =
-        item.name.toLowerCase().includes(searchLower) ||
+        (item.name || '').toLowerCase().includes(searchLower) ||
         !!item.brand?.toLowerCase().includes(searchLower) ||
         !!item.specialtyDetails?.implantDiameter?.toLowerCase().includes(searchLower) ||
         !!item.specialtyDetails?.implantHeight?.toLowerCase().includes(searchLower) ||
@@ -140,8 +145,10 @@ export default function Inventory() {
 
       const matchBarcode = !barcodeQuery || (item.barcode && item.barcode.includes(barcodeQuery))
       const matchLowStock = showLowStock ? isCriticalStock(item) : true
+
+      const safeTemporaryOutflows = Array.isArray(temporaryOutflows) ? temporaryOutflows : []
       const matchActiveOutflows = showActiveOutflows
-        ? temporaryOutflows.some((t) => t.inventory_id === item.id)
+        ? safeTemporaryOutflows.some((t) => t && t.inventory_id === item.id)
         : true
 
       return matchSpecialty && matchSearch && matchLowStock && matchBarcode && matchActiveOutflows
@@ -157,8 +164,11 @@ export default function Inventory() {
   ])
 
   const groupedInventory = useMemo(() => {
+    if (!Array.isArray(filteredInventory)) return []
+
     const groups: Record<string, InventoryItem[]> = {}
     filteredInventory.forEach((item) => {
+      if (!item || !item.name) return
       const key = item.name.toUpperCase()
       if (!groups[key]) groups[key] = []
       groups[key].push(item)
@@ -193,21 +203,29 @@ export default function Inventory() {
     )
   }
 
-  const totalCapital = filteredInventory.reduce(
-    (acc, item) => acc + (item.quantity / (item.itemsPerBox || 1)) * item.packageCost,
-    0,
-  )
-  const totalItems = filteredInventory.reduce((acc, item) => acc + item.quantity, 0)
+  const totalCapital = Array.isArray(filteredInventory)
+    ? filteredInventory.reduce(
+        (acc, item) =>
+          acc + ((item?.quantity || 0) / (item?.itemsPerBox || 1)) * (item?.packageCost || 0),
+        0,
+      )
+    : 0
+  const totalItems = Array.isArray(filteredInventory)
+    ? filteredInventory.reduce((acc, item) => acc + (item?.quantity || 0), 0)
+    : 0
 
   const topStats = useMemo(() => {
     const volBySpec: Record<string, number> = {}
     const valBySpec: Record<string, number> = {}
-    inventory.forEach((i) => {
-      if (!i.specialty) return
-      volBySpec[i.specialty] = (volBySpec[i.specialty] || 0) + i.quantity
-      valBySpec[i.specialty] =
-        (valBySpec[i.specialty] || 0) + (i.quantity / (i.itemsPerBox || 1)) * i.packageCost
-    })
+    if (Array.isArray(inventory)) {
+      inventory.forEach((i) => {
+        if (!i || !i.specialty) return
+        volBySpec[i.specialty] = (volBySpec[i.specialty] || 0) + (i.quantity || 0)
+        valBySpec[i.specialty] =
+          (valBySpec[i.specialty] || 0) +
+          ((i.quantity || 0) / (i.itemsPerBox || 1)) * (i.packageCost || 0)
+      })
+    }
     const topVol = Object.entries(volBySpec).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
     const topVal = Object.entries(valBySpec).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
     return { maxVolSpec: topVol[0], maxVol: topVol[1], maxValSpec: topVal[0], maxVal: topVal[1] }
