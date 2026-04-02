@@ -479,22 +479,25 @@ export function GeneralSettings() {
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-            {[...agendaTypes].sort().map((type) => (
-              <div
-                key={type}
-                className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
-              >
-                <span className="font-medium text-sm text-nuvia-navy uppercase">{type}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive h-8 w-8"
-                  onClick={() => removeAgendaType(type)}
+            {Array.isArray(agendaTypes) &&
+              agendaTypes.map((type) => (
+                <div
+                  key={typeof type === 'string' ? type : type.id}
+                  className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <span className="font-medium text-sm text-nuvia-navy uppercase">
+                    {typeof type === 'string' ? type : type.name}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive h-8 w-8"
+                    onClick={() => removeAgendaType(typeof type === 'string' ? type : type.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
           </div>
         </CardContent>
       </Card>
