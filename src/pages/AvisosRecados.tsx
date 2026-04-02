@@ -23,15 +23,14 @@ const getLocalDate = (dStr: string) => {
 }
 
 export default function AvisosRecados() {
-  const {
-    const addAgendaItem = (item: any) => console.log('Adicionar:', item)
-const removeAgendaItem = (id: string) => console.log('Remover:', id)
-const updateAgendaItem = (id: string, data: any) => console.log('Atualizar:', id, data)
-const currentUserId = 'user-id-placeholder'
-const agendaTypes = ['AVISO', 'RECADO', 'ALERTA']
-const isAdmin = true
-  } = useAppStore()
+  const { announcements: agenda, fetchAnnouncements } = useHubStore()
 
+  const addAgendaItem = (item: any) => console.log('Adicionar:', item)
+  const removeAgendaItem = (id: string) => console.log('Remover:', id)
+  const updateAgendaItem = (id: string, data: any) => console.log('Atualizar:', id, data)
+  const currentUserId = 'user-id-placeholder'
+  const agendaTypes = ['AVISO', 'RECADO', 'ALERTA']
+  const isAdmin = true
   const [openAdd, setOpenAdd] = useState(false)
   const [selectedItem, setSelectedItem] = useState<AgendaItem | null>(null)
 
