@@ -21,6 +21,8 @@ interface AppState {
   setModules: (modules: any[]) => void
   isLoading: boolean
   setIsLoading: (isLoading: boolean) => void
+  isAdmin: boolean
+  setIsAdmin: (isAdmin: boolean) => void
   [key: string]: any
 }
 
@@ -31,6 +33,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     sidebarOpen: true,
     user: null,
     profile: null,
+    isAdmin: false,
     permissions: [],
     modules: [],
     isLoading: false,
@@ -68,6 +71,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isLoading }))
   }, [])
 
+  const setIsAdmin = useCallback((isAdmin: boolean) => {
+    setState((prev) => ({ ...prev, isAdmin }))
+  }, [])
+
   const updateState = useCallback(
     (updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>)) => {
       setState((prev) => {
@@ -87,12 +94,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       permissions: state.permissions,
       modules: state.modules,
       isLoading: state.isLoading,
+      isAdmin: state.isAdmin,
       setSidebarOpen,
       setUser,
       setProfile,
       setPermissions,
       setModules,
       setIsLoading,
+      setIsAdmin,
       setState: updateState,
     }),
     [
@@ -103,6 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPermissions,
       setModules,
       setIsLoading,
+      setIsAdmin,
       updateState,
     ],
   )

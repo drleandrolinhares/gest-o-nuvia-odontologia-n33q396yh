@@ -7,21 +7,17 @@ import { ShieldAlert } from 'lucide-react'
 
 export default function Pricing() {
   const store = useAppStore() as any
-  const isAdmin = store?.isAdmin === true
   const permissions = store?.permissions ?? []
 
   const hasPermissionArray =
     Array.isArray(permissions) &&
     permissions.some(
       (p: any) =>
-        p?.nome === 'PRECIFICAÇÃO' && (p?.pode_visualizar === true || p?.pode_ver === true),
+        p?.nome?.toUpperCase() === 'PRECIFICAÇÃO' &&
+        (p?.pode_visualizar === true || p?.pode_ver === true),
     )
 
-  const hasPermissionObj =
-    (permissions?.precificacao?.visualizar ?? false) === true ||
-    (permissions?.precificacao?.pode_ver ?? false) === true
-
-  const hasAccess = isAdmin === true || hasPermissionArray === true || hasPermissionObj === true
+  const hasAccess = store?.isAdmin === true || hasPermissionArray === true
 
   if (!hasAccess) {
     return (
