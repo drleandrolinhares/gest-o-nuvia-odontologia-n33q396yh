@@ -28,9 +28,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useMainStore } from '@/stores/main' // Assumindo que main.ts exporta useMainStore (veja fix abaixo)
 
 export function GeneralSettings() {
+  // Local state simulando Supabase (substitua por useMainStore quando criar o store)
+  const [agendaTypes, setAgendaTypes] = useState([])
+  const [cargos, setCargos] = useState([])
+  const [departamentos, setDepartamentos] = useState([])
+  const [users, setUsers] = useState([])
+  const [avaliadores, setAvaliadores] = useState([])
+  const [criterios, setCriterios] = useState([])
+
   const [newAgendaType, setNewAgendaType] = useState('')
   const [newCargo, setNewCargo] = useState('')
   const [newDept, setNewDept] = useState('')
@@ -48,30 +55,92 @@ export function GeneralSettings() {
   const [removingDept, setRemovingDept] = useState(null)
   const [removingAvaliador, setRemovingAvaliador] = useState(null)
 
-  const {
-    agendaTypes,
-    cargos,
-    departamentos,
-    users,
-    avaliadores,
-    criterios,
-    addAgendaType,
-    removeAgendaType,
-    addCargo,
-    removeCargo,
-    addDept,
-    removeDept,
-    addAvaliador,
-    removeAvaliador,
-    addCriterio,
-    updateCriterio,
-    deleteCriterio,
-    loadSettings,
-  } = useMainStore()
-
+  // Simula load do Supabase (substitua por loadSettings do store)
   useEffect(() => {
-    loadSettings()
+    // Mock data do Supabase
+    setAgendaTypes([
+      { id: '1', name: 'Consulta', description: 'Consulta normal', created_at: '2026-04-02' },
+      { id: '2', name: 'Emergência', description: 'Atendimento urgente', created_at: '2026-04-02' },
+    ])
+    setCargos([{ id: '1', nome: 'Dentista', created_at: '2026-04-02' }])
+    setDepartamentos([{ id: '1', nome: 'Clínica', created_at: '2026-04-02' }])
+    setUsers([
+      { id: '1', nome: 'João Silva', email: 'joao@email.com', cargos: { nome: 'Dentista' } },
+    ])
+    setAvaliadores([{ id: '1', nome: 'João Silva', cargo: 'Dentista', created_at: '2026-04-02' }])
+    setCriterios([
+      {
+        id: '1',
+        cargo: 'Dentista',
+        criterio: 'Avaliação',
+        valorRef: 100,
+        valorRem: 50,
+        created_at: '2026-04-02',
+      },
+    ])
   }, [])
+
+  const addAgendaType = async (name) => {
+    const newType = {
+      id: Date.now().toString(),
+      name,
+      description: 'Novo tipo',
+      created_at: new Date().toISOString(),
+    }
+    setAgendaTypes([...agendaTypes, newType])
+  }
+
+  const removeAgendaType = async (id) => {
+    setAgendaTypes(agendaTypes.filter((type) => String(type.id) !== String(id)))
+  }
+
+  const addCargo = async (name) => {
+    const newCargo = { id: Date.now().toString(), nome: name, created_at: new Date().toISOString() }
+    setCargos([...cargos, newCargo])
+  }
+
+  const removeCargo = async (id) => {
+    setCargos(cargos.filter((cargo) => String(cargo.id) !== String(id)))
+  }
+
+  const addDept = async (name) => {
+    const newDept = { id: Date.now().toString(), nome: name, created_at: new Date().toISOString() }
+    setDepartamentos([...departamentos, newDept])
+  }
+
+  const removeDept = async (id) => {
+    setDepartamentos(departamentos.filter((dept) => String(dept.id) !== String(id)))
+  }
+
+  const addAvaliador = async (userId) => {
+    const user = users.find((u) => String(u.id) === String(userId))
+    if (user) {
+      const newAvaliador = {
+        id: Date.now().toString(),
+        nome: user.nome,
+        cargo: user.cargos?.nome || 'Dentista',
+        created_at: new Date().toISOString(),
+      }
+      setAvaliadores([...avaliadores, newAvaliador])
+    }
+  }
+
+  const removeAvaliador = async (id) => {
+    setAvaliadores(avaliadores.filter((avaliador) => String(avaliador.id) !== String(id)))
+  }
+
+  const addCriterio = async (data) => {
+    const newCriterio = { id: Date.now().toString(), ...data, created_at: new Date().toISOString() }
+    setCriterios([...criterios, newCriterio])
+  }
+
+  const updateCriterio = async (id, data) => {
+    setCriterios(criterios.map((c) => (String(c.id) === String(id) ? { ...c, ...data } : c)))
+  }
+
+  const deleteCriterio = async (id) => {
+    setCriterios(criterios.filter((c) => String(c.id) !== String(id)))
+  }
 
   const handleAddAgendaType = async (e) => {
     e.preventDefault()
