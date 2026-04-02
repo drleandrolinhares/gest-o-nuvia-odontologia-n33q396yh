@@ -77,6 +77,3 @@ export const useMainStore = create((set, get) => ({
     set((state) => ({ criterios: state.criterios.filter((c) => c.id !== id) }))
   },
 }))
-
-// Export para import no GeneralSettings.tsx
-export { useMainStore }
