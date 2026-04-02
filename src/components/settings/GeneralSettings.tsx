@@ -479,21 +479,28 @@ export function GeneralSettings() {
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
+          
             {Array.isArray(agendaTypes) && agendaTypes.length > 0 && agendaTypes.map((type) => (
-  
-<span className="font-medium text-sm text-nuvia-navy uppercase">
-</span>
-<Button
-  variant="ghost"
-  size="icon"
-  className="text-muted-foreground hover:text-destructive h-8 w-8"
-  onClick={() => {
-    const idToRemove = typeof type === 'object' && type ? type.id : type;
-    if (idToRemove) removeAgendaType(idToRemove);
-  }}
->
-  <Trash2 className="h-4 w-4" />
-</Button>  
+  {Array.isArray(agendaTypes) && agendaTypes.length > 0 && agendaTypes.map((type) => (
+  <div
+    key={type.id || type.name || `type-${Math.random()}`}
+    className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
+  >
+    <span className="font-medium text-sm text-nuvia-navy uppercase">
+      {typeof type === 'object' && type ? type.name || 'Sem nome' : type || 'Sem tipo'}
+    </span>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="text-muted-foreground hover:text-destructive h-8 w-8"
+      onClick={() => {
+        const idToRemove = typeof type === 'object' && type ? type.id : type;
+        if (idToRemove) removeAgendaType(idToRemove);
+      }}
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  </div>
 ))}
           </div>
         </CardContent>
