@@ -86,8 +86,8 @@ export function AddInventoryModal({
       o.category.toUpperCase() === 'STORAGE_ROOM' ||
       o.category.toUpperCase() === 'SALA_ARMAZENAMENTO',
   )
-  const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
-  const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
+  const implantBrands = (inventoryOptions || []).filter((o) => o.category === 'MARCA_IMPLANTE')
+  const componentTypes = (inventoryOptions || []).filter((o) => o.category === 'TIPO_COMPONENTE')
 
   const existingItem = baseItemName ? inventory.find((i) => i.name === baseItemName) : null
   const realStockBefore = existingItem ? existingItem.quantity : 0
