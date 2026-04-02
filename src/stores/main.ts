@@ -202,7 +202,7 @@ const useMainStore = create<AppState>((set, get) => ({
       })
     }
   }, }),
-
+})
 export default useMainStore
 export const useAppStore = useMainStore
 export const useApp = useMainStore
