@@ -6,9 +6,24 @@ import { FinancialParameters } from '@/components/pricing/FinancialParameters'
 import { ShieldAlert } from 'lucide-react'
 
 export default function Pricing() {
-  const { isAdmin } = useAppStore()
+  const store = useAppStore() as any
+  const isAdmin = store?.isAdmin === true
+  const permissions = store?.permissions ?? []
 
-  if (!isAdmin) {
+  const hasPermissionArray =
+    Array.isArray(permissions) &&
+    permissions.some(
+      (p: any) =>
+        p?.nome === 'PRECIFICAÇÃO' && (p?.pode_visualizar === true || p?.pode_ver === true),
+    )
+
+  const hasPermissionObj =
+    (permissions?.precificacao?.visualizar ?? false) === true ||
+    (permissions?.precificacao?.pode_ver ?? false) === true
+
+  const hasAccess = isAdmin === true || hasPermissionArray === true || hasPermissionObj === true
+
+  if (!hasAccess) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] py-20 uppercase animate-fade-in">
         <ShieldAlert className="h-16 w-16 text-muted-foreground/50 mb-4" />
@@ -16,7 +31,7 @@ export default function Pricing() {
           Acesso Restrito
         </h2>
         <p className="text-sm font-medium text-muted-foreground mt-2">
-          Esta página é exclusiva para administradores.
+          Você não tem permissão para visualizar esta página.
         </p>
       </div>
     )
