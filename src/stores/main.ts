@@ -43,6 +43,7 @@ const useMainStore = create<AppState>((set, get) => ({
   specialties: [],
   consultorios: [],
   agendaSegmentation: [],
+  agendaTypes: [],
   loading: true,
   fetchProfile: async (userParam: any) => {
     set({ loading: true })
