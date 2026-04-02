@@ -176,7 +176,7 @@ const useMainStore = create<AppState>((set, get) => ({
         return false
     }
   },
-  clear: () => set({ profile: null, permissions: [], loading: false   loadInventoryData: async () => {
+  clear: () => set({ profile: null, permissions: [], loading: false }),loadInventoryData: async () => {
     try {
       const { data: options } = await supabase
         .from('inventory_settings')
