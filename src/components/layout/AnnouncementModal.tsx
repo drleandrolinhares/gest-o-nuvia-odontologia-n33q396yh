@@ -89,4 +89,6 @@ export function AnnouncementModal() {
           </Button>
         </div>
       </AlertDialogContent>
-    </AlertDialog
+    </AlertDialog>
+  )
+}
