@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useMainStore } from '@/stores/main'
+import { useMainStore } from '@/stores/main' // Assumindo que main.ts exporta useMainStore (veja fix abaixo)
 
 export function GeneralSettings() {
   const [newAgendaType, setNewAgendaType] = useState('')
