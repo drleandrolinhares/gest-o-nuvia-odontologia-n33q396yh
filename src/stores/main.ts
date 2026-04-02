@@ -201,7 +201,7 @@ const useMainStore = create<AppState>((set, get) => ({
         inventory: [],
       })
     }
-  }, }),
+  },
 })
 export default useMainStore
 export const useAppStore = useMainStore
