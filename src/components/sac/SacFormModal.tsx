@@ -36,7 +36,8 @@ export function SacFormModal({ open, onOpenChange, item }: Props) {
   >('OPORTUNIDADE DE SOLUÇÃO')
   const [solutionDetails, setSolutionDetails] = useState('')
 
-  const activeEmployees = employees.filter((e) => e.status !== 'Desligado')
+  const activeEmployees =
+    employees && employees.length > 0 ? employees.filter((e) => e.status !== 'Desligado') : []
 
   useEffect(() => {
     if (open) {
