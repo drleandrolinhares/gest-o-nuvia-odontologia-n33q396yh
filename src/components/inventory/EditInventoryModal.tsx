@@ -78,7 +78,7 @@ export function EditInventoryModal({
   const [localSpecialties, setLocalSpecialties] = useState<string[]>([])
   const [isLoadingSpecialties, setIsLoadingSpecialties] = useState(false)
 
-  const storageRooms = inventoryOptions.filter(
+  const storageRooms = (inventoryOptions || []).filter(
     (o) =>
       o.category.toUpperCase() === 'STORAGE_ROOM' ||
       o.category.toUpperCase() === 'SALA_ARMAZENAMENTO',
