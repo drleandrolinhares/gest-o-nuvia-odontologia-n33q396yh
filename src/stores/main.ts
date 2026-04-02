@@ -1,231 +1,82 @@
 import { create } from 'zustand'
-import { supabase } from '@/lib/supabase/client'
-import React, { useEffect } from 'react'
-import { useAuth } from '@/hooks/use-auth'
+import { supabase } from '@/lib/supabase'
 
-export interface UserProfile {
-  id: string
-  nome: string | null
-  email: string | null
-  cargo_id: string | null
-  cargo_nome: string | null
-  departamento_id: string | null
-  is_admin: boolean
-  is_master: boolean
-  user_cargos?: any[]
-  isAdmin?: boolean // Alias for backwards compatibility
-}
-
-interface AppState {
-  profile: UserProfile | null
-  permissions: any[]
-  inventoryOptions: any[]
-  packageTypes: any[]
-  inventory: any[]
-  specialties: any[]
-  consultorios: any[]
-  agendaSegmentation: any[]
-  loading: boolean
-  fetchProfile: (userParam: any) => Promise<void>
-  refreshProfile: () => Promise<void>
-  can: (module: string, action?: 'ver' | 'criar' | 'editar' | 'deletar') => boolean
-  loadInventoryData: () => Promise<void>
-  clear: () => void
-}
-
-const useMainStore = create<AppState>((set, get) => ({
-  profile: null,
-  permissions: [],
-  inventoryOptions: [],
-  packageTypes: [],
-  inventory: [],
-  specialtyConfigs: [],
-  specialties: [],
-  consultorios: [],
-  agendaSegmentation: [],
+export const useMainStore = create((set, get) => ({
   agendaTypes: [],
-  loading: true,
-  fetchProfile: async (userParam: any) => {
-    set({ loading: true })
-    const userId = typeof userParam === 'string' ? userParam : userParam?.id
-    const userEmail = typeof userParam === 'string' ? '' : userParam?.email
-
-    // Hardcoded Bypass de Emergência
-    const isSuperUser =
-      userEmail === 'drleandrolinhares@gmail.com' || userEmail === 'master@nuvia.com.br'
-
-    try {
-      // 1. Busca do Perfil Principal - Try/Catch Isolado para não quebrar a execução geral
-      let profileData = null
-      try {
-        const res = await supabase
-          .from('profiles')
-          .select('id, nome, email, departamento_id')
-          .eq('id', userId)
-          .single()
-        profileData = res.data
-      } catch (e) {
-        console.warn('Fallback: Erro ao buscar perfil no Supabase', e)
-      }
-
-      // 2. Busca de Cargos
-      let cargosData: any[] = []
-      try {
-        const res = await supabase
-          .from('user_cargos')
-          .select('cargo_id, cargo, is_principal')
-          .eq('user_id', userId)
-        if (res.data) cargosData = res.data
-      } catch (e) {
-        console.warn('Fallback: Erro ao buscar cargos no Supabase', e)
-      }
-
-      const cargos = Array.isArray(cargosData) ? cargosData : []
-
-      let is_admin = isSuperUser
-      let is_master = isSuperUser
-
-      // 3. Verificação de Acesso - Fallback seguro caso as funções RPC falhem
-      if (!isSuperUser) {
-        try {
-          const { data: isAdminData } = await supabase.rpc('is_admin_user', { user_uuid: userId })
-          const { data: isMasterData } = await supabase.rpc('is_master_user', { user_uuid: userId })
-          is_admin = !!isAdminData
-          is_master = !!isMasterData
-        } catch (e) {
-          console.warn('Aviso: RPC de validação falhou, usando fallback de cargos locais.', e)
-          is_admin = cargos.some((c: any) =>
-            ['ADMIN', 'MASTER', 'DIRETORIA', 'CEO'].includes(String(c?.cargo || '').toUpperCase()),
-          )
-          is_master = cargos.some((c: any) =>
-            ['MASTER', 'ADMIN'].includes(String(c?.cargo || '').toUpperCase()),
-          )
-        }
-      }
-
-      const principalCargo = cargos.find((c: any) => c?.is_principal) || cargos[0] || null
-
-      set({
-        profile: {
-          id: userId,
-          nome: profileData?.nome || (is_admin ? 'Administrador' : 'Usuário'),
-          email: profileData?.email || userEmail || null,
-          cargo_id: principalCargo?.cargo_id || null,
-          cargo_nome: principalCargo?.cargo || null,
-          departamento_id: profileData?.departamento_id || null,
-          is_admin,
-          is_master,
-          isAdmin: is_admin,
-          user_cargos: cargos,
-        },
-      })
-
-      // 4. Busca de Permissões (Assíncrono, não-bloqueante)
-      supabase.functions
-        .invoke('get_user_permissions', {
-          body: { userId },
-        })
-        .then(({ data, error }) => {
-          if (!error && data?.permissions) {
-            set({ permissions: Array.isArray(data.permissions) ? data.permissions : [] })
-          }
-        })
-        .catch(console.warn)
-    } catch (error: any) {
-      console.error('Erro crítico no fetchProfile da store:', error)
-
-      // Modo de Segurança Extremo garantido
-      set({
-        profile: {
-          id: userId,
-          nome: isSuperUser ? 'Administrador (Safe Mode)' : 'Usuário (Safe Mode)',
-          email: userEmail || '',
-          cargo_id: null,
-          cargo_nome: null,
-          departamento_id: null,
-          is_admin: isSuperUser,
-          is_master: isSuperUser,
-          isAdmin: isSuperUser,
-          user_cargos: [],
-        },
-        permissions: [],
-      })
-    } finally {
-      set({ loading: false })
-    }
+  cargos: [],
+  departamentos: [],
+  users: [],
+  avaliadores: [],
+  criterios: [],
+  loadSettings: async () => {
+    const { data: agendaTypes } = await supabase.from('agenda_types').select('*')
+    set({ agendaTypes: agendaTypes || [] })
+    const { data: cargos } = await supabase.from('cargos').select('*')
+    set({ cargos: cargos || [] })
+    const { data: departamentos } = await supabase.from('departamentos').select('*')
+    set({ departamentos: departamentos || [] })
+    const { data: users } = await supabase.from('users').select('*')
+    set({ users: users || [] })
+    const { data: avaliadores } = await supabase.from('avaliadores').select('*')
+    set({ avaliadores: avaliadores || [] })
+    const { data: criterios } = await supabase.from('criterios').select('*')
+    set({ criterios: criterios || [] })
   },
-  refreshProfile: async () => {
-    const { profile } = get()
-    if (profile?.id) {
-      await get().fetchProfile({ id: profile.id, email: profile.email })
-    }
+  addAgendaType: async (name) => {
+    const { data } = await supabase
+      .from('agenda_types')
+      .insert({ name, description: 'Novo tipo' })
+      .select()
+      .single()
+    set((state) => ({ agendaTypes: [...state.agendaTypes, data] }))
   },
-  can: (module: string, action = 'ver') => {
-    const { profile, permissions } = get()
-    if (!profile) return false
-
-    // Libera 100% o acesso para Admin/Master
-    if (profile.is_admin || profile.is_master || profile.isAdmin) return true
-
-    const safePermissions = Array.isArray(permissions) ? permissions : []
-    const perm = safePermissions.find((p: any) => p?.nome?.toUpperCase() === module.toUpperCase())
-    if (!perm) return false
-
-    switch (action) {
-      case 'ver':
-        return perm.pode_ver || perm.pode_visualizar
-      case 'criar':
-        return perm.pode_criar
-      case 'editar':
-        return perm.pode_editar
-      case 'deletar':
-        return perm.pode_deletar
-      default:
-        return false
-    }
+  removeAgendaType: async (id) => {
+    await supabase.from('agenda_types').delete().eq('id', id)
+    set((state) => ({ agendaTypes: state.agendaTypes.filter((t) => t.id !== id) }))
   },
-  clear: () => set({ profile: null, permissions: [], loading: false }),
-  loadInventoryData: async () => {
-    try {
-      const { data: options } = await supabase.from('inventory_settings').select('*')
-      const { data: types } = await supabase.from('package_types').select('*')
-      const { data: items } = await supabase.from('inventory').select('*')
-
-      set({
-        inventoryOptions: options || [],
-        packageTypes: types || [],
-        inventory: items || [],
-      })
-    } catch (error) {
-      console.error('Erro ao carregar dados de inventário:', error)
-      set({
-        inventoryOptions: [],
-        packageTypes: [],
-        inventory: [],
-      })
-    }
+  addCargo: async (nome) => {
+    const { data } = await supabase.from('cargos').insert({ nome }).select().single()
+    set((state) => ({ cargos: [...state.cargos, data] }))
+  },
+  removeCargo: async (id) => {
+    await supabase.from('cargos').delete().eq('id', id)
+    set((state) => ({ cargos: state.cargos.filter((c) => c.id !== id) }))
+  },
+  addDept: async (nome) => {
+    const { data } = await supabase.from('departamentos').insert({ nome }).select().single()
+    set((state) => ({ departamentos: [...state.departamentos, data] }))
+  },
+  removeDept: async (id) => {
+    await supabase.from('departamentos').delete().eq('id', id)
+    set((state) => ({ departamentos: state.departamentos.filter((d) => d.id !== id) }))
+  },
+  addAvaliador: async (userId) => {
+    const { data } = await supabase
+      .from('avaliadores')
+      .insert({ user_id: userId })
+      .select()
+      .single()
+    set((state) => ({ avaliadores: [...state.avaliadores, data] }))
+  },
+  removeAvaliador: async (id) => {
+    await supabase.from('avaliadores').delete().eq('id', id)
+    set((state) => ({ avaliadores: state.avaliadores.filter((a) => a.id !== id) }))
+  },
+  addCriterio: async (data) => {
+    const { data: newCriterio } = await supabase.from('criterios').insert(data).select().single()
+    set((state) => ({ criterios: [...state.criterios, newCriterio] }))
+  },
+  updateCriterio: async (id, data) => {
+    await supabase.from('criterios').update(data).eq('id', id)
+    set((state) => ({
+      criterios: state.criterios.map((c) => (c.id === id ? { ...c, ...data } : c)),
+    }))
+  },
+  deleteCriterio: async (id) => {
+    await supabase.from('criterios').delete().eq('id', id)
+    set((state) => ({ criterios: state.criterios.filter((c) => c.id !== id) }))
   },
 }))
-export default useMainStore
-export const useAppStore = useMainStore
-export const useApp = useMainStore
 
-export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading: authLoading } = useAuth()
-  const fetchProfile = useMainStore((state) => state.fetchProfile)
-  const clear = useMainStore((state) => state.clear)
-  const loadInventoryData = useMainStore((state) => state.loadInventoryData)
-
-  useEffect(() => {
-    if (!authLoading) {
-      if (user) {
-        fetchProfile(user)
-        loadInventoryData()
-      } else {
-        clear()
-      }
-    }
-  }, [user, authLoading, fetchProfile, clear, loadInventoryData])
-
-  return React.createElement(React.Fragment, null, children)
-}
+// Export para import no GeneralSettings.tsx
+export { useMainStore }
