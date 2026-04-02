@@ -17,7 +17,8 @@ export function AnnouncementModal() {
   const [readingAnnouncement, setReadingAnnouncement] = useState(false)
   const { toast } = useToast()
 
-  const currentUnread = (unreadAnnouncements?.length ?? 0) > 0 ? unreadAnnouncements[0] : null
+  const safeAnnouncements = unreadAnnouncements || []
+  const currentUnread = safeAnnouncements.length > 0 ? safeAnnouncements[0] : null
 
   useEffect(() => {
     setAgreedToAnnouncement(false)
