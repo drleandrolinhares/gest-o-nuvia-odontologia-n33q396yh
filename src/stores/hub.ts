@@ -32,7 +32,7 @@ export function HubProvider({ children }: { children: ReactNode }) {
   return createElement(HubContext.Provider, { value }, children)
 }
 
-export default function useHubStore<T = HubState>(selector?: (state: HubState) => T): T {
+export function useHubStore<T = HubState>(selector?: (state: HubState) => T): T {
   const context = useContext(HubContext)
   if (context === undefined) {
     throw new Error('useHubStore must be used within a HubProvider')
@@ -42,3 +42,5 @@ export default function useHubStore<T = HubState>(selector?: (state: HubState) =
   }
   return context as unknown as T
 }
+
+export default useHubStore

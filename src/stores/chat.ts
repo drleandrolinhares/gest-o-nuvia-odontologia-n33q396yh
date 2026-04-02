@@ -32,7 +32,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   return createElement(ChatContext.Provider, { value }, children)
 }
 
-export default function useChatStore<T = ChatState>(selector?: (state: ChatState) => T): T {
+export function useChatStore<T = ChatState>(selector?: (state: ChatState) => T): T {
   const context = useContext(ChatContext)
   if (context === undefined) {
     throw new Error('useChatStore must be used within a ChatProvider')
@@ -42,3 +42,5 @@ export default function useChatStore<T = ChatState>(selector?: (state: ChatState
   }
   return context as unknown as T
 }
+
+export default useChatStore

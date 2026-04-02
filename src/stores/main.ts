@@ -102,7 +102,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return createElement(AppContext.Provider, { value: value as AppState }, children)
 }
 
-export default function useAppStore<T = AppState>(selector?: (state: AppState) => T): T {
+export function useAppStore<T = AppState>(selector?: (state: AppState) => T): T {
   const context = useContext(AppContext)
   if (context === undefined) {
     throw new Error('useAppStore must be used within an AppProvider')
@@ -112,3 +112,5 @@ export default function useAppStore<T = AppState>(selector?: (state: AppState) =
   }
   return context as unknown as T
 }
+
+export default useAppStore
