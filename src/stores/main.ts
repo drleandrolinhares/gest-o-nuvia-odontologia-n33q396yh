@@ -19,6 +19,9 @@ export interface UserProfile {
 interface AppState {
   profile: UserProfile | null
   permissions: any[]
+  inventoryOptions: any[]
+  packageTypes: any[]
+  inventory: any[]
   loading: boolean
   fetchProfile: (user: any) => Promise<void>
   refreshProfile: () => Promise<void>
@@ -29,6 +32,9 @@ interface AppState {
 const useMainStore = create<AppState>((set, get) => ({
   profile: null,
   permissions: [],
+  inventoryOptions: [],
+  packageTypes: [],
+  inventory: [],
   loading: true,
   fetchProfile: async (userParam: any) => {
     set({ loading: true })
