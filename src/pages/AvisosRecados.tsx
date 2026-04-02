@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import useAppStore, { AgendaItem } from '@/stores/main'
+import { useHubStore } from '@/stores/hub'
+import { HubAnnouncement as AgendaItem } from '@/stores/hub'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -23,13 +24,12 @@ const getLocalDate = (dStr: string) => {
 
 export default function AvisosRecados() {
   const {
-    agenda,
-    addAgendaItem,
-    removeAgendaItem,
-    updateAgendaItem,
-    currentUserId,
-    agendaTypes,
-    isAdmin,
+    const addAgendaItem = (item: any) => console.log('Adicionar:', item)
+const removeAgendaItem = (id: string) => console.log('Remover:', id)
+const updateAgendaItem = (id: string, data: any) => console.log('Atualizar:', id, data)
+const currentUserId = 'user-id-placeholder'
+const agendaTypes = ['AVISO', 'RECADO', 'ALERTA']
+const isAdmin = true
   } = useAppStore()
 
   const [openAdd, setOpenAdd] = useState(false)
