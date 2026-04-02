@@ -22,7 +22,7 @@ export function Layout() {
   const { isLoading: isHubLoading } = useHubStore()
   const { unreadCounts } = useChatStore()
   const totalUnread = useMemo(
-    () => Object.values(unreadCounts).reduce((a, b) => a + b, 0),
+    () => Object.values(unreadCounts || {}).reduce((a, b) => a + b, 0),
     [unreadCounts],
   )
 
