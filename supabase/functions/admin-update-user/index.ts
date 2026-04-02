@@ -4,7 +4,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -15,7 +16,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    
+
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -25,9 +26,12 @@ Deno.serve(async (req: Request) => {
 
     const authHeader = req.headers.get('Authorization')!
     if (!authHeader) throw new Error('Missing Authorization header')
-    
+
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token)
 
     // Bypass JWT temporariamente para teste de CORS
     // if (authError || !user) {
@@ -41,12 +45,14 @@ Deno.serve(async (req: Request) => {
 
     const { data, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       email,
-      email_confirm: true
+      email_confirm: true,
     })
 
     if (updateError) {
-      const isAlreadyRegistered = updateError.message.includes('already been registered') || updateError.message.includes('already exists')
-      
+      const isAlreadyRegistered =
+        updateError.message.includes('already been registered') ||
+        updateError.message.includes('already exists')
+
       if (isAlreadyRegistered) {
         return new Response(JSON.stringify({ error: 'E-mail já está em uso por outro usuário.' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
