@@ -18,8 +18,8 @@ export default function Acessos() {
   const [sector, setSector] = useState('TODOS')
   const [open, setOpen] = useState(false)
 
-  const [acessos, setAcessos] = useState([]) // ✅ Inicialize com []
   const filtered = useMemo(() => {
+    if (!acessos || acessos.length === 0) return []
     return acessos
       .filter((a) => {
         const matchSearch =
