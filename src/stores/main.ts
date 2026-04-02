@@ -22,9 +22,9 @@ interface AppState {
   inventoryOptions: any[]
   packageTypes: any[]
   inventory: any[]
-  specialties: any[] // ← ADICIONE ESTA LINHA
-  consultorios: any[] // ← ADICIONE ESTA LINHA (você pode precisar)
-  agendaSegmentation: any[] // ← ADICIONE ESTA LINHA (você pode precisar)
+  specialties: any[]
+  consultorios: any[]
+  agendaSegmentation: any[]
   loading: boolean
   fetchProfile: (userParam: any) => Promise<void>
   refreshProfile: () => Promise<void>
