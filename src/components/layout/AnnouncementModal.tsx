@@ -12,13 +12,15 @@ import {
 } from '@/components/ui/alert-dialog'
 
 export function AnnouncementModal() {
-  const { unreadAnnouncements, markAsRead } = useHubStore()
+  const hubStore = useHubStore()
+  const unreadAnnouncements = hubStore?.unreadAnnouncements ?? []
+  const markAsRead = hubStore?.markAsRead ?? (async () => ({ success: false }))
   const [agreedToAnnouncement, setAgreedToAnnouncement] = useState(false)
   const [readingAnnouncement, setReadingAnnouncement] = useState(false)
   const { toast } = useToast()
 
-  const safeAnnouncements = unreadAnnouncements || []
-  const currentUnread = safeAnnouncements.length > 0 ? safeAnnouncements[0] : null
+  const safeAnnouncements = unreadAnnouncements ?? []
+  const currentUnread = safeAnnouncements?.length > 0 ? safeAnnouncements[0] : null
 
   useEffect(() => {
     setAgreedToAnnouncement(false)

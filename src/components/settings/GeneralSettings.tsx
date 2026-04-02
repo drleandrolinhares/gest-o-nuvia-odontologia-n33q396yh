@@ -55,6 +55,13 @@ export function GeneralSettings() {
   const [removingDept, setRemovingDept] = useState(null)
   const [removingAvaliador, setRemovingAvaliador] = useState(null)
 
+  const safeAgendaTypes = agendaTypes ?? []
+  const safeCargos = cargos ?? []
+  const safeDepartamentos = departamentos ?? []
+  const safeUsers = users ?? []
+  const safeAvaliadores = avaliadores ?? []
+  const safeCriterios = criterios ?? []
+
   // Simula load do Supabase (substitua por loadSettings do store)
   useEffect(() => {
     // Mock data do Supabase
@@ -87,33 +94,33 @@ export function GeneralSettings() {
       description: 'Novo tipo',
       created_at: new Date().toISOString(),
     }
-    setAgendaTypes([...agendaTypes, newType])
+    setAgendaTypes([...safeAgendaTypes, newType])
   }
 
   const removeAgendaType = async (id) => {
-    setAgendaTypes(agendaTypes.filter((type) => String(type.id) !== String(id)))
+    setAgendaTypes(safeAgendaTypes.filter((type) => String(type.id) !== String(id)))
   }
 
   const addCargo = async (name) => {
     const newCargo = { id: Date.now().toString(), nome: name, created_at: new Date().toISOString() }
-    setCargos([...cargos, newCargo])
+    setCargos([...safeCargos, newCargo])
   }
 
   const removeCargo = async (id) => {
-    setCargos(cargos.filter((cargo) => String(cargo.id) !== String(id)))
+    setCargos(safeCargos.filter((cargo) => String(cargo.id) !== String(id)))
   }
 
   const addDept = async (name) => {
     const newDept = { id: Date.now().toString(), nome: name, created_at: new Date().toISOString() }
-    setDepartamentos([...departamentos, newDept])
+    setDepartamentos([...safeDepartamentos, newDept])
   }
 
   const removeDept = async (id) => {
-    setDepartamentos(departamentos.filter((dept) => String(dept.id) !== String(id)))
+    setDepartamentos(safeDepartamentos.filter((dept) => String(dept.id) !== String(id)))
   }
 
   const addAvaliador = async (userId) => {
-    const user = users.find((u) => String(u.id) === String(userId))
+    const user = safeUsers.find((u) => String(u.id) === String(userId))
     if (user) {
       const newAvaliador = {
         id: Date.now().toString(),
@@ -121,25 +128,25 @@ export function GeneralSettings() {
         cargo: user.cargos?.nome || 'Dentista',
         created_at: new Date().toISOString(),
       }
-      setAvaliadores([...avaliadores, newAvaliador])
+      setAvaliadores([...safeAvaliadores, newAvaliador])
     }
   }
 
   const removeAvaliador = async (id) => {
-    setAvaliadores(avaliadores.filter((avaliador) => String(avaliador.id) !== String(id)))
+    setAvaliadores(safeAvaliadores.filter((avaliador) => String(avaliador.id) !== String(id)))
   }
 
   const addCriterio = async (data) => {
     const newCriterio = { id: Date.now().toString(), ...data, created_at: new Date().toISOString() }
-    setCriterios([...criterios, newCriterio])
+    setCriterios([...safeCriterios, newCriterio])
   }
 
   const updateCriterio = async (id, data) => {
-    setCriterios(criterios.map((c) => (String(c.id) === String(id) ? { ...c, ...data } : c)))
+    setCriterios(safeCriterios.map((c) => (String(c.id) === String(id) ? { ...c, ...data } : c)))
   }
 
   const deleteCriterio = async (id) => {
-    setCriterios(criterios.filter((c) => String(c.id) !== String(id)))
+    setCriterios(safeCriterios.filter((c) => String(c.id) !== String(id)))
   }
 
   const handleAddAgendaType = async (e) => {
@@ -250,9 +257,8 @@ export function GeneralSettings() {
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-            {Array.isArray(agendaTypes) &&
-              agendaTypes.length > 0 &&
-              agendaTypes.map((type) => (
+            {safeAgendaTypes.length > 0 &&
+              safeAgendaTypes.map((type) => (
                 <div
                   key={String(type.id || type.name || `type-${Math.random()}`)}
                   className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
@@ -282,7 +288,7 @@ export function GeneralSettings() {
                   </Button>
                 </div>
               ))}
-            {(!Array.isArray(agendaTypes) || agendaTypes.length === 0) && (
+            {safeAgendaTypes.length === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum tipo de compromisso configurado.
               </div>
@@ -321,7 +327,7 @@ export function GeneralSettings() {
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-            {cargos.map((cargo) => (
+            {safeCargos.map((cargo) => (
               <div
                 key={cargo.id}
                 className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
@@ -343,7 +349,7 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
-            {cargos.length === 0 && (
+            {safeCargos.length === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum cargo configurado.
               </div>
@@ -382,7 +388,7 @@ export function GeneralSettings() {
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-            {departamentos.map((dept) => (
+            {safeDepartamentos.map((dept) => (
               <div
                 key={dept.id}
                 className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
@@ -404,7 +410,7 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
-            {departamentos.length === 0 && (
+            {safeDepartamentos.length === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum departamento configurado.
               </div>
@@ -432,7 +438,7 @@ export function GeneralSettings() {
               <option value="" disabled>
                 Selecionar Usuário
               </option>
-              {users.map((u) => (
+              {safeUsers.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.nome || u.email} {u.cargos?.nome ? `- ${u.cargos.nome}` : ''}
                 </option>
@@ -453,7 +459,7 @@ export function GeneralSettings() {
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-            {avaliadores.map((avaliador) => (
+            {safeAvaliadores.map((avaliador) => (
               <div
                 key={avaliador.id}
                 className="flex items-center justify-between p-3 border rounded-md bg-card hover:bg-muted/30 transition-colors shadow-sm"
@@ -475,7 +481,7 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
-            {avaliadores.length === 0 && (
+            {safeAvaliadores.length === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum dentista avaliador selecionado.
               </div>
@@ -512,7 +518,7 @@ export function GeneralSettings() {
                 </tr>
               </thead>
               <tbody>
-                {criterios.map((c) => (
+                {safeCriterios.map((c) => (
                   <tr
                     key={c.id}
                     className="border-b last:border-0 hover:bg-muted/30 transition-colors"
@@ -553,7 +559,7 @@ export function GeneralSettings() {
                     </td>
                   </tr>
                 ))}
-                {criterios.length === 0 && (
+                {safeCriterios.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhum critério configurado.
@@ -587,12 +593,12 @@ export function GeneralSettings() {
                 <option value="" disabled>
                   Selecione um cargo
                 </option>
-                {cargos.map((c) => (
+                {safeCargos.map((c) => (
                   <option key={c.id} value={c.nome}>
                     {c.nome}
                   </option>
                 ))}
-                {cargos.length === 0 && (
+                {safeCargos.length === 0 && (
                   <option value="DENTISTA CLÍNICA">DENTISTA CLÍNICA (mock)</option>
                 )}
               </select>

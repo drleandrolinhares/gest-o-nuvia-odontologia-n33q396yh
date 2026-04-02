@@ -34,6 +34,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     permissions: [],
     modules: [],
     isLoading: false,
+    agendaTypes: [],
+    cargos: [],
+    departamentos: [],
+    users: [],
+    avaliadores: [],
+    criterios: [],
   })
 
   const setSidebarOpen = useCallback((open: boolean) => {

@@ -18,11 +18,17 @@ export function Layout() {
     () => localStorage.getItem('sidebar_collapsed') === 'true',
   )
 
-  const { isDataLoading, fetchError } = useAppStore()
-  const { isLoading: isHubLoading } = useHubStore()
-  const { unreadCounts } = useChatStore()
+  const appStore = useAppStore()
+  const isDataLoading = appStore?.isDataLoading ?? false
+  const fetchError = appStore?.fetchError ?? null
+
+  const hubStore = useHubStore()
+  const isHubLoading = hubStore?.isLoading ?? false
+
+  const chatStore = useChatStore()
+  const unreadCounts = chatStore?.unreadCounts ?? {}
   const totalUnread = useMemo(
-    () => Object.values(unreadCounts || {}).reduce((a, b) => a + b, 0),
+    () => Object.values(unreadCounts).reduce((a, b) => a + (b as number), 0),
     [unreadCounts],
   )
 

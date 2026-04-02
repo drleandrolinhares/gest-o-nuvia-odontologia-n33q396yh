@@ -23,7 +23,9 @@ const getLocalDate = (dStr: string) => {
 }
 
 export default function AvisosRecados() {
-  const { announcements: agenda, fetchAnnouncements } = useHubStore()
+  const hubStore = useHubStore()
+  const agenda = hubStore?.announcements ?? []
+  const fetchAnnouncements = hubStore?.fetchAnnouncements ?? (() => {})
 
   const addAgendaItem = (item: any) => console.log('Adicionar:', item)
   const removeAgendaItem = (id: string) => console.log('Remover:', id)
@@ -59,78 +61,80 @@ export default function AvisosRecados() {
     })
   }
 
-  const filteredAgenda =
-    agenda ||
-    []
-      .filter((item) => {
-        if (!showOpen && !item.is_completed) return false
-        if (!showCompleted && item.is_completed) return false
-        if (hiddenTypes.has(item.type)) return false
-        return true
-      })
-      .filter((item) => {
-        if (!selectedDate) return true
-        const startD = getLocalDate(item.date)
-        const endD = getLocalDate(item.end_date || item.date)
+  const safeAgenda = agenda ?? []
 
-        if (filterView === 'DIA') {
-          return selectedDate >= startOfDay(startD) && selectedDate <= endOfDay(endD)
-        }
-        if (filterView === 'SEMANA') {
-          return (
-            isSameWeek(startD, selectedDate, { weekStartsOn: 0 }) ||
-            isSameWeek(endD, selectedDate, { weekStartsOn: 0 }) ||
-            (startD <= selectedDate && endD >= selectedDate)
-          )
-        }
-        if (filterView === 'MES') {
-          return (
-            isSameMonth(startD, selectedDate) ||
-            isSameMonth(endD, selectedDate) ||
-            (startD <= selectedDate && endD >= selectedDate)
-          )
-        }
-        return true
-      })
-      .filter((item) => {
-        if (taskView === 'VISÃO GERAL (ADMIN)') return true
-        if (taskView === 'DELEGADOS POR MIM') return item.requester_id === currentUserId
+  const filteredAgenda = safeAgenda
+    .filter((item) => {
+      if (!showOpen && !item.is_completed) return false
+      if (!showCompleted && item.is_completed) return false
+      if (hiddenTypes.has(item.type)) return false
+      return true
+    })
+    .filter((item) => {
+      if (!selectedDate) return true
+      const startD = getLocalDate(item.date)
+      const endD = getLocalDate(item.end_date || item.date)
 
-        const isAlert = ['BÔNUS', 'FÉRIAS', 'SAC'].includes(item.type.toUpperCase())
+      if (filterView === 'DIA') {
+        return selectedDate >= startOfDay(startD) && selectedDate <= endOfDay(endD)
+      }
+      if (filterView === 'SEMANA') {
+        return (
+          isSameWeek(startD, selectedDate, { weekStartsOn: 0 }) ||
+          isSameWeek(endD, selectedDate, { weekStartsOn: 0 }) ||
+          (startD <= selectedDate && endD >= selectedDate)
+        )
+      }
+      if (filterView === 'MES') {
+        return (
+          isSameMonth(startD, selectedDate) ||
+          isSameMonth(endD, selectedDate) ||
+          (startD <= selectedDate && endD >= selectedDate)
+        )
+      }
+      return true
+    })
+    .filter((item) => {
+      if (taskView === 'VISÃO GERAL (ADMIN)') return true
+      if (taskView === 'DELEGADOS POR MIM') return item.requester_id === currentUserId
 
-        if (taskView === 'ALERTAS DO SISTEMA') {
-          return isAlert
-        }
+      const isAlert = ['BÔNUS', 'FÉRIAS', 'SAC'].includes(item.type.toUpperCase())
 
-        if (taskView === 'COMPROMISSOS') {
-          return (
-            !ABSENCE_TYPES.includes(item.type.toLowerCase()) &&
-            item.type !== 'manual_absence' &&
-            !isAlert
-          )
-        }
+      if (taskView === 'ALERTAS DO SISTEMA') {
+        return isAlert
+      }
 
-        if (taskView === 'AUSÊNCIAS') {
-          return item.type === 'manual_absence' || ABSENCE_TYPES.includes(item.type.toLowerCase())
-        }
+      if (taskView === 'COMPROMISSOS') {
+        return (
+          !ABSENCE_TYPES.includes(item.type.toLowerCase()) &&
+          item.type !== 'manual_absence' &&
+          !isAlert
+        )
+      }
 
-        // PARA MIM
-        return true
-      })
-      .sort(
-        (a, b) =>
-          new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime(),
-      )
+      if (taskView === 'AUSÊNCIAS') {
+        return item.type === 'manual_absence' || ABSENCE_TYPES.includes(item.type.toLowerCase())
+      }
+
+      // PARA MIM
+      return true
+    })
+    .sort(
+      (a, b) =>
+        new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime(),
+    )
 
   const datesWithPendingEvents = useMemo(() => {
-    return agenda
+    const safeAgenda = agenda ?? []
+    return safeAgenda
       .filter((a) => !a.is_completed && a.date === (a.end_date || a.date))
       .map((item) => getLocalDate(item.date))
   }, [agenda])
 
   const multiDayDates = useMemo(() => {
     const dates: Date[] = []
-    agenda
+    const safeAgenda = agenda ?? []
+    safeAgenda
       .filter((a) => !a.is_completed)
       .forEach((item) => {
         const start = getLocalDate(item.date)
