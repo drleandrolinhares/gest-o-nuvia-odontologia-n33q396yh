@@ -176,18 +176,13 @@ const useMainStore = create<AppState>((set, get) => ({
         return false
     }
   },
-  clear: () => set({ profile: null, permissions: [], loading: false }),loadInventoryData: async () => {
+  clear: () => set({ profile: null, permissions: [], loading: false }),
+  loadInventoryData: async () => {
     try {
-      const { data: options } = await supabase
-        .from('inventory_settings')
-        .select('*')
-      const { data: types } = await supabase
-        .from('package_types')
-        .select('*')
-      const { data: items } = await supabase
-        .from('inventory')
-        .select('*')
-      
+      const { data: options } = await supabase.from('inventory_settings').select('*')
+      const { data: types } = await supabase.from('package_types').select('*')
+      const { data: items } = await supabase.from('inventory').select('*')
+
       set({
         inventoryOptions: options || [],
         packageTypes: types || [],
@@ -202,7 +197,7 @@ const useMainStore = create<AppState>((set, get) => ({
       })
     }
   },
-})
+}))
 export default useMainStore
 export const useAppStore = useMainStore
 export const useApp = useMainStore
@@ -217,7 +212,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     if (!authLoading) {
       if (user) {
         fetchProfile(user)
-          loadInventoryData()
+        loadInventoryData()
       } else {
         clear()
       }
