@@ -19,11 +19,10 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Save, UserCog, Loader2, ChevronRight } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-import { permissionsService } from '@/services/permissionsService'
+import { permissionsService, fetchPermissions } from '@/services/permissionsService'
 import useAppStore from '@/stores/main'
 
 export function PermissoesIndividuais() {
-  const { fetchPermissions } = useAppStore()
   const [users, setUsers] = useState<any[]>([])
   const [menus, setMenus] = useState<any[]>([])
   const [selectedUser, setSelectedUser] = useState<string>('')

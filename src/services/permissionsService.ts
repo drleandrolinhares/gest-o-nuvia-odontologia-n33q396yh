@@ -202,3 +202,18 @@ export const permissionsService = {
     }
   },
 }
+
+export const fetchPermissions = async () => {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (session?.user?.id) {
+      return await permissionsService.getUserPermissions(session.user.id, true)
+    }
+    return []
+  } catch (error) {
+    console.error('Erro em fetchPermissions:', error)
+    return []
+  }
+}
