@@ -18,6 +18,7 @@ export default function Acessos() {
   const [sector, setSector] = useState('TODOS')
   const [open, setOpen] = useState(false)
 
+  const [acessos, setAcessos] = useState([]) // ✅ Inicialize com []
   const filtered = useMemo(() => {
     return acessos
       .filter((a) => {
