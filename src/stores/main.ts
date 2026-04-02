@@ -26,6 +26,7 @@ interface AppState {
   fetchProfile: (user: any) => Promise<void>
   refreshProfile: () => Promise<void>
   can: (module: string, action?: 'ver' | 'criar' | 'editar' | 'deletar') => boolean
+  loadInventoryData: () => Promise<void>
   clear: () => void
 }
 
@@ -175,7 +176,32 @@ const useMainStore = create<AppState>((set, get) => ({
         return false
     }
   },
-  clear: () => set({ profile: null, permissions: [], loading: false }),
+  clear: () => set({ profile: null, permissions: [], loading: false   loadInventoryData: async () => {
+    try {
+      const { data: options } = await supabase
+        .from('inventory_settings')
+        .select('*')
+      const { data: types } = await supabase
+        .from('package_types')
+        .select('*')
+      const { data: items } = await supabase
+        .from('inventory')
+        .select('*')
+      
+      set({
+        inventoryOptions: options || [],
+        packageTypes: types || [],
+        inventory: items || [],
+      })
+    } catch (error) {
+      console.error('Erro ao carregar dados de inventário:', error)
+      set({
+        inventoryOptions: [],
+        packageTypes: [],
+        inventory: [],
+      })
+    }
+  }, }),
 }))
 
 export default useMainStore
@@ -186,16 +212,18 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth()
   const fetchProfile = useMainStore((state) => state.fetchProfile)
   const clear = useMainStore((state) => state.clear)
+  const loadInventoryData = useMainStore((state) => state.loadInventoryData)
 
   useEffect(() => {
     if (!authLoading) {
       if (user) {
         fetchProfile(user)
+          loadInventoryData()
       } else {
         clear()
       }
     }
-  }, [user, authLoading, fetchProfile, clear])
+  }, [user, authLoading, fetchProfile, clear, loadInventoryData])
 
   return React.createElement(React.Fragment, null, children)
 }
