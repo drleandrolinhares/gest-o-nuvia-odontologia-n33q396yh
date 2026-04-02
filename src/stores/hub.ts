@@ -15,7 +15,10 @@ interface HubState {
 const HubContext = createContext<HubState | undefined>(undefined)
 
 export function HubProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<Record<string, any>>({})
+  const [state, setState] = useState<Record<string, any>>({
+    announcements: [],
+    unreadAnnouncements: [],
+  })
 
   const updateState = useCallback((updates: any) => {
     setState((prev) => ({ ...prev, ...(typeof updates === 'function' ? updates(prev) : updates) }))

@@ -11,6 +11,7 @@ import { isSameWeek, isSameMonth, startOfDay, endOfDay, eachDayOfInterval } from
 import { ptBR } from 'date-fns/locale'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
+import { safeArray, safeFilter, safeLength } from '@/utils/safeStore'
 
 import { AgendaCard } from '@/components/agenda/AgendaCard'
 import { AgendaAddDialog } from '@/components/agenda/AgendaAddDialog'
@@ -61,15 +62,14 @@ export default function AvisosRecados() {
     })
   }
 
-  const safeAgenda = agenda ?? []
+  const safeAgenda = safeArray<AgendaItem>(agenda)
 
-  const filteredAgenda = safeAgenda
-    .filter((item) => {
-      if (!showOpen && !item.is_completed) return false
-      if (!showCompleted && item.is_completed) return false
-      if (hiddenTypes.has(item.type)) return false
-      return true
-    })
+  const filteredAgenda = safeFilter<AgendaItem>(safeAgenda, (item) => {
+    if (!showOpen && !item.is_completed) return false
+    if (!showCompleted && item.is_completed) return false
+    if (hiddenTypes.has(item.type)) return false
+    return true
+  })
     .filter((item) => {
       if (!selectedDate) return true
       const startD = getLocalDate(item.date)
@@ -125,29 +125,28 @@ export default function AvisosRecados() {
     )
 
   const datesWithPendingEvents = useMemo(() => {
-    const safeAgenda = agenda ?? []
-    return safeAgenda
-      .filter((a) => !a.is_completed && a.date === (a.end_date || a.date))
-      .map((item) => getLocalDate(item.date))
+    const safeAgendaArr = safeArray<AgendaItem>(agenda)
+    return safeFilter<AgendaItem>(
+      safeAgendaArr,
+      (a) => !a.is_completed && a.date === (a.end_date || a.date),
+    ).map((item) => getLocalDate(item.date))
   }, [agenda])
 
   const multiDayDates = useMemo(() => {
     const dates: Date[] = []
-    const safeAgenda = agenda ?? []
-    safeAgenda
-      .filter((a) => !a.is_completed)
-      .forEach((item) => {
-        const start = getLocalDate(item.date)
-        const end = getLocalDate(item.end_date || item.date)
-        if (start < end) {
-          try {
-            const interval = eachDayOfInterval({ start, end })
-            dates.push(...interval)
-          } catch (e) {
-            // ignore invalid interval errors
-          }
+    const safeAgendaArr = safeArray<AgendaItem>(agenda)
+    safeFilter<AgendaItem>(safeAgendaArr, (a) => !a.is_completed).forEach((item) => {
+      const start = getLocalDate(item.date)
+      const end = getLocalDate(item.end_date || item.date)
+      if (start < end) {
+        try {
+          const interval = eachDayOfInterval({ start, end })
+          dates.push(...interval)
+        } catch (e) {
+          // ignore invalid interval errors
         }
-      })
+      }
+    })
     return dates
   }, [agenda])
 
@@ -328,7 +327,7 @@ export default function AvisosRecados() {
           </div>
 
           <div className="grid gap-3 pt-2">
-            {filteredAgenda.length === 0 ? (
+            {safeLength(filteredAgenda) === 0 ? (
               <div className="text-center py-16 text-muted-foreground border border-dashed rounded-lg bg-card/50 font-bold">
                 NENHUM REGISTRO ENCONTRADO PARA OS FILTROS SELECIONADOS.
               </div>

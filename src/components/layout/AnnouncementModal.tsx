@@ -10,6 +10,7 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
 } from '@/components/ui/alert-dialog'
+import { safeArray, safeLength } from '@/utils/safeStore'
 
 export function AnnouncementModal() {
   const hubStore = useHubStore()
@@ -19,8 +20,8 @@ export function AnnouncementModal() {
   const [readingAnnouncement, setReadingAnnouncement] = useState(false)
   const { toast } = useToast()
 
-  const safeAnnouncements = unreadAnnouncements ?? []
-  const currentUnread = safeAnnouncements?.length > 0 ? safeAnnouncements[0] : null
+  const safeAnnouncements = safeArray<any>(unreadAnnouncements)
+  const currentUnread = safeLength(safeAnnouncements) > 0 ? safeAnnouncements[0] : null
 
   useEffect(() => {
     setAgreedToAnnouncement(false)

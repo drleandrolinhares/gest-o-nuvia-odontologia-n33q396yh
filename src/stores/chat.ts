@@ -15,7 +15,11 @@ interface ChatState {
 const ChatContext = createContext<ChatState | undefined>(undefined)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<Record<string, any>>({})
+  const [state, setState] = useState<Record<string, any>>({
+    rooms: [],
+    messages: [],
+    participants: [],
+  })
 
   const updateState = useCallback((updates: any) => {
     setState((prev) => ({ ...prev, ...(typeof updates === 'function' ? updates(prev) : updates) }))

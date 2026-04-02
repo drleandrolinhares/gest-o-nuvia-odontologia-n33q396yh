@@ -36,6 +36,7 @@ import { DatePickerInput } from '@/components/ui/date-picker-input'
 import { MonthYearInput } from '@/components/ui/month-year-input'
 import { supabase } from '@/lib/supabase/client'
 import { ExplanationPopover } from '@/components/inventory/ExplanationPopover'
+import { safeArray, safeFilter, safeLength } from '@/utils/safeStore'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import {
@@ -78,13 +79,14 @@ export function EditInventoryModal({
   const [localSpecialties, setLocalSpecialties] = useState<string[]>([])
   const [isLoadingSpecialties, setIsLoadingSpecialties] = useState(false)
 
-  const storageRooms = (inventoryOptions || []).filter(
-    (o) =>
-      o.category.toUpperCase() === 'STORAGE_ROOM' ||
-      o.category.toUpperCase() === 'SALA_ARMAZENAMENTO',
+  const storageRooms = safeFilter(
+    inventoryOptions,
+    (o: any) =>
+      o.category?.toUpperCase() === 'STORAGE_ROOM' ||
+      o.category?.toUpperCase() === 'SALA_ARMAZENAMENTO',
   )
-  const implantBrands = inventoryOptions.filter((o) => o.category === 'MARCA_IMPLANTE')
-  const componentTypes = inventoryOptions.filter((o) => o.category === 'TIPO_COMPONENTE')
+  const implantBrands = safeFilter(inventoryOptions, (o: any) => o.category === 'MARCA_IMPLANTE')
+  const componentTypes = safeFilter(inventoryOptions, (o: any) => o.category === 'TIPO_COMPONENTE')
 
   const realStockBefore = item ? item.quantity : 0
 
@@ -511,7 +513,7 @@ export function EditInventoryModal({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {packageTypes.map((pt) => (
+                            {safeArray(packageTypes).map((pt: any) => (
                               <SelectItem key={pt} value={pt} className="uppercase">
                                 {pt}
                               </SelectItem>
@@ -772,12 +774,12 @@ export function EditInventoryModal({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {storageRooms.length === 0 ? (
+                            {safeLength(storageRooms) === 0 ? (
                               <SelectItem value="none" disabled className="uppercase">
                                 NENHUMA SALA CADASTRADA
                               </SelectItem>
                             ) : (
-                              storageRooms.map((opt) => (
+                              storageRooms.map((opt: any) => (
                                 <SelectItem key={opt.id} value={opt.value} className="uppercase">
                                   {opt.value}
                                 </SelectItem>
@@ -785,7 +787,7 @@ export function EditInventoryModal({
                             )}
                           </SelectContent>
                         </Select>
-                        {storageRooms.length === 0 && (
+                        {safeLength(storageRooms) === 0 && (
                           <p className="text-[10px] text-amber-600 font-bold mt-1.5 uppercase">
                             Nenhuma sala cadastrada. Adicione em Configurações.
                           </p>

@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { safeArray, safeLength } from '@/utils/safeStore'
 
 export function GeneralSettings() {
   // Local state simulando Supabase (substitua por useMainStore quando criar o store)
@@ -55,12 +56,12 @@ export function GeneralSettings() {
   const [removingDept, setRemovingDept] = useState(null)
   const [removingAvaliador, setRemovingAvaliador] = useState(null)
 
-  const safeAgendaTypes = agendaTypes ?? []
-  const safeCargos = cargos ?? []
-  const safeDepartamentos = departamentos ?? []
-  const safeUsers = users ?? []
-  const safeAvaliadores = avaliadores ?? []
-  const safeCriterios = criterios ?? []
+  const safeAgendaTypes = safeArray<any>(agendaTypes)
+  const safeCargos = safeArray<any>(cargos)
+  const safeDepartamentos = safeArray<any>(departamentos)
+  const safeUsers = safeArray<any>(users)
+  const safeAvaliadores = safeArray<any>(avaliadores)
+  const safeCriterios = safeArray<any>(criterios)
 
   // Simula load do Supabase (substitua por loadSettings do store)
   useEffect(() => {
@@ -257,7 +258,7 @@ export function GeneralSettings() {
             </Button>
           </form>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-2">
-            {safeAgendaTypes.length > 0 &&
+            {safeLength(safeAgendaTypes) > 0 &&
               safeAgendaTypes.map((type) => (
                 <div
                   key={String(type.id || type.name || `type-${Math.random()}`)}
@@ -288,7 +289,7 @@ export function GeneralSettings() {
                   </Button>
                 </div>
               ))}
-            {safeAgendaTypes.length === 0 && (
+            {safeLength(safeAgendaTypes) === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum tipo de compromisso configurado.
               </div>
@@ -349,7 +350,7 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
-            {safeCargos.length === 0 && (
+            {safeLength(safeCargos) === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum cargo configurado.
               </div>
@@ -410,7 +411,7 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
-            {safeDepartamentos.length === 0 && (
+            {safeLength(safeDepartamentos) === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum departamento configurado.
               </div>
@@ -481,7 +482,7 @@ export function GeneralSettings() {
                 </Button>
               </div>
             ))}
-            {safeAvaliadores.length === 0 && (
+            {safeLength(safeAvaliadores) === 0 && (
               <div className="text-center p-4 text-sm text-muted-foreground">
                 Nenhum dentista avaliador selecionado.
               </div>
@@ -559,7 +560,7 @@ export function GeneralSettings() {
                     </td>
                   </tr>
                 ))}
-                {safeCriterios.length === 0 && (
+                {safeLength(safeCriterios) === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhum critério configurado.
@@ -598,7 +599,7 @@ export function GeneralSettings() {
                     {c.nome}
                   </option>
                 ))}
-                {safeCargos.length === 0 && (
+                {safeLength(safeCargos) === 0 && (
                   <option value="DENTISTA CLÍNICA">DENTISTA CLÍNICA (mock)</option>
                 )}
               </select>
