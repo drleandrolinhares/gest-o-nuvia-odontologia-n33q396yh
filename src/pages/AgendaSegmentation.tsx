@@ -151,7 +151,7 @@ function Cell({
 
 export default function AgendaSegmentation() {
   const {
-    consultorios,
+    consultorios = [],
     agendaSegmentation,
     specialtyConfigs,
     upsertAgendaSegmentation,
