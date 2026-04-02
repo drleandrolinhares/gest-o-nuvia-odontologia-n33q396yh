@@ -22,8 +22,11 @@ interface AppState {
   inventoryOptions: any[]
   packageTypes: any[]
   inventory: any[]
+  specialties: any[] // ← ADICIONE ESTA LINHA
+  consultorios: any[] // ← ADICIONE ESTA LINHA (você pode precisar)
+  agendaSegmentation: any[] // ← ADICIONE ESTA LINHA (você pode precisar)
   loading: boolean
-  fetchProfile: (user: any) => Promise<void>
+  fetchProfile: (userParam: any) => Promise<void>
   refreshProfile: () => Promise<void>
   can: (module: string, action?: 'ver' | 'criar' | 'editar' | 'deletar') => boolean
   loadInventoryData: () => Promise<void>
