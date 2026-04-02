@@ -39,6 +39,7 @@ const useMainStore = create<AppState>((set, get) => ({
   inventoryOptions: [],
   packageTypes: [],
   inventory: [],
+  specialtyConfigs: [],
   specialties: [],
   consultorios: [],
   agendaSegmentation: [],
