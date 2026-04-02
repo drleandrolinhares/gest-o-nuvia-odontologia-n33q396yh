@@ -39,6 +39,9 @@ const useMainStore = create<AppState>((set, get) => ({
   inventoryOptions: [],
   packageTypes: [],
   inventory: [],
+  specialties: [],
+  consultorios: [],
+  agendaSegmentation: [],
   loading: true,
   fetchProfile: async (userParam: any) => {
     set({ loading: true })
