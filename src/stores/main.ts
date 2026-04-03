@@ -55,6 +55,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     modules: [],
     isLoading: false,
+    inventoryOptions: [],
+    packageTypes: [],
+    storageRooms: [],
+    implantBrands: [],
+    componentTypes: [],
+    localSpecialties: [],
   })
 
   const setSidebarOpen = useCallback((open: boolean) => {
@@ -74,7 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setModules = useCallback((modules: any[]) => {
-    setState((prev) => ({ ...prev, modules }))
+    setState((prev) => ({ ...prev, modules: Array.isArray(modules) ? modules : [] }))
   }, [])
 
   const setIsLoading = useCallback((isLoading: boolean) => {

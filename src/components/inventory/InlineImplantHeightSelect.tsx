@@ -21,7 +21,7 @@ export const InlineImplantHeightSelect = React.forwardRef<
   const [open, setOpen] = React.useState(false)
   const [newVal, setNewVal] = React.useState('')
 
-  const heights = inventoryOptions
+  const heights = (inventoryOptions ?? [])
     .filter((o) => o.category === 'ALTURA_IMPLANTE')
     .sort((a, b) => parseFloat(a.value) - parseFloat(b.value))
 

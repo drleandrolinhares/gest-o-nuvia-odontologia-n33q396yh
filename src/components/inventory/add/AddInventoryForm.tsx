@@ -164,18 +164,21 @@ export function AddInventoryForm({
                     <SelectItem value={field.value || 'loading'} disabled className="uppercase">
                       CARREGANDO...
                     </SelectItem>
-                  ) : localSpecialties.length === 0 ? (
+                  ) : (localSpecialties ?? []).length === 0 ? (
                     <SelectItem value={field.value || 'empty'} disabled className="uppercase">
                       NENHUMA ESPECIALIDADE ENCONTRADA
                     </SelectItem>
                   ) : (
-                    [...new Set([...localSpecialties, ...(field.value ? [field.value] : [])])].map(
-                      (spec) => (
-                        <SelectItem key={spec} value={spec} className="uppercase">
-                          {spec}
-                        </SelectItem>
-                      ),
-                    )
+                    [
+                      ...new Set([
+                        ...(localSpecialties ?? []),
+                        ...(field.value ? [field.value] : []),
+                      ]),
+                    ].map((spec) => (
+                      <SelectItem key={spec} value={spec} className="uppercase">
+                        {spec}
+                      </SelectItem>
+                    ))
                   )}
                 </SelectContent>
               </Select>
@@ -196,7 +199,7 @@ export function AddInventoryForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {packageTypes?.map((pt) => (
+                  {(packageTypes ?? []).map((pt) => (
                     <SelectItem key={pt} value={pt} className="uppercase">
                       {pt}
                     </SelectItem>
@@ -445,12 +448,12 @@ export function AddInventoryForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {storageRooms.length === 0 ? (
+                  {(storageRooms ?? []).length === 0 ? (
                     <SelectItem value="none" disabled className="uppercase">
                       NENHUMA SALA CADASTRADA
                     </SelectItem>
                   ) : (
-                    storageRooms.map((opt) => (
+                    (storageRooms ?? []).map((opt) => (
                       <SelectItem key={opt.id} value={opt.value} className="uppercase">
                         {opt.value}
                       </SelectItem>
@@ -458,7 +461,7 @@ export function AddInventoryForm({
                   )}
                 </SelectContent>
               </Select>
-              {storageRooms.length === 0 && (
+              {(storageRooms ?? []).length === 0 && (
                 <p className="text-[10px] text-amber-600 font-bold mt-1.5 uppercase">
                   Nenhuma sala cadastrada. Adicione em Configurações.
                 </p>

@@ -10,7 +10,7 @@ export function ExplanationPopover() {
   const canEdit = isMaster || isAdmin
 
   const option =
-    inventoryOptions?.find(
+    (inventoryOptions ?? []).find(
       (o) => o.category === 'field_explanation' && o.value === 'REFERENCIA_CONSUMO',
     ) ?? null
   const defaultText =
