@@ -65,7 +65,4 @@ export default function Pricing() {
         <TabsContent value="parametros" className="mt-6">
           <FinancialParameters />
         </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
+      </
