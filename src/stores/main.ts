@@ -23,6 +23,17 @@ interface AppState {
   setIsLoading: (isLoading: boolean) => void
   isAdmin: boolean
   setIsAdmin: (isAdmin: boolean) => void
+  addInventoryOption?: any
+  removeInventoryOption?: any
+  updateInventoryOption?: any
+  addUser?: any
+  removeUser?: any
+  updateUser?: any
+  addSchedule?: any
+  removeSchedule?: any
+  updateSchedule?: any
+  addPermission?: any
+  removePermission?: any
   [key: string]: any
 }
 
@@ -61,6 +72,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     implantBrands: [],
     componentTypes: [],
     localSpecialties: [],
+    users: [],
+    schedules: [],
+    permissionsList: [],
   })
 
   const setSidebarOpen = useCallback((open: boolean) => {
@@ -91,6 +105,84 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, isAdmin }))
   }, [])
 
+  const addInventoryOption = useCallback((category: string, value: string, label?: string) => {
+    setState((prev) => ({
+      ...prev,
+      inventoryOptions: [
+        ...(prev.inventoryOptions ?? []),
+        { id: Math.random().toString(), category, value, label: label ?? value },
+      ],
+    }))
+  }, [])
+
+  const removeInventoryOption = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      inventoryOptions: (prev.inventoryOptions ?? []).filter((o: any) => o.id !== id),
+    }))
+  }, [])
+
+  const updateInventoryOption = useCallback((id: string, valueOrLabel: string, label?: string) => {
+    setState((prev) => ({
+      ...prev,
+      inventoryOptions: (prev.inventoryOptions ?? []).map((o: any) =>
+        o.id === id
+          ? {
+              ...o,
+              ...(label !== undefined ? { value: valueOrLabel, label } : { label: valueOrLabel }),
+            }
+          : o,
+      ),
+    }))
+  }, [])
+
+  const addUser = useCallback((user: any) => {
+    setState((prev) => ({ ...prev, users: [...(prev.users ?? []), user] }))
+  }, [])
+
+  const removeUser = useCallback((id: string) => {
+    setState((prev) => ({ ...prev, users: (prev.users ?? []).filter((u: any) => u.id !== id) }))
+  }, [])
+
+  const updateUser = useCallback((id: string, user: any) => {
+    setState((prev) => ({
+      ...prev,
+      users: (prev.users ?? []).map((u: any) => (u.id === id ? { ...u, ...user } : u)),
+    }))
+  }, [])
+
+  const addSchedule = useCallback((schedule: any) => {
+    setState((prev) => ({ ...prev, schedules: [...(prev.schedules ?? []), schedule] }))
+  }, [])
+
+  const removeSchedule = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      schedules: (prev.schedules ?? []).filter((s: any) => s.id !== id),
+    }))
+  }, [])
+
+  const updateSchedule = useCallback((id: string, schedule: any) => {
+    setState((prev) => ({
+      ...prev,
+      schedules: (prev.schedules ?? []).map((s: any) => (s.id === id ? { ...s, ...schedule } : s)),
+    }))
+  }, [])
+
+  const addPermission = useCallback((permission: any) => {
+    setState((prev) => ({
+      ...prev,
+      permissionsList: [...(prev.permissionsList ?? []), permission],
+    }))
+  }, [])
+
+  const removePermission = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      permissionsList: (prev.permissionsList ?? []).filter((p: any) => p.id !== id),
+    }))
+  }, [])
+
   const updateState = useCallback(
     (updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>)) => {
       setState((prev) => {
@@ -111,6 +203,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       modules: state.modules,
       isLoading: state.isLoading,
       isAdmin: state.isAdmin,
+      addInventoryOption,
+      removeInventoryOption,
+      updateInventoryOption,
+      addUser,
+      removeUser,
+      updateUser,
+      addSchedule,
+      removeSchedule,
+      updateSchedule,
+      addPermission,
+      removePermission,
       setSidebarOpen,
       setUser,
       setProfile,
@@ -122,6 +225,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
+      addInventoryOption,
+      removeInventoryOption,
+      updateInventoryOption,
+      addUser,
+      removeUser,
+      updateUser,
+      addSchedule,
+      removeSchedule,
+      updateSchedule,
+      addPermission,
+      removePermission,
       setSidebarOpen,
       setUser,
       setProfile,
