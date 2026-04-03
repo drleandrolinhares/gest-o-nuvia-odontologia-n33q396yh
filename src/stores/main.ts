@@ -404,9 +404,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  cconst registerModalRef = useCallback((id: string, ref: any) => {
-  modalRefsRef.current[id] = ref
-}, [])
+  const registerModalRef = useCallback((id: string, ref: any) => {
+    modalRefsRef.current[id] = ref
+  }, [])
 
   const value = useMemo(
     () => ({
@@ -446,7 +446,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
-      modalRefs,
       registerModalRef,
       setSidebarOpen,
       setUser,
