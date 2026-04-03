@@ -4,20 +4,19 @@ import { HourlyCostCalculator } from '@/components/pricing/HourlyCostCalculator'
 import { PricingKanban } from '@/components/pricing/PricingKanban'
 import { FinancialParameters } from '@/components/pricing/FinancialParameters'
 import { ShieldAlert } from 'lucide-react'
+import { checkPermission } from '@/lib/permissions'
 
 export default function Pricing() {
   const store = useAppStore() as any
-  const permissions = store?.permissions ?? []
 
-  const hasPermissionArray =
-    Array.isArray(permissions) &&
-    permissions.some(
-      (p: any) =>
-        p?.nome?.toUpperCase() === 'PRECIFICAÇÃO' &&
-        (p?.pode_visualizar === true || p?.pode_ver === true),
-    )
+  // Verificação crítica: CEO/Admin sempre tem acesso
+  const isCEO = store?.isAdmin === true
 
-  const hasAccess = store?.isAdmin === true || hasPermissionArray === true
+  // Verificação de permissão do módulo
+  const hasModulePermission = checkPermission('precificacao', 'visualizar')
+
+  // Acesso final: CEO OU tem permissão específica
+  const hasAccess = isCEO || hasModulePermission
 
   if (!hasAccess) {
     return (
