@@ -9,9 +9,10 @@ export function ExplanationPopover() {
     useAppStore()
   const canEdit = isMaster || isAdmin
 
-  const option = inventoryOptions.find(
-    (o) => o.category === 'field_explanation' && o.value === 'REFERENCIA_CONSUMO',
-  )
+  const option =
+    inventoryOptions?.find(
+      (o) => o.category === 'field_explanation' && o.value === 'REFERENCIA_CONSUMO',
+    ) ?? null
   const defaultText =
     'ESCOLHA SE O CONSUMO DESTE ITEM SERÁ CONTABILIZADO POR EMBALAGEM (QTD. COMPRADA) OU POR UNIDADE (ITENS NA EMBALAGEM).'
   const text = option?.label || defaultText
