@@ -196,7 +196,7 @@ export function AddInventoryForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {packageTypes.map((pt) => (
+                  {packageTypes?.map((pt) => (
                     <SelectItem key={pt} value={pt} className="uppercase">
                       {pt}
                     </SelectItem>
