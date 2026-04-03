@@ -137,7 +137,7 @@ export interface AppState {
 const AppContext = createContext<AppState | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const modalRefs = useRef<Record<string, any>>({})
+  const modalRefsRef = useRef<Record<string, any>>({})
 
   const [state, setState] = useState<Record<string, any>>({
     sidebarOpen: true,
@@ -404,9 +404,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   )
 
-  const registerModalRef = useCallback((id: string, ref: any) => {
-    modalRefs.current[id] = ref
-  }, [])
+  cconst registerModalRef = useCallback((id: string, ref: any) => {
+  modalRefsRef.current[id] = ref
+}, [])
 
   const value = useMemo(
     () => ({
@@ -441,7 +441,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeSupplier,
       updateAppSettings,
       setState: updateState,
-      modalRefs,
+      modalRefs: modalRefsRef,
       registerModalRef,
     }),
     [
