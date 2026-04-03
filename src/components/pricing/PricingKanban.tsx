@@ -19,12 +19,12 @@ export function PricingKanban() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in content-visibility-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {pricingData.map((item: any, index: number) => (
           <div
-            key={index}
-            className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            key={item.id || index}
+            className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white"
           >
             <h3 className="font-semibold text-gray-900">{item.name || 'Sem nome'}</h3>
             <p className="text-sm text-gray-600 mt-1">{item.description || ''}</p>

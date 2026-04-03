@@ -22,8 +22,12 @@ const FinancialParameters = React.lazy(() =>
 
 function LoadingFallback() {
   return (
-    <div className="space-y-4 w-full animate-pulse p-2">
-      <Skeleton className="h-10 w-1/4" />
+    <div className="space-y-4 w-full animate-pulse p-2 content-visibility-auto">
+      <div className="flex gap-4 mb-4">
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-10 w-48 hidden sm:block" />
+      </div>
       <Skeleton className="h-[400px] w-full rounded-xl" />
     </div>
   )
