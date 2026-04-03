@@ -1,10 +1,33 @@
+import React, { Suspense } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import useAppStore from '@/stores/main'
-import { HourlyCostCalculator } from '@/components/pricing/HourlyCostCalculator'
-import { PricingKanban } from '@/components/pricing/PricingKanban'
-import { FinancialParameters } from '@/components/pricing/FinancialParameters'
 import { ShieldAlert } from 'lucide-react'
 import { checkPermission } from '@/lib/permissions'
+import { Skeleton } from '@/components/ui/skeleton'
+
+// Lazy loading dos componentes pesados para otimização de performance (LCP e INP)
+const HourlyCostCalculator = React.lazy(() =>
+  import('@/components/pricing/HourlyCostCalculator').then((m) => ({
+    default: m.HourlyCostCalculator,
+  })),
+)
+const PricingKanban = React.lazy(() =>
+  import('@/components/pricing/PricingKanban').then((m) => ({ default: m.PricingKanban })),
+)
+const FinancialParameters = React.lazy(() =>
+  import('@/components/pricing/FinancialParameters').then((m) => ({
+    default: m.FinancialParameters,
+  })),
+)
+
+function LoadingFallback() {
+  return (
+    <div className="space-y-4 w-full animate-pulse p-2">
+      <Skeleton className="h-10 w-1/4" />
+      <Skeleton className="h-[400px] w-full rounded-xl" />
+    </div>
+  )
+}
 
 export default function Pricing() {
   const store = useAppStore() as any
@@ -55,15 +78,21 @@ export default function Pricing() {
         </TabsList>
 
         <TabsContent value="tabela" className="mt-6">
-          <PricingKanban />
+          <Suspense fallback={<LoadingFallback />}>
+            <PricingKanban />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="custo" className="mt-6">
-          <HourlyCostCalculator />
+          <Suspense fallback={<LoadingFallback />}>
+            <HourlyCostCalculator />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="parametros" className="mt-6">
-          <FinancialParameters />
+          <Suspense fallback={<LoadingFallback />}>
+            <FinancialParameters />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>
