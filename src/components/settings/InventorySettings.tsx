@@ -47,9 +47,9 @@ export function InventorySettings() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 uppercase animate-fade-in-up">
-      {categories.map((cat) => {
-        const options = inventoryOptions
-          .filter((o) => {
+      {(categories ?? []).map((cat) => {
+        const options = (inventoryOptions ?? [])
+          .filter((o: any) => {
             const oCat = o.category.toUpperCase()
             if (cat.id === 'STORAGE_ROOM') {
               return oCat === 'STORAGE_ROOM' || oCat === 'SALA_ARMAZENAMENTO'
@@ -59,7 +59,7 @@ export function InventorySettings() {
             }
             return oCat === cat.id
           })
-          .sort((a, b) => a.value.localeCompare(b.value))
+          .sort((a: any, b: any) => a.value.localeCompare(b.value))
 
         return (
           <Card key={cat.id}>

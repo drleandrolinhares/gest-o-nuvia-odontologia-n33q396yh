@@ -54,7 +54,7 @@ export function FinalizeTempOutflowModal({
     if (data) {
       form.reset({ usedQuantity: total, returnedQuantity: 0 })
     }
-  }, [data, form, total])
+  }, [data?.outflow?.id, form, total])
 
   const onSubmit = async (v: z.infer<typeof schema>) => {
     if (!data) return

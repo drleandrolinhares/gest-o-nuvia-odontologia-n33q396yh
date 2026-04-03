@@ -63,9 +63,9 @@ export function QuickProductSearchModal({
   const filteredInventory = useMemo(() => {
     if (!searchTerm) return []
     const lower = searchTerm.toLowerCase()
-    return inventory
+    return (inventory ?? [])
       .filter(
-        (item) =>
+        (item: any) =>
           item.name.toLowerCase().includes(lower) ||
           (item.barcode && item.barcode.includes(lower)) ||
           (item.brand && item.brand.toLowerCase().includes(lower)),
@@ -87,7 +87,7 @@ export function QuickProductSearchModal({
     if (!item.purchaseHistory || item.purchaseHistory.length === 0) return 'NÃO REGISTRADO'
     const lastPurchase = item.purchaseHistory[0]
     if (!lastPurchase.supplierId) return 'NÃO REGISTRADO'
-    const supplier = suppliers.find((s) => s.id === lastPurchase.supplierId)
+    const supplier = (suppliers ?? []).find((s) => s.id === lastPurchase.supplierId)
     return supplier ? supplier.name : 'NÃO REGISTRADO'
   }
 

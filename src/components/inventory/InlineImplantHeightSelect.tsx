@@ -22,8 +22,8 @@ export const InlineImplantHeightSelect = React.forwardRef<
   const [newVal, setNewVal] = React.useState('')
 
   const heights = (inventoryOptions ?? [])
-    .filter((o) => o.category === 'ALTURA_IMPLANTE')
-    .sort((a, b) => parseFloat(a.value) - parseFloat(b.value))
+    .filter((o: any) => o.category === 'ALTURA_IMPLANTE')
+    .sort((a: any, b: any) => parseFloat(a.value) - parseFloat(b.value))
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault()

@@ -112,9 +112,9 @@ export function TemporaryOutflowModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {employees
-                        .filter((e) => e.status !== 'Desligado' && e.status !== 'Inativo')
-                        .map((e) => (
+                      {(employees ?? [])
+                        .filter((e: any) => e.status !== 'Desligado' && e.status !== 'Inativo')
+                        .map((e: any) => (
                           <SelectItem key={e.id} value={e.id} className="uppercase font-semibold">
                             {e.name}
                           </SelectItem>

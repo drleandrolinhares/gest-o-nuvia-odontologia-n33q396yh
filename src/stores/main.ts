@@ -6,9 +6,73 @@ import {
   createElement,
   useMemo,
   useCallback,
+  useEffect,
 } from 'react'
 
-interface AppState {
+export interface InventoryItem {
+  id: string
+  name: string
+  barcode?: string
+  brand?: string
+  specialty?: string
+  packageCost?: number
+  packageType?: string
+  itemsPerBox?: number
+  quantity: number
+  storageLocation?: string
+  storageRoom?: string
+  cabinetNumber?: string
+  nfeNumber?: string
+  minStock?: number
+  entryDate?: string
+  expirationDate?: string
+  lastBrand?: string
+  lastValue?: number
+  notes?: string
+  criticalObservations?: string
+  consumptionMode?: string
+  consumptionReference?: string
+  specialtyDetails?: Record<string, any>
+  purchaseHistory?: any[]
+}
+
+export interface InventoryMovement {
+  id: string
+  inventory_id: string
+  type: string
+  quantity: number
+  recipient?: string
+  created_at: string
+}
+
+export interface TemporaryOutflow {
+  id: string
+  inventory_id: string
+  employee_id: string
+  quantity: number
+  status: string
+  employees?: any
+}
+
+export interface Supplier {
+  id: string
+  name: string
+  contact?: string
+  phone?: string
+  email?: string
+  cnpj?: string
+  website?: string
+  hasSpecialNegotiation?: boolean
+  negotiationNotes?: string
+}
+
+export interface NegotiationSettings {
+  ranges: any[]
+  defaultEntryPercentage: number
+  discounts: any
+}
+
+export interface AppState {
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
   user: any | null
@@ -23,17 +87,47 @@ interface AppState {
   setIsLoading: (isLoading: boolean) => void
   isAdmin: boolean
   setIsAdmin: (isAdmin: boolean) => void
-  addInventoryOption?: any
-  removeInventoryOption?: any
-  updateInventoryOption?: any
-  addUser?: any
-  removeUser?: any
-  updateUser?: any
-  addSchedule?: any
-  removeSchedule?: any
-  updateSchedule?: any
-  addPermission?: any
-  removePermission?: any
+  isMaster: boolean
+  inventory: InventoryItem[]
+  inventoryOptions: any[]
+  packageTypes: string[]
+  storageRooms: any[]
+  implantBrands: any[]
+  componentTypes: any[]
+  localSpecialties: any[]
+  users: any[]
+  employees: any[]
+  suppliers: Supplier[]
+  schedules: any[]
+  permissionsList: any[]
+  appSettings: any
+  inventoryItems: any[]
+  implantHeights: any[]
+  explanations: any[]
+  categories: any[]
+  addInventoryOption: any
+  removeInventoryOption: any
+  updateInventoryOption: any
+  addUser: any
+  removeUser: any
+  updateUser: any
+  addSchedule: any
+  removeSchedule: any
+  updateSchedule: any
+  addPermission: any
+  removePermission: any
+  addInventoryItem: any
+  updateInventoryItemDetails: any
+  getInventoryMovements: any
+  registerDefinitiveOutflow: any
+  finalizeTemporaryOutflow: any
+  addPurchaseHistory: any
+  addTemporaryOutflow: any
+  addSupplier: any
+  updateSupplier: any
+  removeSupplier: any
+  updateAppSettings: any
+  setState: any
   [key: string]: any
 }
 
@@ -45,6 +139,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     user: null,
     profile: null,
     isAdmin: false,
+    isMaster: false,
     permissions: {
       precificacao: { visualizar: true, pode_ver: true, criar: true, editar: true, deletar: true },
       estoque: { visualizar: true, pode_ver: true, criar: true, editar: true, deletar: true },
@@ -66,6 +161,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     modules: [],
     isLoading: false,
+    inventory: [],
     inventoryOptions: [],
     packageTypes: [],
     storageRooms: [],
@@ -73,10 +169,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     componentTypes: [],
     localSpecialties: [],
     users: [],
+    employees: [],
+    suppliers: [],
     schedules: [],
     permissionsList: [],
+    appSettings: {},
+    inventoryItems: [],
+    implantHeights: [],
+    explanations: [],
+    categories: [],
   })
 
+  useEffect(() => {
+    // Initial setup if needed, empty dependency array guarantees running only once
+  }, [])
+
+  // Callbacks seguros
   const setSidebarOpen = useCallback((open: boolean) => {
     setState((prev) => ({ ...prev, sidebarOpen: open }))
   }, [])
@@ -90,7 +198,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setPermissions = useCallback((permissions: any) => {
-    setState((prev) => ({ ...prev, permissions }))
+    setState((prev) => ({ ...prev, permissions: permissions || {} }))
   }, [])
 
   const setModules = useCallback((modules: any[]) => {
@@ -183,6 +291,104 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  // Additional mock functions requested
+  const addInventoryItem = useCallback(async (item: any) => {
+    setState((prev) => ({
+      ...prev,
+      inventory: [
+        ...(prev.inventory ?? []),
+        { id: Math.random().toString(), ...item, quantity: item.quantity || 0 },
+      ],
+    }))
+    return { success: true }
+  }, [])
+
+  const updateInventoryItemDetails = useCallback(async (id: string, updates: any) => {
+    setState((prev) => ({
+      ...prev,
+      inventory: (prev.inventory ?? []).map((i: any) => (i.id === id ? { ...i, ...updates } : i)),
+    }))
+    return { success: true }
+  }, [])
+
+  const getInventoryMovements = useCallback(async (id: string) => {
+    return []
+  }, [])
+
+  const registerDefinitiveOutflow = useCallback(
+    async (id: string, qty: number, recipient: string) => {
+      setState((prev) => ({
+        ...prev,
+        inventory: (prev.inventory ?? []).map((i: any) =>
+          i.id === id ? { ...i, quantity: Math.max(0, i.quantity - qty) } : i,
+        ),
+      }))
+      return { success: true }
+    },
+    [],
+  )
+
+  const finalizeTemporaryOutflow = useCallback(
+    async (outflowId: string, used: number, returned: number) => {
+      return { success: true }
+    },
+    [],
+  )
+
+  const addPurchaseHistory = useCallback(async (id: string, purchase: any) => {
+    setState((prev) => ({
+      ...prev,
+      inventory: (prev.inventory ?? []).map((i: any) => {
+        if (i.id === id) {
+          const qty = purchase.quantity * (i.itemsPerBox || 1)
+          return {
+            ...i,
+            quantity: (i.quantity || 0) + qty,
+            purchaseHistory: [purchase, ...(i.purchaseHistory || [])],
+          }
+        }
+        return i
+      }),
+    }))
+    return { success: true }
+  }, [])
+
+  const addTemporaryOutflow = useCallback(
+    async (id: string, employeeId: string, qty: number, destination: string) => {
+      return { success: true }
+    },
+    [],
+  )
+
+  const addSupplier = useCallback((supplier: any) => {
+    setState((prev) => ({
+      ...prev,
+      suppliers: [...(prev.suppliers ?? []), { id: Math.random().toString(), ...supplier }],
+    }))
+  }, [])
+
+  const updateSupplier = useCallback((id: string, updates: any) => {
+    setState((prev) => ({
+      ...prev,
+      suppliers: (prev.suppliers ?? []).map((s: any) => (s.id === id ? { ...s, ...updates } : s)),
+    }))
+  }, [])
+
+  const removeSupplier = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      suppliers: (prev.suppliers ?? []).filter((s: any) => s.id !== id),
+    }))
+  }, [])
+
+  const updateAppSettings = useCallback(async (updates: any) => {
+    setState((prev) => ({
+      ...prev,
+      appSettings: { ...(prev.appSettings || {}), ...updates },
+    }))
+    return { success: true }
+  }, [])
+
   const updateState = useCallback(
     (updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>)) => {
       setState((prev) => {
@@ -196,13 +402,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       ...state,
-      sidebarOpen: state.sidebarOpen,
-      user: state.user,
-      profile: state.profile,
-      permissions: state.permissions,
-      modules: state.modules,
-      isLoading: state.isLoading,
-      isAdmin: state.isAdmin,
+      setSidebarOpen,
+      setUser,
+      setProfile,
+      setPermissions,
+      setModules,
+      setIsLoading,
+      setIsAdmin,
       addInventoryOption,
       removeInventoryOption,
       updateInventoryOption,
@@ -214,17 +420,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateSchedule,
       addPermission,
       removePermission,
-      setSidebarOpen,
-      setUser,
-      setProfile,
-      setPermissions,
-      setModules,
-      setIsLoading,
-      setIsAdmin,
+      addInventoryItem,
+      updateInventoryItemDetails,
+      getInventoryMovements,
+      registerDefinitiveOutflow,
+      finalizeTemporaryOutflow,
+      addPurchaseHistory,
+      addTemporaryOutflow,
+      addSupplier,
+      updateSupplier,
+      removeSupplier,
+      updateAppSettings,
       setState: updateState,
     }),
     [
       state,
+      setSidebarOpen,
+      setUser,
+      setProfile,
+      setPermissions,
+      setModules,
+      setIsLoading,
+      setIsAdmin,
       addInventoryOption,
       removeInventoryOption,
       updateInventoryOption,
@@ -236,13 +453,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateSchedule,
       addPermission,
       removePermission,
-      setSidebarOpen,
-      setUser,
-      setProfile,
-      setPermissions,
-      setModules,
-      setIsLoading,
-      setIsAdmin,
+      addInventoryItem,
+      updateInventoryItemDetails,
+      getInventoryMovements,
+      registerDefinitiveOutflow,
+      finalizeTemporaryOutflow,
+      addPurchaseHistory,
+      addTemporaryOutflow,
+      addSupplier,
+      updateSupplier,
+      removeSupplier,
+      updateAppSettings,
       updateState,
     ],
   )

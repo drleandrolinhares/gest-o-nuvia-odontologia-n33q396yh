@@ -62,7 +62,7 @@ export function DecreaseStockModal({
     } else if (outflowType === 'partial' && item) {
       form.setValue('quantity', 1)
     }
-  }, [outflowType, item, form])
+  }, [outflowType, item?.id, item?.quantity, form])
 
   const onSubmit = async (v: z.infer<typeof schema>) => {
     if (!item) return

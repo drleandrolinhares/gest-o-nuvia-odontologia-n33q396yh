@@ -185,12 +185,12 @@ export function EditInventoryModal({
       })
 
       setLoadingMovements(true)
-      getInventoryMovements(item.id).then((data) => {
+      getInventoryMovements(item.id).then((data: any) => {
         setMovements(data)
         setLoadingMovements(false)
       })
     }
-  }, [item, open, form, getInventoryMovements])
+  }, [item?.id, open, form, getInventoryMovements])
 
   const pCostRaw = form.watch('packageCost')
   const pCost = parseCurrency(pCostRaw || 0)
