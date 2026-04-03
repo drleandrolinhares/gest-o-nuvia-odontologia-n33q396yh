@@ -7,6 +7,7 @@ import {
   useMemo,
   useCallback,
   useEffect,
+  useRef,
 } from 'react'
 
 export interface InventoryItem {
@@ -128,12 +129,16 @@ export interface AppState {
   removeSupplier: any
   updateAppSettings: any
   setState: any
+  modalRefs: React.MutableRefObject<Record<string, any>>
+  registerModalRef: (id: string, ref: any) => void
   [key: string]: any
 }
 
 const AppContext = createContext<AppState | undefined>(undefined)
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const modalRefs = useRef<Record<string, any>>({})
+
   const [state, setState] = useState<Record<string, any>>({
     sidebarOpen: true,
     user: null,
@@ -399,6 +404,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  const registerModalRef = useCallback((id: string, ref: any) => {
+    modalRefs.current[id] = ref
+  }, [])
+
   const value = useMemo(
     () => ({
       ...state,
@@ -432,9 +441,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       removeSupplier,
       updateAppSettings,
       setState: updateState,
+      modalRefs,
+      registerModalRef,
     }),
     [
       state,
+      modalRefs,
+      registerModalRef,
       setSidebarOpen,
       setUser,
       setProfile,

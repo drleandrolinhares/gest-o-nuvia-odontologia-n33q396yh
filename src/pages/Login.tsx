@@ -34,9 +34,13 @@ export default function Login() {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
     if (session && searchParams.get('clear') !== '1') {
-      navigate(from, { replace: true })
+      if (from === '/login' || from === location.pathname) {
+        navigate('/', { replace: true })
+      } else {
+        navigate(from, { replace: true })
+      }
     }
-  }, [session, navigate, from, location.search])
+  }, [session, navigate, from, location.search, location.pathname])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
