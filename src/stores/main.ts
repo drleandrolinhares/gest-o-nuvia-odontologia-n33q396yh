@@ -15,8 +15,8 @@ interface AppState {
   setUser: (user: any | null) => void
   profile: any | null
   setProfile: (profile: any | null) => void
-  permissions: any[]
-  setPermissions: (permissions: any[]) => void
+  permissions: any
+  setPermissions: (permissions: any) => void
   modules: any[]
   setModules: (modules: any[]) => void
   isLoading: boolean
@@ -77,7 +77,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, profile }))
   }, [])
 
-  const setPermissions = useCallback((permissions: any[]) => {
+  const setPermissions = useCallback((permissions: any) => {
     setState((prev) => ({ ...prev, permissions }))
   }, [])
 
