@@ -95,4 +95,6 @@ export function ExplanationPopover() {
           </div>
         )}
       </PopoverContent>
-    
+    </Popover>
+  )
+}
